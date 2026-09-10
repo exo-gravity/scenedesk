@@ -31,4 +31,4 @@
 
 [浏览器证据目录](../../output/playwright/media-workspace/)保留断网、冲突、播放及布局脚本和截图。脚本使用本机夹具 ID，重放前需对应夹具；不是在任意空数据库上自动运行的 CI 套件。`01`／`02` 为初次导入与布局收紧前记录，`08` 为最终生产构建；窄屏截图记录滚动容器当前视口。截图均已逐张检查，签名 URL 和凭据未写入交付记录。
 
-远端合入与 CI 结果在[实施进度](22-implementation-progress.md)补记。后续按 E03 继续资产修订、固定媒体引用及显式共享发布，再接候选、明确采用和实际用片。
+[PR #9](https://github.com/beyondgravitylab/scenedesk/pull/9) 于 2026-09-10 18:31:14 UTC 合入（`2d1511e`）。[推送 CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34514419516) 与 [PR CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34514463749) 均通过，含 51 项数据库和 25 项媒体验证。后续按 E03 继续资产修订、固定媒体引用及显式共享发布，再接候选、明确采用和实际用片。

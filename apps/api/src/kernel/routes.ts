@@ -81,6 +81,13 @@ function permission(tx: Transaction, name: string) {
           : tx.resourceScope === "shared" &&
             ["owner", "admin"].includes(tx.tenantRole ?? "");
       break;
+    case "project_lead_or_shared_admin":
+      allowed =
+        tx.resourceScope === "project"
+          ? ["admin", "lead"].includes(tx.projectRole ?? "")
+          : tx.resourceScope === "shared" &&
+            ["owner", "admin"].includes(tx.tenantRole ?? "");
+      break;
     default:
       throw new Error(`Permission handler missing: ${name}`);
   }

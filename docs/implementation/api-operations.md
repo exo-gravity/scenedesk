@@ -51,11 +51,13 @@
 | PR-06 | GET | `/v1/tenants/{tenantId}/assets/{assetId}` | `getAsset` | `scope_member` |
 | PR-06 | PATCH | `/v1/tenants/{tenantId}/assets/{assetId}` | `changeAssetMetadata` | `project_member_or_shared_admin` |
 | PR-06 | GET | `/v1/tenants/{tenantId}/assets/{assetId}/revisions` | `listAssetRevisions` | `scope_member` |
+| PR-06 | GET | `/v1/tenants/{tenantId}/asset-revisions/{revisionId}` | `getAssetRevision` | `scope_member` |
 | PR-06 | POST | `/v1/tenants/{tenantId}/assets/{assetId}/revisions` | `reviseAsset` | `project_member_or_shared_admin` |
 | PR-05 | POST | `/v1/tenants/{tenantId}/assets/{assetId}/revisions/{revisionId}/confirm` | `confirmAssetRevision` | `project_lead_or_shared_admin` |
 | PR-06 | POST | `/v1/tenants/{tenantId}/assets/{assetId}/publish` | `publishSharedAsset` | `owner_admin` |
 | PR-06 | POST | `/v1/tenants/{tenantId}/assets/{assetId}/archive` | `archiveAsset` | `project_member_or_shared_admin` |
 | PR-06 | GET | `/v1/tenants/{tenantId}/assets/{assetId}/usages` | `getAssetUsages` | `scope_member` |
+| PR-06 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/shared-imports` | `listSharedImports` | `project_member` |
 | PR-06 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/shared-imports` | `importSharedAsset` | `project_member` |
 | PR-06 | POST | `/v1/tenants/{tenantId}/uploads` | `createUpload` | `project_member_or_shared_admin` |
 | PR-06 | GET | `/v1/tenants/{tenantId}/uploads/{uploadId}` | `getUpload` | `scope_member` |

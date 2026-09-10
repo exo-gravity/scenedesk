@@ -307,6 +307,13 @@ function ProjectDetails({
       >
         项目素材
       </Button>
+      <Button
+        component="a"
+        href={`#/app/t/${tenantId}/p/${projectId}/assets`}
+        mb="lg"
+      >
+        项目资产
+      </Button>
       {manager || lead ? (
         <ProjectSettings key={p.id} project={p} path={path} active={active} />
       ) : (

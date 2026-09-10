@@ -1,12 +1,12 @@
 # 幕序 · SceneDesk
 
-2026-09-10 更新：用户已授权正式工程实施与 GitHub 合入，当前已推进至内容、任务和素材导入，继续实施制作与交付。先以导入素材及模拟供应商推进，无真实模型也可实施制作、剪辑、审阅与交付。完成情况和实际验收以[实施进度](docs/implementation/22-implementation-progress.md)为准；下文原型和 S0 说明仍描述现有交付，不能视为完整 MVP 已完成。
+2026-09-10 更新：用户已授权正式工程实施与 GitHub 合入，当前已推进至内容、任务、素材导入和资产固定版本，继续实施制作与交付。先以导入素材及模拟供应商推进，无真实模型也可实施制作、剪辑、审阅与交付。完成情况和实际验收以[实施进度](docs/implementation/22-implementation-progress.md)为准；下文原型和 S0 说明仍描述现有交付，不能视为完整 MVP 已完成。
 
 产品名称已由用户确认：中文名 **幕序**，英文名 **SceneDesk**，中英文组合统一写作 **幕序 · SceneDesk**。产品类型为 AI 影像创作工作台；后续产品界面与现行文档采用这一名称。
 
 短剧优先，长期支持广告。首期核心场景是一位制作人员主责完成一场戏；完整 MVP 包含每场分镜／自由画布双模式，以及整集审阅交付、跨集复用和内部后期接手。
 
-当前已实现：**身份／权限／项目、手工内容结构、CSV 提案、项目默认创作确认与场次任务**，包括工作室、成员邀请、所有权交接、项目与负责人、剧目设定、剧本版本、集场镜、镜头要求与原文历史、归档恢复。有 PostgreSQL 持久化、RLS、CAS、幂等和对应业务页面。[基础运行说明](docs/implementation/23-identity-project-foundation.md)与[内容实现说明](docs/implementation/24-content-structure.md)列出边界。[CSV 提案](docs/implementation/25-csv-proposals.md)支持导入预览、修订、差异复核和一次采纳；[创作依据](docs/implementation/26-creative-bases.md)支持固定快照、正式确认及冲突恢复；[场次主责与任务](docs/implementation/27-scene-tasks.md)支持分派、个人筛选、资格失效提示和不可变处理历史。[素材导入](docs/implementation/30-media-import-service.md)已接通私有存储与独立处理器；[素材工作台](docs/implementation/31-media-workspace.md)支持断网续办、来源冲突核对、音视频预览和原文件下载。资产、生成、编辑渲染和交付继续实施，完整 MVP 尚未完成。
+当前已实现：**身份／权限／项目、手工内容结构、CSV 提案、项目默认创作确认与场次任务**，包括工作室、成员邀请、所有权交接、项目与负责人、剧目设定、剧本版本、集场镜、镜头要求与原文历史、归档恢复。有 PostgreSQL 持久化、RLS、CAS、幂等和对应业务页面。[基础运行说明](docs/implementation/23-identity-project-foundation.md)与[内容实现说明](docs/implementation/24-content-structure.md)列出边界。[CSV 提案](docs/implementation/25-csv-proposals.md)支持导入预览、修订、差异复核和一次采纳；[创作依据](docs/implementation/26-creative-bases.md)支持固定快照、正式确认及冲突恢复；[场次主责与任务](docs/implementation/27-scene-tasks.md)支持分派、个人筛选、资格失效提示和不可变处理历史。[素材导入](docs/implementation/30-media-import-service.md)已接通私有存储与独立处理器；[素材工作台](docs/implementation/31-media-workspace.md)支持断网续办、来源冲突核对、音视频预览和原文件下载。[资产工作区](docs/implementation/32-asset-versions.md)支持独立造型、固定版本、设定确认、明确引入共享声音和冲突恢复。资产在镜头中的引用、共享发布、生成、编辑渲染和交付继续实施，完整 MVP 尚未完成。
 
 已确认的视觉原型继续保留，使用虚构内容；核心体验和专项样例仅在页面内存保留，刷新或离开会重置，不能替代业务验收。
 
@@ -62,6 +62,8 @@ python3 -m venv .venv
 静态校验默认将本次报告与文件清单写入 `output/documentation-checks/<UTC 时间戳>/`，命令输出实际路径；可用 `--output-dir output/documentation-checks/<新目录>` 指定位置，已有目录不会覆盖。`docs/implementation/` 中旧报告与交付清单保留为历史。`verify-local.mjs`／`verify-visual.mjs` 的运行报告同样按实际时间写入 `output/engineering/`，不再回写 09-09 的结果。
 
 契约有变化时先运行 Python 生成器，再执行 `npm run contracts:generate`。`check` 验证生成类型、前后端类型、前端构建、契约运行时样例与有限基础测试；数据库测试使用单独临时 schema 并清理自己的夹具。CI 定义在 [.github/workflows/ci.yml](.github/workflows/ci.yml)，未推送前不代表远端 CI 已通过。
+
+协作实现遵循[项目工程约定](AGENTS.md)：以实际业务结果、失败恢复与权限验证判断完成；无模型模式、历史事实和真实验收边界必须保持明确。
 
 ## 工程目录
 

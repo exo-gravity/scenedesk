@@ -181,3 +181,5 @@ normalize旧版直接传timeline的请求在1.3.0被拒绝；replacement预览�
 实施补充：创作依据列表可按 `subjectId` 与 `kind` 查找未确认快照；只读 `number` 表示同一主体内依据次序，`isCurrentSource`／`currentConfirmationId` 表示读取时当前来源和正式指针，不改写历史快照。确认历史返回 `note`。实现及固定稿限定用途的当前边界见 [26 创作依据](26-creative-bases.md)。
 
 实施补充：任务详情和不可变处理历史分别由 `getTask` 与 `listTaskRevisions` 读取。`assigneeAvailable` 为当前成员／项目资格，不改写历史受派人。场次筛选同时匹配仅绑定该场镜头的任务；显式同时绑定场与镜的任务禁止镜头悄然跨场。当前一般任务、协助及场次主责可用；正式返工及结构化成果需真实审稿、意见与媒体来源，暂不接受裸引用。见 [27 场次主责与任务](27-scene-tasks.md)。
+
+资产实施补充：增加 `getAssetRevision` 读取确切固定修订，详情和引用无需加载全部历史；增加 `listSharedImports` 读取当前项目已明确引入的固定版本，刷新不会丢失引入状态。二者沿用现有授权、分页和读权限，不改变确认、发布或升级语义。
