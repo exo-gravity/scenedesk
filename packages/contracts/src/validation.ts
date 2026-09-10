@@ -1,10 +1,6 @@
 import { readFileSync } from "node:fs";
-import {
-  Ajv2020,
-  type ErrorObject,
-  type ValidateFunction,
-} from "ajv/dist/2020.js";
-import formats from "ajv-formats";
+import type { ValidateFunction } from "ajv/dist/2020.js";
+import { createContractCompiler } from "./compiler.js";
 
 // The same 2020-12 dialect as OpenAPI 3.1; never strip fields or coerce input.
 const spec = JSON.parse(
@@ -13,15 +9,8 @@ const spec = JSON.parse(
     "utf8",
   ),
 );
-const ajv = new Ajv2020({
-  strict: false,
-  allErrors: true,
-  coerceTypes: false,
-  removeAdditional: false,
-  useDefaults: false,
-});
-formats.default(ajv);
-ajv.addSchema({ $id: "urn:drama:contract", ...spec });
+const { ajv, validateContract } = createContractCompiler(spec);
+export { validateContract };
 
 type Schema = Record<string, unknown>;
 type Parameter = {
@@ -104,23 +93,4 @@ export function operationDefinition(name: string): OperationDefinition {
     }
   }
   throw new Error(`Unknown operation ${name}`);
-}
-const validators = new Map<string, ValidateFunction>();
-export function validateContract(
-  name: string,
-  value: unknown,
-): { valid: boolean; errors: ErrorObject[] } {
-  if (!Object.hasOwn(spec.components.schemas, name))
-    throw new Error("Unknown contract schema");
-  let validator = validators.get(name);
-  if (!validator) {
-    validator = ajv.compile({
-      $ref: `urn:drama:contract#/components/schemas/${name}`,
-    });
-    validators.set(name, validator);
-  }
-  return {
-    valid: validator(value),
-    errors: structuredClone(validator.errors ?? []),
-  };
 }
