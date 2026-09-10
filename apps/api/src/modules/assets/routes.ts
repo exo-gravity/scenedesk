@@ -293,10 +293,11 @@ export function assetRoutes(app: FastifyInstance, context: ApiContext) {
           UNION SELECT c.production_id,c.scene_id,c.shot_revision_id FROM creative_asset_bindings c LEFT JOIN asset_revisions r ON r.id=c.asset_revision_id
             WHERE c.tenant_id=$1 AND (c.asset_id=$2 OR r.asset_id=$2)
         ), locations AS (
-          SELECT r.id,r.created_at,'asset_revision' AS kind,r.id AS object_id,a.project_id,NULL::uuid AS shot_id,left(a.name||' · v'||r.number::text,160) AS label FROM asset_revisions r JOIN assets a ON a.id=r.asset_id WHERE r.tenant_id=$1 AND (EXISTS (SELECT 1 FROM asset_revision_dependencies d JOIN asset_revisions target ON target.id=d.referenced_asset_revision_id WHERE d.tenant_id=$1 AND d.asset_revision_id=r.id AND target.asset_id=$2) OR EXISTS (SELECT 1 FROM asset_revision_media m WHERE m.tenant_id=$1 AND m.asset_revision_id=r.id AND m.subject_asset_id=$2))
-          UNION ALL SELECT p.id,p.created_at,'production',p.id,p.project_id,NULL::uuid,left(p.title||' · 剧目默认',160) FROM productions p WHERE p.tenant_id=$1 AND EXISTS (SELECT 1 FROM uses u WHERE u.production_id=p.id)
-          UNION ALL SELECT s.id,s.created_at,'scene',s.id,s.project_id,NULL::uuid,left(s.title||' · 场次设定',160) FROM scenes s WHERE s.tenant_id=$1 AND EXISTS (SELECT 1 FROM uses u WHERE u.scene_id=s.id)
-          UNION ALL SELECT r.id,r.created_at,'shot_revision',r.id,r.project_id,r.shot_id,left(s.label||' · 镜头要求 v'||r.number::text,160) FROM shot_revisions r JOIN shots s ON s.id=r.shot_id WHERE r.tenant_id=$1 AND EXISTS (SELECT 1 FROM uses u WHERE u.shot_revision_id=r.id)
+          SELECT r.id,r.created_at,'asset_revision' AS kind,r.id AS object_id,a.project_id,NULL::uuid AS shot_id,NULL::uuid AS scene_id,left(a.name||' · v'||r.number::text,160) AS label FROM asset_revisions r JOIN assets a ON a.id=r.asset_id WHERE r.tenant_id=$1 AND (EXISTS (SELECT 1 FROM asset_revision_dependencies d JOIN asset_revisions target ON target.id=d.referenced_asset_revision_id WHERE d.tenant_id=$1 AND d.asset_revision_id=r.id AND target.asset_id=$2) OR EXISTS (SELECT 1 FROM asset_revision_media m WHERE m.tenant_id=$1 AND m.asset_revision_id=r.id AND m.subject_asset_id=$2))
+          UNION ALL SELECT p.id,p.created_at,'production',p.id,p.project_id,NULL::uuid,NULL::uuid,left(p.title||' · 剧目默认',160) FROM productions p WHERE p.tenant_id=$1 AND EXISTS (SELECT 1 FROM uses u WHERE u.production_id=p.id)
+          UNION ALL SELECT s.id,s.created_at,'scene',s.id,s.project_id,NULL::uuid,s.id,left(s.title||' · 场次设定',160) FROM scenes s WHERE s.tenant_id=$1 AND EXISTS (SELECT 1 FROM uses u WHERE u.scene_id=s.id)
+          UNION ALL SELECT r.id,r.created_at,'shot_revision',r.id,r.project_id,r.shot_id,s.scene_id,left(s.label||' · 镜头要求 v'||r.number::text,160) FROM shot_revisions r JOIN shots s ON s.id=r.shot_id WHERE r.tenant_id=$1 AND EXISTS (SELECT 1 FROM uses u WHERE u.shot_revision_id=r.id)
+          UNION ALL SELECT c.id,c.created_at,'cut_work_draft',c.id,c.project_id,NULL::uuid,c.scene_id,left(c.name||' · 工作稿 r'||w.revision::text,160) FROM cuts c JOIN cut_work_drafts w ON w.cut_id=c.id JOIN cut_work_draft_revisions h ON h.cut_id=w.cut_id AND h.revision=w.revision WHERE c.tenant_id=$1 AND EXISTS (SELECT 1 FROM edit_history_dialogue_refs d JOIN asset_revisions r ON r.id=d.voice_asset_revision_id WHERE d.cut_id=c.id AND d.body_hash=h.body_hash AND r.asset_id=$2)
         ) SELECT * FROM locations WHERE ($3::uuid IS NULL OR project_id=$3) AND label ILIKE $4`,
         [
           tx.tenantId,
@@ -310,6 +311,7 @@ export function assetRoutes(app: FastifyInstance, context: ApiContext) {
             objectId: row.object_id,
             ...(row.project_id ? { projectId: row.project_id } : {}),
             ...(row.shot_id ? { shotId: row.shot_id } : {}),
+            ...(row.scene_id ? { sceneId: row.scene_id } : {}),
             label: row.label,
           }) as Schema<"UsageLocation">,
       ),

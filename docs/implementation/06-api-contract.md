@@ -74,11 +74,15 @@ Take 是单个连续视频区间，必须处于验收时长内；(shotRevisionId
 
 候选为不可变事实：createdBy 由当前身份派生，sourceTakeId 必须属于同项目、同媒体，不能用新请求覆盖原说明或来源。同一去重键与相同元数据返回已有候选；同键但说明／来源不同返回 409 TAKE_ALREADY_EXISTS。旧视频归档后仍可读既有候选，新区间或采用需要 ready 视频及未归档的项目／集／场／镜。区间以安全整数微秒存储，输入十进制秒须精确转换；浏览器代理播放的时间精度不等于最终帧边界。
 
-getSelection 返回 SelectionState：revision 是镜头根当前修改版本，currentSelection 在从未作决定时缺省。selectTake 与 clearSelection 都用该 Shot.revision 做 CAS；响应 ETag 为更新后的镜头根版本，正文 Selection.revision 恒为不可变事实的 1，number 是本镜决定序号。清除返回 200 及不含 takeId 的新决定，历史通过 listSelections 读取；supersedesSelectionId 保留前次决定，selectedBy 由服务器派生。采用或清除仅推进 Shot／ContentTree 修改版本，不新增 ShotRevision，不改变创作依据。当前要求变化仍保留旧采用，并显式标识要求不一致；直接采用旧要求候选返回 409 TAKE_REQUIREMENTS_CHANGED。affectedCutIds 随实际剪辑引用返回，当前 E04 尚无剪辑存储时为空，不能据此宣布“采用不改旧稿”的完整 AT-21 已验收。
+getSelection 返回 SelectionState：revision 是镜头根当前修改版本，currentSelection 在从未作决定时缺省。selectTake 与 clearSelection 都用该 Shot.revision 做 CAS；响应 ETag 为更新后的镜头根版本，正文 Selection.revision 恒为不可变事实的 1，number 是本镜决定序号。清除返回 200 及不含 takeId 的新决定，历史通过 listSelections 读取；supersedesSelectionId 保留前次决定，selectedBy 由服务器派生。采用或清除仅推进 Shot／ContentTree 修改版本，不新增 ShotRevision，不改变创作依据。当前要求变化仍保留旧采用，并显式标识要求不一致；直接采用旧要求候选返回 409 TAKE_REQUIREMENTS_CHANGED。affectedCutIds 随实际剪辑引用返回；E05A 已接入当前工作稿的真实 Take 引用，采用变更不会重写工作稿。固定编排及渲染依赖的完整 AT-21 随 E05 继续验收。
 
 MediaClip.kind=audio 且 streamSelection=embedded_audio 时可读取 video 媒体已有混合音轨，前提是探测到可用音频；default/audio 使用音频媒体，default/video 使用视频媒体。提取混合轨不等于对白声源分离。原视频保留混合轨时再叠替代对白会有双声风险，需显式静音／替换决定。
 
 DramaDialogueBindings 放在短剧层，与通用 Timeline 并列。每条用 shotRevisionId＋dialogueId 关联 clipId、实际 sourceRange 和可选声音版本；字幕条目通过 usage=subtitle 关联。要求改词／表演即使时长相同，也根据绑定列出需要复查的声音和字幕，不自动改写。非对白音频可以不关联；未知外部成片不伪造绑定。
+
+getFixedShotRevision 按项目及固定 revisionId 读取不可变镜头要求，供仅保存 shotRevisionId 的对白关联回查；仍校验当前项目访问权，不从当前镜头要求推断历史文本。相同固定镜头要求及 dialogueId 的不同未静音声源，在实际源区间映射到时间线后重叠，工作稿返回 DUPLICATE_DIALOGUE_SOURCES；同一片段的重复标注不算第二路声音，片段或整轨静音后不再作为可听声源。此检查基于已知关联，不识别未知录音内容。
+
+对白表单未决定原声处理时可以明确保留 dialogue_binding 待处理事项；选择静音关闭整个原生混合轨，不能声称只移除对白。由计划台词整理字幕保留 subtitle_placement 核对事项，不等同于实际音频转写。事项完成和自动诊断分别处理。getAssetUsages 的 cut_work_draft 位置只计算当前工作稿正文的直接声音版本引用；保留历史的外键不冒充当前使用，sceneId 用于返回正确场次剪辑。
 
 ## 5. 剪辑、两种替换与归一
 

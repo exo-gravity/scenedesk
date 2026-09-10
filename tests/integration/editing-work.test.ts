@@ -493,11 +493,116 @@ test("shared unfinished Cut work is independently versioned and protects its fix
         usage: "dialogue",
         voiceAssetRevisionId: voice.id,
       };
+      const fixed = await f.ok(
+        "GET",
+        `${f.path}/shot-revisions/${shot.specRevisionId}`,
+      );
+      assert.equal(fixed.shotId, shot.id);
+      assert.equal(fixed.spec.dialogue[0].text, "钥匙还在。");
+      assert.deepEqual(
+        fixed,
+        await f.ok(
+          "GET",
+          `${f.path}/shots/${shot.id}/revisions/${shot.specRevisionId}`,
+        ),
+      );
+      const otherProject = await f.createProject("固定台词读隔离");
+      assert.equal(
+        (
+          await f.request(
+            "GET",
+            `/v1/tenants/${f.tenant.id}/projects/${otherProject.id}/shot-revisions/${shot.specRevisionId}`,
+          )
+        ).statusCode,
+        404,
+      );
+      const deniedReader = await f.identity("fixed-dialogue-stranger");
+      assert.equal(
+        (
+          await f.request(
+            "GET",
+            `${f.path}/shot-revisions/${shot.specRevisionId}`,
+            undefined,
+            undefined,
+            randomUUID(),
+            deniedReader,
+          )
+        ).statusCode,
+        404,
+      );
       document.dramaBindings.push(binding);
       work = await save(document, work.revision);
       assert.ok(work.issues.some((i: any) => i.code === "BINDING_UNRESOLVED"));
       assert.equal(await count("edit_history_dialogue_refs"), 1);
+      const duplicate = structuredClone(document),
+        source = await media();
+      const nativeClip = {
+        ...clip,
+        id: randomUUID(),
+        mediaId: source,
+        takeId: undefined,
+        selectionId: undefined,
+        range: { inUs: 0, outUs: 1_000_000 },
+        timelineStartUs: 0,
+      };
+      const audioClip = {
+        ...nativeClip,
+        id: randomUUID(),
+        kind: "audio",
+        streamSelection: "embedded_audio",
+      };
+      duplicate.timeline.tracks = [
+        { id: randomUUID(), kind: "video", muted: false, items: [nativeClip] },
+        { id: randomUUID(), kind: "audio", muted: false, items: [audioClip] },
+      ];
+      duplicate.dramaBindings.push(
+        {
+          ...binding,
+          id: randomUUID(),
+          clipId: nativeClip.id,
+          usage: "native_mixed",
+        },
+        {
+          ...binding,
+          id: randomUUID(),
+          clipId: audioClip.id,
+          usage: "dialogue",
+        },
+      );
+      work = await save(duplicate, work.revision);
+      assert.deepEqual(
+        new Set(
+          work.issues.find((i: any) => i.code === "DUPLICATE_DIALOGUE_SOURCES")
+            .clipIds,
+        ),
+        new Set([nativeClip.id, audioClip.id]),
+      );
+      duplicate.timeline.tracks[0].items[0].muted = true;
+      work = await save(duplicate, work.revision);
+      assert.ok(
+        !work.issues.some((i: any) => i.code === "DUPLICATE_DIALOGUE_SOURCES"),
+      );
+      work = await save(document, work.revision);
       const bad = structuredClone(document);
+      const usageRoute = `/v1/tenants/${f.tenant.id}/assets/${asset.id}/usages`;
+      assert.ok(
+        (await f.ok("GET", usageRoute)).items.some(
+          (u: any) =>
+            u.kind === "cut_work_draft" &&
+            u.objectId === cut.id &&
+            u.projectId === f.project.id,
+        ),
+      );
+      const noVoice = structuredClone(document);
+      delete noVoice.dramaBindings[0].voiceAssetRevisionId;
+      work = await save(noVoice, work.revision);
+      assert.ok(
+        !(await f.ok("GET", usageRoute)).items.some(
+          (u: any) => u.kind === "cut_work_draft" && u.objectId === cut.id,
+        ),
+        "retained history is not reported as current work use",
+      );
+      work = await save(document, work.revision);
       bad.dramaBindings[0].dialogueId = randomUUID();
       assert.ok(
         [409, 422].includes(

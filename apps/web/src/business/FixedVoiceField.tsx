@@ -18,16 +18,20 @@ export function FixedVoiceField({
   projectId,
   value,
   onChange,
+  label = "角色默认声音",
+  removeLabel = "移除默认声音",
 }: {
   path: string;
   projectId?: string | undefined;
   value?: string | undefined;
   onChange: (id: string | undefined) => void;
+  label?: string;
+  removeLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <Stack gap="xs">
-      <Text fw={500}>角色默认声音</Text>
+      <Text fw={500}>{label}</Text>
       {value ? (
         <FixedVoiceLabel path={path} id={value} />
       ) : (
@@ -39,7 +43,7 @@ export function FixedVoiceField({
         <Button onClick={() => setOpen(true)}>选择声音固定版</Button>
         {value && (
           <Button variant="subtle" onClick={() => onChange(undefined)}>
-            移除默认声音
+            {removeLabel}
           </Button>
         )}
       </Group>
@@ -200,14 +204,14 @@ function VoiceVersions({
           path: `${path}/projects/${projectId}/shared-imports`,
           body: { assetRevisionId: id },
         },
-        { onSuccess: () => done(id) },
+        { onCommitted: () => done(id) },
       );
     else done(id);
   };
   return (
     <Stack gap="md">
       <Text size="sm">
-        选择后固定到该版本。声音资产的新修订不会自动替换角色的默认声音。
+        选择后固定到该版本。声音资产的新修订不会自动替换这里的声音引用。
         {shared ? "此操作会将所选共享版本明确引入当前项目。" : ""}
       </Text>
       <ErrorNotice error={current.error ?? history.error ?? command.error} />

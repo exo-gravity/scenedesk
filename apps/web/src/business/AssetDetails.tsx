@@ -437,6 +437,16 @@ function AssetUsage({
     `${path}/asset-revisions/${usage.objectId}`,
     usage.kind === "asset_revision",
   );
+  if (usage.kind === "cut_work_draft" && usage.projectId && usage.sceneId)
+    return (
+      <Button
+        component="a"
+        variant="subtle"
+        href={`#/app/t/${tenantId}/p/${usage.projectId}/editing?scene=${usage.sceneId}&cut=${usage.objectId}&tool=dialogue`}
+      >
+        {usage.label}
+      </Button>
+    );
   if (
     usage.projectId &&
     (usage.kind === "production" ||

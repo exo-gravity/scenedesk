@@ -423,18 +423,19 @@ function describe(value: unknown): string {
   const item = value as Record<string, unknown>;
   if (item.clip) {
     const c = item.clip as WorkClip;
-    return `${c.kind === "subtitle" ? `字幕：${c.text || "（空白）"}，时长 ${sourceSeconds(c.durationUs)} 秒` : `${c.kind === "video" ? "视频" : "声音"} ${c.mediaId.slice(0, 8)}，源区间 ${sourceSeconds(c.range.inUs)}–${sourceSeconds(c.range.outUs)} 秒，${c.muted ? "静音" : `${c.gainDb} dB`}${c.kind === "video" ? `，${c.fit === "cover" ? "填满裁切" : "完整画幅"}` : ""}`}；放置 ${sourceSeconds(c.timelineStartUs)} 秒`;
+    return `${c.kind === "subtitle" ? `字幕：${c.text || "（空白）"}，时长 ${sourceSeconds(c.durationUs)} 秒` : `${c.kind === "video" ? "视频" : "声音"} ${c.mediaId}，源区间 ${sourceSeconds(c.range.inUs)}–${sourceSeconds(c.range.outUs)} 秒，${c.muted ? "静音" : "启用"}，${c.gainDb} dB，${c.streamSelection === "embedded_audio" ? "内嵌音频流" : "默认流"}${c.kind === "video" ? `，${c.fit === "cover" ? "填满裁切" : "完整画幅"}` : ""}，候选 ${c.takeId ?? "无"}，采用记录 ${c.selectionId ?? "无"}`}；轨道 ${item.trackId}；放置 ${sourceSeconds(c.timelineStartUs)} 秒`;
   }
   if (item.spec) {
     const s = item.spec as Schema<"Spec">;
-    return `${s.width}×${s.height} · ${s.fpsNum}/${s.fpsDen} fps · ${s.language} · ${item.burnSubtitles ? "烧录字幕" : "不烧录字幕"}`;
+    return `${s.width}×${s.height} · ${s.fpsNum}/${s.fpsDen} fps · ${s.language} · ${item.burnSubtitles ? "烧录字幕" : "不烧录字幕"} · 质量参考：${(s.qualityReferenceMediaIds ?? []).join("、") || "无"} · 交付备注：${s.deliveryNotes || "无"}`;
   }
   if ("muted" in item)
     return `${item.kind} · ${item.muted ? "静音／隐藏" : "启用"}`;
-  if (item.note) return String(item.note);
   if (item.dialogueId)
-    return `对白 ${String(item.dialogueId).slice(0, 8)} → 片段 ${String(item.clipId).slice(0, 8)} · ${item.usage}`;
-  return `来源 ${String(item.normalizationId ?? "").slice(0, 8)}`;
+    return `固定镜头要求 ${item.shotRevisionId} · 台词 ${item.dialogueId} → 片段 ${item.clipId} · ${item.usage} · 声音固定版 ${item.voiceAssetRevisionId ?? "无"} · 源区间 ${item.sourceRange ? `${sourceSeconds((item.sourceRange as Schema<"Range">).inUs)}–${sourceSeconds((item.sourceRange as Schema<"Range">).outUs)} 秒` : "随整个片段"} · 备注 ${item.note || "无"}`;
+  if (item.clipIds)
+    return `${item.kind} · 相关片段 ${(item.clipIds as string[]).join("、") || "未关联"} · ${item.note || "尚未说明"}`;
+  return `片段 ${item.clipId} · 精确时间来源 ${String(item.normalizationId ?? "")}`;
 }
 export function CutConflict({
   controller,
@@ -496,9 +497,15 @@ export function CutConflict({
                 )
               }
             />
-            <Text size="sm">共同基线：{describe(change.base)}</Text>
-            <Text size="sm">本机：{describe(change.local)}</Text>
-            <Text size="sm">服务器：{describe(change.remote)}</Text>
+            <Text size="sm" style={{ overflowWrap: "anywhere" }}>
+              共同基线：{describe(change.base)}
+            </Text>
+            <Text size="sm" style={{ overflowWrap: "anywhere" }}>
+              本机：{describe(change.local)}
+            </Text>
+            <Text size="sm" style={{ overflowWrap: "anywhere" }}>
+              服务器：{describe(change.remote)}
+            </Text>
           </Stack>
         ))}
         <ErrorNotice error={error} />

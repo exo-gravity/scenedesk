@@ -168,6 +168,15 @@ export function workDocumentIssues(
   )
     add("MEDIA_UNAVAILABLE", "输出规格的质量参考当前不可用，请核对素材状态。");
   const index = new Map(clips.map((c) => [key(c.id), c]));
+  const trackMuted = new Set(
+    document.timeline.tracks
+      .filter((t) => t.muted)
+      .flatMap((t) => t.items.map((c) => key(c.id))),
+  );
+  const audible = new Map<
+    string,
+    { clipId: string; start: bigint; end: bigint }[]
+  >();
   const length = (clip: WorkClip) =>
     clip.kind === "subtitle"
       ? BigInt(clip.durationUs)
@@ -239,7 +248,8 @@ export function workDocumentIssues(
         ? clip.kind === "subtitle"
         : binding.usage === "dialogue"
           ? clip.kind === "audio"
-          : clip.kind === "video" ||
+          : (clip.kind === "video" &&
+              media.get(key(clip.mediaId))?.hasAudio === true) ||
             (clip.kind === "audio" &&
               clip.streamSelection === "embedded_audio"));
     if (
@@ -254,6 +264,76 @@ export function workDocumentIssues(
       add("BINDING_UNRESOLVED", "有对白关联尚未对应有效的片段或源区间。", [
         binding.clipId,
       ]);
+    else if (
+      clip &&
+      clip.kind !== "subtitle" &&
+      binding.usage !== "subtitle" &&
+      !clip.muted &&
+      !trackMuted.has(key(clip.id))
+    ) {
+      const source = binding.sourceRange ?? clip.range;
+      if (source.outUs > source.inUs) {
+        const group = `${key(binding.shotRevisionId)}:${key(binding.dialogueId)}`;
+        const intervals = audible.get(group) ?? [];
+        const start =
+          BigInt(clip.timelineStartUs) +
+          BigInt(source.inUs) -
+          BigInt(clip.range.inUs);
+        intervals.push({
+          clipId: clip.id,
+          start,
+          end: start + BigInt(source.outUs) - BigInt(source.inUs),
+        });
+        audible.set(group, intervals);
+      }
+    }
+  }
+  // A repeated annotation of one clip is not a second audio source. Keeping
+  // the two furthest ends with distinct clip IDs detects all overlap members
+  // without enumerating quadratically many pairs in a large dialogue group.
+  for (const intervals of audible.values()) {
+    intervals.sort((a, b) =>
+      a.start < b.start
+        ? -1
+        : a.start > b.start
+          ? 1
+          : a.end < b.end
+            ? -1
+            : a.end > b.end
+              ? 1
+              : a.clipId.localeCompare(b.clipId),
+    );
+    let furthest: typeof intervals = [];
+    for (const interval of intervals) {
+      const other = furthest.find(
+        (value) => key(value.clipId) !== key(interval.clipId),
+      );
+      if (other && interval.start < other.end)
+        add(
+          "DUPLICATE_DIALOGUE_SOURCES",
+          "同一句已知台词存在重叠的未静音声源，请核对原生混合音轨与独立对白。",
+          [other.clipId, interval.clipId],
+        );
+      const existing = furthest.find(
+        (value) => key(value.clipId) === key(interval.clipId),
+      );
+      if (!existing || existing.end < interval.end) {
+        furthest = [
+          ...furthest.filter(
+            (value) => key(value.clipId) !== key(interval.clipId),
+          ),
+          interval,
+        ]
+          .sort((a, b) =>
+            a.end > b.end
+              ? -1
+              : a.end < b.end
+                ? 1
+                : a.clipId.localeCompare(b.clipId),
+          )
+          .slice(0, 2);
+      }
+    }
   }
   for (const unresolved of document.unresolvedEdits)
     add(

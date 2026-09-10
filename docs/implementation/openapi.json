@@ -3154,6 +3154,86 @@
         "x-requirement": "PR-03"
       }
     },
+    "/v1/tenants/{tenantId}/projects/{projectId}/shot-revisions/{revisionId}": {
+      "get": {
+        "operationId": "getFixedShotRevision",
+        "tags": [
+          "PR-03"
+        ],
+        "summary": "由已保存引用读取固定镜头要求及其真实所属镜头",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "revisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotRevision"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-03"
+      }
+    },
     "/v1/tenants/{tenantId}/projects/{projectId}/content/reorder": {
       "post": {
         "operationId": "reorderContent",
@@ -15549,6 +15629,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "sceneId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "label": {
             "type": "string",
             "minLength": 1,
@@ -23094,7 +23178,8 @@
               "BINDING_UNRESOLVED",
               "UNRESOLVED_EDIT",
               "CUT_BASE_CHANGED",
-              "MEDIA_UNAVAILABLE"
+              "MEDIA_UNAVAILABLE",
+              "DUPLICATE_DIALOGUE_SOURCES"
             ]
           },
           "clipIds": {

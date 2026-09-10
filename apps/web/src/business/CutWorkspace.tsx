@@ -34,6 +34,7 @@ import {
 } from "./CutWorkPanels";
 import classes from "./candidates.module.css";
 import cutClasses from "./cuts.module.css";
+import { CutDialoguePanel, CutPendingEdits } from "./CutDialoguePanel";
 
 export default function CutWorkspace({
   tenantId,
@@ -264,8 +265,12 @@ function CutEditor({
     projectId,
     cut.id,
   );
-  const [tool, setTool] = useState<"source" | "history" | "issues" | null>(
-    null,
+  const [tool, setTool] = useState<
+    "source" | "history" | "issues" | "dialogue" | null
+  >(() =>
+    new URLSearchParams(location.hash.split("?")[1]).get("tool") === "dialogue"
+      ? "dialogue"
+      : null,
   );
   const path = projectPath(tenantId, projectId),
     mediaPath = tenantPath(tenantId);
@@ -336,6 +341,11 @@ function CutEditor({
             片段设置
           </Button>
           <Button
+            onClick={() => setTool(tool === "dialogue" ? null : "dialogue")}
+          >
+            对白与声音
+          </Button>
+          <Button
             onClick={() => void controller.save()}
             disabled={
               blocked || state.phase === "conflict" || state.hasInvalidInput
@@ -398,6 +408,18 @@ function CutEditor({
               path={`${path}/cuts/${cut.id}`}
               disabled={blocked}
             />
+          ) : tool === "dialogue" ? (
+            <CutDialoguePanel
+              controller={controller}
+              state={state}
+              path={path}
+              mediaPath={mediaPath}
+              projectId={projectId}
+              sceneId={sceneId}
+              {...(clip ? { clipId: clip.id } : {})}
+              disabled={blocked}
+              href={href}
+            />
           ) : tool === null && clip ? (
             <fieldset className={classes.fieldset} disabled={blocked}>
               <ClipFields
@@ -448,6 +470,12 @@ function CutEditor({
                     },
                   })
                 }
+              />
+              <CutPendingEdits
+                controller={controller}
+                state={state}
+                disabled={blocked}
+                href={href}
               />
             </>
           )}

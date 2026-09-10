@@ -30,7 +30,7 @@ def extend_schemas(s):
     s["EditingIssue"] = obj({
         "code": enum("MAIN_VIDEO_REQUIRED", "TIMELINE_GAP", "TIMELINE_OVERLAP", "SOURCE_RANGE_INVALID",
                      "EMPTY_CLIP", "SUBTITLE_OUT_OF_BOUNDS", "AUDIO_OUT_OF_BOUNDS", "BINDING_UNRESOLVED",
-                     "UNRESOLVED_EDIT", "CUT_BASE_CHANGED", "MEDIA_UNAVAILABLE"),
+                     "UNRESOLVED_EDIT", "CUT_BASE_CHANGED", "MEDIA_UNAVAILABLE", "DUPLICATE_DIALOGUE_SOURCES"),
         "clipIds": {**array(ID, 5000), "uniqueItems": True}, "message": TEXT,
     }, ["code", "clipIds", "message"])
     s["SaveCutWorkDraft"] = obj({"baseCutRevision": POS, "document": ref("CutWorkDocument")},
