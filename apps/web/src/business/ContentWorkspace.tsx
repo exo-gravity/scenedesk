@@ -2,7 +2,7 @@ import { ProposalWorkspace } from "./ProposalWorkspace";
 import { CreativeWorkspace } from "./CreativeWorkspace";
 import { TaskWorkspace } from "./TaskWorkspace";
 import { memberName, taskStatuses } from "./task-model";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActionIcon,
   Alert,
@@ -38,6 +38,12 @@ import {
 } from "./ContentEditors";
 import classes from "./workbench.module.css";
 import layout from "./content.module.css";
+import {
+  ContinuitySummary,
+  DialogueSummary,
+  FixedAssetLabel,
+} from "./CreativeAssetFields";
+import { AssetReferenceFields } from "./AssetReferenceFields";
 
 export function ContentWorkspace({
   tenantId,
@@ -63,6 +69,35 @@ export function ContentWorkspace({
     [creativeOpen, setCreativeOpen] = useState(false),
     [tasksOpen, setTasksOpen] = useState(false),
     [history, setHistory] = useState<Schema<"Shot">>();
+  const [historyRevision, setHistoryRevision] = useState<string>();
+  const linked = new URLSearchParams(location.hash.split("?")[1]),
+    linkedScene = linked.get("scene"),
+    linkedShot = linked.get("shot"),
+    linkedRevision = linked.get("revision");
+  const handledLink = useRef("");
+  useEffect(() => {
+    const key = JSON.stringify([linkedScene, linkedShot, linkedRevision]);
+    if (
+      !content.data ||
+      (!linkedScene && !linkedShot) ||
+      key === handledLink.current
+    )
+      return;
+    handledLink.current = key;
+    const shot = content.data.shots.find((s) => s.id === linkedShot);
+    const scene = content.data.scenes.find(
+      (s) => s.id === (shot?.sceneId ?? linkedScene),
+    );
+    if (scene) {
+      setEpisodeId(scene.episodeId);
+      setSceneId(scene.id);
+      setArchived(true);
+    }
+    if (shot) {
+      setHistoryRevision(linkedRevision ?? shot.specRevisionId);
+      setHistory(shot);
+    }
+  }, [content.data, linkedScene, linkedShot, linkedRevision]);
   const [archive, setArchive] = useState<{
     kind: ContentEditing["kind"];
     entity: ContentEntity;
@@ -71,7 +106,7 @@ export function ContentWorkspace({
   useEffect(() => {
     if (project.data) document.title = `${project.data.name} · 集场镜 · 幕序`;
   }, [project.data?.name]);
-  if (project.isError || content.isError)
+  if ((project.isError && !project.data) || (content.isError && !content.data))
     return (
       <ErrorNotice
         error={project.error ?? content.error}
@@ -227,6 +262,13 @@ export function ContentWorkspace({
   };
   return (
     <>
+      <ErrorNotice
+        error={project.error ?? content.error}
+        retry={() => {
+          void project.refetch();
+          void content.refetch();
+        }}
+      />
       <Button
         component="a"
         href={`#/app/t/${tenantId}/p/${projectId}`}
@@ -418,6 +460,29 @@ export function ContentWorkspace({
                   {scene.state.spatialNotes}
                 </Text>
               )}
+              {!!(
+                scene.state.characters?.length ||
+                scene.state.props?.length ||
+                scene.defaultAssetRevisionIds?.length
+              ) && (
+                <details>
+                  <summary>查看场次角色、道具与默认资产</summary>
+                  <Stack my="md">
+                    <ContinuitySummary
+                      path={path.split("/projects/")[0]!}
+                      value={scene.state}
+                      label="场次预期状态"
+                    />
+                    {scene.defaultAssetRevisionIds?.map((id) => (
+                      <FixedAssetLabel
+                        key={id}
+                        path={path.split("/projects/")[0]!}
+                        id={id}
+                      />
+                    ))}
+                  </Stack>
+                </details>
+              )}
               <Group justify="space-between" mb="lg">
                 <Text fw={600}>
                   镜头列表{" "}
@@ -489,7 +554,10 @@ export function ContentWorkspace({
                       <Button
                         size="xs"
                         variant="subtle"
-                        onClick={() => setHistory(sh)}
+                        onClick={() => {
+                          setHistoryRevision(undefined);
+                          setHistory(sh);
+                        }}
                       >
                         要求历史
                       </Button>
@@ -542,7 +610,14 @@ export function ContentWorkspace({
         title={`${history?.label ?? ""} · 要求历史`}
         size="lg"
       >
-        {history && <ShotHistory path={path} shot={history} />}
+        {history && (
+          <ShotHistory
+            key={`${history.id}:${historyRevision ?? "current"}`}
+            path={path}
+            shot={history}
+            initialRevisionId={historyRevision}
+          />
+        )}
       </Modal>
       <Modal
         opened={!!archive}
@@ -670,11 +745,21 @@ function ScriptArchive({ scripts }: { scripts: Schema<"ScriptRevision">[] }) {
     </Stack>
   );
 }
-function ShotHistory({ path, shot }: { path: string; shot: Schema<"Shot"> }) {
+function ShotHistory({
+  path,
+  shot,
+  initialRevisionId,
+}: {
+  path: string;
+  shot: Schema<"Shot">;
+  initialRevisionId?: string | undefined;
+}) {
   const history = useList<Schema<"ShotRevision">>(
       `${path}/shots/${shot.id}/revisions`,
     ),
-    [id, setId] = useState<string | null>(shot.specRevisionId);
+    [id, setId] = useState<string | null>(
+      initialRevisionId ?? shot.specRevisionId,
+    );
   const revision = history.data?.find((r) => r.id === id);
   return (
     <Stack>
@@ -716,19 +801,22 @@ function ShotHistory({ path, shot }: { path: string; shot: Schema<"Shot"> }) {
                   ? "未填写"
                   : `${revision.spec.plannedDurationUs / 1000000} 秒`}
               </Text>
-              <Textarea
+              <ContinuitySummary
+                path={path.split("/projects/")[0]!}
+                value={revision.spec.entryState ?? {}}
                 label="入口状态"
-                readOnly
-                value={revision.spec.entryState?.spatialNotes ?? ""}
-                autosize
-                minRows={2}
               />
-              <Textarea
+              <ContinuitySummary
+                path={path.split("/projects/")[0]!}
+                value={revision.spec.exitState ?? {}}
                 label="出口状态"
+              />
+              <AssetReferenceFields
+                path={path.split("/projects/")[0]!}
+                projectId={shot.projectId}
+                value={revision.spec.references}
+                onChange={() => {}}
                 readOnly
-                value={revision.spec.exitState?.spatialNotes ?? ""}
-                autosize
-                minRows={2}
               />
               {revision.spec.notes && (
                 <Textarea
@@ -738,11 +826,10 @@ function ShotHistory({ path, shot }: { path: string; shot: Schema<"Shot"> }) {
                   autosize
                 />
               )}
-              {revision.spec.dialogue?.map((d) => (
-                <Text key={d.id}>
-                  “{d.text}”{d.performance ? ` · ${d.performance}` : ""}
-                </Text>
-              ))}
+              <DialogueSummary
+                path={path.split("/projects/")[0]!}
+                value={revision.spec.dialogue ?? []}
+              />
               {revision.spec.sourceExcerpts?.map((ex, i) => (
                 <Text key={i} className={classes.notice}>
                   {ex.quote}

@@ -437,6 +437,25 @@ function AssetUsage({
     `${path}/asset-revisions/${usage.objectId}`,
     usage.kind === "asset_revision",
   );
+  if (
+    usage.projectId &&
+    (usage.kind === "production" ||
+      usage.kind === "scene" ||
+      (usage.kind === "shot_revision" && usage.shotId))
+  ) {
+    const href =
+      `#/app/t/${tenantId}/p/${usage.projectId}` +
+      (usage.kind === "scene"
+        ? `/content?scene=${usage.objectId}`
+        : usage.kind === "shot_revision" && usage.shotId
+          ? `/content?shot=${usage.shotId}&revision=${usage.objectId}`
+          : "");
+    return (
+      <Button component="a" variant="subtle" href={href}>
+        {usage.label}
+      </Button>
+    );
+  }
   if (revision.isError) return <ErrorNotice error={revision.error} />;
   if (!revision.data) return <Text size="sm">{usage.label}</Text>;
   return (

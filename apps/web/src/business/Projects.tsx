@@ -24,6 +24,8 @@ import {
 } from "./common";
 import classes from "./workbench.module.css";
 import { ContentWorkspace } from "./ContentWorkspace";
+import { ProductionSettings } from "./ProductionSettings";
+import { QualityReferenceSettings } from "./QualityReferenceSettings";
 
 type Member = Schema<"Membership">;
 type Project = Schema<"Project">;
@@ -322,6 +324,12 @@ function ProjectDetails({
         </Text>
       )}
       <hr className={classes.divider} />
+      <QualityReferenceSettings
+        project={p}
+        path={path}
+        active={active && !!(manager || lead)}
+      />
+      <hr className={classes.divider} />
       <h2 className={classes.subheading}>剧目设定</h2>
       <ErrorNotice
         error={production.error}
@@ -536,82 +544,6 @@ function ProjectSettings({
       {active && (
         <Button type="submit" variant="filled" loading={command.isPending}>
           保存项目设置
-        </Button>
-      )}
-    </form>
-  );
-}
-function ProductionSettings({
-  production,
-  path,
-  active,
-}: {
-  production: Production;
-  path: string;
-  active: boolean;
-}) {
-  const command = useCommand<Production>(),
-    [base, setBase] = useState(production);
-  const form = useForm({
-    initialValues: { title: production.title, brief: production.brief },
-    validate: { title: (v) => (v.trim() ? null : "请输入剧目名称。") },
-  });
-  return (
-    <form
-      className={classes.form}
-      onSubmit={form.onSubmit((v) =>
-        command.mutate(
-          {
-            path,
-            method: "PUT",
-            version: base.revision,
-            body: {
-              ...v,
-              defaultAssetRevisionIds: base.defaultAssetRevisionIds,
-            },
-          },
-          {
-            onSuccess: (p) => {
-              setBase(p);
-              form.setInitialValues({ title: p.title, brief: p.brief });
-            },
-          },
-        ),
-      )}
-    >
-      <TextInput
-        label="剧目名称"
-        maxLength={160}
-        readOnly={!active}
-        {...form.getInputProps("title")}
-      />
-      <Textarea
-        label="故事与创作设定"
-        minRows={5}
-        maxLength={20000}
-        readOnly={!active}
-        {...form.getInputProps("brief")}
-      />
-      {active && production.revision !== base.revision && (
-        <div>
-          <Text>
-            服务器已有版本 {production.revision}。当前编辑内容仍然保留。
-          </Text>
-          <Text c="dimmed">
-            {production.title} · {production.brief}
-          </Text>
-          <Button variant="subtle" onClick={() => setBase(production)}>
-            核对后使用最新版本作为保存基线
-          </Button>
-        </div>
-      )}
-      <ErrorNotice error={command.error} />
-      {command.isSuccess && !form.isDirty() && (
-        <Text role="status">剧目设定已保存。</Text>
-      )}
-      {active && (
-        <Button type="submit" variant="filled" loading={command.isPending}>
-          保存剧目设定
         </Button>
       )}
     </form>

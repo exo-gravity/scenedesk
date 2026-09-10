@@ -106,6 +106,12 @@ export function installProblemHandler(app: FastifyInstance) {
         );
       else if (error.code === "P0002")
         problem = new Problem(404, "NOT_FOUND", "内容不存在或无访问权限。");
+      else if (error.code === "P0422")
+        problem = new Problem(
+          422,
+          "INVALID_CREATIVE_REFERENCE",
+          "引用无效：请核对资产种类、固定版本与造型、媒体归属及项目引入关系。同一层级不能重复引用，已归档内容只能保留原有引用。",
+        );
       else if (
         ["23503", "23505", "23514", "40001", "40P01", "55P03"].includes(
           error.code ?? "",

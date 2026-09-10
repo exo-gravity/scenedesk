@@ -15255,6 +15255,7 @@
           "kind": {
             "type": "string",
             "enum": [
+              "production",
               "scene",
               "shot_revision",
               "plan",
@@ -15270,6 +15271,10 @@
             "format": "uuid"
           },
           "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shotId": {
             "type": "string",
             "format": "uuid"
           },

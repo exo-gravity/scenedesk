@@ -14,6 +14,19 @@ import { Plus, Trash } from "@phosphor-icons/react";
 import { useCommand, type Schema } from "./api";
 import { ErrorNotice } from "./common";
 import { DraftNotice, useContentDraft } from "./content-drafts";
+import {
+  AssetIdentityLabel,
+  AssetPicker,
+  ContinuityFields,
+  ContinuitySummary,
+  DialogueSummary,
+  FixedAssetLabel,
+  FixedAssetList,
+  VoiceBinding,
+} from "./CreativeAssetFields";
+import { AssetReferenceFields } from "./AssetReferenceFields";
+import { reconcileContent } from "./content-reconcile";
+import { ShotReferenceFields } from "./ShotReferenceFields";
 import classes from "./workbench.module.css";
 
 export type ContentEntity =
@@ -39,6 +52,11 @@ type Fields = {
   exit: string;
   dialogue: Schema<"Dialogue">[];
   excerpts: Schema<"ScriptExcerpt">[];
+  sceneState: Schema<"ContinuityState">;
+  entryState: Schema<"ContinuityState">;
+  exitState: Schema<"ContinuityState">;
+  references: Schema<"Reference">[];
+  defaultAssetRevisionIds: string[];
 };
 const isScene = (value?: ContentEntity): value is Schema<"Scene"> =>
   !!value && "episodeId" in value;
@@ -84,25 +102,31 @@ export function StructureEditor({
   const entity = collection.find((e) => e.id === editing.id);
   const scene = isScene(entity) ? entity : undefined,
     shot = isShot(entity) ? entity : undefined;
-  const draft = useContentDraft<Fields>(
+  const sourceFields: Fields = {
+    name: shot?.label ?? (entity && !isShot(entity) ? entity.title : ""),
+    parentId: scene?.episodeId ?? shot?.sceneId ?? editing.parentId,
+    summary: scene?.summary ?? "",
+    timeLabel: scene?.timeLabel ?? "",
+    locationLabel: scene?.locationLabel ?? "",
+    spatialNotes: scene?.state.spatialNotes ?? "",
+    intent: shot?.spec.intent ?? "",
+    action: shot?.spec.action ?? "",
+    camera: shot?.spec.camera ?? "",
+    notes: shot?.spec.notes ?? "",
+    duration: durationText(shot?.spec.plannedDurationUs),
+    entry: shot?.spec.entryState?.spatialNotes ?? "",
+    exit: shot?.spec.exitState?.spatialNotes ?? "",
+    dialogue: shot?.spec.dialogue ?? [],
+    excerpts: shot?.spec.sourceExcerpts ?? [],
+    sceneState: scene?.state ?? {},
+    entryState: shot?.spec.entryState ?? {},
+    exitState: shot?.spec.exitState ?? {},
+    references: shot?.spec.references ?? [],
+    defaultAssetRevisionIds: scene?.defaultAssetRevisionIds ?? [],
+  };
+  const draft = useContentDraft<Fields & { baseline?: Fields }>(
     `${path}/${editing.kind}/${editing.id ?? `new:${editing.parentId}`}`,
-    {
-      name: shot?.label ?? (entity && !isShot(entity) ? entity.title : ""),
-      parentId: scene?.episodeId ?? shot?.sceneId ?? editing.parentId,
-      summary: scene?.summary ?? "",
-      timeLabel: scene?.timeLabel ?? "",
-      locationLabel: scene?.locationLabel ?? "",
-      spatialNotes: scene?.state.spatialNotes ?? "",
-      intent: shot?.spec.intent ?? "",
-      action: shot?.spec.action ?? "",
-      camera: shot?.spec.camera ?? "",
-      notes: shot?.spec.notes ?? "",
-      duration: durationText(shot?.spec.plannedDurationUs),
-      entry: shot?.spec.entryState?.spatialNotes ?? "",
-      exit: shot?.spec.exitState?.spatialNotes ?? "",
-      dialogue: shot?.spec.dialogue ?? [],
-      excerpts: shot?.spec.sourceExcerpts ?? [],
-    },
+    { ...sourceFields, baseline: sourceFields },
     entity?.revision ?? tree.revision,
   );
   const command = useCommand<ContentEntity>(),
@@ -112,7 +136,9 @@ export function StructureEditor({
     ),
     [selected, setSelected] = useState<Schema<"ScriptExcerpt">>();
   const source = scripts.find((s) => s.id === scriptId);
-  const values = draft.value,
+  // Drafts saved by earlier releases lack the newly exposed binding fields.
+  // Keep those inputs and fill only absent fields from the server document.
+  const values = { ...sourceFields, ...draft.value },
     set = <K extends keyof Fields>(key: K, value: Fields[K]) =>
       draft.setValue((v) => ({ ...v, [key]: value }));
   const parents =
@@ -134,6 +160,8 @@ export function StructureEditor({
           }));
   const version = entity?.revision ?? tree.revision,
     conflict = version !== draft.baseVersion;
+  const tenantPath = path.split("/projects/")[0]!,
+    projectId = tree.projectId;
   async function submit(event: FormEvent) {
     event.preventDefault();
     setValidation(undefined);
@@ -157,8 +185,8 @@ export function StructureEditor({
         position,
         status,
         summary: values.summary,
-        state: { ...scene?.state, spatialNotes: values.spatialNotes },
-        defaultAssetRevisionIds: scene?.defaultAssetRevisionIds ?? [],
+        state: { ...values.sceneState, spatialNotes: values.spatialNotes },
+        defaultAssetRevisionIds: values.defaultAssetRevisionIds,
         ...(values.timeLabel ? { timeLabel: values.timeLabel } : {}),
         ...(values.locationLabel
           ? { locationLabel: values.locationLabel }
@@ -176,6 +204,7 @@ export function StructureEditor({
       }
       const previous = shot?.spec ?? { intent: "", references: [] };
       const spec: Schema<"ShotSpec"> = { ...previous, intent: values.intent };
+      spec.references = values.references;
       for (const key of ["action", "camera", "notes"] as const)
         if (values[key] !== (previous[key] ?? "")) spec[key] = values[key];
       if (
@@ -188,13 +217,21 @@ export function StructureEditor({
         JSON.stringify(previous.sourceExcerpts ?? [])
       )
         spec.sourceExcerpts = values.excerpts;
-      if (values.entry !== (previous.entryState?.spatialNotes ?? ""))
+      if (
+        values.entry !== (previous.entryState?.spatialNotes ?? "") ||
+        JSON.stringify(values.entryState) !==
+          JSON.stringify(previous.entryState ?? {})
+      )
         spec.entryState = {
-          ...previous.entryState,
+          ...values.entryState,
           spatialNotes: values.entry,
         };
-      if (values.exit !== (previous.exitState?.spatialNotes ?? ""))
-        spec.exitState = { ...previous.exitState, spatialNotes: values.exit };
+      if (
+        values.exit !== (previous.exitState?.spatialNotes ?? "") ||
+        JSON.stringify(values.exitState) !==
+          JSON.stringify(previous.exitState ?? {})
+      )
+        spec.exitState = { ...values.exitState, spatialNotes: values.exit };
       if (plannedDurationUs === undefined) delete spec.plannedDurationUs;
       else spec.plannedDurationUs = plannedDurationUs;
       body = {
@@ -232,7 +269,95 @@ export function StructureEditor({
                 ? `最新${isShot(entity) ? "镜头" : "标题"}：${isShot(entity) ? `${entity.label} · ${entity.spec.intent}` : entity.title}`
                 : "集场镜结构已变化，请核对插入位置。"}
             </Text>
-            <Button mt="sm" onClick={draft.rebase}>
+            <Text size="sm">
+              核对后保留我的修改，未修改字段采用服务器值；同一字段都被修改时以我的输入为准。资产、造型和台词仍按各自标识合并。
+            </Text>
+            <details>
+              <summary>查看服务器当前输入</summary>
+              <Stack mt="sm" gap="sm">
+                {Object.entries(
+                  editing.kind === "shot"
+                    ? {
+                        name: "镜头编号",
+                        intent: "叙事意图",
+                        action: "动作与表演",
+                        camera: "机位",
+                        notes: "备注",
+                        duration: "计划秒数",
+                      }
+                    : editing.kind === "scene"
+                      ? {
+                          name: "场次标题",
+                          summary: "梗概",
+                          timeLabel: "时间",
+                          locationLabel: "地点",
+                        }
+                      : { name: "单集标题" },
+                ).map(([key, label]) => (
+                  <Text key={key} size="sm">
+                    {label}：{sourceFields[key as "name"] || "未填写"}
+                  </Text>
+                ))}
+                <Text size="sm">
+                  所属位置：
+                  {parents.find((p) => p.value === sourceFields.parentId)
+                    ?.label ?? "项目"}
+                </Text>
+                {editing.kind === "scene" && (
+                  <ContinuitySummary
+                    path={tenantPath}
+                    value={sourceFields.sceneState}
+                    label="服务器场次状态"
+                  />
+                )}
+                {editing.kind === "shot" && (
+                  <>
+                    <ContinuitySummary
+                      path={tenantPath}
+                      value={sourceFields.entryState}
+                      label="服务器入口状态"
+                    />
+                    <ContinuitySummary
+                      path={tenantPath}
+                      value={sourceFields.exitState}
+                      label="服务器出口状态"
+                    />
+                  </>
+                )}
+                {sourceFields.defaultAssetRevisionIds.map((id) => (
+                  <FixedAssetLabel key={id} path={tenantPath} id={id} />
+                ))}
+                <AssetReferenceFields
+                  path={tenantPath}
+                  projectId={projectId}
+                  value={sourceFields.references}
+                  onChange={() => {}}
+                  readOnly
+                />
+                <DialogueSummary
+                  path={tenantPath}
+                  value={sourceFields.dialogue}
+                />
+                {sourceFields.excerpts.map((ex, index) => (
+                  <Text key={index} size="sm">
+                    原文依据：{ex.quote}
+                  </Text>
+                ))}
+              </Stack>
+            </details>
+            <Button
+              mt="sm"
+              onClick={() => {
+                const { baseline, ...local } = values;
+                draft.setValue({
+                  ...(baseline
+                    ? reconcileContent(baseline, local, sourceFields)
+                    : local),
+                  baseline: sourceFields,
+                });
+                draft.rebase();
+              }}
+            >
               核对后使用最新版本作为保存基线
             </Button>
           </Alert>
@@ -285,12 +410,28 @@ export function StructureEditor({
                   value={values.summary}
                   onChange={(e) => set("summary", e.currentTarget.value)}
                 />
-                <Textarea
-                  label="空间与连续性说明"
-                  autosize
-                  minRows={2}
-                  value={values.spatialNotes}
-                  onChange={(e) => set("spatialNotes", e.currentTarget.value)}
+                <ContinuityFields
+                  path={tenantPath}
+                  projectId={projectId}
+                  label="场次状态"
+                  value={{
+                    ...values.sceneState,
+                    spatialNotes: values.spatialNotes,
+                  }}
+                  onChange={(state) =>
+                    draft.setValue((v) => ({
+                      ...v,
+                      sceneState: state,
+                      spatialNotes: state.spatialNotes ?? "",
+                    }))
+                  }
+                />
+                <Text fw={600}>场次默认资产</Text>
+                <FixedAssetList
+                  path={tenantPath}
+                  projectId={projectId}
+                  value={values.defaultAssetRevisionIds}
+                  onChange={(value) => set("defaultAssetRevisionIds", value)}
                 />
               </>
             )}
@@ -325,22 +466,39 @@ export function StructureEditor({
                     onChange={(e) => set("duration", e.currentTarget.value)}
                   />
                 </div>
-                <div className={classes.grid}>
-                  <Textarea
-                    label="入口状态"
-                    autosize
-                    minRows={2}
-                    value={values.entry}
-                    onChange={(e) => set("entry", e.currentTarget.value)}
-                  />
-                  <Textarea
-                    label="出口状态"
-                    autosize
-                    minRows={2}
-                    value={values.exit}
-                    onChange={(e) => set("exit", e.currentTarget.value)}
-                  />
-                </div>
+                <Text fw={600}>镜头参考素材</Text>
+                <ShotReferenceFields
+                  path={tenantPath}
+                  projectId={projectId}
+                  value={values.references}
+                  onChange={(refs) => set("references", refs)}
+                />
+                <ContinuityFields
+                  path={tenantPath}
+                  projectId={projectId}
+                  label="入口状态"
+                  value={{ ...values.entryState, spatialNotes: values.entry }}
+                  onChange={(state) =>
+                    draft.setValue((v) => ({
+                      ...v,
+                      entryState: state,
+                      entry: state.spatialNotes ?? "",
+                    }))
+                  }
+                />
+                <ContinuityFields
+                  path={tenantPath}
+                  projectId={projectId}
+                  label="出口状态"
+                  value={{ ...values.exitState, spatialNotes: values.exit }}
+                  onChange={(state) =>
+                    draft.setValue((v) => ({
+                      ...v,
+                      exitState: state,
+                      exit: state.spatialNotes ?? "",
+                    }))
+                  }
+                />
                 <Group justify="space-between">
                   <Text fw={600}>台词</Text>
                   <Button
@@ -374,6 +532,74 @@ export function StructureEditor({
                         <Trash size={16} />
                       </Button>
                     </Group>
+                    <Text size="sm" fw={500}>
+                      第 {index + 1} 句说话人
+                    </Text>
+                    {line.characterAssetId ? (
+                      <AssetIdentityLabel
+                        path={tenantPath}
+                        id={line.characterAssetId}
+                      />
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        未指定说话人
+                      </Text>
+                    )}
+                    <Group>
+                      <AssetPicker
+                        path={tenantPath}
+                        projectId={projectId}
+                        mode="identity"
+                        kind="character"
+                        label={`选择第 ${index + 1} 句说话人`}
+                        onChoose={({ asset }) =>
+                          set(
+                            "dialogue",
+                            values.dialogue.map((d) =>
+                              d.id === line.id
+                                ? { ...d, characterAssetId: asset.id }
+                                : d,
+                            ),
+                          )
+                        }
+                      />
+                      {line.characterAssetId && (
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          onClick={() =>
+                            set(
+                              "dialogue",
+                              values.dialogue.map((d) => {
+                                if (d.id !== line.id) return d;
+                                const { characterAssetId: _, ...rest } = d;
+                                return rest;
+                              }),
+                            )
+                          }
+                        >
+                          移除此句说话人
+                        </Button>
+                      )}
+                    </Group>
+                    <VoiceBinding
+                      path={tenantPath}
+                      projectId={projectId}
+                      label={`第 ${index + 1} 句声音覆盖`}
+                      value={line.voiceAssetRevisionId}
+                      onChange={(id) =>
+                        set(
+                          "dialogue",
+                          values.dialogue.map((d) => {
+                            if (d.id !== line.id) return d;
+                            const { voiceAssetRevisionId: _, ...rest } = d;
+                            return id
+                              ? { ...rest, voiceAssetRevisionId: id }
+                              : rest;
+                          }),
+                        )
+                      }
+                    />
                     <Textarea
                       label={`第 ${index + 1} 句台词`}
                       autosize

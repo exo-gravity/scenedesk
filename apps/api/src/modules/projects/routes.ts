@@ -32,12 +32,6 @@ export function projectRoutes(app: FastifyInstance, context: ApiContext) {
       "INVALID_PROJECT_LEAD",
       "负责人必须是本工作室的有效成员。",
     );
-    requireThat(
-      !body.spec.qualityReferenceMediaIds?.length,
-      422,
-      "MEDIA_NOT_READY",
-      "请先完成媒体导入再添加样片参考。",
-    );
     const id = randomUUID();
     const created = await tx.sql.query(
       "INSERT INTO projects (id,tenant_id,name,lead_membership_id,spec) VALUES ($1,$2,$3,$4,$5) RETURNING *",
@@ -77,12 +71,6 @@ export function projectRoutes(app: FastifyInstance, context: ApiContext) {
       "项目已归档，请先恢复。",
     );
     versionMatches(Number(result.rows[0]!.revision), input.version);
-    requireThat(
-      !input.body.spec.qualityReferenceMediaIds?.length,
-      422,
-      "MEDIA_NOT_READY",
-      "请先完成媒体导入再添加样片参考。",
-    );
     const changed = await tx.sql.query(
       "UPDATE projects SET name=$1,spec=$2,revision=revision+1,updated_at=now() WHERE tenant_id=$3 AND id=$4 RETURNING *",
       [input.body.name, input.body.spec, tx.tenantId, tx.projectId],
@@ -136,12 +124,6 @@ export function projectRoutes(app: FastifyInstance, context: ApiContext) {
       [tx.tenantId, tx.projectId],
     );
     versionMatches(Number(found.rows[0]!.revision), input.version);
-    requireThat(
-      input.body.defaultAssetRevisionIds.length === 0,
-      422,
-      "ASSETS_NOT_READY",
-      "请先完成资产导入再添加默认引用。",
-    );
     const changed = await tx.sql.query(
       "UPDATE productions SET title=$1,brief=$2,default_asset_revision_ids=$3,revision=revision+1,updated_at=now() WHERE tenant_id=$4 AND project_id=$5 RETURNING id,revision,created_at,updated_at,project_id,title,brief,default_asset_revision_ids",
       [

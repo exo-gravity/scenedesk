@@ -175,7 +175,8 @@ async function validateGraph(
         "提案的父对象必须是本提案内对应的单集或场次。",
       );
     }
-    if (op.kind === "scene") validateScene(op.proposed as Schema<"SceneInput">);
+    if (op.kind === "scene")
+      await validateScene(tx, op.proposed as Schema<"SceneInput">);
     if (op.kind === "shot")
       await validateShotSpec(
         tx,

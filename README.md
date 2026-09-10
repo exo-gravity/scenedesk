@@ -6,7 +6,7 @@
 
 短剧优先，长期支持广告。首期核心场景是一位制作人员主责完成一场戏；完整 MVP 包含每场分镜／自由画布双模式，以及整集审阅交付、跨集复用和内部后期接手。
 
-当前已实现：**身份／权限／项目、手工内容结构、CSV 提案、项目默认创作确认与场次任务**，包括工作室、成员邀请、所有权交接、项目与负责人、剧目设定、剧本版本、集场镜、镜头要求与原文历史、归档恢复。有 PostgreSQL 持久化、RLS、CAS、幂等和对应业务页面。[基础运行说明](docs/implementation/23-identity-project-foundation.md)与[内容实现说明](docs/implementation/24-content-structure.md)列出边界。[CSV 提案](docs/implementation/25-csv-proposals.md)支持导入预览、修订、差异复核和一次采纳；[创作依据](docs/implementation/26-creative-bases.md)支持固定快照、正式确认及冲突恢复；[场次主责与任务](docs/implementation/27-scene-tasks.md)支持分派、个人筛选、资格失效提示和不可变处理历史。[素材导入](docs/implementation/30-media-import-service.md)已接通私有存储与独立处理器；[素材工作台](docs/implementation/31-media-workspace.md)支持断网续办、来源冲突核对、音视频预览和原文件下载。[资产工作区](docs/implementation/32-asset-versions.md)支持独立造型、固定版本、设定确认、明确引入共享声音和冲突恢复。资产在镜头中的引用、共享发布、生成、编辑渲染和交付继续实施，完整 MVP 尚未完成。
+当前已实现：**身份／权限／项目、手工内容结构、CSV 提案、项目默认创作确认与场次任务**，包括工作室、成员邀请、所有权交接、项目与负责人、剧目设定、剧本版本、集场镜、镜头要求与原文历史、归档恢复。有 PostgreSQL 持久化、RLS、CAS、幂等和对应业务页面。[基础运行说明](docs/implementation/23-identity-project-foundation.md)与[内容实现说明](docs/implementation/24-content-structure.md)列出边界。[CSV 提案](docs/implementation/25-csv-proposals.md)支持导入预览、修订、差异复核和一次采纳；[创作依据](docs/implementation/26-creative-bases.md)支持固定快照、正式确认及冲突恢复；[场次主责与任务](docs/implementation/27-scene-tasks.md)支持分派、个人筛选、资格失效提示和不可变处理历史。[素材导入](docs/implementation/30-media-import-service.md)已接通私有存储与独立处理器；[素材工作台](docs/implementation/31-media-workspace.md)支持断网续办、来源冲突核对、音视频预览和原文件下载。[资产工作区](docs/implementation/32-asset-versions.md)支持独立造型、固定版本、设定确认、明确引入共享声音和冲突恢复。[场镜资产引用](docs/implementation/33-creative-asset-bindings.md)已接通剧目／场次默认版本、角色与道具状态、镜头参考和单句声音覆盖，实际浏览器、冲突恢复和生产构建验收已通过。共享发布、候选采用、生成、编辑渲染和交付继续实施，完整 MVP 尚未完成。
 
 已确认的视觉原型继续保留，使用虚构内容；核心体验和专项样例仅在页面内存保留，刷新或离开会重置，不能替代业务验收。
 

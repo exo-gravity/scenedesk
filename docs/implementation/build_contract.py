@@ -81,7 +81,7 @@ schema("AssetRevisionInput", {"definition": ref("AssetDefinition"), "parentRevis
 schema("PublishAsset", {"assetRevisionId": ID, "name": NAME}, ["assetRevisionId", "name"])
 schema("SharedImportInput", {"assetRevisionId": ID}, ["assetRevisionId"])
 entity("SharedImport", {"projectId": ID, "assetRevisionId": ID}, ["projectId", "assetRevisionId"])
-schema("UsageLocation", {"kind": enum("scene", "shot_revision", "plan", "cut_draft", "cut_revision", "asset_revision"), "objectId": ID, "projectId": ID, "label": NAME}, ["kind", "objectId", "label"])
+schema("UsageLocation", {"kind": enum("production", "scene", "shot_revision", "plan", "cut_draft", "cut_revision", "asset_revision"), "objectId": ID, "projectId": ID, "shotId": ID, "label": NAME}, ["kind", "objectId", "label"])
 entity("Media", {**scope_fields, "kind": enum("image", "video", "audio", "document"), "status": enum("processing", "ready", "rejected", "archived"), "sha256": string(pattern="^[0-9a-f]{64}$"), "bytes": INT, "mime": string(), "durationUs": US, "width": POS, "height": POS, "fpsNum": POS, "fpsDen": POS, "hasAudio": BOOL, "sourceJobId": ID, "sourceUploadId": ID, "sourceRenderTaskId": ID}, ["scope", "kind", "status", "mime"])
 schema("UploadInput", {**scope_fields, "fileName": NAME, "bytes": POS, "mime": string(), "sha256": string(pattern="^[0-9a-f]{64}$")}, ["scope", "fileName", "bytes", "mime", "sha256"])
 entity("UploadIntent", {"status": enum("pending", "uploaded", "verifying", "accepted", "rejected", "expired"), "expiresAt": TIME, "uploadUrl": string(format="uri"), "method": enum("PUT", "POST"), "headers": {"type": "object", "additionalProperties": string()}, "formFields": {"type": "object", "additionalProperties": string()}, "mediaId": ID}, ["status", "expiresAt"])

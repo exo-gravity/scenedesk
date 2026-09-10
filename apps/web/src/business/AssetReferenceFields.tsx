@@ -18,6 +18,7 @@ import { Empty, ErrorNotice } from "./common";
 import { MediaPreview, mediaKind } from "./MediaPreview";
 import { options, referencePurposes, useAssetPages } from "./asset-queries";
 import classes from "./assets.module.css";
+import { FixedAssetLabel } from "./CreativeAssetFields";
 type Reference = Schema<"Reference">;
 export function AssetReferenceFields({
   path,
@@ -25,12 +26,16 @@ export function AssetReferenceFields({
   value,
   onChange,
   purpose = "identity",
+  mediaOnly = false,
+  readOnly = false,
 }: {
   path: string;
   projectId?: string | undefined;
   value: Reference[];
   onChange: (refs: Reference[]) => void;
   purpose?: Reference["purpose"];
+  mediaOnly?: boolean;
+  readOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -40,19 +45,23 @@ export function AssetReferenceFields({
           key={`${ref.mediaId}/${index}`}
           path={path}
           value={ref}
+          mediaOnly={mediaOnly}
+          readOnly={readOnly}
           onChange={(changed) =>
             onChange(value.map((item, i) => (i === index ? changed : item)))
           }
           remove={() => onChange(value.filter((_, i) => i !== index))}
         />
       ))}
-      <Button leftSection={<Plus size={16} />} onClick={() => setOpen(true)}>
-        添加参考素材
-      </Button>
+      {!readOnly && (
+        <Button leftSection={<Plus size={16} />} onClick={() => setOpen(true)}>
+          {mediaOnly ? "添加样片参考" : "添加参考素材"}
+        </Button>
+      )}
       <Modal
         opened={open}
         onClose={() => setOpen(false)}
-        title="选择参考素材"
+        title={mediaOnly ? "选择样片参考" : "选择参考素材"}
         size="xl"
       >
         {open && (
@@ -61,6 +70,7 @@ export function AssetReferenceFields({
             projectId={projectId}
             purpose={purpose}
             existing={value}
+            mediaOnly={mediaOnly}
             onChoose={(media, purpose) => {
               if (
                 !value.some(
@@ -81,11 +91,15 @@ function ReferenceRow({
   value,
   onChange,
   remove,
+  readOnly,
+  mediaOnly,
 }: {
   path: string;
   value: Reference;
   onChange: (ref: Reference) => void;
   remove: () => void;
+  readOnly: boolean;
+  mediaOnly: boolean;
 }) {
   const media = useResource<Schema<"Media">>(`${path}/media/${value.mediaId}`);
   return (
@@ -104,31 +118,56 @@ function ReferenceRow({
             : "原参考已保留"}
         </Text>
         <ErrorNotice error={media.error} />
-        <Select
-          label="参考用途"
-          data={options(referencePurposes)}
-          value={value.purpose}
-          onChange={(purpose) =>
-            purpose &&
-            onChange({ ...value, purpose: purpose as Reference["purpose"] })
-          }
-        />
-        <TextInput
-          label="参考说明"
-          value={value.note ?? ""}
-          onChange={(event) =>
-            onChange({ ...value, note: event.currentTarget.value })
-          }
-        />
+        {media.data && !media.isError && (
+          <Button
+            component="a"
+            variant="subtle"
+            size="compact-xs"
+            target="_blank"
+            rel="noopener"
+            href={`#/app/t/${path.split("/")[3]}${media.data.projectId ? "/p/" + media.data.projectId : ""}/media?media=${media.data.id}`}
+          >
+            在新标签页查看素材
+          </Button>
+        )}
+        {!mediaOnly &&
+          (readOnly ? (
+            <Text size="sm">
+              用途：{referencePurposes[value.purpose]}
+              {value.note ? ` · ${value.note}` : ""}
+            </Text>
+          ) : (
+            <>
+              <Select
+                label="参考用途"
+                data={options(referencePurposes)}
+                value={value.purpose}
+                onChange={(purpose) =>
+                  purpose &&
+                  onChange({
+                    ...value,
+                    purpose: purpose as Reference["purpose"],
+                  })
+                }
+              />
+              <TextInput
+                label="参考说明"
+                value={value.note ?? ""}
+                onChange={(event) =>
+                  onChange({ ...value, note: event.currentTarget.value })
+                }
+              />
+            </>
+          ))}
         {value.assetRevisionId && (
-          <Text size="xs" c="dimmed">
-            保留已选择的固定资产来源
-          </Text>
+          <FixedAssetLabel path={path} id={value.assetRevisionId} />
         )}
       </Stack>
-      <ActionIcon variant="subtle" aria-label="移除这项参考" onClick={remove}>
-        <Trash size={18} />
-      </ActionIcon>
+      {!readOnly && (
+        <ActionIcon variant="subtle" aria-label="移除这项参考" onClick={remove}>
+          <Trash size={18} />
+        </ActionIcon>
+      )}
     </div>
   );
 }
@@ -138,12 +177,14 @@ function MediaChoice({
   purpose: initial,
   existing,
   onChoose,
+  mediaOnly,
 }: {
   path: string;
   projectId?: string | undefined;
   purpose: Reference["purpose"];
   existing: Reference[];
   onChoose: (media: Schema<"Media">, purpose: Reference["purpose"]) => void;
+  mediaOnly: boolean;
 }) {
   const [scope, setScope] = useState(projectId ? "project" : "shared"),
     [q, setQ] = useState(""),
@@ -175,14 +216,16 @@ function MediaChoice({
           value={q}
           onChange={(e) => setQ(e.currentTarget.value)}
         />
-        <Select
-          label="作为何种参考"
-          data={options(referencePurposes)}
-          value={purpose}
-          onChange={(value) =>
-            value && setPurpose(value as Reference["purpose"])
-          }
-        />
+        {!mediaOnly && (
+          <Select
+            label="作为何种参考"
+            data={options(referencePurposes)}
+            value={purpose}
+            onChange={(value) =>
+              value && setPurpose(value as Reference["purpose"])
+            }
+          />
+        )}
       </Group>
       <ErrorNotice error={media.error} retry={() => void media.refetch()} />
       {media.isPending ? (
