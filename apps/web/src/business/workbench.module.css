@@ -40,6 +40,13 @@
   padding: 40px;
   min-width: 0;
 }
+.layout[data-production] {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1600px;
+}
+.layout[data-production] > .sidebar {
+  display: none;
+}
 .title {
   margin: 0;
   font-size: var(--mantine-font-size-xl);

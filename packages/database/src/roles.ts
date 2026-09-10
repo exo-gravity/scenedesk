@@ -58,7 +58,7 @@ export async function grantRuntimeAccess(
     scenes:
       "episode_id, title, position, time_label, location_label, summary, state, default_asset_revision_ids, status, revision, updated_at",
     shots:
-      "scene_id, label, position, current_revision_id, status, revision, updated_at",
+      "scene_id, label, position, current_revision_id, current_selection_id, status, revision, updated_at",
   }))
     await client.query(
       `GRANT UPDATE (${columns}) ON ${scope}.${table} TO ${target}`,
@@ -129,6 +129,12 @@ export async function grantRuntimeAccess(
     await client.query(
       `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,
     );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.takes,${scope}.selections TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.candidate_shot_active(uuid,uuid,uuid) TO ${target}`,
+  );
 }
 
 export async function grantAuthAccess(

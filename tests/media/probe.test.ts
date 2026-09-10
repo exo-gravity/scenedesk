@@ -294,6 +294,10 @@ test(
       async () => {
         const controller = new AbortController();
         let containerName = "";
+        let created!: () => void;
+        const ready = new Promise<void>((resolve) => {
+          created = resolve;
+        });
         const running = runMediaProcess(
           image,
           "/ffmpeg",
@@ -315,6 +319,7 @@ test(
             timeoutMs: 5000,
             onCreated: (name) => {
               containerName = name;
+              created();
             },
           },
         );
@@ -323,11 +328,14 @@ test(
           () => undefined,
           (error: unknown) => error,
         );
-        for (let i = 0; i < 30; i++) {
-          if (containerName) break;
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-        assert.ok(containerName);
+        // Creation has its own bounded deadline. Wait for that actual event,
+        // not an unrelated three-second polling budget on a busy Docker host.
+        await Promise.race([
+          ready,
+          outcome.then((error) => {
+            throw error ?? new Error("Media process ended before inspection");
+          }),
+        ]);
         const info = JSON.parse(
           (await exec("docker", ["inspect", containerName])).stdout,
         )[0];
