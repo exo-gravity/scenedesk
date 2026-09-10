@@ -1,5 +1,7 @@
 import { ProposalWorkspace } from "./ProposalWorkspace";
 import { CreativeWorkspace } from "./CreativeWorkspace";
+import { TaskWorkspace } from "./TaskWorkspace";
+import { memberName, taskStatuses } from "./task-model";
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
@@ -59,6 +61,7 @@ export function ContentWorkspace({
     [scriptOpen, setScriptOpen] = useState(false),
     [proposalOpen, setProposalOpen] = useState(false),
     [creativeOpen, setCreativeOpen] = useState(false),
+    [tasksOpen, setTasksOpen] = useState(false),
     [history, setHistory] = useState<Schema<"Shot">>();
   const [archive, setArchive] = useState<{
     kind: ContentEditing["kind"];
@@ -96,6 +99,23 @@ export function ContentWorkspace({
   );
   const sceneEditable =
     active && episode?.status === "active" && scene?.status === "active";
+  if (tasksOpen)
+    return (
+      <TaskWorkspace
+        path={path}
+        project={p}
+        tree={tree}
+        members={members}
+        own={own}
+        canManage={
+          own.role === "owner" ||
+          own.role === "admin" ||
+          p.leadMembershipId === own.id
+        }
+        {...(scene?.id ? { initialSceneId: scene.id } : {})}
+        onClose={() => setTasksOpen(false)}
+      />
+    );
   if (creativeOpen)
     return (
       <CreativeWorkspace
@@ -221,6 +241,9 @@ export function ContentWorkspace({
         description="剧本与集场镜 · 从文字到每一镜的创作要求"
         action={
           <Group>
+            <Button variant="default" onClick={() => setTasksOpen(true)}>
+              分工与任务
+            </Button>
             <Button variant="default" onClick={() => setCreativeOpen(true)}>
               创作依据
             </Button>
@@ -362,6 +385,12 @@ export function ContentWorkspace({
                   scene.episodeId,
                   active && episode?.status === "active",
                 )}
+              />
+              <SceneResponsibility
+                path={path}
+                sceneId={scene.id}
+                members={members}
+                onOpen={() => setTasksOpen(true)}
               />
               {(scene.status === "archived" ||
                 episode?.status === "archived") && (
@@ -573,6 +602,41 @@ export function ContentWorkspace({
         )}
       </Modal>
     </>
+  );
+}
+function SceneResponsibility({
+  path,
+  sceneId,
+  members,
+  onOpen,
+}: {
+  path: string;
+  sceneId: string;
+  members: Schema<"Membership">[];
+  onOpen: () => void;
+}) {
+  const tasks = useList<Schema<"Task">>(
+    `${path}/tasks?kind=scene_owner&sceneId=${sceneId}`,
+  );
+  const task = tasks.data?.[0];
+  return (
+    <Stack gap="xs" mb="lg">
+      <ErrorNotice error={tasks.error} retry={() => void tasks.refetch()} />
+      <Group justify="space-between">
+        <Text size="sm" c="dimmed">
+          {tasks.isPending
+            ? "正在读取场次主责…"
+            : tasks.isError
+              ? "场次主责暂时无法读取"
+              : task
+                ? `场次主责：${memberName(members, task.assigneeMembershipId)} · ${task.assigneeAvailable ? taskStatuses[task.status] : "待重新分配"}`
+                : "场次主责：尚未分配"}
+        </Text>
+        <Button size="xs" variant="subtle" onClick={onOpen}>
+          查看本场分工
+        </Button>
+      </Group>
+    </Stack>
   );
 }
 function ScriptArchive({ scripts }: { scripts: Schema<"ScriptRevision">[] }) {

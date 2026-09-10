@@ -1632,6 +1632,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取当前任务及受派人有效资格
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 更新任务说明或状态
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        patch: operations["changeTask"];
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/tasks/{taskId}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取不可变分派与处理历史
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["listTaskRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/tasks": {
         parameters: {
             query?: never;
@@ -1654,26 +1698,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/v1/tenants/{tenantId}/projects/{projectId}/tasks/{taskId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * 更新任务说明或状态
-         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
-         */
-        patch: operations["changeTask"];
         trace?: never;
     };
     "/v1/tenants/{tenantId}/budgets": {
@@ -3503,6 +3527,8 @@ export interface components {
             kind: "general" | "scene_owner" | "assist" | "rework";
             /** Format: uuid */
             sceneId?: string;
+            /** @description 受派人当前是否仍为有效项目成员；历史分派不因此消失。 */
+            readonly assigneeAvailable?: boolean;
         } & unknown;
         TaskInput: {
             title: string;
@@ -4595,6 +4621,27 @@ export interface components {
         };
         DeliveryPage: {
             items: components["schemas"]["Delivery"][];
+            nextCursor?: string;
+        };
+        TaskRevision: {
+            /** Format: uuid */
+            id: string;
+            revision: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            projectId: string;
+            /** Format: uuid */
+            taskId: string;
+            number: number;
+            /** Format: uuid */
+            changedBy: string;
+            snapshot: components["schemas"]["TaskInput"];
+        };
+        TaskRevisionPage: {
+            items: components["schemas"]["TaskRevision"][];
             nextCursor?: string;
         };
         TaskPage: {
@@ -8345,6 +8392,118 @@ export interface operations {
             503: components["responses"]["Problem"];
         };
     };
+    getTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    changeTask: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskInput"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    listTaskRevisions: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                q?: string;
+                projectId?: string;
+            };
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRevisionPage"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
     listTasks: {
         parameters: {
             query?: {
@@ -8407,47 +8566,6 @@ export interface operations {
         responses: {
             /** @description 成功 */
             201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Task"];
-                };
-            };
-            400: components["responses"]["Problem"];
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            412: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            429: components["responses"]["Problem"];
-            503: components["responses"]["Problem"];
-        };
-    };
-    changeTask: {
-        parameters: {
-            query?: never;
-            header: {
-                "X-CSRF-Token": components["parameters"]["Csrf"];
-                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
-                "If-Match": components["parameters"]["IfMatch"];
-            };
-            path: {
-                tenantId: string;
-                projectId: string;
-                taskId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TaskInput"];
-            };
-        };
-        responses: {
-            /** @description 成功 */
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };

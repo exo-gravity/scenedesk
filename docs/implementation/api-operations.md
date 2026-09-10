@@ -101,6 +101,8 @@
 | PR-13 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/deliveries/{deliveryId}` | `getDelivery` | `project_member` |
 | PR-13 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/deliveries/{deliveryId}/recover` | `recoverDelivery` | `project_member_working_or_lead_final` |
 | PR-13 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/deliveries/{deliveryId}/access` | `getDeliveryAccess` | `project_member` |
+| PR-14 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/tasks/{taskId}` | `getTask` | `project_member` |
+| PR-14 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/tasks/{taskId}/revisions` | `listTaskRevisions` | `project_member` |
 | PR-14 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/tasks` | `listTasks` | `project_member` |
 | PR-14 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/tasks` | `createTask` | `project_lead_or_admin` |
 | PR-14 | PATCH | `/v1/tenants/{tenantId}/projects/{projectId}/tasks/{taskId}` | `changeTask` | `project_member` |
