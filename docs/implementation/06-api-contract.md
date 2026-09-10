@@ -66,6 +66,8 @@ scope=project 必须有 projectId；scope=shared 必须省略。路径、正文�
 
 Media.derivatives 返回 poster／proxy 的状态和 profile。getMediaAccess 必须指定 variant；original 返回验收原文件，proxy／poster 返回匹配 ready 派生，不能悄悄回退另一种内容。派生处理中返回 409 DERIVATIVE_NOT_READY，失败可 recoverMediaDerivative，仅重做派生。所有分支按原媒体授权；waveform 后置。
 
+实施补充：UploadIntent、Media、MediaDerivative 的可选 issue 提供公开错误代码、说明及 retryable。共享读者查询上传状态不取得上传凭证。访问签发先按当前范围重新授权，再允许幂等重放；URL 有效期独立于幂等记录，到期须以新请求标识再次签发。文本及 SRT 强制下载。服务实现和恢复边界见 [30 素材导入服务](30-media-import-service.md)。
+
 ready 媒体必须指向不可变内容。上传完成后核对字节、类型、SHA-256、解码及固定快照，再复制到服务端独占 key；旧 staging URL 不能改变 ready 内容。归档禁止新增引用；保存旧草稿、冻结及恢复原交付时允许原有且仍授权的引用继续存在，对新增项单独校验。
 
 Take 是单个连续视频区间，必须处于验收时长内；(shotRevisionId,mediaId,inUs,outUs) 去重。当前 selection 是该镜头的偏好，不表示叙事已经完整覆盖。时间线可用同镜头多个 take 的不连续片段，也可继续使用非当前偏好；越过 Take 边界须显式派生新候选。沿用旧要求下的 take 时建立关联到当前要求的新 take 并保留 sourceTakeId，不自动认为旧结果满足新要求。

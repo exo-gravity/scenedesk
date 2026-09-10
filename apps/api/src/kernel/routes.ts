@@ -17,6 +17,7 @@ export type Result = {
   etag?: number;
   clearSession?: boolean;
   accessTenantId?: string;
+  auditObjectId?: string;
 };
 export type Action = (tx: Transaction, input: Input) => Promise<Result>;
 export type ApiContext = {
@@ -65,6 +66,20 @@ function permission(tx: Transaction, name: string) {
       break;
     case "project_lead_or_admin":
       allowed = ["admin", "lead"].includes(tx.projectRole ?? "");
+      break;
+    case "scope_member":
+      allowed =
+        tx.resourceScope === "project"
+          ? !!tx.projectRole
+          : ["shared", "all"].includes(tx.resourceScope ?? "") &&
+            !!tx.tenantRole;
+      break;
+    case "project_member_or_shared_admin":
+      allowed =
+        tx.resourceScope === "project"
+          ? !!tx.projectRole
+          : tx.resourceScope === "shared" &&
+            ["owner", "admin"].includes(tx.tenantRole ?? "");
       break;
     default:
       throw new Error(`Permission handler missing: ${name}`);
@@ -134,6 +149,10 @@ export function registerAction(
   context: ApiContext,
   name: string,
   action: Action,
+  options: {
+    authorizeScope?: (tx: Transaction, input: Input) => Promise<void>;
+    readOnly?: boolean;
+  } = {},
 ) {
   const operation = operationDefinition(name);
   app.route({
@@ -180,6 +199,7 @@ export function registerAction(
           ).toLowerCase();
       }
       const write = operation.method !== "GET";
+      const businessWrite = write && !options.readOnly;
       if (write)
         requireThat(
           request.headers.origin === context.origin,
@@ -198,7 +218,7 @@ export function registerAction(
           "版本号无效。",
         );
       const scope = {
-        write,
+        write: businessWrite,
         ...(params.tenantId ? { tenantId: params.tenantId } : {}),
         ...(params.projectId ? { projectId: params.projectId } : {}),
       };
@@ -217,6 +237,14 @@ export function registerAction(
               "CSRF_REJECTED",
               "会话校验失败，请刷新后重试。",
             );
+          const input: Input = {
+            body: request.body,
+            params,
+            query,
+            csrfToken: context.secrets.csrf(token),
+            ...(expected === undefined ? {} : { version: expected }),
+          };
+          await options.authorizeScope?.(tx, input);
           permission(tx, operation.permission);
           if (
             name === "inviteMember" &&
@@ -286,7 +314,7 @@ export function registerAction(
               identity,
             );
           }
-          if (write && tx.projectId && name !== "restoreProject") {
+          if (businessWrite && tx.projectId && name !== "restoreProject") {
             const project = await tx.sql.query(
               "SELECT status FROM projects WHERE tenant_id=$1 AND id=$2",
               [tx.tenantId, tx.projectId],
@@ -298,13 +326,7 @@ export function registerAction(
               "项目已归档，请先恢复。",
             );
           }
-          const answer = await action(tx, {
-            body: request.body,
-            params,
-            query,
-            csrfToken: context.secrets.csrf(token),
-            ...(expected === undefined ? {} : { version: expected }),
-          });
+          const answer = await action(tx, input);
           if (
             operation.validateOutput &&
             !operation.validateOutput(answer.body)
@@ -314,7 +336,8 @@ export function registerAction(
             await audit(
               tx,
               name,
-              (answer.body as { id?: string } | undefined)?.id,
+              answer.auditObjectId ??
+                (answer.body as { id?: string } | undefined)?.id,
             );
           if (cached)
             await tx.sql.query(

@@ -140,11 +140,20 @@ export class MediaStore {
       formFields: result.fields,
     };
   }
-  async snapshot(key: string, expectedBytes: number): Promise<ObjectVersion> {
+  async snapshot(
+    key: string,
+    expectedBytes: number,
+    signal?: AbortSignal,
+  ): Promise<ObjectVersion> {
     objectKey(key, "staging");
     validateByteCount(expectedBytes);
     const result = await this.client.send(
       new HeadObjectCommand({ Bucket: this.bucket, Key: key }),
+      {
+        abortSignal: signal
+          ? AbortSignal.any([signal, AbortSignal.timeout(60_000)])
+          : AbortSignal.timeout(60_000),
+      },
     );
     if (result.ContentLength !== expectedBytes)
       throw new MediaFailure(

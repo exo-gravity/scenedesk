@@ -191,6 +191,9 @@ require_when("GenerationJob", {"properties":{"costStatus":{"const":"final"}},"re
 schema("ProvenanceInput", {"sourceNote": TEXT, "sourceUrl": string(format="uri"), "usageNote": TEXT, "evidenceMediaIds": arr(ID), "shareable": BOOL}, ["sourceNote", "usageNote", "shareable"])
 schema("MediaProvenance", {"record": ref("ProvenanceInput"), "recordedBy": ID, "recordedAt": TIME, "status": enum("unknown", "recorded")}, ["status"])
 schema("MediaDerivative", {"id": ID, "kind": enum("poster", "proxy"), "status": enum("queued", "processing", "ready", "failed"), "profileRevision": POS, "mime": string(), "durationUs": US, "width": POS, "height": POS}, ["id", "kind", "status", "profileRevision"])
+schema("MediaProcessingIssue", {"code": NAME, "message": TEXT, "retryable": BOOL}, ["code", "message", "retryable"])
+for media_resource in ["UploadIntent", "Media", "MediaDerivative"]:
+    extend(media_resource, {"issue": ref("MediaProcessingIssue")})
 schema("ProbeTiming", {"frameRateMode": enum("cfr", "vfr", "unknown"), "timeBaseNum": POS, "timeBaseDen": POS, "startPts": string(pattern="^-?[0-9]+$"), "audioSampleRate": POS, "audioChannels": POS}, ["frameRateMode", "timeBaseNum", "timeBaseDen", "startPts"])
 extend("Media", {"displayName": NAME, "originalFileName": NAME, "tags": arr(NAME), "createdBy": ID, "provenance": ref("MediaProvenance"), "derivatives": arr(ref("MediaDerivative")), "timing": ref("ProbeTiming")}, ["displayName", "tags", "provenance", "derivatives"])
 extend("UploadInput", {"displayName": NAME, "tags": arr(NAME), "provenance": ref("ProvenanceInput")})

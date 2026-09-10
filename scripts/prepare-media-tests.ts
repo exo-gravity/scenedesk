@@ -1,7 +1,7 @@
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { FFMPEG_IMAGE } from "@drama/media";
-import { MINIO_TEST_IMAGE, MC_IMAGE } from "../tests/support/storage.js";
+import { MINIO_TEST_IMAGE, MC_IMAGE } from "./local-storage.js";
 
 const exec = promisify(execFile);
 for (const image of [FFMPEG_IMAGE, MINIO_TEST_IMAGE, MC_IMAGE]) {

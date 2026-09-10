@@ -2,3 +2,7 @@ export * from "./policy.js";
 export * from "./storage.js";
 export * from "./probe.js";
 export { verifyMediaRuntime } from "./sandbox.js";
+export { createMediaProcessor } from "./work.js";
+export { repairMediaWork } from "./repair.js";
+export { mediaStoreFromEnvironment } from "./environment.js";
+export { mediaStoragePolicy } from "./storage-policy.js";

@@ -4,6 +4,9 @@
   "type": "module",
   "name": "@drama/worker",
   "dependencies": {
+    "@drama/database": "0.0.0",
+    "@drama/media": "0.0.0",
+    "@drama/queue": "0.0.0",
     "pg": "8.23.0"
   }
 }

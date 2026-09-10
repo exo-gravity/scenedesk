@@ -11,6 +11,7 @@ type Execution = {
   timeoutMs?: number;
   outputFile?: string;
   maxBytes?: number;
+  onCreated?: (containerName: string) => void;
 };
 
 function docker(args: string[], options: Execution = {}): Promise<string> {
@@ -166,6 +167,7 @@ export async function runMediaProcess(
       ],
       { timeoutMs: 15_000 },
     );
+    options.onCreated?.(name);
     options.signal?.throwIfAborted();
     try {
       return await docker(["start", "--attach", name], options);
