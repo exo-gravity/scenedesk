@@ -277,6 +277,7 @@ function Workspace({ hash }: { hash: string }) {
               tenantId={tenantId}
               section={segments[4]}
               projectId={segments[4] === "p" ? segments[5] : undefined}
+              contentView={segments[6] === "content"}
             />
           )}
         </main>
@@ -288,10 +289,12 @@ function TenantArea({
   tenantId,
   section,
   projectId,
+  contentView,
 }: {
   tenantId: string;
   section?: string | undefined;
   projectId?: string | undefined;
+  contentView?: boolean | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -313,6 +316,7 @@ function TenantArea({
       own={own}
       members={members.data}
       projectId={projectId}
+      contentView={contentView}
     />
   );
 }

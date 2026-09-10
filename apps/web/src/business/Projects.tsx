@@ -23,6 +23,7 @@ import {
   roleName,
 } from "./common";
 import classes from "./workbench.module.css";
+import { ContentWorkspace } from "./ContentWorkspace";
 
 type Member = Schema<"Membership">;
 type Project = Schema<"Project">;
@@ -40,16 +41,26 @@ export function Projects({
   own,
   members,
   projectId,
+  contentView,
 }: {
   tenantId: string;
   own: Member;
   members: Member[];
   projectId?: string | undefined;
+  contentView?: boolean | undefined;
 }) {
   const manager = own.role === "owner" || own.role === "admin";
   const [creating, setCreating] = useState(false),
     [search, setSearch] = useState("");
   const projects = useList<Project>(`${tenantPath(tenantId)}/projects`);
+  if (projectId && contentView)
+    return (
+      <ContentWorkspace
+        key={projectId}
+        tenantId={tenantId}
+        projectId={projectId}
+      />
+    );
   if (projectId)
     return (
       <ProjectDetails
@@ -277,6 +288,15 @@ function ProjectDetails({
           )
         }
       />
+      <Button
+        component="a"
+        href={`#/app/t/${tenantId}/p/${projectId}/content`}
+        leftSection={<FilmSlate size={18} />}
+        variant="filled"
+        mb="xl"
+      >
+        进入剧本与集场镜
+      </Button>
       {manager || lead ? (
         <ProjectSettings key={p.id} project={p} path={path} active={active} />
       ) : (

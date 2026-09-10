@@ -6,6 +6,7 @@ import { Secrets } from "./kernel/crypto.js";
 import { installProblemHandler } from "./kernel/routes.js";
 import { identityRoutes } from "./modules/identity/routes.js";
 import { projectRoutes } from "./modules/projects/routes.js";
+import { contentRoutes } from "./modules/content/routes.js";
 import { invitationRoutes } from "./modules/identity/invitations.js";
 import { oidcRoutes } from "./modules/identity/oidc.js";
 import type { Configuration } from "openid-client";
@@ -47,6 +48,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     identityRoutes(app, context);
     invitationRoutes(app, context);
     projectRoutes(app, context);
+    contentRoutes(app, context);
     if (business.auth) {
       app.addHook("onReady", async () => {
         const client = await business.auth!.pool.connect();
@@ -85,7 +87,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
         await pool.query("SELECT 1");
         return {
           status: "ok",
-          scope: "identity_and_project_foundation",
+          scope: "identity_projects_and_content",
           businessReady: true,
           completeMvp: false,
         };

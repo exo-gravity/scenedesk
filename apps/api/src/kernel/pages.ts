@@ -10,7 +10,14 @@ export async function page<T>(
   query: Record<string, unknown>,
   sql: string,
   values: unknown[] = [],
+  map: (row: Record<string, unknown>) => T = record<T>,
 ) {
+  requireThat(
+    !tx.projectId || !query.projectId || query.projectId === tx.projectId,
+    422,
+    "PROJECT_FILTER_MISMATCH",
+    "项目筛选必须与当前项目一致。",
+  );
   const limit = typeof query.limit === "number" ? query.limit : 30;
   const context = JSON.stringify([
     operation,
@@ -20,20 +27,23 @@ export async function page<T>(
     query.q ?? null,
     query.projectId ?? null,
   ]);
-  let after: string | null = null;
+  let after: { id: string; createdAt: string } | null = null;
   if (query.cursor !== undefined) {
     try {
-      const cursor = secrets.open<{ id: string }>(
+      const cursor = secrets.open<{ id: string; createdAt: string }>(
         String(query.cursor),
         context,
       );
       requireThat(
-        typeof cursor.id === "string" && /^[0-9a-f-]{36}$/.test(cursor.id),
+        typeof cursor.id === "string" &&
+          /^[0-9a-f-]{36}$/.test(cursor.id) &&
+          typeof cursor.createdAt === "string" &&
+          Number.isFinite(Date.parse(cursor.createdAt)),
         422,
         "INVALID_CURSOR",
         "列表游标无效。",
       );
-      after = cursor.id;
+      after = cursor;
     } catch {
       throw new Problem(
         422,
@@ -44,14 +54,19 @@ export async function page<T>(
   }
   const index = values.length;
   const result = await tx.sql.query(
-    `SELECT * FROM (${sql}) AS listed WHERE ($${index + 1}::uuid IS NULL OR id > $${index + 1}) ORDER BY id LIMIT $${index + 2}`,
-    [...values, after, limit + 1],
+    `SELECT *, to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_created_at FROM (${sql}) AS listed WHERE ($${index + 1}::uuid IS NULL OR (created_at,id) > ($${index + 2}::timestamptz,$${index + 1}::uuid)) ORDER BY created_at,id LIMIT $${index + 3}`,
+    [...values, after?.id ?? null, after?.createdAt ?? null, limit + 1],
   );
   const rows = result.rows.slice(0, limit);
   return {
-    items: rows.map((r) => record<T>(r)),
+    items: rows.map(({ cursor_created_at: _cursor, ...r }) => map(r)),
     ...(result.rows.length > limit
-      ? { nextCursor: secrets.seal({ id: rows.at(-1)!.id }, context) }
+      ? {
+          nextCursor: secrets.seal(
+            { id: rows.at(-1)!.id, createdAt: rows.at(-1)!.cursor_created_at },
+            context,
+          ),
+        }
       : {}),
   };
 }

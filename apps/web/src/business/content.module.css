@@ -1,0 +1,54 @@
+.workspace {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--mantine-spacing-xl);
+  align-items: start;
+}
+.outline {
+  min-width: 0;
+  padding: var(--mantine-spacing-lg);
+  background: var(--ws-panel);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+}
+.episode {
+  padding-block: var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--ws-border);
+}
+.episode:last-child {
+  border-bottom: 0;
+}
+.content {
+  min-width: 0;
+}
+.shots {
+  display: grid;
+  gap: var(--mantine-spacing-lg);
+}
+.shot {
+  padding: var(--mantine-spacing-xl);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  background: var(--ws-raised);
+}
+.shotTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-md);
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.dialogue {
+  margin-top: var(--mantine-spacing-md);
+  padding-left: var(--mantine-spacing-md);
+  border-left: 2px solid var(--ws-border);
+}
+@media (max-width: 1120px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
