@@ -139,6 +139,9 @@ export function registerAction(
   app.route({
     method: operation.method as HTTPMethods,
     url: operation.path.replace(/\{([^}]+)\}/g, ":$1"),
+    // The contract permits 500,000 Unicode codepoints; escaped supplementary
+    // characters can take twelve bytes each in the JSON request.
+    ...(name === "reviseScript" ? { bodyLimit: 6 * 1024 * 1024 } : {}),
     async handler(request, reply) {
       const token = sessionCookie(request);
       const query = { ...(request.query as Record<string, unknown>) };
@@ -165,6 +168,14 @@ export function registerAction(
       for (const parameter of operation.parameters) {
         if (parameter.in === "path" && parameter.schema.format === "uuid")
           params[parameter.name] = params[parameter.name]!.toLowerCase();
+        if (
+          parameter.in === "query" &&
+          parameter.schema.format === "uuid" &&
+          typeof query[parameter.name] === "string"
+        )
+          query[parameter.name] = (
+            query[parameter.name] as string
+          ).toLowerCase();
       }
       const write = operation.method !== "GET";
       if (write)

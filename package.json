@@ -17,6 +17,7 @@
     "dev:api": "node --env-file-if-exists=.env --import tsx apps/api/src/main.ts",
     "dev:web": "npm run dev --workspace @drama/web",
     "setup:business": "node --env-file-if-exists=.env --import tsx scripts/setup-local-business.ts",
+    "upgrade:business": "node --env-file=.env --env-file=.env.business --import tsx scripts/upgrade-local-business.ts",
     "dev:identity": "node --env-file=.env.business --import tsx scripts/dev-oidc.ts",
     "dev:business-api": "node --env-file=.env.business --import tsx scripts/dev-business-api.ts",
     "dev:business": "concurrently --kill-others --names identity,api,web \"npm run dev:identity\" \"npm run dev:business-api\" \"npm run dev:web\"",

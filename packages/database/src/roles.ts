@@ -29,7 +29,7 @@ export async function grantRuntimeAccess(
     target = sqlIdentifier(role);
   await client.query(`GRANT USAGE ON SCHEMA ${scope} TO ${target}`);
   await client.query(
-    `GRANT SELECT, INSERT ON ${["tenants", "memberships", "invitations", "projects", "project_memberships", "productions", "project_content_versions", "idempotency_records"].map((t) => `${scope}.${t}`).join(", ")} TO ${target}`,
+    `GRANT SELECT, INSERT ON ${["tenants", "memberships", "invitations", "projects", "project_memberships", "productions", "project_content_versions", "idempotency_records", "script_revisions", "episodes", "scenes", "shots", "shot_revisions", "shot_source_shots", "shot_source_scripts", "dialogue_lines"].map((t) => `${scope}.${t}`).join(", ")} TO ${target}`,
   );
   for (const [table, columns] of Object.entries({
     tenants: "name, revision, updated_at",
@@ -39,6 +39,11 @@ export async function grantRuntimeAccess(
     productions:
       "title, brief, default_asset_revision_ids, revision, updated_at",
     project_content_versions: "revision, current_script_revision_id",
+    episodes: "title, position, status, revision, updated_at",
+    scenes:
+      "episode_id, title, position, time_label, location_label, summary, state, default_asset_revision_ids, status, revision, updated_at",
+    shots:
+      "scene_id, label, position, current_revision_id, status, revision, updated_at",
   }))
     await client.query(
       `GRANT UPDATE (${columns}) ON ${scope}.${table} TO ${target}`,
