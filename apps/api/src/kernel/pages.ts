@@ -1,6 +1,6 @@
 import type { Transaction } from "./database.js";
 import { record } from "./database.js";
-import { Secrets } from "./crypto.js";
+import { canonical, Secrets } from "./crypto.js";
 import { Problem, requireThat } from "./errors.js";
 
 export async function page<T>(
@@ -19,13 +19,16 @@ export async function page<T>(
     "项目筛选必须与当前项目一致。",
   );
   const limit = typeof query.limit === "number" ? query.limit : 30;
-  const context = JSON.stringify([
+  const context = canonical([
     operation,
     tx.session.userId,
-    tx.tenantId,
-    tx.projectId,
-    query.q ?? null,
-    query.projectId ?? null,
+    tx.tenantId ?? null,
+    tx.projectId ?? null,
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([key]) => key !== "cursor" && key !== "limit",
+      ),
+    ),
   ]);
   let after: { id: string; createdAt: string } | null = null;
   if (query.cursor !== undefined) {

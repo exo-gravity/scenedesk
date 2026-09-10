@@ -1,3 +1,4 @@
+import { ProposalWorkspace } from "./ProposalWorkspace";
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
@@ -51,6 +52,7 @@ export function ContentWorkspace({
     [archived, setArchived] = useState(false);
   const [editing, setEditing] = useState<ContentEditing>(),
     [scriptOpen, setScriptOpen] = useState(false),
+    [proposalOpen, setProposalOpen] = useState(false),
     [history, setHistory] = useState<Schema<"Shot">>();
   const [archive, setArchive] = useState<{
     kind: ContentEditing["kind"];
@@ -88,6 +90,17 @@ export function ContentWorkspace({
   );
   const sceneEditable =
     active && episode?.status === "active" && scene?.status === "active";
+  if (proposalOpen)
+    return (
+      <ProposalWorkspace
+        path={path}
+        tree={tree}
+        active={active}
+        projectName={p.name}
+        {...(scene?.id ? { initialSceneId: scene.id } : {})}
+        onClose={() => setProposalOpen(false)}
+      />
+    );
   function move(
     kind: ContentEditing["kind"],
     parentId: string,
@@ -186,13 +199,18 @@ export function ContentWorkspace({
         title={p.name}
         description="剧本与集场镜 · 从文字到每一镜的创作要求"
         action={
-          <Button
-            leftSection={<Scroll size={18} />}
-            disabled={scripts.isPending || scripts.isError}
-            onClick={() => setScriptOpen(true)}
-          >
-            {tree.currentScriptRevisionId ? "剧本与历史" : "录入剧本"}
-          </Button>
+          <Group>
+            <Button variant="default" onClick={() => setProposalOpen(true)}>
+              CSV 与提案
+            </Button>
+            <Button
+              leftSection={<Scroll size={18} />}
+              disabled={scripts.isPending || scripts.isError}
+              onClick={() => setScriptOpen(true)}
+            >
+              {tree.currentScriptRevisionId ? "剧本与历史" : "录入剧本"}
+            </Button>
+          </Group>
         }
       />
       <ErrorNotice error={scripts.error} retry={() => void scripts.refetch()} />

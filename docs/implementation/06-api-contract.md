@@ -173,3 +173,5 @@ files逐项列实际README、镜头表、声音表、媒体及证据文件，不
 新409原因包括CUT_BASE_CHANGED、WORK_DRAFT_CHANGED、WORK_DRAFT_UNAPPLIED、EDITING_MODE_UNSUPPORTED；412区分Cut与工作稿冲突。hasUnappliedChanges按工作文档与当前已确认编排及未处理事项比较，不只看更新时间。工作稿响应ETag仅作写CAS，不能据此缓存会变化的诊断。getCutNormalization对授权后已过期未应用结果返回410 NORMALIZATION_EXPIRED。
 
 normalize旧版直接传timeline的请求在1.3.0被拒绝；replacement预览仍保留显式dramaBindings作为本次替换提案的一部分并复验来源，不允许它绕过工作稿版本。历史恢复通过读取旧文档、用户选择合法内容、向当前对象PUT形成新revision，不新增“回滚并执行旧任务”接口。
+
+实施补充：提案详情可返回只读 `baseContentSnapshot`（固定导入／复核基线）与 `application`（实际采纳修订、所选操作、实际创建对象和结果内容版本）；列表可省略。历史详情的内容按指定修订返回，采纳事实仍属于当前提案。写入类型不接受这些服务端字段。实现与验收见 [25 CSV 提案](25-csv-proposals.md)。

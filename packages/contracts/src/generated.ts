@@ -2696,6 +2696,10 @@ export interface components {
             sourceHash: string;
             scriptRange?: components["schemas"]["TextRange"];
             target: components["schemas"]["ProposalTarget"];
+            /** @description 固定的导入或人工复核基线，供详情比较当前内容。列表可省略；不随内容变化自动更新。 */
+            readonly baseContentSnapshot?: components["schemas"]["ContentTree"];
+            /** @description 当前提案的固定采纳结果；详情及历史读取时返回，列表可省略。未选项仍保留在提案修订。 */
+            readonly application?: components["schemas"]["ProposalApplication"];
         } & (unknown & unknown);
         ApplyProposal: {
             selectedOperationIds: string[];
@@ -3951,6 +3955,17 @@ export interface components {
             operations: components["schemas"]["ProposalOperation"][];
             target: components["schemas"]["ProposalTarget"];
             baseContentRevision: number;
+        };
+        ProposalApplication: {
+            proposalRevision: number;
+            selectedOperationIds: string[];
+            /** @description 本次采纳的 opId 到服务端实际创建对象 id 的固定映射。 */
+            createdObjects: {
+                [key: string]: string;
+            };
+            contentRevision: number;
+            /** Format: date-time */
+            appliedAt: string;
         };
         ContextSourceInput: {
             /** @enum {string} */
