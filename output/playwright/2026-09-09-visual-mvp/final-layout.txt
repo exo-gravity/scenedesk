@@ -1,0 +1,13 @@
+### Result
+{
+  "width": 1512,
+  "height": 982,
+  "documentWidth": 1512,
+  "documentScroll": 0,
+  "headerTop": 0,
+  "shots": 6
+}
+### Ran Playwright code
+```js
+await page.evaluate('() => ({width:innerWidth,height:innerHeight,documentWidth:document.documentElement.scrollWidth,documentScroll:document.scrollingElement.scrollTop,headerTop:document.querySelector(".topbar").getBoundingClientRect().top,shots:JSON.parse(localStorage.getItem("pianchang-visual-prototype-v1")).shots.length})');
+```

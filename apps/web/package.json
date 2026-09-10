@@ -1,0 +1,25 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "name": "@drama/web",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mantine/core": "9.6.0",
+    "@mantine/form": "9.6.0",
+    "@mantine/hooks": "9.6.0",
+    "@phosphor-icons/react": "2.1.10",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "5.2.0",
+    "vite": "7.3.6"
+  }
+}

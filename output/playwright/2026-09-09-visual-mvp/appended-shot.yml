@@ -1,0 +1,304 @@
+- generic [ref=e421]:
+  - complementary [ref=e422]:
+    - button "片场，返回工作室项目" [ref=e423] [cursor=pointer]:
+      - strong [ref=e427]: 片场
+      - generic [ref=e428]: PIANCHANG
+    - button "拾 拾光工作室 团队工作空间" [ref=e429] [cursor=pointer]:
+      - generic [ref=e430]: 拾
+      - generic [ref=e431]:
+        - strong [ref=e432]: 拾光工作室
+        - generic [ref=e433]: 团队工作空间
+    - navigation "工作室导航" [ref=e436]:
+      - button "工作室项目" [ref=e437] [cursor=pointer]
+      - button "我的工作 3" [ref=e440] [cursor=pointer]:
+        - text: 我的工作
+        - generic [ref=e443]: "3"
+    - generic [ref=e445]: 当前项目
+    - button "《旧钥匙》写实分镜示意 旧钥匙 写实短剧 · 9:16" [ref=e449] [cursor=pointer]:
+      - img "《旧钥匙》写实分镜示意" [ref=e1346]
+      - generic [ref=e453]:
+        - strong [ref=e454]: 旧钥匙
+        - generic [ref=e455]: 写实短剧 · 9:16
+    - navigation "项目导航" [ref=e458]:
+      - button "项目概览" [ref=e459] [cursor=pointer]
+      - button "剧本与设定" [ref=e462] [cursor=pointer]
+      - button "资产库" [ref=e465] [cursor=pointer]
+      - button "场次制作" [ref=e468] [cursor=pointer]
+      - button "整集与交付" [ref=e471] [cursor=pointer]
+    - generic [ref=e2971]:
+      - generic [ref=e2972]: 第 1 集 · 重逢
+      - button "01 咖啡厅 制作中" [ref=e2975] [cursor=pointer]:
+        - generic [ref=e2976]: "01"
+        - text: 咖啡厅
+        - generic [ref=e2977]: 制作中
+      - button "02 咖啡厅外" [ref=e2978] [cursor=pointer]:
+        - generic [ref=e2979]: "02"
+        - text: 咖啡厅外
+      - button "第 2 集 · 留下的线索" [ref=e2982] [cursor=pointer]
+    - generic [ref=e474]:
+      - button "视觉规范 01" [ref=e475] [cursor=pointer]:
+        - text: 视觉规范
+        - generic [ref=e478]: "01"
+      - button "成员与用量" [ref=e479] [cursor=pointer]
+      - generic [ref=e483]:
+        - generic "许知" [ref=e484]: 知
+        - generic [ref=e485]:
+          - strong [ref=e486]: 许知
+          - generic [ref=e487]: 制作人员 · 示例身份
+        - button "关于本地预览" [ref=e488] [cursor=pointer]
+  - generic [ref=e491]:
+    - banner [ref=e492]:
+      - generic [ref=e493]:
+        - button "拾光工作室" [ref=e494] [cursor=pointer]
+        - button "旧钥匙" [ref=e497] [cursor=pointer]
+        - generic [ref=e500]: 场次制作
+      - generic [ref=e501]:
+        - button "本地设计预览" [ref=e502] [cursor=pointer]
+        - button "已保存在本机" [ref=e504] [cursor=pointer]
+        - button "查看我的待办" [ref=e507] [cursor=pointer]
+        - generic "许知" [ref=e510]: 知
+    - main [ref=e511]:
+      - generic [ref=e2985]:
+        - generic [ref=e2986]:
+          - generic [ref=e2987]:
+            - generic [ref=e2988]:
+              - generic [ref=e2989]: 第 1 集 · 重逢
+              - generic [ref=e2992]: 场次 01
+            - generic [ref=e2993]:
+              - heading "咖啡厅的旧钥匙" [level=1] [ref=e2994]
+              - generic [ref=e2995]: 制作中
+            - generic [ref=e2996]:
+              - generic [ref=e2997]: 日 / 内
+              - generic [ref=e3000]: 7 个镜头
+              - generic [ref=e3003]: 46 秒编排
+              - generic [ref=e3006]:
+                - generic "许知" [ref=e3007]: 知
+                - text: 许知主责
+          - generic [ref=e3008]:
+            - button "预演场次" [ref=e3009] [cursor=pointer]
+            - button "进入剪辑" [ref=e3012] [cursor=pointer]
+        - generic [ref=e3015]:
+          - navigation "场次视图" [ref=e3016]:
+            - button "制作" [ref=e3017] [cursor=pointer]
+            - button "剪辑" [ref=e3020] [cursor=pointer]
+            - button "审阅 2" [ref=e3023] [cursor=pointer]:
+              - text: 审阅
+              - generic [ref=e3026]: "2"
+          - generic [ref=e3027]:
+            - text: 创作依据已确认
+            - generic [ref=e3030]: ·
+            - button "查看戏文" [ref=e3031] [cursor=pointer]
+        - generic [ref=e3034]:
+          - generic [ref=e3035]:
+            - generic [ref=e3036]:
+              - generic [ref=e3037]:
+                - heading "分镜故事板" [level=2] [ref=e3038]
+                - generic [ref=e3039]: "7"
+              - generic [ref=e3040]:
+                - generic [ref=e3041]:
+                  - button "故事板网格" [pressed] [ref=e3042] [cursor=pointer]
+                  - button "分镜列表" [ref=e3045] [cursor=pointer]
+                - button "分镜建议" [active] [ref=e3048] [cursor=pointer]
+            - generic [ref=e3051]:
+              - generic [ref=e3052]:
+                - button "全部镜头" [ref=e3053] [cursor=pointer]
+                - button "需处理 2" [ref=e3333] [cursor=pointer]:
+                  - text: 需处理
+                  - generic [ref=e3055]: "2"
+              - textbox "搜索镜头" [ref=e3059]
+            - generic [ref=e3060]:
+              - article [ref=e3061]:
+                - button "选择 SH-01 相对而坐" [ref=e3062] [cursor=pointer]:
+                  - generic [ref=e3063]:
+                    - strong [ref=e3064]: SH-01
+                    - generic [ref=e3065]: 中景
+                  - generic [ref=e3069]:
+                    - img "SH-01 相对而坐，分镜示意图" [ref=e3070]
+                    - generic [ref=e3072]: 分镜图
+                    - generic [ref=e3073]: 6s
+                  - generic [ref=e3074]:
+                    - heading "相对而坐" [level=3] [ref=e3075]
+                    - paragraph [ref=e3076]: 双人中景，建立人物与桌面的空间关系
+                    - generic [ref=e3077]:
+                      - generic [ref=e3078]: 已采用 A
+                      - generic [ref=e3081]: 4 个候选
+                - generic [ref=e3082]:
+                  - generic [ref=e3083]: 剪辑使用 A
+                  - button "放大 SH-01 分镜" [ref=e3084] [cursor=pointer]
+              - article [ref=e3087]:
+                - button "选择 SH-02 迟来的追问" [ref=e3088] [cursor=pointer]:
+                  - generic [ref=e3089]:
+                    - strong [ref=e3090]: SH-02
+                    - generic [ref=e3091]: 近景
+                  - generic [ref=e3095]:
+                    - img "SH-02 迟来的追问，分镜示意图" [ref=e3096]
+                    - generic [ref=e3098]: 分镜图
+                    - generic [ref=e3099]: 8s
+                  - generic [ref=e3100]:
+                    - heading "迟来的追问" [level=3] [ref=e3101]
+                    - paragraph [ref=e3102]: 林夏看向周远，追问钥匙的来历
+                    - generic [ref=e3103]:
+                      - generic [ref=e3104]: 已采用 A
+                      - generic [ref=e3107]: 2 个候选
+                - generic [ref=e3108]:
+                  - generic [ref=e3109]: 剪辑使用 A
+                  - button "放大 SH-02 分镜" [ref=e3110] [cursor=pointer]
+              - article [ref=e3113]:
+                - button "选择 SH-03 欲言又止" [ref=e3114] [cursor=pointer]:
+                  - generic [ref=e3115]:
+                    - strong [ref=e3116]: SH-03
+                    - generic [ref=e3117]: 近景
+                  - generic [ref=e3121]:
+                    - img "SH-03 欲言又止，分镜示意图" [ref=e3122]
+                    - generic [ref=e3124]: 分镜图
+                    - generic [ref=e3125]: 7s
+                  - generic [ref=e3126]:
+                    - heading "欲言又止" [level=3] [ref=e3127]
+                    - paragraph [ref=e3128]: 周远避开目光，停顿后回答
+                    - generic [ref=e3129]:
+                      - generic [ref=e3130]: 已采用 A
+                      - generic [ref=e3133]: 2 个候选
+                - generic [ref=e3134]:
+                  - generic [ref=e3135]: 剪辑使用 A
+                  - button "放大 SH-03 分镜" [ref=e3136] [cursor=pointer]
+              - article [ref=e3139]:
+                - button "选择 SH-04 拿起旧钥匙" [ref=e3140] [cursor=pointer]:
+                  - generic [ref=e3141]:
+                    - strong [ref=e3142]: SH-04
+                    - generic [ref=e3143]: 特写
+                  - generic [ref=e3147]:
+                    - img "SH-04 拿起旧钥匙，分镜示意图" [ref=e3148]
+                    - generic [ref=e3150]: 分镜图
+                    - generic [ref=e3151]: 9s
+                  - generic [ref=e3152]:
+                    - heading "拿起旧钥匙" [level=3] [ref=e3153]
+                    - paragraph [ref=e3154]: 林夏右手拿起钥匙，完成道具状态转移
+                    - generic [ref=e3155]:
+                      - generic [ref=e3156]: 待返工
+                      - generic [ref=e3159]: 3 个候选
+                - generic [ref=e3160]:
+                  - generic [ref=e3161]: 剪辑使用 B
+                  - button "放大 SH-04 分镜" [ref=e3162] [cursor=pointer]
+              - article [ref=e3165]:
+                - button "选择 SH-05 被唤起的记忆" [ref=e3166] [cursor=pointer]:
+                  - generic [ref=e3167]:
+                    - strong [ref=e3168]: SH-05
+                    - generic [ref=e3169]: 特写
+                  - generic [ref=e3173]:
+                    - img "SH-05 被唤起的记忆，分镜示意图" [ref=e3174]
+                    - generic [ref=e3176]: 分镜图
+                    - generic [ref=e3177]: 8s
+                  - generic [ref=e3178]:
+                    - heading "被唤起的记忆" [level=3] [ref=e3179]
+                    - paragraph [ref=e3180]: 林夏看清磨痕，压住情绪，低声说话
+                    - generic [ref=e3181]:
+                      - generic [ref=e3182]: 已采用 A
+                      - generic [ref=e3185]: 2 个候选
+                - generic [ref=e3186]:
+                  - generic [ref=e3187]: 剪辑使用 A
+                  - button "放大 SH-05 分镜" [ref=e3188] [cursor=pointer]
+              - article [ref=e3191]:
+                - button "选择 SH-06 无声的回答" [ref=e3192] [cursor=pointer]:
+                  - generic [ref=e3193]:
+                    - strong [ref=e3194]: SH-06
+                    - generic [ref=e3195]: 中景
+                  - generic [ref=e3199]:
+                    - img "SH-06 无声的回答，分镜示意图" [ref=e3200]
+                    - generic [ref=e3202]: 分镜图
+                    - generic [ref=e3203]: 8s
+                  - generic [ref=e3204]:
+                    - heading "无声的回答" [level=3] [ref=e3205]
+                    - paragraph [ref=e3206]: 双人反应镜头，保留片尾停顿
+                    - generic [ref=e3207]:
+                      - generic [ref=e3208]: 已采用 A
+                      - generic [ref=e3211]: 2 个候选
+                - generic [ref=e3212]:
+                  - generic [ref=e3213]: 剪辑使用 A
+                  - button "放大 SH-06 分镜" [ref=e3214] [cursor=pointer]
+              - article [ref=e3336]:
+                - button "选择 SH-07 桌面的空位" [pressed] [ref=e3337] [cursor=pointer]:
+                  - generic [ref=e3338]:
+                    - strong [ref=e3339]: SH-07
+                    - generic [ref=e3340]: 特写
+                  - generic [ref=e3344]:
+                    - generic [ref=e3347]: 待准备画面
+                    - generic [ref=e3348]: 3s
+                  - generic [ref=e3349]:
+                    - heading "桌面的空位" [level=3] [ref=e3350]
+                    - paragraph [ref=e3351]: 桌面空位的特写，交代钥匙已被拿走，为下一场的情绪留出停顿。
+                    - generic [ref=e3352]:
+                      - generic [ref=e3353]: 待制作
+                      - generic [ref=e3356]: 0 个候选
+                - generic [ref=e3357]:
+                  - generic [ref=e3358]: 未加入剪辑
+                  - button "放大 SH-07 分镜" [ref=e3359] [cursor=pointer]
+              - button "补充一个镜头 根据戏文准备分镜建议" [ref=e3217] [cursor=pointer]:
+                - strong [ref=e3221]: 补充一个镜头
+                - generic [ref=e3222]: 根据戏文准备分镜建议
+            - generic [ref=e3223]: 分镜按叙事顺序排列 · 放大可查看完整画幅 · 采用后可明确用于剪辑。
+          - complementary [ref=e3227]:
+            - generic [ref=e3228]:
+              - generic [ref=e3229]:
+                - text: 当前镜头
+                - heading "SH-07桌面的空位" [level=2] [ref=e3362]
+              - button "放大当前分镜" [ref=e3231] [cursor=pointer]
+            - generic [ref=e3234]:
+              - button "镜头要求" [ref=e3235] [cursor=pointer]
+              - button "候选 0" [ref=e3363] [cursor=pointer]
+              - button "参考" [ref=e3237] [cursor=pointer]
+            - generic [ref=e3238]:
+              - generic [ref=e3239]: 这一个镜头要表达什么
+              - textbox "这一个镜头要表达什么" [ref=e3240]: 桌面空位的特写，交代钥匙已被拿走，为下一场的情绪留出停顿。
+              - generic [ref=e3241]:
+                - generic [ref=e3242]:
+                  - text: 景别
+                  - combobox "景别" [ref=e3243]:
+                    - option "中景"
+                    - option "近景"
+                    - option "特写" [selected]
+                    - option "全景"
+                - generic [ref=e3244]:
+                  - text: 计划时长
+                  - generic [ref=e3245]:
+                    - spinbutton "镜头计划时长" [ref=e3246]: "3"
+                    - generic [ref=e3247]: 秒
+              - generic [ref=e3248]:
+                - heading "动作连续性" [level=3] [ref=e3249]
+                - generic [ref=e3252]:
+                  - generic [ref=e3253]: 入镜
+                  - textbox "入镜状态" [ref=e3254]: 钥匙已被拿走
+                - generic [ref=e3256]:
+                  - generic [ref=e3257]: 出镜
+                  - textbox "出镜状态" [ref=e3258]: 桌面留白
+              - generic [ref=e3259]:
+                - generic [ref=e3260]: 台词 / 表演
+                - button "查看戏文" [ref=e3261] [cursor=pointer]
+              - paragraph [ref=e3264]: 无台词，以动作与停顿表达。
+              - generic [ref=e3265]:
+                - generic [ref=e3266]: 已选参考
+                - button "查看全部 4" [ref=e3267] [cursor=pointer]
+              - generic [ref=e3268]:
+                - button "《旧钥匙》写实分镜示意 林夏" [ref=e3269] [cursor=pointer]:
+                  - img "《旧钥匙》写实分镜示意" [ref=e3271]
+                  - generic [ref=e3273]: 林夏
+                - button "《旧钥匙》写实分镜示意 周远" [ref=e3274] [cursor=pointer]:
+                  - img "《旧钥匙》写实分镜示意" [ref=e3276]
+                  - generic [ref=e3278]: 周远
+                - button "《旧钥匙》写实分镜示意 临街咖啡厅" [ref=e3279] [cursor=pointer]:
+                  - img "《旧钥匙》写实分镜示意" [ref=e3281]
+                  - generic [ref=e3283]: 临街咖啡厅
+                - button "《旧钥匙》写实分镜示意 旧铜钥匙" [ref=e3284] [cursor=pointer]:
+                  - img "《旧钥匙》写实分镜示意" [ref=e3286]
+                  - generic [ref=e3288]: 旧铜钥匙
+              - generic [ref=e3289]: 镜头规格与本次试作提示分别保存；修改规格不会自动替换已采用结果。
+              - generic [ref=e3293]:
+                - generic [ref=e3294]: 分镜排序
+                - generic [ref=e3295]:
+                  - button "前移" [ref=e3296] [cursor=pointer]
+                  - button "后移" [disabled] [ref=e3299]
+            - generic [ref=e3302]:
+              - button "准备提示" [ref=e3303] [cursor=pointer]
+              - button "准备生成" [ref=e3306] [cursor=pointer]
+  - status [ref=e3364]:
+    - generic [ref=e3367]: 新镜头已追加到当前场次，原有镜头与剪辑保持原样。
+    - button "关闭提示" [ref=e3368] [cursor=pointer]

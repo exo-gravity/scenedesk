@@ -1,0 +1,17 @@
+### Result
+{
+  "shotCount": 7,
+  "added": {
+    "label": "SH-07",
+    "selected": "",
+    "candidates": 0
+  },
+  "cutCount": 6,
+  "duration": 46,
+  "oldVersion": "A",
+  "newVersion": "B"
+}
+### Ran Playwright code
+```js
+await page.evaluate('() => { const d=JSON.parse(localStorage.getItem("pianchang-visual-prototype-v1"));const added=d.shots.at(-1);return {shotCount:d.shots.length,added:{label:added.label,selected:added.selected,candidates:added.candidates.length},cutCount:d.clips.length,duration:d.clips.reduce((n,c)=>n+c.seconds,0),oldVersion:d.revisions[0].clips.find(c=>c.shotId===4).take,newVersion:d.revisions[1].clips.find(c=>c.shotId===4).take};}');
+```

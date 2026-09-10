@@ -1,0 +1,10 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "name": "@drama/database",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "pg": "8.23.0"
+  }
+}

@@ -1,0 +1,73 @@
+- generic [ref=f2e3]:
+  - generic [ref=f2e4]:
+    - strong [ref=f2e5]: S0 交互验证
+    - generic [ref=f2e6]: 虚构内容与内存状态 · 刷新重置 · 无真实生成、渲染、审批或费用
+    - link "查看设计契约 ↗" [ref=f2e7] [cursor=pointer]:
+      - /url: /design/openapi.json
+  - banner [ref=f2e8]:
+    - generic [ref=f2e9]:
+      - text: 片场
+      - generic [ref=f2e10]: WORKBENCH
+    - generic [ref=f2e11]: 示例工作室 / 旧钥匙 / 第 1 集
+    - generic [ref=f2e12]: 工程 API 可用
+  - generic [ref=f2e13]:
+    - complementary [ref=f2e14]:
+      - paragraph [ref=f2e15]: 项目内容
+      - heading "旧钥匙" [level=3] [ref=f2e16]
+      - paragraph [ref=f2e17]: 写实短剧 · 9:16
+      - generic [ref=f2e18]: 第 1 集
+      - button "01 咖啡厅 当前场次 · 6 镜" [ref=f2e19] [cursor=pointer]:
+        - text: 01 咖啡厅
+        - generic [ref=f2e20]: 当前场次 · 6 镜
+      - paragraph [ref=f2e21]: 完整 MVP 后续入口
+      - paragraph [ref=f2e22]: 整集编排与交付第 2 集与资产复用内部后期回传
+      - generic [ref=f2e23]: 当前页面只验证场次交互。以上入口将在 S1–S3 实现。
+      - generic [ref=f2e24]:
+        - generic [ref=f2e25]: 制
+        - generic [ref=f2e26]:
+          - strong [ref=f2e27]: 场次主责
+          - generic [ref=f2e28]: 示例制作人员
+      - paragraph [ref=f2e29]: 成员协助 · 主创确认方向与结果
+    - main [ref=f2e30]:
+      - generic [ref=f2e31]:
+        - generic [ref=f2e32]:
+          - paragraph [ref=f2e33]: SCENE 01 · 日 / 内
+          - heading "咖啡厅的旧钥匙" [level=1] [ref=f2e34]
+          - paragraph [ref=f2e35]: 钥匙从桌面交到林夏右手，人物关系在短暂停顿中发生变化。
+        - generic [ref=f2e36]:
+          - strong [ref=f2e37]: 6 个镜头
+          - generic [ref=f2e38]: 46 秒编排示意
+          - generic [ref=f2e39]: 正式创作依据：示例已确认
+      - generic [ref=f2e40]:
+        - navigation "场次视图" [ref=f2e41]:
+          - button "制作" [ref=f2e42] [cursor=pointer]
+          - button "剪辑" [ref=f2e43] [cursor=pointer]
+          - button "审阅" [ref=f2e44] [cursor=pointer]
+        - generic [ref=f2e45]: 场次上下文随视图保留
+      - status [ref=f2e46]: 已建立 v2 的独立状态快照。这里未执行媒体渲染，审批仅用于交互验证。
+      - generic [ref=f2e372]:
+        - generic [ref=f2e373]:
+          - heading "固定版本审阅" [level=2] [ref=f2e374]
+          - combobox "审阅版本" [ref=f2e375]:
+            - option "选择版本"
+            - option "v1 · 需修改" [selected]
+            - option "v2 · 待审阅"
+        - generic [ref=f2e376]:
+          - paragraph [ref=f2e377]: v1 · 需修改
+          - heading "固定编排快照" [level=3] [ref=f2e378]
+          - paragraph [ref=f2e379]: SH-01 / A → SH-02 / A → SH-03 / A → SH-04 / B → SH-05 / A → SH-06 / A
+          - text: 没有实际可播放文件；生产审阅必须等待媒体验收。本页仅模拟决定。
+        - generic [ref=f2e380]:
+          - generic [ref=f2e381]:
+            - heading "该版本意见" [level=3] [ref=f2e382]
+            - paragraph [ref=f2e393]: 00:24 钥匙与右手接触不自然；保留人物、服装与相邻镜头节奏。
+            - generic [ref=f2e383]: 返工说明
+            - textbox "返工说明" [ref=f2e384]: 00:24 钥匙与右手接触不自然；保留人物、服装与相邻镜头节奏。
+            - button "保存模拟意见" [disabled] [ref=f2e385]
+          - generic [ref=f2e386]:
+            - heading "主创决定 · 模拟身份" [level=3] [ref=f2e387]
+            - paragraph [ref=f2e388]: 场次通过后可进入整集，整集仍独立审阅。生产环境将检查真实角色与媒体。
+            - generic [ref=f2e389]:
+              - button "模拟需修改" [disabled] [ref=f2e390]
+              - button "模拟通过" [disabled] [ref=f2e391]
+            - button "按意见准备修改" [ref=f2e392] [cursor=pointer]

@@ -1,0 +1,417 @@
+[
+  {
+    "name": "@xyflow/react",
+    "version": "12.11.6",
+    "distTags": {
+      "next": "12.0.0-next.5",
+      "latest": "12.11.6"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+      "react": ">=17",
+      "react-dom": ">=17",
+      "@types/react": ">=17",
+      "@types/react-dom": ">=17"
+    },
+    "dependencies": {
+      "zustand": "^4.4.0",
+      "classcat": "^5.0.3",
+      "@xyflow/system": "0.0.82"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40xyflow%2Freact/12.11.6",
+    "tarball": {
+      "shasum": "e94c6d6d9910e5e4f6d97b9a6c25464817b85685",
+      "tarball": "https://registry.npmjs.org/@xyflow/react/-/react-12.11.6.tgz",
+      "fileCount": 516,
+      "integrity": "sha512-9XsEJNHjatKYndszKTF/bsU7FOP9dJ6V/EQwzy3oMdtqgBuUq7BjKSwkEo+C7s4qHstHQfwwoHA3E8QfpPxZZQ==",
+      "signatures": [
+        {
+          "sig": "MEQCIGnvFGpq1Hn+vQG4L3Ppuy/qipT3K/dWbGqa6Neg/T/IAiBmqAzrvk+DHFoiltyI8Jkc1aaqfT4W8jUaCfCwfDDdwg==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEQCIGEp34PIag4a0dRbC+Imai80PU6psdxi4mAZfiaqy126AiB50NOKc5y8CQEn/XoOG/ojUxqL/MZOyx2NR2YCbskv8A=="
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@xyflow%2freact@12.11.6",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 1216002
+    },
+    "sha256": "4cc8e03f419ca0634c3808abee6a8f88b0aedb1db1282047a9fad22cf6419551",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2019-2025 webkid GmbH\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "media-chrome",
+    "version": "4.19.2",
+    "distTags": {
+      "next": "1.0.0-rc.5",
+      "latest": "4.19.2",
+      "canary": "4.19.3-canary.2"
+    },
+    "license": "MIT",
+    "peerDependencies": null,
+    "dependencies": {
+      "ce-la-react": "^0.3.2"
+    },
+    "registryUrl": "https://registry.npmjs.org/media-chrome/4.19.2",
+    "tarball": {
+      "shasum": "2321fdb82481a8c4aad558191b73863aa0ba95d1",
+      "tarball": "https://registry.npmjs.org/media-chrome/-/media-chrome-4.19.2.tgz",
+      "fileCount": 400,
+      "integrity": "sha512-4ai1ITN8wBhwugQcRgqe3tN0z6OSKGOXqHLNrS04MgKFfsLqu6Dm8MPq02pI9Y9ZKoXtFjIl85jOryIW9es3BA==",
+      "signatures": [
+        {
+          "sig": "MEYCIQCj9pd6ZLucGVuc1Z8eCnO/fBp9xC/VdyujD/oj6stCfAIhALJ0cV3sNZvtz4JiH10RfrXFSpsS59Bvo3ruRigSrjmE",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/media-chrome@4.19.2",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 5080793
+    },
+    "sha256": "6d72cd4eba4e782d70bc6850fcfee12a9645e7a2953df058edc5d359de90c406",
+    "licenses": {
+      "package/LICENSE": "Copyright (c) 2020 Mux, Inc.\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@vidstack/react",
+    "version": "0.6.15",
+    "distTags": {
+      "latest": "0.6.15",
+      "next": "1.15.6"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^18.0.0",
+      "vidstack": "0.6.15",
+      "maverick.js": "0.37.0",
+      "@types/react": "^18.0.0"
+    },
+    "dependencies": null,
+    "registryUrl": "https://registry.npmjs.org/%40vidstack%2Freact/0.6.15",
+    "tarball": {
+      "shasum": "04ed8b01a31ecc45c6752aaa05251b01fc54c7da",
+      "tarball": "https://registry.npmjs.org/@vidstack/react/-/react-0.6.15.tgz",
+      "fileCount": 26,
+      "integrity": "sha512-S8KkYCte84Pqwb8Zd9vuOCe2YuaXqRdtYQ22zSvDUPlS7m8ilYs6ypfHwZzmgSVZdayVU1C703aFMSdcLfpxpg==",
+      "signatures": [
+        {
+          "sig": "MEQCIDw2nZT4cIaG8r4LE7q6yZb5a5K0oBabKFKyeJOpNUDmAiBVNFn4vZxX9rwXE4IWlliiltkPi5mCziqjqWr/mMMsrA==",
+          "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA"
+        }
+      ],
+      "unpackedSize": 125117
+    },
+    "sha256": "e38bebf05ab1f2a0cd245ec5b91cb683f81a9ee34b9612f41a135d5526c04c56",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2023 Rahim Alwer\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@vidstack/react",
+    "version": "1.15.6",
+    "distTags": {
+      "latest": "0.6.15",
+      "next": "1.15.6"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+      "@types/react": "^18.0.0 || ^19.0.0",
+      "react": "^18.0.0 || ^19.0.0"
+    },
+    "dependencies": {
+      "@floating-ui/dom": "^1.6.10",
+      "media-captions": "^1.0.4"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40vidstack%2Freact/1.15.6",
+    "tarball": {
+      "integrity": "sha512-hO7cLld5yfxCdDnDCYqh5aS7JxmHfsmX43PmKBJWzDTwK40P3hh5qAdDQzl3qDtEJLYjuo3Sv+kr6tt/VRtJzQ==",
+      "shasum": "cc9a27d5942a3af67310722319106118da92a7e2",
+      "tarball": "https://registry.npmjs.org/@vidstack/react/-/react-1.15.6.tgz",
+      "fileCount": 130,
+      "unpackedSize": 3304060,
+      "signatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEQCIApfkO88JYsdDWwCO/FuNhDq/kGGXT3/i4r4vUQMUnHuAiBiVmNyyzYCfI3EqxOrb+nUJjs5Ka/7Z6B9Hilbc8VLcg=="
+        }
+      ]
+    },
+    "sha256": "53a96d0078d6762fc5213825c8ca70d2421ccf63afda2b94b88ef2c9615d9c12",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2023 Rahim Alwer\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@dnd-kit/react",
+    "version": "0.5.0",
+    "distTags": {
+      "latest": "0.5.0",
+      "beta": "0.5.1-beta-20260905201412"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^18.0.0 || ^19.0.0",
+      "react-dom": "^18.0.0 || ^19.0.0"
+    },
+    "dependencies": {
+      "tslib": "^2.6.2",
+      "@dnd-kit/dom": "^0.5.0",
+      "@dnd-kit/state": "^0.5.0",
+      "@dnd-kit/abstract": "^0.5.0"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40dnd-kit%2Freact/0.5.0",
+    "tarball": {
+      "shasum": "5bda7289b0bced9b346144b5088c51db398bc14d",
+      "tarball": "https://registry.npmjs.org/@dnd-kit/react/-/react-0.5.0.tgz",
+      "fileCount": 23,
+      "integrity": "sha512-abQPLI8lmfVE+v/n+pqy5WFxrw6T2Yg0UQZsL78dp5DKci7dKTVDjvLWqvass+XTFtzJmsZEjk1NdqE6xG8Jiw==",
+      "signatures": [
+        {
+          "sig": "MEQCIGUJfYycHb/kHvH5Zf6igOV6Du7uyRNY0tDrgB4X8YrtAiALnumca8+uphDRVqymZvrsQWABQoKuicssE0DAzO5F4g==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@dnd-kit%2freact@0.5.0",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 240247
+    },
+    "sha256": "33ce0c6b148117ab4568669492cd8187e8d04f3d1125cd26c598d9110a14e75e",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2021, Claudéric Demers\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@dnd-kit/helpers",
+    "version": "0.5.0",
+    "distTags": {
+      "latest": "0.5.0",
+      "beta": "0.5.1-beta-20260905201412"
+    },
+    "license": "MIT",
+    "peerDependencies": null,
+    "dependencies": {
+      "tslib": "^2.6.2",
+      "@dnd-kit/abstract": "^0.5.0"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40dnd-kit%2Fhelpers/0.5.0",
+    "tarball": {
+      "shasum": "a3768e8e81a1a1c271c8d043b24c37161b231975",
+      "tarball": "https://registry.npmjs.org/@dnd-kit/helpers/-/helpers-0.5.0.tgz",
+      "fileCount": 7,
+      "integrity": "sha512-i4y+51/icSw+OHMr/su19qhnmNhAzh8PnBwXvapFYTd+64oodIyJRiRkB+hhfxAfnur7RYSW8qacDTrXjg2XOg==",
+      "signatures": [
+        {
+          "sig": "MEYCIQC7qXYerKvBuUprtWTrzeqVCfKToVtX9qPonhdpxGWKqAIhALvyZaqL4Y/FqtWgX0fKID+fQjnVf2R/Aob2ZpgVCNiA",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@dnd-kit%2fhelpers@0.5.0",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 22092
+    },
+    "sha256": "f2e2574cb5966a87d690206541ace0e65663ea7c6931ba2ada1c9e9ee7acc08e",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2021, Claudéric Demers\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@tanstack/react-query",
+    "version": "5.102.8",
+    "distTags": {
+      "alpha": "5.0.0-alpha.91",
+      "beta": "5.0.0-beta.35",
+      "rc": "5.0.0-rc.16",
+      "previous": "4.44.0",
+      "latest": "5.102.8"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^18 || ^19"
+    },
+    "dependencies": {
+      "@tanstack/query-core": "5.102.8"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40tanstack%2Freact-query/5.102.8",
+    "tarball": {
+      "shasum": "bdc5c24485258e6ae2e7ecac0a4cf58c59937839",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-query/-/react-query-5.102.8.tgz",
+      "fileCount": 415,
+      "integrity": "sha512-TYBea4OuXWD7MhaSHq069TWbFe7rcwWN6kzT7JF0OKi1K6c1gTv2IzD6A6ExJsCMozdkqBWeuIUZmu4KQg0O5A==",
+      "signatures": [
+        {
+          "sig": "MEUCIGPzj3kGlcIsEVvZs2un3bXKWty2sHSddwbtDbxG8OZoAiEApraAbOgM1BcXLwwy8kw2yRuitxpWMJByZ+cpS53Fc2U=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEYCIQDgye+zswwRVnlm0q3hiN3LxVCy2C6Meysmx1KURWszdQIhAOO2MMoZb2V3JnRuAfMKCcwhASRgz37WDcmHbTOoKqYc"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tanstack%2freact-query@5.102.8",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 744861
+    },
+    "sha256": "885a94ab724af465ce463c2100669d5229b0a4227c306fe2a9e9e7314fc9a587",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2021-present Tanner Linsley\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@tanstack/react-virtual",
+    "version": "3.14.11",
+    "distTags": {
+      "alpha": "3.0.0-alpha.2",
+      "beta": "3.0.0-beta.68",
+      "latest": "3.14.11"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+      "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+    },
+    "dependencies": {
+      "@tanstack/virtual-core": "3.17.9"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40tanstack%2Freact-virtual/3.14.11",
+    "tarball": {
+      "shasum": "7d74b03cfe45ad16599740ec3aa8784bd7e59c9a",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-virtual/-/react-virtual-3.14.11.tgz",
+      "fileCount": 9,
+      "integrity": "sha512-SStWf8bYdTgAquYqG4Pi2+d1XimQKoCIJ94H3jsm0D6UA0yqffvWuvUzrrQ4idewFWq8BSPpahnmLVosJIAs6g==",
+      "signatures": [
+        {
+          "sig": "MEUCIBOr0yqpT/NjAKN2bI/Awjz6kySKIyMJz8Vt+6CJDjc8AiEAo6SkTOxEzsDeQGsy86zSuYuBU/XxaKz30eeWdU/H4iw=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEUCIBb2X33aTZ9JSZ9DZXKYEBj6oGgiOygf92y9xtylFS1oAiEAh11XvTsEpW9xqQ83DmTsVONZ34uj6Z0yaEoiM17cGYM="
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tanstack%2freact-virtual@3.14.11",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 56533
+    },
+    "sha256": "3f37c93a607d4ba96347e2de6d102bb8f19822616bdbfd60ffc708c2cc42aadf",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2021-present Tanner Linsley\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@mantine/core",
+    "version": "9.6.1",
+    "distTags": {
+      "legacy": "7.17.8",
+      "next": "9.5.1-alpha.1",
+      "latest": "9.6.1"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^19.2.0",
+      "react-dom": "^19.2.0",
+      "@mantine/hooks": "9.6.1"
+    },
+    "dependencies": {
+      "clsx": "^2.1.1",
+      "type-fest": "^5.8.0",
+      "@floating-ui/react": "^0.27.20",
+      "react-number-format": "^5.4.5",
+      "react-remove-scroll": "^2.7.2"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40mantine%2Fcore/9.6.1",
+    "tarball": {
+      "shasum": "4376ddb0bca7a751adc3308f3cadcc39077d6efe",
+      "tarball": "https://registry.npmjs.org/@mantine/core/-/core-9.6.1.tgz",
+      "fileCount": 3567,
+      "integrity": "sha512-UkcPo8Zq0uSdodvyXV62HVmfIfHCcrjFrFrH0TggTy6Wtp8a78znGP8RJOz8zC9XSPpJmKjBQjg0M+nOvIzftA==",
+      "signatures": [
+        {
+          "sig": "MEYCIQCN4ghRrD28mzxDm/0UL3wdo4s8d1pRlJbewyywV7adxgIhANb+1He0I/e2IwZjHbf4HTUoiSi3FAPTWM5naYA7aRh8",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEUCIFr2Q/C8srh6Lscu0bgEWIE6f8yt5O1qbGfWNpmVUZ/HAiEAheH411qcq83ls+0goA9Jl16Dvvls8sWQV77/hOk25ZA="
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@mantine%2fcore@9.6.1",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 9234105
+    },
+    "sha256": "08cf70b7569be7e93bc073086a9a3b911ba3e0a38878d13e7dec0793672bb32a",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2021 Vitaly Rtishchev\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  {
+    "name": "@mantine/core",
+    "version": "9.6.0",
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^19.2.0",
+      "react-dom": "^19.2.0",
+      "@mantine/hooks": "9.6.0"
+    },
+    "registryUrl": "https://registry.npmjs.org/%40mantine%2Fcore/9.6.0",
+    "tarball": {
+      "shasum": "9d4489de141be13c42932247c63e57615695a4bf",
+      "tarball": "https://registry.npmjs.org/@mantine/core/-/core-9.6.0.tgz",
+      "fileCount": 3567,
+      "integrity": "sha512-WpdtSv9q2k4RrAVUxBlABMyEul4vv94EkjoVuQglBBC7jVmLhBBgI64HltE6di/l6zvj9D7k1vgkbVjyxQsn1g==",
+      "signatures": [
+        {
+          "sig": "MEQCIC+1wqO2mPnAb7MZrc8aVCegBmYPB9KO5fNxpZ2RKqu7AiAaW+0JBhCiajKyZ/oaGdEfMlq6/Wifwcm7GT4vtwCNEQ==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQCdoRSQ/E3IdpK0fD5O+HA1mCwIt0J7ffqpiYysuWc5XAIgafxHolP5gYf2ArPAbitpbv80D5+V4kOXGnCArvtkYqM=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@mantine%2fcore@9.6.0",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 9223261
+    },
+    "sha256": "7692eb92cf71a6f64dbcfc6242856b93d6b8b3fae1b854ef96386c430e871e78",
+    "licenses": {
+      "package/LICENSE": "MIT License\n\nCopyright (c) 2021 Vitaly Rtishchev\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  }
+]

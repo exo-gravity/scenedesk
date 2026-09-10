@@ -1,0 +1,121 @@
+{
+  "date": "2026-09-09",
+  "status": "PASS",
+  "scope": "Design and effect-image gallery validation; not business or production acceptance.",
+  "checks": [
+    {
+      "command": ".venv/bin/python docs/implementation/check_design.py",
+      "exitCode": 0,
+      "result": {
+        "operations": 132,
+        "paths": 103,
+        "schemas": 196,
+        "examples": 122,
+        "localLinks": 671
+      }
+    },
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "output": "Generated TypeScript matches the design contract.\n\n> drama-platform@0.0.0 ui:check\n> node --import tsx scripts/check-ui.ts\n\n{\n  \"passed\": true,\n  \"scope\": \"Migrated source rules and selected opaque color pairs; browser interaction and composed media checked separately.\",\n  \"files\": 9,\n  \"contrastChecks\": [\n    {\n      \"name\": \"primary on raised\",\n      \"ratio\": 12.9,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"secondary on raised\",\n      \"ratio\": 7.83,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"muted on raised\",\n      \"ratio\": 5.65,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"success on raised\",\n      \"ratio\": 8.74,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"warning on raised\",\n      \"ratio\": 8.73,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"danger on raised\",\n      \"ratio\": 8.19,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"info on raised\",\n      \"ratio\": 8.84,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"focus on raised\",\n      \"ratio\": 9.61,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"filled button\",\n      \"ratio\": 9.62,\n      \"minimum\": 4.5\n    },\n    {\n      \"name\": \"input border\",\n      \"ratio\": 3.27,\n      \"minimum\": 3\n    }\n  ],\n  \"failures\": []\n}\n\n> drama-platform@0.0.0 build\n> npm run typecheck && npm run build --workspace @drama/web\n\n\n> drama-platform@0.0.0 typecheck\n> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json\n\n\n> @drama/web@0.0.0 build\n> vite build\n\nvite v7.3.6 building client environment for production...\ntransforming...\n✓ 5437 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                               0.88 kB │ gzip:  0.49 kB\ndist/assets/LayoutOptionsPage-AKYfoWeR.css    0.70 kB │ gzip:  0.33 kB\ndist/assets/DesignPage-DmPIvP3D.css           4.35 kB │ gzip:  1.01 kB\ndist/assets/index-63wXrxcM.css               80.80 kB │ gzip: 16.80 kB\ndist/assets/mantine-ui-C9RRYpjM.css         237.54 kB │ gzip: 34.99 kB\ndist/assets/LayoutOptionsPage-DiWfU5xn.js     3.58 kB │ gzip:  1.75 kB\ndist/assets/DesignPage-DSnmRwpm.js           12.90 kB │ gzip:  4.99 kB\ndist/assets/react-runtime-BJAjyI-6.js       192.93 kB │ gzip: 60.47 kB\ndist/assets/index-CHG7-Ck2.js               218.29 kB │ gzip: 55.86 kB\ndist/assets/mantine-ui-CuK2DQyy.js          304.69 kB │ gzip: 95.38 kB\n✓ built in 4.75s\n\n> drama-platform@0.0.0 test\n> node --import tsx --test tests/*.test.ts\n\nTAP version 13\n# Subtest: health distinguishes a runnable process from business or database readiness\nok 1 - health distinguishes a runnable process from business or database readiness\n  ---\n  duration_ms: 96.870542\n  type: 'test'\n  ...\n# Subtest: OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation\nok 2 - OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation\n  ---\n  duration_ms: 200.909959\n  type: 'test'\n  ...\n# Subtest: NTSC inward range keeps exact source frame bounds\nok 3 - NTSC inward range keeps exact source frame bounds\n  ---\n  duration_ms: 1.491416\n  type: 'test'\n  ...\n# Subtest: invalid or shorter-than-frame intervals are rejected\nok 4 - invalid or shorter-than-frame intervals are rejected\n  ---\n  duration_ms: 0.226166\n  type: 'test'\n  ...\n# Subtest: audio length is derived from global frame boundaries, not per-clip rounded sums\nok 5 - audio length is derived from global frame boundaries, not per-clip rounded sums\n  ---\n  duration_ms: 0.104292\n  type: 'test'\n  ...\n# Subtest: mock accepted: repeated scheduling cannot submit twice\nok 6 - mock accepted: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.149958\n  type: 'test'\n  ...\n# Subtest: mock rejected: repeated scheduling cannot submit twice\nok 7 - mock rejected: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.038667\n  type: 'test'\n  ...\n# Subtest: mock lost_reply: repeated scheduling cannot submit twice\nok 8 - mock lost_reply: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.033542\n  type: 'test'\n  ...\n# Subtest: lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved\nok 9 - lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved\n  ---\n  duration_ms: 0.111958\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 534.286375\n"
+    },
+    {
+      "command": "playwright-cli run-code --filename output/playwright/2026-09-09-layout-options/verify-scene-overview-v6.js",
+      "exitCode": 0,
+      "result": {
+        "result": "PASS",
+        "loaded": [
+          {
+            "file": "scene-storyboard-v5.png",
+            "fullscreen": false,
+            "src": "http://127.0.0.1:4311/previews/layouts/scene-storyboard-v5.png",
+            "width": 1589,
+            "height": 990,
+            "contained": false
+          },
+          {
+            "file": "scene-canvas-overview-v6.png",
+            "fullscreen": false,
+            "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-overview-v6.png",
+            "width": 1589,
+            "height": 990,
+            "contained": false
+          },
+          {
+            "file": "scene-canvas-v5.png",
+            "fullscreen": false,
+            "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-v5.png",
+            "width": 1589,
+            "height": 990,
+            "contained": false
+          },
+          {
+            "file": "scene-canvas-v5.png",
+            "fullscreen": false,
+            "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-v5.png",
+            "width": 1589,
+            "height": 990,
+            "contained": false
+          },
+          {
+            "file": "scene-canvas-overview-v6.png",
+            "fullscreen": true,
+            "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-overview-v6.png",
+            "width": 1589,
+            "height": 990,
+            "contained": true
+          },
+          {
+            "file": "scene-canvas-v5.png",
+            "fullscreen": true,
+            "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-v5.png",
+            "width": 1589,
+            "height": 990,
+            "contained": true
+          },
+          {
+            "file": "scene-storyboard-v5.png",
+            "fullscreen": true,
+            "src": "http://127.0.0.1:4311/previews/layouts/scene-storyboard-v5.png",
+            "width": 1589,
+            "height": 990,
+            "contained": true
+          }
+        ],
+        "responsive": [
+          {
+            "width": 1366,
+            "mode": "分镜模式",
+            "noHorizontalOverflow": true
+          },
+          {
+            "width": 1366,
+            "mode": "自由画布",
+            "noHorizontalOverflow": true
+          },
+          {
+            "width": 390,
+            "mode": "分镜模式",
+            "noHorizontalOverflow": true
+          },
+          {
+            "width": 390,
+            "mode": "自由画布",
+            "noHorizontalOverflow": true
+          }
+        ],
+        "twoModes": true,
+        "canvasRangeState": true,
+        "fullscreenSwitching": true,
+        "escapeFocus": true,
+        "designEntry": true,
+        "runtimeErrors": []
+      }
+    }
+  ],
+  "componentEvidence": "docs/research/2026-09-09-specialized-stack-closure.md",
+  "notes": [
+    "Final fullscreen screenshot inspected after modal transition completed.",
+    "Owned browser session closed; existing application servers remain running."
+  ]
+}

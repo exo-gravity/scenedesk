@@ -1,0 +1,46 @@
+{
+  "name": "drama-platform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0 <23",
+    "npm": ">=10 <11"
+  },
+  "packageManager": "npm@10.9.8",
+  "scripts": {
+    "dev": "concurrently --kill-others --names api,web \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "node --env-file-if-exists=.env --import tsx apps/api/src/main.ts",
+    "dev:web": "npm run dev --workspace @drama/web",
+    "typecheck": "tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json",
+    "ui:check": "node --import tsx scripts/check-ui.ts",
+    "build": "npm run typecheck && npm run build --workspace @drama/web",
+    "contracts:generate": "openapi-typescript docs/implementation/openapi.json -o packages/contracts/src/generated.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:db": "node --env-file-if-exists=.env --import tsx --test tests/integration/*.test.ts",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:stop": "docker compose stop postgres",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
+    "worker:check": "node --env-file-if-exists=.env --import tsx apps/worker/src/check.ts",
+    "mock:scenarios": "tsx scripts/mock-scenarios.ts",
+    "check": "npm run contracts:check && npm run ui:check && npm run build && npm test",
+    "contracts:check": "node scripts/check-generated.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "@types/pg": "8.23.1",
+    "concurrently": "10.0.5",
+    "openapi-typescript": "7.13.0",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "@redocly/openapi-core": {
+      "js-yaml": "4.3.2"
+    }
+  }
+}

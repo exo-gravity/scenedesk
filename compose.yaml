@@ -1,0 +1,19 @@
+name: drama-platform-s0
+services:
+  postgres:
+    image: postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+    ports:
+      - "127.0.0.1:55439:5432"
+    environment:
+      POSTGRES_USER: drama_local
+      POSTGRES_PASSWORD: drama_local_only
+      POSTGRES_DB: drama_s0
+    volumes:
+      - drama_s0_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U drama_local -d drama_s0"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+volumes:
+  drama_s0_pg:

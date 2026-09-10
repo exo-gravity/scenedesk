@@ -1,0 +1,93 @@
+{
+  "date": "2026-09-09",
+  "command": "playwright-cli -s=scene-overview-v6 run-code --filename output/playwright/2026-09-09-layout-options/verify-scene-overview-v6.js",
+  "exitCode": 0,
+  "scope": "Effect-image gallery only, not scene production canvas",
+  "result": "PASS",
+  "loaded": [
+    {
+      "file": "scene-storyboard-v5.png",
+      "fullscreen": false,
+      "src": "http://127.0.0.1:4311/previews/layouts/scene-storyboard-v5.png",
+      "width": 1589,
+      "height": 990,
+      "contained": false
+    },
+    {
+      "file": "scene-canvas-overview-v6.png",
+      "fullscreen": false,
+      "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-overview-v6.png",
+      "width": 1589,
+      "height": 990,
+      "contained": false
+    },
+    {
+      "file": "scene-canvas-v5.png",
+      "fullscreen": false,
+      "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-v5.png",
+      "width": 1589,
+      "height": 990,
+      "contained": false
+    },
+    {
+      "file": "scene-canvas-v5.png",
+      "fullscreen": false,
+      "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-v5.png",
+      "width": 1589,
+      "height": 990,
+      "contained": false
+    },
+    {
+      "file": "scene-canvas-overview-v6.png",
+      "fullscreen": true,
+      "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-overview-v6.png",
+      "width": 1589,
+      "height": 990,
+      "contained": true
+    },
+    {
+      "file": "scene-canvas-v5.png",
+      "fullscreen": true,
+      "src": "http://127.0.0.1:4311/previews/layouts/scene-canvas-v5.png",
+      "width": 1589,
+      "height": 990,
+      "contained": true
+    },
+    {
+      "file": "scene-storyboard-v5.png",
+      "fullscreen": true,
+      "src": "http://127.0.0.1:4311/previews/layouts/scene-storyboard-v5.png",
+      "width": 1589,
+      "height": 990,
+      "contained": true
+    }
+  ],
+  "responsive": [
+    {
+      "width": 1366,
+      "mode": "分镜模式",
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 1366,
+      "mode": "自由画布",
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 390,
+      "mode": "分镜模式",
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 390,
+      "mode": "自由画布",
+      "noHorizontalOverflow": true
+    }
+  ],
+  "twoModes": true,
+  "canvasRangeState": true,
+  "fullscreenSwitching": true,
+  "escapeFocus": true,
+  "designEntry": true,
+  "runtimeErrors": []
+}

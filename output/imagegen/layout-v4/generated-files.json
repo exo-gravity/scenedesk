@@ -1,0 +1,17 @@
+[
+  {
+    "name": "focus",
+    "source": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-43d936fc-ee3b-4926-8548-580c917806f5.png",
+    "destination": "/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/public/previews/layouts/focus-v4.png"
+  },
+  {
+    "name": "overview",
+    "source": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-ea3feab0-ffb6-4515-bb5c-95ad325f678c.png",
+    "destination": "/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/public/previews/layouts/overview-v4.png"
+  },
+  {
+    "name": "chat",
+    "source": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-d596558c-5e6d-46d8-919e-21f8dc5f548d.png",
+    "destination": "/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/public/previews/layouts/chat-v4.png"
+  }
+]

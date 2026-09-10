@@ -1,0 +1,1070 @@
+[
+  {
+    "path": "docs/ai-drama-workbench-tenancy-v0.1.md",
+    "sha256": "b91302d9b004f1c3448160f7e3efd009c32cb48bb30f99334504533d1fb04c02"
+  },
+  {
+    "path": "docs/ai-video-platform-mvp-plan-v0.2.md",
+    "sha256": "e2082f6111f56812f5b516bc3149f35a986e41dcaaa51b3c932ab565c7a704a1"
+  },
+  {
+    "path": "docs/ai-video-product-lines-v0.1.md",
+    "sha256": "7f1b792c33d9caa9955ba7db1a06864f465da5f6d6add8416a31a58e7c1167bf"
+  },
+  {
+    "path": "docs/ai-drama-workbench-product-design-v1.0.md",
+    "sha256": "8d51fe2c7ff76ccce378dca0b09d7b770258ea10a24a204d0518a68c8a638e24"
+  },
+  {
+    "path": "docs/ai-drama-workspace-decision-and-validation-v0.1.md",
+    "sha256": "75d7fced2fa487ee7d3436c2a125e2d121fffc44d4f9f9edfd53719eb1ffef96"
+  },
+  {
+    "path": "docs/ai-drama-workbench-product-design-v1.1.md",
+    "sha256": "3b043a2c574b9757e9c3ff4354824412653999186383871b49889ad6afdf2596"
+  },
+  {
+    "path": "docs/ai-drama-workbench-assets-v0.1.md",
+    "sha256": "cdeae19bd92b449a3438bb01be8fc9394e282a55a32ce64b1e3480a7d75b7b18"
+  },
+  {
+    "path": "docs/ai-marketing-video-mvp-v0.1.md",
+    "sha256": "3755687872e680c8a8281370d19ce4e1632cfd55509afd83b100f06484eea2f4"
+  },
+  {
+    "path": "docs/ai-drama-scene-mvp-interaction-v0.1.md",
+    "sha256": "fca3bdb1c533a84cc89ca081e5a4c0119b9510d1c9f9acc81cfa1c8d5deae589"
+  },
+  {
+    "path": "docs/documentation-audit-2026-09-10.md",
+    "sha256": "87d8593c492b2e675a0520971f496f2f5f91fc76063a80214ad288a5afab2ed9"
+  },
+  {
+    "path": "docs/ai-drama-product-core-decision-questions-v0.1.md",
+    "sha256": "7657bda6bbc35e44b4a6b87e654fe669e9b08071dc2bbd50cbcbcda9d4f345d8"
+  },
+  {
+    "path": "docs/ai-video-platform-review-2026-09-07.md",
+    "sha256": "a44aafb32924a5bd0a37fd5385b07ad6ba03bd4efe941a5e4bec63840db90e22"
+  },
+  {
+    "path": "docs/ai-drama-workbench-core-design-v0.1.md",
+    "sha256": "f3b2c65863a64b2c0959814164c9470e518ae851208db0838a5886fde4da2ea6"
+  },
+  {
+    "path": "docs/README.md",
+    "sha256": "633c54305da35cb681b19aaf5626e465ceeee6a7e16844b9822ef4033d7fb2f4"
+  },
+  {
+    "path": "docs/ai-drama-workbench-core-design-v0.2.md",
+    "sha256": "64a1c327b5c8a1d988cc0eff456a56ddf8cea00d0eaf6bf1cb3964fc03370591"
+  },
+  {
+    "path": "docs/ai-video-platform-mvp-plan-v0.1.md",
+    "sha256": "4c6a74131c55f4991f01e0df1cde6d39e9b14287a9e7d238519772c330d62140"
+  },
+  {
+    "path": "docs/ai-video-product-lines-v0.2.md",
+    "sha256": "f677a9c30d8db8ad2c54a06b0d388a933518abbe491728f94794f701378a7381"
+  },
+  {
+    "path": "docs/research/2026-09-07-tenant-isolation.md",
+    "sha256": "d03a67f28b3a3371ef9e66bd8ab3c04de07b40c06c3acb5b9076d7dbb1ffd64a"
+  },
+  {
+    "path": "docs/research/2026-09-08-creative-context-mechanism-deep-dive.md",
+    "sha256": "73f011b10aad4eab99b20204ea0aa4c725c8d4c5ce9fedcaaffb049362a943f7"
+  },
+  {
+    "path": "docs/research/2026-09-09-scene-canvas-interactions.md",
+    "sha256": "530fd847ccd0cfb4caf0610302b580c908c14181cd99ff0cbce5120d3a08a854"
+  },
+  {
+    "path": "docs/research/2026-09-07-implementation-model-evidence.md",
+    "sha256": "89131a67aeb87ab2725c73657add6bd0d619913ab06710852597339894cc9b04"
+  },
+  {
+    "path": "docs/research/2026-09-07-canvas-flora-weavy.md",
+    "sha256": "74a27700e1da3d576978e1d3e85d582030ef48e5b730e25977527179f7229397"
+  },
+  {
+    "path": "docs/research/2026-09-07-china-drama-workbenches.md",
+    "sha256": "d973c84fa54fd96f2d1566b0310bbaacf76426318ab95c4da4cd2868f93e9dc1"
+  },
+  {
+    "path": "docs/research/2026-09-07-seedance-priority.md",
+    "sha256": "fee23dd19d15f1a6428291c3c88130d592c78ae3710a6f2ca8719452412f761f"
+  },
+  {
+    "path": "docs/research/2026-09-07-canvas-value-review.md",
+    "sha256": "21fc0bb651414839b93a5d07dd968c106f12bd47777ea247e09e408d0f4f63b6"
+  },
+  {
+    "path": "docs/research/2026-09-07-workbench-market-review.md",
+    "sha256": "8b5c5e6f512f6a96723a7c40e1c220cfc1e92f409fa5634e6040029876d0dee8"
+  },
+  {
+    "path": "docs/research/2026-09-07-libtv-higgsfield-runway-review.md",
+    "sha256": "93d8ceb5f86900c906e79da483d134bcdf8363a89ba226e89a5c43c24072ded6"
+  },
+  {
+    "path": "docs/research/2026-09-08-narrative-mechanism-deep-dive.md",
+    "sha256": "48886b9c157a0e5ec9da1aad4e1ff429e0b370cff651def1b3c390391a1db171"
+  },
+  {
+    "path": "docs/research/2026-09-07-libtv-and-review.md",
+    "sha256": "bb801d48f1cb1a916203a7c946a4b8ccc697708622e319b48b24c2c443c564be"
+  },
+  {
+    "path": "docs/research/2026-09-07-canvas-china-research-v2.md",
+    "sha256": "c49ac5598a86790ed81f22fe68ec823fda5eeb6ddaf853057a57327844e29c97"
+  },
+  {
+    "path": "docs/research/2026-09-08-agent-mechanism-deep-dive.md",
+    "sha256": "c2d95012ec91bd6967cded4607d21027fc2cf34e46f2a90852a8fcefa54d8f6e"
+  },
+  {
+    "path": "docs/research/2026-09-07-libtv-jimeng-canvas-review.md",
+    "sha256": "c8b788633bd7a2f851727f090185bcb14a1de95def41f180e3edc1cb17c36ce8"
+  },
+  {
+    "path": "docs/research/2026-09-09-frontend-ui-evaluation.md",
+    "sha256": "9a6fdadacf0d834c660eff829ae598119830600f427180c82d049a8eba580bae"
+  },
+  {
+    "path": "docs/research/2026-09-07-canvas-jimeng-research-v2.md",
+    "sha256": "eeaf39b23a7175859dc175807864c18d242bffbb78e68d8a6b12b5a391310ba4"
+  },
+  {
+    "path": "docs/research/2026-09-07-jimeng-canvas-official.md",
+    "sha256": "c4744af7a1b96c57a761a3ea4ada15f685d21a9cbbe46b4e38a42e8cb80eb7f3"
+  },
+  {
+    "path": "docs/research/2026-09-09-specialized-stack-closure.md",
+    "sha256": "1ab1338fd309b662fd678b1f92342e74edb1e16b4a071d3687dd7dc6fe445c0c"
+  },
+  {
+    "path": "docs/research/2026-09-07-runway-veo-workflows.md",
+    "sha256": "76ca423365671fd7ac44e1d21740acf5cc152f5bafef123723c4a858bb19d5db"
+  },
+  {
+    "path": "docs/research/2026-09-07-implementation-infra-evidence.md",
+    "sha256": "c7cba7618fb96d5bcfe879dd12818b22d3605ddc84916fc3b7c0d98eb398e482"
+  },
+  {
+    "path": "docs/research/2026-09-09-frontend-media-evaluation.md",
+    "sha256": "59411965948e1bd4676f9feca2030abf92d178f2482089eaec526f7ceb285bc3"
+  },
+  {
+    "path": "docs/research/2026-09-07-kling-wan-workflows.md",
+    "sha256": "c2be9b81468b1b609cd042bc37f379e1c2c2d4d192d1119a7da284d5b4c40586"
+  },
+  {
+    "path": "docs/research/2026-09-07-production-apis.md",
+    "sha256": "fead820d7e803e3ce5da338c7545bb171c5ac30bba52399ceae202b8d08221fe"
+  },
+  {
+    "path": "docs/research/2026-09-10-task-execution-review.md",
+    "sha256": "dfe59eb7dfdf896315cfbb3909de051a8bd3a3f7da8a3996de1cfac6c89ccc6a"
+  },
+  {
+    "path": "docs/research/2026-09-07-canvas-international-workflows-v2.md",
+    "sha256": "d6ce1ced49aeb593f5ed00b481e1249aa5595b91ec5e3f43e945416ed8e8cb31"
+  },
+  {
+    "path": "docs/research/2026-09-07-canvas-cinematic-workbenches-v2.md",
+    "sha256": "50bcc7b175d6eff6950571a6247491b8104f16a105ed94f2cc193491ebe1695e"
+  },
+  {
+    "path": "docs/research/2026-09-07-advertising-product-workflows.md",
+    "sha256": "bb701e87d5b8caba7f0012fa17dce1e71bb89270765231ba7eed21b1248056d2"
+  },
+  {
+    "path": "docs/research/2026-09-07-model-production-workflows.md",
+    "sha256": "caf95eb75dc29813e8ffa02427764091fbd95281b93e9be7e9d6a7f4819ed93a"
+  },
+  {
+    "path": "docs/research/2026-09-07-canvas-market-review-v2.md",
+    "sha256": "7371edc1198313f716e710dbbd2543a855745392c4a71245d795dd6adea69035"
+  },
+  {
+    "path": "docs/research/2026-09-07-global-workbenches.md",
+    "sha256": "4fa784cdf1649bcd119ac8ad97723b2b1489d5861fa748f8b24d0e2cc24d53f0"
+  },
+  {
+    "path": "docs/research/2026-09-08-recipe-mechanism-deep-dive.md",
+    "sha256": "dda55af9d061b2322e443999c12eac2ab0ab3bbdc9920d63d42cfb1542f9a2f1"
+  },
+  {
+    "path": "docs/research/2026-09-09-engineering-stack-evidence.md",
+    "sha256": "7ff413c44ee73acea02a4d8538b3cb7daa73ac8c911fa26e08faf472e5ac3b02"
+  },
+  {
+    "path": "docs/research/2026-09-09-review-handoff-patterns.md",
+    "sha256": "4bc4eb03bf0f976c3e190e17e9b83db7ac1f1049db7b45239c143e25e669da1c"
+  },
+  {
+    "path": "docs/design/mvp-visual-prototype-v0.1.md",
+    "sha256": "08baf2792764fe95903592a1b39d82cbaa3403959706d75257c9f26914e16de2"
+  },
+  {
+    "path": "docs/design/technical-direction-confirmation-2026-09-10.md",
+    "sha256": "2926625ebbbd9730b1cb664e9452ab2968d3346f7bb9cecdf30f4e5a6a7f9c9d"
+  },
+  {
+    "path": "docs/design/scene-walkthrough-review-v0.3.md",
+    "sha256": "17115d7f3790ff148575b31b4de9d823a3a9e33ca355f88a7ed422a51c065233"
+  },
+  {
+    "path": "docs/design/visual-directions-review-v0.1.md",
+    "sha256": "b2d6e1555d61f6af9d66a8ead0afa4a69dcd7dea923ea21b3ffa25ad05d1f62c"
+  },
+  {
+    "path": "docs/design/mantine-ui-agent-spec-v0.1.md",
+    "sha256": "8b1d24670dea62feaaba78c1696d6c4765efeaba8edda313b83d7fe16ce05cd4"
+  },
+  {
+    "path": "docs/design/core-workspace-recommendation-v0.2.md",
+    "sha256": "0b6df481e752164e56ae454c29635603c632418804bf1ec777852b5bb25c0829"
+  },
+  {
+    "path": "docs/design/visual-assets.md",
+    "sha256": "81a81bf2bde0b36908d0af8928a2d36674b943cc37d4ca110d195c18a734fbd6"
+  },
+  {
+    "path": "docs/design/shared-visual-language-v0.1.md",
+    "sha256": "4faace77acbcb28c63a656213d93abab6ca1bfd08ca0829fe61e7d2f25743d7b"
+  },
+  {
+    "path": "docs/design/design-handoff-2026-09-10.json",
+    "sha256": "14d00058a4915d6c7781b10ebaecd87a167919630326c319e9b8a673193b442b"
+  },
+  {
+    "path": "docs/design/approved-baseline-2026-09-10.md",
+    "sha256": "a9d1a74f32bf5c4f74ca4a772b2409278b6bd5b0566ba35a409c0e9592f7971f"
+  },
+  {
+    "path": "docs/design/journey-independent-review-2026-09-10.md",
+    "sha256": "314a7d6ce92c865f03b4efaac3b05ba3af1a38a0df7ce3e3682b856e28d8acad"
+  },
+  {
+    "path": "docs/design/scene-dual-mode-visuals-v0.4.md",
+    "sha256": "522069c3ce52a99d5f38a633623f4fe4e9c4af37c9474174914b539f80a82b88"
+  },
+  {
+    "path": "docs/design/navigation-and-core-flow-v0.1.md",
+    "sha256": "a6c100240ab991489a792bf79dda7711c90c32be4531bc2c2adf188b1631a764"
+  },
+  {
+    "path": "docs/design/mantine-visual-sample-v0.2.md",
+    "sha256": "a9dc706186342aad109f74adacc9d6d29625f90129e213a704ad9f0f0d2563c7"
+  },
+  {
+    "path": "docs/design/scene-canvas-interaction-v0.1.md",
+    "sha256": "000ce42da42ed81e615d5f51f583a927e58483f8a7431cb4814a716c0e2446e6"
+  },
+  {
+    "path": "docs/design/production-detail-design-v0.4.md",
+    "sha256": "029fe08b153f1f5760fd5e934de53c83ba4315ad091a80ccc53a830f565c4897"
+  },
+  {
+    "path": "docs/design/layout-concepts-v0.3.md",
+    "sha256": "88d670afc3178f4dcb5ef780b1afd146b4e161b50de8f10a6c1e8a1ccc0ec445"
+  },
+  {
+    "path": "docs/design/visual-design-discussion-v0.1.md",
+    "sha256": "a29ccb820cd0832d7cf31952a917a8174798d4d35a80e3045037a2a588898027"
+  },
+  {
+    "path": "docs/design/workspace-recommendation-visuals-v0.2.md",
+    "sha256": "576e20a5aac28cd7b13c7f43304f17f8f0c88a0cf60faefa7421eb370d2ab864"
+  },
+  {
+    "path": "docs/adr/0006-scene-canvas-and-versioned-drafts.md",
+    "sha256": "5761ab389066add028676a4b72b2bea3c8f531a06cf8c72669f47332359ca96d"
+  },
+  {
+    "path": "docs/adr/0003-uncertain-provider-submission.md",
+    "sha256": "c81179c7bfdc426b1d900da10ba879857cb68e6086ebcae25bf600640908e01f"
+  },
+  {
+    "path": "docs/adr/0002-freeze-review-and-explicit-adoption.md",
+    "sha256": "7cc1a5eea86cbbcb20ce0181d832f5de11196dcbb72f96061bcdfa22c43e1b7b"
+  },
+  {
+    "path": "docs/adr/0005-frontend-free-component-stack.md",
+    "sha256": "d96f5e1df91f029bb988fefbdbe3647ece16e3e0323ad6091cc3d38216e252bb"
+  },
+  {
+    "path": "docs/adr/0004-scene-production-and-explicit-assistance.md",
+    "sha256": "13a81f0c9784202d87d508f10a587b4afe78c7f54b377c9385f13d9124634ae3"
+  },
+  {
+    "path": "docs/adr/0001-production-records-independent-of-views.md",
+    "sha256": "e7d530799ed608c5af6d852c036315e02516ed0ca0cd620eed7d8e78dcd74033"
+  },
+  {
+    "path": "docs/implementation/check_design.py",
+    "sha256": "4a3675efd0a89ce76d380cf7d72c6f92446cae3d1a8f2358de748aea492750e4"
+  },
+  {
+    "path": "docs/implementation/01-product-requirements.md",
+    "sha256": "0da234c72d94e94ff16087ff9a1d8b574b9c1dacad13ee09264c6f20f216c4b7"
+  },
+  {
+    "path": "docs/implementation/17-frontend-component-selection.md",
+    "sha256": "7612e1b6d2da2f87e6f817f3a6f173e5d0f4fb1e64e3f8ec60a51c1f934f78e0"
+  },
+  {
+    "path": "docs/implementation/20-external-validation-and-launch-plan.md",
+    "sha256": "b85ed82154701887bffca1e487e8d61aeba73e51d6836a685300130746a9179f"
+  },
+  {
+    "path": "docs/implementation/canvas_contract.py",
+    "sha256": "e20cfe1c976d894af0851b44346a0db91092cbd6ba8d92ea71bf69bf231b8cef"
+  },
+  {
+    "path": "docs/implementation/03-domain-data-model.md",
+    "sha256": "bfd0d5c923686ce77ef3ce941341cb469fa01500d6b623ce536f9c4a7b9cc429"
+  },
+  {
+    "path": "docs/implementation/09-decisions-and-open-items.md",
+    "sha256": "44e42412e8c660c218313faa8f01d99285c8820dcde97d2e664acbb26ae2c08f"
+  },
+  {
+    "path": "docs/implementation/05-architecture-and-operations.md",
+    "sha256": "40118fdbb3446b002c04574c35566896da8c854aeca8764bf447e2037e4ac214"
+  },
+  {
+    "path": "docs/implementation/api-operations.md",
+    "sha256": "4d3ad954cdc55214d354276cc89a97d1a02f07e366a574f534f8fd79c9d1dda4"
+  },
+  {
+    "path": "docs/implementation/10-production-fixture.md",
+    "sha256": "ce9f6e62406e68afc45ef115d287db2539ac054abf5ab33984322d6a29ddad87"
+  },
+  {
+    "path": "docs/implementation/implementation-handoff-manifest.json",
+    "sha256": "e75d2bf13b653b55b08a4a8f1237c682f4d3e744c531e3e714a2b84ffd08ea0e"
+  },
+  {
+    "path": "docs/implementation/02-interaction-spec.md",
+    "sha256": "3ab41aec923f6cc58a4afe6bccaebfcfd4ec0dc72fa327e908b691a22e74e43f"
+  },
+  {
+    "path": "docs/implementation/15-engineering-readiness.md",
+    "sha256": "b825497539c07e430e3032d09d7f6a9e9f9ab1d8b38f7662cc6edb3de136493c"
+  },
+  {
+    "path": "docs/implementation/11-transaction-and-implementation-blueprint.md",
+    "sha256": "282e7b20f48bf71bf9165503712921db8cb6895176a0a02a007be1a0ef8c684d"
+  },
+  {
+    "path": "docs/implementation/validation-requirements.txt",
+    "sha256": "a1b2f7202ed11c8408d2c6c2a360b4749253d8df08bcfb1cf8c02e5dc4fcfee5"
+  },
+  {
+    "path": "docs/implementation/README.md",
+    "sha256": "f423e7d06e04d5b6dae803c4d62b2999e329358c1f2bc2e4c4fa0a5d3964be00"
+  },
+  {
+    "path": "docs/implementation/13-production-quality-and-handoff.md",
+    "sha256": "625a45b82c69509a18d183fe6f418b666021710ff6e586a9e708e21ce3e2ec7d"
+  },
+  {
+    "path": "docs/implementation/04-state-execution-and-budget.md",
+    "sha256": "41b55140815c964347896e820824df8063f83aed7b8291f4f453dcc6777cedc7"
+  },
+  {
+    "path": "docs/implementation/16-implementation-backlog.md",
+    "sha256": "968b85615ea2c34876e4cf2bc2f3fd51f15ca2ac7312cde82100e7e4afb9a6a3"
+  },
+  {
+    "path": "docs/implementation/18-canvas-workspace-contract.md",
+    "sha256": "84c37cf6c6c9eceacca0ae0dee776ac7b13ff3217ebe948d8760720f01b64fd3"
+  },
+  {
+    "path": "docs/implementation/12-mvp-workflows-and-pilot.md",
+    "sha256": "befabb9f7f81d0879442f76b30dccd422445e8e82a4c6b85a0ab242b542b32fe"
+  },
+  {
+    "path": "docs/implementation/validation-report.md",
+    "sha256": "cc5178f083ed44e95b18ab81d40c7bb14eaee9361981c5585d22e2e2415c85d2"
+  },
+  {
+    "path": "docs/implementation/19-design-closure-and-implementation-entry.md",
+    "sha256": "4049940a37628756ba118dd09f47c4180041fc6e18a5af3d43f50905395ba9cd"
+  },
+  {
+    "path": "docs/implementation/14-scene-mvp-closure.md",
+    "sha256": "204229d8cda790e1127363b8aa134a88227e5ec4774b0464d71b38c3ed008960"
+  },
+  {
+    "path": "docs/implementation/openapi.json",
+    "sha256": "1a67b6d9574457449e9946fadb35a1bb156514cbe8e0f85f9318b99d76adb7b9"
+  },
+  {
+    "path": "docs/implementation/build_contract.py",
+    "sha256": "b10efb235efbc05060adec7c079f0a31ebe59a0bca967acdcb648d94d137dd9d"
+  },
+  {
+    "path": "docs/implementation/07-provider-adapter.md",
+    "sha256": "ace6b71f68cb6b42d979bfa463b36debe5ed377d2b0d5eba66ef3989e72536f8"
+  },
+  {
+    "path": "docs/implementation/sample-payloads.json",
+    "sha256": "12c1b5b479d2da77038ccd9936af8b315831f9809540388e93aa28fb4e7de9b1"
+  },
+  {
+    "path": "docs/implementation/06-api-contract.md",
+    "sha256": "350e4c68d1dbdc1d21b255527c65be4c9f2955edc6ddaed2bd36b5814737e018"
+  },
+  {
+    "path": "docs/implementation/08-verification-and-delivery-plan.md",
+    "sha256": "9f3b851a60211f43305150e7fb0c1fa02309d2c4a203ce027395dca95b424a85"
+  },
+  {
+    "path": "docs/history/README.md",
+    "sha256": "a569bfe1130dc42164297529d879e103a815c9267db1b6b08878e7bf07ca3168"
+  },
+  {
+    "path": "docs/reviews/2026-09-10-technical-options-review.md",
+    "sha256": "4fd61988fd795c2b5a785dc445c1ee4a5e718fcaaddfd49fdd169b37b2b10e05"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline-manifest.json",
+    "sha256": "4fc66e25954f1ce842e33759a654d9d474398cd65fe67e1ae49b5044640938aa"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/drama-recheck.md",
+    "sha256": "19eacfdff2b09cb87c6829ffa2f9ec1de0551ef11775f8f1389c52b74a39f897"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/decision-log.md",
+    "sha256": "6ab8a026b2cb06c08df1116ec6157cfc628d755844dc9bb899333c7ac9def37d"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/decision-log.json",
+    "sha256": "c4ec7288c486d2e3d88d47851f83f74228d16e1072b8cf4ea55d7583f774f17e"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/drama-review.md",
+    "sha256": "58727202d1f055c558c0dc19c0894f85cf0f4fde15d657be75055c0a9bbca30d"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/product-review.md",
+    "sha256": "2d5a2b821bd78101f46ba777b6e96cd96eecee09fa660ee23ac508fa51daafdc"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/README.md",
+    "sha256": "db276098c9d004b974c83bf4685a71526440d1c8199d94c3612590c016953004"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/product-recheck.md",
+    "sha256": "7528fb7eb1897c1b1b8b67fa25e6f7ea819b3cea772802eb87494c966e3d7661"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/technical-review.md",
+    "sha256": "1230de65074be61c5fd8d296cd3f815ef698c9207712c2a94daffce6d7ce5d94"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/technical-recheck.md",
+    "sha256": "ce505ccf55727173ab48bd9d7eec6fb54ff85c4f700021beeb524da6fa7c2d10"
+  },
+  {
+    "path": "docs/reviews/2026-09-09/closure-decisions.md",
+    "sha256": "6dfca00516e0e23a0137832136f2e968f7dbbe403e095f518abc8d4a42ebcbdd"
+  },
+  {
+    "path": "docs/reviews/2026-09-09/closure-product-review.md",
+    "sha256": "7684bf75c1151b164a43de14d853bf9ce893f22aac0dea7d4ac7b4dcd2af8aac"
+  },
+  {
+    "path": "docs/reviews/2026-09-09/closure-recheck.md",
+    "sha256": "b9256567a536bf4e404cd1237ef97bb58dada35a0b1ca5f2dce3f2406855e0c6"
+  },
+  {
+    "path": "docs/reviews/2026-09-09/canvas-closure-review.md",
+    "sha256": "7e155d922e61adf6eaa48a0aa651114179d712142b7af93b66319d455ae444f9"
+  },
+  {
+    "path": "docs/reviews/2026-09-10-workspace/information-architecture-review.md",
+    "sha256": "6fbb0f624d45c7626e0b678235116f4490268c41109c253e3931b9b11c2ee02c"
+  },
+  {
+    "path": "docs/reviews/2026-09-10-workspace/README.md",
+    "sha256": "301ebfbe56c6e6f47454e313503f2cc906d4227bcd66316fafaef5e081d72197"
+  },
+  {
+    "path": "docs/reviews/2026-09-10-workspace/visual-interaction-review.md",
+    "sha256": "413e3f88d68417e6e4f0f60c9b781f5c60902fa0f5297969d1ec191c4423e7e3"
+  },
+  {
+    "path": "docs/reviews/2026-09-10-workspace/creation-workflow-review.md",
+    "sha256": "5fb50d34964358ec2c69362d54096876cfda95dbdb63b5193aac49f0a4ce1dbb"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/CONTEXT.md",
+    "sha256": "722fecdddcf5c63462eaaf2fd48df6c689ab67ec675fb187b3324db5b53559cb"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/ai-drama-workbench-product-design-v1.0.md",
+    "sha256": "9417fc5b74cb5b72d34768091a0c2b80787f766e251b098dfcd3b8d428d0328f"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/research/2026-09-07-implementation-model-evidence.md",
+    "sha256": "89131a67aeb87ab2725c73657add6bd0d619913ab06710852597339894cc9b04"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/research/2026-09-07-implementation-infra-evidence.md",
+    "sha256": "c7cba7618fb96d5bcfe879dd12818b22d3605ddc84916fc3b7c0d98eb398e482"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/adr/0003-uncertain-provider-submission.md",
+    "sha256": "6228ceae721842aa2531d308afd356391fa3ec587d11292fa3091cccf8c0aeaf"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/adr/0002-freeze-review-and-explicit-adoption.md",
+    "sha256": "6067c99b77ad984110591a69a3d8f407a54973c91963ec3383f21635ddd0247d"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/adr/0001-production-records-independent-of-views.md",
+    "sha256": "42ac4f4517d509e5e1b3fb10ad283f87cb1e9d7ecc950e6790b4c23965e16824"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/check_design.py",
+    "sha256": "55cd0acd1e9b092ceac7cfaf59932fd743cc8bee2fb44964d9a167f8880b978c"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/01-product-requirements.md",
+    "sha256": "c70098f8c916edc0206f25e10b4d112e0bf11933773123ca698c766e678b0aaf"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md",
+    "sha256": "4ec534f4e063afe0ce74329cc2a3078e2e763ecc526e70ef50b07f9571d3ffd0"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/09-decisions-and-open-items.md",
+    "sha256": "e5d930f8b56c071cc4e6e1e5fdba42b6a7c4af8631d49ba83f632d408d51bcb2"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/05-architecture-and-operations.md",
+    "sha256": "fa2c240fe62ff2e540966d195ea12745b8fb1ba14376ff292d915ee27f5ec788"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/api-operations.md",
+    "sha256": "87e14b05201e0d4d2b20fceb75338c010c06f3b9301affff28695344ab4f6410"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/10-production-fixture.md",
+    "sha256": "d1020ab47476c22efee3122e6aefabf113ba0c886b9ba7bbb36edead6377c198"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/02-interaction-spec.md",
+    "sha256": "134cb58e71b51f4493c7e422901f4eb6551e6eb0c76ff198e5ecb2ddcfcece59"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/validation-requirements.txt",
+    "sha256": "a1b2f7202ed11c8408d2c6c2a360b4749253d8df08bcfb1cf8c02e5dc4fcfee5"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/README.md",
+    "sha256": "1e614704b8fb39ed55fbd711337f406c1176b5996b6986cbebbd4d3c806cebc6"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/04-state-execution-and-budget.md",
+    "sha256": "dc81fcc96e4a754ee5dd890804749ae7fa75d94cb0483ca09d0625fd24da59d4"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/validation-report.md",
+    "sha256": "4016aa9678057f5094fec2ee208b8653df88a08469d4affc4b8ba17801a6fa2d"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/openapi.json",
+    "sha256": "5640f59d07d28d8681d52466a5f940aa75056bed2ff0c9454d33b1d1924fb4dc"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py",
+    "sha256": "34a51672644ce4567c731b0900efde31af1ec60d25804f78e5e5be05d46ba053"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/07-provider-adapter.md",
+    "sha256": "6c2d55102fcbb1eeb74a75d972c96de7715ad28f9e8a8d7fd2e22cfc587fefd7"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/sample-payloads.json",
+    "sha256": "32ed6ba831e6aaac334b1e094dfd8f9f803662dc9a931a619c0c72d19ca78bcc"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/06-api-contract.md",
+    "sha256": "b095d8ab717a8453ed54268859a734d902344b20ec52ec1254ec00f3135a13a9"
+  },
+  {
+    "path": "docs/reviews/2026-09-07/baseline/docs/implementation/08-verification-and-delivery-plan.md",
+    "sha256": "56a643b02107112d5caea3f4ca5b5aea5ffc1205d68032bb042df790ffe63c15"
+  },
+  {
+    "path": "docs/implementation/templates/shot-list-import.csv",
+    "sha256": "27015ae08060276b6d8f6f3c61579ff66d8f76c1b4e92683548ca8dace978b43"
+  },
+  {
+    "path": "docs/implementation/templates/labor-log.csv",
+    "sha256": "cdf8fd36cdd01013883b5e17ed513c7167a4db18642c8d5b5aed2e5a661286ae"
+  },
+  {
+    "path": "docs/implementation/templates/handoff-receipt.md",
+    "sha256": "0282d6a128f6f7ed1d64fb4fb3ba95d1d6fdb348e1ad41eb76d3e3c935bfeb2c"
+  },
+  {
+    "path": "docs/implementation/templates/shot-handoff.csv",
+    "sha256": "cf3c44e5791396796db03daabd1b1c7f2d4d5956d88d8e736c41831ceb2f65e9"
+  },
+  {
+    "path": "docs/implementation/templates/quality-and-rework.csv",
+    "sha256": "126bafa77f03279debb90387ba887005417710a57dc2a7c1d08e143a83a241ff"
+  },
+  {
+    "path": "docs/implementation/templates/dialogue-sound-subtitle.csv",
+    "sha256": "8518fe6c21b4c577a7a480acbe19d4fbd2393732508d5b4daf8f87c4c03733df"
+  },
+  {
+    "path": "docs/implementation/templates/README.md",
+    "sha256": "e26c6edecbe2d6d971225c473156320188b7da23f3e5333dfbdc5589b8f7ad55"
+  },
+  {
+    "path": "docs/implementation/templates/non-job-costs.csv",
+    "sha256": "ede16490f6e348c920e4cf2c328aab68281ec0ba989b1210a0ba81a972aa8258"
+  },
+  {
+    "path": "docs/implementation/templates/continuity-sheet.csv",
+    "sha256": "0c19f332251f91dfba5930de177ae8c223cc0517d371697a3918e4351aed5be9"
+  },
+  {
+    "path": "docs/implementation/templates/experiment-plan-and-result.md",
+    "sha256": "f297eba6ff6e7ba94396e8232846fe643868faa764c3371d2facd9e2fd9a3239"
+  },
+  {
+    "path": "docs/implementation/templates/job-cost-register.csv",
+    "sha256": "2816f73b18ec5d9b72d5605ddfa67f8222f00ae956a41ecec5294db532c21677"
+  },
+  {
+    "path": "apps/web/index.html",
+    "sha256": "78b41c896bf7ac0541f9f50cb05d694f6061003fbf26989d2307b1a12f33fa85"
+  },
+  {
+    "path": "apps/web/package.json",
+    "sha256": "0b60400712839e9a87c26969558ad5f4af6e579a11c3f508fd463df331ad2bff"
+  },
+  {
+    "path": "apps/web/tsconfig.json",
+    "sha256": "7e4fa11ee367cf5dcfcfa94817e00e8ff6758c8d73e1ffd6b25abfd69faa274c"
+  },
+  {
+    "path": "apps/web/AGENTS.md",
+    "sha256": "0bcb6d3afbee563049df0110f56cf5472004c645f454b9b1b35b695ea38b08fc"
+  },
+  {
+    "path": "apps/web/vite.config.ts",
+    "sha256": "968de375592e7130aa1f2d697b39685beca0f641f107d748afa759f0a47407b0"
+  },
+  {
+    "path": "apps/api/package.json",
+    "sha256": "baefd3fcd01801bff068c6705722dd431ece9917b273e6b020e626068acdef2c"
+  },
+  {
+    "path": "apps/worker/package.json",
+    "sha256": "1239c4c4888990f3f6ed52506b9b2ae1eacf75b13222f9da2982bb6ef8c6e47c"
+  },
+  {
+    "path": "apps/worker/src/check.ts",
+    "sha256": "ff1f538f4b740991f59f1a2f5e2c09180b8221a70367a5046e7ced847c4e7bf7"
+  },
+  {
+    "path": "apps/api/src/main.ts",
+    "sha256": "0009d44a4d204ab6ed72577cd435ead43c9a2b66cba6df1d28c610e469c34ee6"
+  },
+  {
+    "path": "apps/api/src/app.ts",
+    "sha256": "00d24277210ce2fe06ba8f152a3790ed26d7770e5e4076ef27a21cb395ddd556"
+  },
+  {
+    "path": "apps/web/public/favicon.svg",
+    "sha256": "76f8b601638618290a0e9a97f8973ac9afc541dd8d9ba21d98e10574c5761283"
+  },
+  {
+    "path": "apps/web/src/App.tsx",
+    "sha256": "bc8a5c4b09d32ce31b6c584979f0227f8e1ff82dccc1fef7798ebe6555d4e0b4"
+  },
+  {
+    "path": "apps/web/src/main.tsx",
+    "sha256": "139e07aa2ce3e6395f61e89324c0387de7aa475d3674ddd24fbffae470060c96"
+  },
+  {
+    "path": "apps/web/src/model.ts",
+    "sha256": "20046a0e80351ce7843c6be1f7578ce16ab4e45dce7c20d17461e26f1a01a25e"
+  },
+  {
+    "path": "apps/web/src/style.css",
+    "sha256": "6408c794f4394bcadd3855c63372ca95802e102f88741ab5565c31dae0c91ce3"
+  },
+  {
+    "path": "apps/web/src/icons.ts",
+    "sha256": "840cc0ee4888da5f07d5761d9e5e0eef7057f5c826ce605bfa2a0f92bc58f428"
+  },
+  {
+    "path": "apps/web/src/components/ui.tsx",
+    "sha256": "f8f2205a6798afce064b2030ada846dbe3bdc5b85410477542c34c4f1f8060a0"
+  },
+  {
+    "path": "apps/web/src/theme/theme.module.css",
+    "sha256": "649dffb355582dbf95494a6392bb99b9d676951d37c0003f2b137ac6e92ebe49"
+  },
+  {
+    "path": "apps/web/src/theme/shared-language-study.ts",
+    "sha256": "f9b688ba0db5ea2cc5310795a7abfa64bf70b63fba30611937c42af6744502e2"
+  },
+  {
+    "path": "apps/web/src/theme/global.css",
+    "sha256": "7ce20471205457359ad0f9c5138573a80d00c020e612c77bd04e662fafe55d12"
+  },
+  {
+    "path": "apps/web/src/theme/tokens.ts",
+    "sha256": "1ed6d79347391af765bcd4fb4fc04c377eff41084947a66064361a6571a3063c"
+  },
+  {
+    "path": "apps/web/src/theme/theme.ts",
+    "sha256": "d4d7bb427b86de3638f1a8b3414ad3e7acfe21cf0f8ae709a0656142fc7f07e6"
+  },
+  {
+    "path": "apps/web/src/pages/ProductionDetailPrototype.tsx",
+    "sha256": "2cc8859687a27fc0779e3ceee26f5eafe358ada357feb4741382566a5a5d789a"
+  },
+  {
+    "path": "apps/web/src/pages/production-detail.module.css",
+    "sha256": "db69a2fdd9397582563315a5c1b59a45250516e3dd6b07f0e51bf1a0c46c31e1"
+  },
+  {
+    "path": "apps/web/src/pages/workspace-walkthrough-model.ts",
+    "sha256": "c7f07d07d1383e2b6b60f9e8c7dbf0e7766b6f6ebb6b2f5a86d109307a1c57ca"
+  },
+  {
+    "path": "apps/web/src/pages/ScenePage.tsx",
+    "sha256": "c09cd2540d947256ee0cd3ed0429dad27831315a167b0425a2320720ff462233"
+  },
+  {
+    "path": "apps/web/src/pages/WorkspaceWalkthroughPages.tsx",
+    "sha256": "a66c6576f205df1df5b72098253149215c48a44144a9985df08df64bc50787f0"
+  },
+  {
+    "path": "apps/web/src/pages/WorkspaceRecommendationPrototype.tsx",
+    "sha256": "ce03e7760885abd830f1dda7560c802484ad9f4a6be5a43fc65282e0c598c1b6"
+  },
+  {
+    "path": "apps/web/src/pages/SceneProduction.tsx",
+    "sha256": "d89183d3f0a1d58faadac5b8376fefb757314510ef93bc386ff040a030f57b0c"
+  },
+  {
+    "path": "apps/web/src/pages/navigation-journey-model.ts",
+    "sha256": "638d6f31677d52f28b3d0f8ac9fcf989fdf8f143239a791750634aa707c07a34"
+  },
+  {
+    "path": "apps/web/src/pages/DesignPage.tsx",
+    "sha256": "630cd71d8bbf3dbc9605a162ae4516e87510b49f5de0ed5534856e09294baf7e"
+  },
+  {
+    "path": "apps/web/src/pages/shared-language-prototype.module.css",
+    "sha256": "91c78242c6c209946a4bdbdf663886dfb6bca403fc14e6fbb0f1775b7ed4366d"
+  },
+  {
+    "path": "apps/web/src/pages/WorkspacePages.tsx",
+    "sha256": "63ea0e58a2f5e2345fc586b8dcbe3d970f10b795ff10dc5504deb0e76b96c0b5"
+  },
+  {
+    "path": "apps/web/src/pages/workspace-recommendation.module.css",
+    "sha256": "c8772192aae60efdf136d77bc65da21a90ec94099da17b9137dcd0008b82d0e2"
+  },
+  {
+    "path": "apps/web/src/pages/SharedLanguagePrototype.tsx",
+    "sha256": "ae38b10432ee1a58298dbfc9d5a10ef0bb9eb4e14aba78c8d773d3e6b305d76a"
+  },
+  {
+    "path": "apps/web/src/pages/visual-directions-prototype.module.css",
+    "sha256": "5f1ff9c5a723c27304d0a18b3311d1b75dc5c306e0ed4c30300d1dfe7569656c"
+  },
+  {
+    "path": "apps/web/src/pages/LayoutOptionsPage.tsx",
+    "sha256": "110a8acb3951e2f124594d406169f7570f11d2263b71be85dbb8bd70b516d696"
+  },
+  {
+    "path": "apps/web/src/pages/ContentPages.tsx",
+    "sha256": "12225e28019232505290f7f81a5f85751a68f2c407c30ea1b0404ae6d9ed88e2"
+  },
+  {
+    "path": "apps/web/src/pages/navigation-journey.module.css",
+    "sha256": "5c69b7929b362bcf4c3f4d26389db6aa26a641b55b2b59d43c1b06ed48b981d0"
+  },
+  {
+    "path": "apps/web/src/pages/VisualDirectionsPrototype.tsx",
+    "sha256": "38cef6eb530bfa9cbc61fd14d26e082a8e1a3a82c7b1e1128b0f1d8165288930"
+  },
+  {
+    "path": "apps/web/src/pages/NavigationJourneyPrototype.tsx",
+    "sha256": "4ee73fdb5d745ab75692229f83404c34e870d711d629774515ff0ad98930b6ff"
+  },
+  {
+    "path": "apps/web/src/pages/design.module.css",
+    "sha256": "88a2ca47c5932b182152a3ace125dc7c13b3fc337dda49b1faa82516580a05d9"
+  },
+  {
+    "path": "apps/web/src/pages/layout-options.module.css",
+    "sha256": "ef778bd6f6646dba09f6dfa637487471ae826d01d08550c5795cc50bfdba30bd"
+  },
+  {
+    "path": "apps/web/src/components/workspace/workspace.module.css",
+    "sha256": "f8e3877155d9f3e6cf8e880a0cc65ea2b7bf034cd9c4328663e70c09e719e35d"
+  },
+  {
+    "path": "apps/web/src/components/workspace/cards.tsx",
+    "sha256": "99f05100efec5d52b26b91107ce03f7bff5d0205e7a4fff3a5aa91b0994f03fb"
+  },
+  {
+    "path": "apps/web/src/components/workspace/WorkspaceShell.tsx",
+    "sha256": "6b37a07cfa5e8431f59649b7c0dfcd81e598499b0ab5ad18c9a10f83ff3aacb0"
+  },
+  {
+    "path": "apps/web/src/components/workspace/PromptComposer.tsx",
+    "sha256": "b5b17ef73f78d551267028827518a3aeb56eb171a3da6ee0080c5d7526f0bf5a"
+  },
+  {
+    "path": "apps/web/public/demo/old-key-storyboard.png",
+    "sha256": "9da9c33f81494e51a53f37f432584a5709c260b957bff891ecf178e08c31596a"
+  },
+  {
+    "path": "apps/web/public/demo/technical-preview.mp4",
+    "sha256": "d9d0cd34cb56eb77ea259eef96fb5d053100b99a218210377a711fc116f458b1"
+  },
+  {
+    "path": "apps/web/public/previews/visual-directions-v1/porcelain-canvas.png",
+    "sha256": "82d4e83c817632e2ada4f5921a422278eed60b83997b89aa1666fa25e30d4779"
+  },
+  {
+    "path": "apps/web/public/previews/visual-directions-v1/graphite-canvas.png",
+    "sha256": "cd39aaf7cdc84cc70ebd244c42d34521a18bd8df4013eb765564b85b51d01842"
+  },
+  {
+    "path": "apps/web/public/previews/visual-directions-v1/porcelain-project.png",
+    "sha256": "3cba289bb563e6db54b54415c5ee0e11d690237be4173f0c2c5611b3ab3ad754"
+  },
+  {
+    "path": "apps/web/public/previews/visual-directions-v1/graphite-project.png",
+    "sha256": "7fc9372d4ad37b3d5032547e458f344287e80f11792ef0b38e082c80f5ab63dd"
+  },
+  {
+    "path": "apps/web/public/previews/visual-directions-v1/dual-project.png",
+    "sha256": "c612a35f0e2d0561d3bc1d14c092deba5fb038822ad6db378116c3469eafd515"
+  },
+  {
+    "path": "apps/web/public/previews/visual-directions-v1/dual-canvas.png",
+    "sha256": "5ab922cf60c913f188a47cb1a56901e18c46bb645d30bb59c1e8d4e1da936fdf"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/chat-v3.png",
+    "sha256": "3dd0773ff1eb04ed0639aa86f6eb79321ff7e6562cbd4cc7c334ff3aaf1364b1"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/scene-canvas-overview-v6.png",
+    "sha256": "8cb44cd962ccb5f90df38df75e3dc1ecd1f29fe44cd407ae1de5baa00a9e0171"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/chat-v4.png",
+    "sha256": "44faf9b88a30c57d78b530bb089b0f1380f486cb0601fbc1816394d61ac05460"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/scene-canvas-v5.png",
+    "sha256": "4ddbdf5a3fb03749d6d5e32b949be3c251073fa2070359a7e54e165922d4ad75"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/scene-storyboard-v5.png",
+    "sha256": "a52698e8f1ca3aa927d5fffba3462696ee0dd36200daaca1b1e5d4adfc51a4c0"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/focus-v4.png",
+    "sha256": "e805eb48a718c17e5b5c658552fef60668bed5965f94c93057bfe28d7f8277fe"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/overview-v4.png",
+    "sha256": "ebe798b85b7008cc01553616cadb1a7d774b5ef3e52b7c024d2310c87a34fbe1"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/focus-v3.png",
+    "sha256": "c4f891cfb1c6c06631f2121e7abe71f1fd6104fb0384d71f11a38784ddbade61"
+  },
+  {
+    "path": "apps/web/public/previews/layouts/overview-v3.png",
+    "sha256": "0440b3efb2a44c144c3e40153bf8be8f1a6fb59e7aa6692d78bc0107d09dff0e"
+  },
+  {
+    "path": "apps/web/public/previews/shared-language-v1/light-edit.png",
+    "sha256": "01ed42296ce8f4f74f0cd375a83c4c3822a0a8d95b34d2ba0415af7578ee4991"
+  },
+  {
+    "path": "apps/web/public/previews/shared-language-v1/light-assistant.png",
+    "sha256": "94950589f139666f8731f02c262bb4880c7792aa8e5a465a749bc834b4f03844"
+  },
+  {
+    "path": "apps/web/public/previews/shared-language-v1/dark-edit.png",
+    "sha256": "ebfa3d8fce5aced0e2cba3a0e57b23a401afb98ff99b4dbabc736478ad9ac840"
+  },
+  {
+    "path": "apps/web/public/previews/shared-language-v1/dark-assistant.png",
+    "sha256": "4a3514ecc159fe0683df8f63263158aa60070d9f3fb6445df5e4930608a3c458"
+  },
+  {
+    "path": "apps/web/public/previews/shared-language-v1/light-idle.png",
+    "sha256": "eb857170b36162617550c2031e4ab244260b5258286e536c491f4cf2a3db47c5"
+  },
+  {
+    "path": "apps/web/public/previews/shared-language-v1/dark-idle.png",
+    "sha256": "f5acfb03f76c4c8e9b2fd60f2a1f9245af0b7991507605dc23a1d5c49f127760"
+  },
+  {
+    "path": "apps/web/public/design/layout-options/overview-1024.png",
+    "sha256": "323ab015c5b4c22db7bb32710d806a00aa7a6971abbda1f46caa1705b9792799"
+  },
+  {
+    "path": "apps/web/public/design/layout-options/canvas-1024.png",
+    "sha256": "a945b5b83c8294b5a8fbc32aa90e49e7155aa1858ad4f974002b703e5356d1bb"
+  },
+  {
+    "path": "apps/web/public/design/layout-options/chat-1024.png",
+    "sha256": "1479faa54476229209bfad2832613f568aebce23072cdf1b322534729e154850"
+  },
+  {
+    "path": "apps/web/public/design/layout-options/focus-1024.png",
+    "sha256": "5c49a9dc6297b00fcfc20b37d2038aa673f3d5939e6403afafbfbb304106d23d"
+  },
+  {
+    "path": "apps/web/public/demo/workspace-v2/key-candidate-c.png",
+    "sha256": "3595886b5e7444e29c395553a80ed23052794bbc08447446c7c24ba1ea6d8bf8"
+  },
+  {
+    "path": "apps/web/public/demo/workspace-v2/key-reference.png",
+    "sha256": "0d172aa5d602e1af7ff3ba0c7baee8ef00ad476f153358a6ebbc68eca76970bc"
+  },
+  {
+    "path": "packages/database/package.json",
+    "sha256": "147c3b1e258c003510f5900c98be952131a7658da40abcce4bef38302c613a69"
+  },
+  {
+    "path": "packages/contracts/package.json",
+    "sha256": "d4edb76ab3a330e355e89022d42cc398d187760dd66cc7c1132901b218385d05"
+  },
+  {
+    "path": "packages/provider/package.json",
+    "sha256": "130b227417ee1d9607c7aa2c867d807f31b55f1a5af5ad9dcff9ec5b5146d3a4"
+  },
+  {
+    "path": "packages/domain/package.json",
+    "sha256": "eeb223d4ae27ce91dfeee565c402efab2d94de15bd682fa68e98c2ea7fa09086"
+  },
+  {
+    "path": "packages/domain/src/index.ts",
+    "sha256": "88f508434078f710c6612d50427892876b9d4f1b0ac954d132d245316e82f45f"
+  },
+  {
+    "path": "packages/domain/src/time.ts",
+    "sha256": "250bcdea293016f4c0c3c4022c14cc25e2c3cc920563e6af7c9d3cded4676449"
+  },
+  {
+    "path": "packages/provider/src/mock-lab.ts",
+    "sha256": "0777ce43f78ebe61faf66bc2cf7bbd74a69bac636d56efb60a75e38ddfce4f1d"
+  },
+  {
+    "path": "packages/provider/src/index.ts",
+    "sha256": "1cda143ff53307010fcb36d49fa94ca69be80abbb89539090f29ddef6c3cd1e3"
+  },
+  {
+    "path": "packages/contracts/src/validation.ts",
+    "sha256": "db436b8b422fbbeef4932afb2badef36c0648f68a88179638b0518c6813a421b"
+  },
+  {
+    "path": "packages/contracts/src/index.ts",
+    "sha256": "fdaf20a6521db94023eac4a8699be22ef767cee7d4bfe22c3f94fb8940f6bc7f"
+  },
+  {
+    "path": "packages/contracts/src/generated.ts",
+    "sha256": "1c1bd648ae1663e178e9935c3512673e6986ec70f8303266faad18a4593e474b"
+  },
+  {
+    "path": "packages/database/migrations/0000_engineering_bootstrap.sql",
+    "sha256": "c9db7092b58c9f514103e9234113d9446d977a7e792912a690547d208121d264"
+  },
+  {
+    "path": "packages/database/src/migrate.ts",
+    "sha256": "357f634d1f28a554b26971e02851a6e424b85466e861dccc76d9f664417e4684"
+  },
+  {
+    "path": "packages/database/src/index.ts",
+    "sha256": "7eaee98100f153bb6e24b3b7afb468ff6e7455e3efc2ab0967b2b184e57af9ea"
+  },
+  {
+    "path": "tests/protocol.test.ts",
+    "sha256": "6086d6a51376007c70ba940cfb52c682c8afd917292fe2b79c29bda851f399cf"
+  },
+  {
+    "path": "tests/contract.test.ts",
+    "sha256": "60879569dea27c4335ca51a086e2522f9a3cbca17dfcda7cca38f906f508193a"
+  },
+  {
+    "path": "tests/api.test.ts",
+    "sha256": "b681ea5803f38b9a698c0ac9f98ce198859bac50b0b3f7e718da25afd148b035"
+  },
+  {
+    "path": "tests/integration/migration.test.ts",
+    "sha256": "868e567735804c91eb2afc62243b512be3f8f694102a9d0ad535e5c3bd0104bb"
+  },
+  {
+    "path": "scripts/migrate.ts",
+    "sha256": "c032f27cdb179cfe45ac49c5d8a740ea69e38bb901ed4271ecb01a1b19f4134a"
+  },
+  {
+    "path": "scripts/verify-visual.mjs",
+    "sha256": "239e22b5138857c0726620344c329ff4032610085bb1978893130193a5104324"
+  },
+  {
+    "path": "scripts/check-generated.mjs",
+    "sha256": "8234370277ccbf4af7c1ade0f5337b9604112d4db5674921e17c17ecb9e58f8d"
+  },
+  {
+    "path": "scripts/check-ui.ts",
+    "sha256": "bf19786dd84f464af7d7ffdd1e553adc5e2fea5c591a39e4dc7ef7754cb04884"
+  },
+  {
+    "path": "scripts/mock-scenarios.ts",
+    "sha256": "0b1150c4748030dde8b5c9abea891d7bf45117cb7e379654c35ea0842f09d41a"
+  },
+  {
+    "path": "scripts/verify-local.mjs",
+    "sha256": "2d35d113a8309f0cf93fc6bf4afb8d2c147b392eb39df69ab229af38a033e978"
+  },
+  {
+    "path": "CONTEXT.md",
+    "sha256": "a38fbd067218d08332a537fbe459976b48dee85a7f12c990c3c22ad24c3576f5"
+  },
+  {
+    "path": "README.md",
+    "sha256": "4bf5ebfb76ddd9ca78b8a7343eb9060dbbf74d4031eefe22000eb4b3f9fc6391"
+  },
+  {
+    "path": "package.json",
+    "sha256": "297006238e8c84de7c0c3ea1fc3592be2f41a76e21ff7d91dae8fe9bff2037ca"
+  },
+  {
+    "path": "package-lock.json",
+    "sha256": "8dcafc4f722159cf37fe22e057417629ab5b4986e58fff8b838733ed7d5039cd"
+  },
+  {
+    "path": "compose.yaml",
+    "sha256": "8ec4d73042b8fe64da3b77d88191fdd6c15cf0bbf3ab51c2edfe5343213b918a"
+  }
+]

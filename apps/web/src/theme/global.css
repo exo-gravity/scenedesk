@@ -1,0 +1,159 @@
+@layer legacy, mantine;
+:root {
+  font-size: 100%;
+  font-synthesis: none;
+  color-scheme: dark;
+}
+body {
+  font-family: var(--mantine-font-family);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-text);
+  background: var(--ws-canvas);
+}
+:root {
+  --bg: var(--ws-canvas);
+  --surface: var(--ws-panel);
+  --raised: var(--ws-raised);
+  --hover: var(--ws-hover);
+  --text: var(--ws-text);
+  --muted: var(--ws-secondary);
+  --quiet: var(--ws-muted);
+  --line: var(--ws-border);
+  --line-soft: var(--ws-border-subtle);
+  --accent: var(--ws-accent);
+  --accent-soft: var(--ws-accent-soft);
+  --green: var(--ws-success);
+  --amber: var(--ws-warning);
+  --red: var(--ws-danger);
+  --sidebar: 208px;
+}
+.sidebar,
+.topbar {
+  background: var(--ws-panel);
+}
+.topbar {
+  height: 48px;
+  padding-inline: 24px;
+}
+.mobile-menu {
+  display: none;
+}
+.sidebar .workspace-nav button,
+.sidebar .project-nav button,
+.sidebar .bottom-link {
+  color: var(--ws-secondary);
+}
+.sidebar .workspace-nav .active,
+.sidebar .project-nav .active,
+.sidebar .bottom-link.active {
+  color: var(--ws-accent);
+  background: var(--ws-accent-soft);
+}
+.sidebar .workspace-nav button:hover,
+.sidebar .project-nav button:hover,
+.sidebar .bottom-link:hover {
+  background: var(--ws-hover);
+}
+.profile small,
+.project-current small,
+.studio-switch small,
+.project-label,
+.scene-tree button.episode-link,
+.saved-local,
+.preview-indicator {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-muted);
+}
+.saved-local {
+  color: var(--ws-secondary);
+}
+.scene-heading {
+  padding: 16px 24px;
+  background: var(--ws-panel);
+}
+.scene-heading h1 {
+  font-size: var(--mantine-font-size-xl);
+  letter-spacing: 0;
+}
+.scene-kicker {
+  margin-bottom: 4px;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-muted);
+}
+.scene-facts {
+  margin-top: 8px;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-secondary);
+}
+.scene-tabs {
+  height: 43px;
+  padding-inline: 24px;
+  background: var(--ws-panel);
+}
+.scene-tabs nav button {
+  font-size: var(--mantine-font-size-sm);
+}
+.context-status,
+.context-status button {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-secondary);
+}
+.scene-tree .badge {
+  font-size: var(--mantine-font-size-xs);
+}
+.film-frame.variant-B > svg,
+.film-frame.variant-C > svg {
+  filter: none;
+}
+.film-frame.variant-B > svg image {
+  transform: none;
+}
+.modal-body {
+  padding: 0;
+}
+.modal-body > .modal-actions {
+  margin-top: 24px;
+}
+.mantine-Modal-body .expanded-frame {
+  max-height: 65vh;
+}
+.mantine-Modal-body .player-stage {
+  max-height: 65vh;
+}
+@media (max-width: 1060px) {
+  :root {
+    --sidebar: 0px;
+  }
+  .mobile-menu {
+    display: inline-flex;
+  }
+}
+@media (max-width: 760px) {
+  :root {
+    --sidebar: 0px;
+  }
+  .sidebar {
+    width: 232px;
+  }
+  .mobile-menu {
+    display: inline-flex;
+  }
+  .scene-heading {
+    padding: 16px;
+  }
+  .scene-tabs {
+    padding-inline: 16px;
+  }
+}
+
+/* Transitional styling for existing generation dialogs using the shared Mantine modal. */
+.plan-references > div,
+.plan-cost {
+  background: var(--ws-raised);
+  border-color: var(--ws-border);
+}
+.plan-references small,
+.plan-cost div > span {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-secondary);
+}

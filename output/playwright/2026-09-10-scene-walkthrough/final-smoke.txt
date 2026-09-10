@@ -1,0 +1,9 @@
+### Result
+{"freshBuild":true,"referenceScope":true,"guideReady":true,"errors":[]}
+### Ran Playwright code
+```js
+await (async (page) => { const errors=[]; page.on('pageerror',e=>errors.push(String(e))); await page.goto('http://127.0.0.1:4312/#/journey/?variant=recommendation&screen=production&mode=storyboard&tone=light&assistant=off'); await page.reload(); await page.getByRole('button',{name:'参考',exact:true}).click(); await page.getByText('项目与工作室',{exact:false}).waitFor(); const shared=await page.getByText('工作室共享 · v1',{exact:true}).count(); await page.getByRole('button',{name:'体验指引',exact:true}).click(); await page.getByRole('button',{name:'从 v1 审阅开始',exact:true}).waitFor(); if(errors.length || shared!==1) throw new Error(JSON.stringify({errors,shared})); return {freshBuild:true,referenceScope:true,guideReady:true,errors}; })(page);
+```
+### Page
+- Page URL: http://127.0.0.1:4312/#/journey/?variant=recommendation&screen=production&mode=storyboard&tone=light&assistant=off&assets=on
+- Page Title: 场次连续体验 · 设计预览

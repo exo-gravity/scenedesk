@@ -1,0 +1,2 @@
+### Error
+Error: splitter responds to pointer: {"keyboard":396,"dragged":399.0625}

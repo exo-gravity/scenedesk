@@ -1,0 +1,106 @@
+{
+  "date": "2026-09-07",
+  "purpose": "Immutable common baseline for independent AI role reviews; not a human expert sign-off.",
+  "files": [
+    {
+      "path": "CONTEXT.md",
+      "sha256": "722fecdddcf5c63462eaaf2fd48df6c689ab67ec675fb187b3324db5b53559cb"
+    },
+    {
+      "path": "docs/ai-drama-workbench-product-design-v1.0.md",
+      "sha256": "9417fc5b74cb5b72d34768091a0c2b80787f766e251b098dfcd3b8d428d0328f"
+    },
+    {
+      "path": "docs/implementation/check_design.py",
+      "sha256": "55cd0acd1e9b092ceac7cfaf59932fd743cc8bee2fb44964d9a167f8880b978c"
+    },
+    {
+      "path": "docs/implementation/01-product-requirements.md",
+      "sha256": "c70098f8c916edc0206f25e10b4d112e0bf11933773123ca698c766e678b0aaf"
+    },
+    {
+      "path": "docs/implementation/03-domain-data-model.md",
+      "sha256": "4ec534f4e063afe0ce74329cc2a3078e2e763ecc526e70ef50b07f9571d3ffd0"
+    },
+    {
+      "path": "docs/implementation/09-decisions-and-open-items.md",
+      "sha256": "e5d930f8b56c071cc4e6e1e5fdba42b6a7c4af8631d49ba83f632d408d51bcb2"
+    },
+    {
+      "path": "docs/implementation/05-architecture-and-operations.md",
+      "sha256": "fa2c240fe62ff2e540966d195ea12745b8fb1ba14376ff292d915ee27f5ec788"
+    },
+    {
+      "path": "docs/implementation/api-operations.md",
+      "sha256": "87e14b05201e0d4d2b20fceb75338c010c06f3b9301affff28695344ab4f6410"
+    },
+    {
+      "path": "docs/implementation/10-production-fixture.md",
+      "sha256": "d1020ab47476c22efee3122e6aefabf113ba0c886b9ba7bbb36edead6377c198"
+    },
+    {
+      "path": "docs/implementation/02-interaction-spec.md",
+      "sha256": "134cb58e71b51f4493c7e422901f4eb6551e6eb0c76ff198e5ecb2ddcfcece59"
+    },
+    {
+      "path": "docs/implementation/validation-requirements.txt",
+      "sha256": "a1b2f7202ed11c8408d2c6c2a360b4749253d8df08bcfb1cf8c02e5dc4fcfee5"
+    },
+    {
+      "path": "docs/implementation/README.md",
+      "sha256": "1e614704b8fb39ed55fbd711337f406c1176b5996b6986cbebbd4d3c806cebc6"
+    },
+    {
+      "path": "docs/implementation/04-state-execution-and-budget.md",
+      "sha256": "dc81fcc96e4a754ee5dd890804749ae7fa75d94cb0483ca09d0625fd24da59d4"
+    },
+    {
+      "path": "docs/implementation/validation-report.md",
+      "sha256": "4016aa9678057f5094fec2ee208b8653df88a08469d4affc4b8ba17801a6fa2d"
+    },
+    {
+      "path": "docs/implementation/openapi.json",
+      "sha256": "5640f59d07d28d8681d52466a5f940aa75056bed2ff0c9454d33b1d1924fb4dc"
+    },
+    {
+      "path": "docs/implementation/build_contract.py",
+      "sha256": "34a51672644ce4567c731b0900efde31af1ec60d25804f78e5e5be05d46ba053"
+    },
+    {
+      "path": "docs/implementation/07-provider-adapter.md",
+      "sha256": "6c2d55102fcbb1eeb74a75d972c96de7715ad28f9e8a8d7fd2e22cfc587fefd7"
+    },
+    {
+      "path": "docs/implementation/sample-payloads.json",
+      "sha256": "32ed6ba831e6aaac334b1e094dfd8f9f803662dc9a931a619c0c72d19ca78bcc"
+    },
+    {
+      "path": "docs/implementation/06-api-contract.md",
+      "sha256": "b095d8ab717a8453ed54268859a734d902344b20ec52ec1254ec00f3135a13a9"
+    },
+    {
+      "path": "docs/implementation/08-verification-and-delivery-plan.md",
+      "sha256": "56a643b02107112d5caea3f4ca5b5aea5ffc1205d68032bb042df790ffe63c15"
+    },
+    {
+      "path": "docs/adr/0003-uncertain-provider-submission.md",
+      "sha256": "6228ceae721842aa2531d308afd356391fa3ec587d11292fa3091cccf8c0aeaf"
+    },
+    {
+      "path": "docs/adr/0002-freeze-review-and-explicit-adoption.md",
+      "sha256": "6067c99b77ad984110591a69a3d8f407a54973c91963ec3383f21635ddd0247d"
+    },
+    {
+      "path": "docs/adr/0001-production-records-independent-of-views.md",
+      "sha256": "42ac4f4517d509e5e1b3fb10ad283f87cb1e9d7ecc950e6790b4c23965e16824"
+    },
+    {
+      "path": "docs/research/2026-09-07-implementation-model-evidence.md",
+      "sha256": "89131a67aeb87ab2725c73657add6bd0d619913ab06710852597339894cc9b04"
+    },
+    {
+      "path": "docs/research/2026-09-07-implementation-infra-evidence.md",
+      "sha256": "c7cba7618fb96d5bcfe879dd12818b22d3605ddc84916fc3b7c0d98eb398e482"
+    }
+  ]
+}

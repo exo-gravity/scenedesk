@@ -1,0 +1,14 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "name": "@drama/contracts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./validation": "./src/validation.ts"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
+  }
+}

@@ -1,0 +1,6044 @@
+{
+  "description": "Design-only OpenAPI 1.3.0 positive and negative structural samples. Cross-field, authorization, transactions, media and lifecycle behavior require the acceptance tests.",
+  "samples": [
+    {
+      "name": "创建项目",
+      "schema": "CreateProject",
+      "valid": true,
+      "value": {
+        "name": "旧钥匙",
+        "leadMembershipId": "00000000-0000-4000-8000-000000000008",
+        "spec": {
+          "width": 720,
+          "height": 1280,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        }
+      },
+      "requestOperationId": "createProject"
+    },
+    {
+      "name": "视频实际输入",
+      "schema": "PlanInput",
+      "valid": true,
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "video",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {
+          "aspectRatio": "9:16",
+          "durationSeconds": 7,
+          "resolution": "720p",
+          "withAudio": true
+        },
+        "additionalReferences": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      },
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "文本提案计划",
+      "schema": "PlanInput",
+      "valid": true,
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000006",
+        "purpose": "script_analysis",
+        "prompt": "按选定原文生成新增集场镜提案。",
+        "sourceScriptRevisionId": "00000000-0000-4000-8000-000000000007",
+        "output": {},
+        "additionalReferences": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "scriptRange": {
+          "startOffset": 0,
+          "endOffset": 14
+        },
+        "shotSources": [],
+        "proposalTarget": {
+          "mode": "new_structure"
+        }
+      },
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "执行已确认计划",
+      "schema": "ExecutePlan",
+      "valid": true,
+      "value": {
+        "planId": "00000000-0000-4000-8000-000000000009"
+      },
+      "requestOperationId": "executeGenerationPlan"
+    },
+    {
+      "name": "角色并存造型",
+      "schema": "AssetRevisionInput",
+      "valid": true,
+      "value": {
+        "definition": {
+          "description": "林夏，成年女性",
+          "references": [
+            {
+              "mediaId": "00000000-0000-4000-8000-000000000010",
+              "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+              "purpose": "identity"
+            }
+          ],
+          "looks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000030",
+              "revision": 1,
+              "label": "灰色风衣",
+              "references": [
+                {
+                  "mediaId": "00000000-0000-4000-8000-000000000010",
+                  "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+                  "purpose": "identity"
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000031",
+              "revision": 1,
+              "label": "晚礼服",
+              "references": [
+                {
+                  "mediaId": "00000000-0000-4000-8000-000000000010",
+                  "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+                  "purpose": "identity"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "requestOperationId": "reviseAsset"
+    },
+    {
+      "name": "合法媒体区间",
+      "schema": "TakeInput",
+      "valid": true,
+      "value": {
+        "shotId": "00000000-0000-4000-8000-000000000004",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000005",
+        "mediaId": "00000000-0000-4000-8000-000000000021",
+        "range": {
+          "inUs": 1000000,
+          "outUs": 8000000
+        }
+      },
+      "requestOperationId": "createTake"
+    },
+    {
+      "name": "仅保存已确认归一结果",
+      "schema": "CutDraftInput",
+      "valid": true,
+      "value": {
+        "normalizationId": "00000000-0000-4000-8000-000000000080",
+        "acknowledgedChangeIds": []
+      },
+      "requestOperationId": "saveCutDraft"
+    },
+    {
+      "name": "冻结版本",
+      "schema": "FreezeCut",
+      "valid": true,
+      "value": {
+        "label": "审稿 A",
+        "expectedWorkDraftRevision": 0
+      },
+      "requestOperationId": "freezeCut"
+    },
+    {
+      "name": "审阅候选",
+      "schema": "ReviewInput",
+      "valid": true,
+      "value": {
+        "subject": {
+          "takeId": "00000000-0000-4000-8000-000000000022"
+        }
+      },
+      "requestOperationId": "createReview"
+    },
+    {
+      "name": "审阅固定成片",
+      "schema": "ReviewInput",
+      "valid": true,
+      "value": {
+        "subject": {
+          "cutRevisionId": "00000000-0000-4000-8000-000000000040"
+        }
+      },
+      "requestOperationId": "createReview"
+    },
+    {
+      "name": "局部时间码评论",
+      "schema": "CommentInput",
+      "valid": true,
+      "value": {
+        "body": "钥匙接触位置需要修正。",
+        "startUs": 2000000,
+        "endUs": 3000000
+      },
+      "requestOperationId": "createComment"
+    },
+    {
+      "name": "最终交付",
+      "schema": "DeliveryInput",
+      "valid": true,
+      "value": {
+        "cutRevisionId": "00000000-0000-4000-8000-000000000040",
+        "reviewId": "00000000-0000-4000-8000-000000000041",
+        "kind": "final",
+        "includeMedia": true,
+        "includeSrt": true
+      },
+      "requestOperationId": "createDelivery"
+    },
+    {
+      "name": "真实费用大额字符串",
+      "schema": "Money",
+      "valid": true,
+      "value": {
+        "currency": "CNY",
+        "amountMicros": "900719925474099100"
+      }
+    },
+    {
+      "name": "账单负调整",
+      "schema": "Money",
+      "valid": true,
+      "value": {
+        "currency": "CNY",
+        "amountMicros": "-2000000"
+      }
+    },
+    {
+      "name": "提交结果未知",
+      "schema": "GenerationJob",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000050",
+        "revision": 1,
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "planId": "00000000-0000-4000-8000-000000000009",
+        "status": "submission_unknown",
+        "mediaIds": [],
+        "reservationStatus": "held",
+        "inputOutdated": false,
+        "connectionVersionId": "00000000-0000-4000-8000-000000000060",
+        "costStatus": "pending",
+        "confirmedCost": {
+          "currency": "CNY",
+          "amountMicros": "0"
+        },
+        "reservationRemaining": {
+          "currency": "CNY",
+          "amountMicros": "8000000"
+        },
+        "recoveryEpoch": 1
+      }
+    },
+    {
+      "name": "事件游标",
+      "schema": "Event",
+      "valid": true,
+      "value": {
+        "seq": "9007199254740993",
+        "type": "resource_changed",
+        "resourceKind": "generation_job",
+        "resourceId": "00000000-0000-4000-8000-000000000050",
+        "resourceRevision": 2
+      }
+    },
+    {
+      "name": "供应商限制",
+      "schema": "CapabilityInputRule",
+      "valid": true,
+      "value": {
+        "kind": "image",
+        "purposes": [
+          "identity"
+        ],
+        "minCount": 1,
+        "maxCount": 3,
+        "maxBytes": 10000000,
+        "mimeTypes": [
+          "image/png"
+        ]
+      }
+    },
+    {
+      "name": "非法双审阅目标",
+      "schema": "ReviewInput",
+      "valid": false,
+      "value": {
+        "subject": {
+          "takeId": "00000000-0000-4000-8000-000000000022",
+          "cutRevisionId": "00000000-0000-4000-8000-000000000040"
+        }
+      }
+    },
+    {
+      "name": "缺失审阅目标",
+      "schema": "ReviewInput",
+      "valid": false,
+      "value": {
+        "subject": {}
+      }
+    },
+    {
+      "name": "浮点金额不被接受",
+      "schema": "Money",
+      "valid": false,
+      "value": {
+        "currency": "CNY",
+        "amountMicros": 8.1
+      }
+    },
+    {
+      "name": "未知费用不能伪造币种",
+      "schema": "Money",
+      "valid": false,
+      "value": {
+        "currency": "元",
+        "amountMicros": "0"
+      }
+    },
+    {
+      "name": "不接受未声明模型字段",
+      "schema": "PlanInput",
+      "valid": false,
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "video",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {
+          "aspectRatio": "9:16",
+          "durationSeconds": 7,
+          "resolution": "720p",
+          "withAudio": true
+        },
+        "autoPurchaseMore": true,
+        "additionalReferences": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      }
+    },
+    {
+      "name": "首版不接受广告项目类型",
+      "schema": "CreateProject",
+      "valid": false,
+      "value": {
+        "name": "广告",
+        "leadMembershipId": "00000000-0000-4000-8000-000000000008",
+        "spec": {
+          "width": 720,
+          "height": 1280,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        },
+        "kind": "advertising"
+      }
+    },
+    {
+      "name": "负时间范围",
+      "schema": "Range",
+      "valid": false,
+      "value": {
+        "inUs": -1,
+        "outUs": 1000
+      }
+    },
+    {
+      "name": "无效 UUID",
+      "schema": "ExecutePlan",
+      "valid": false,
+      "value": {
+        "planId": "not-a-plan-id"
+      }
+    },
+    {
+      "name": "浮点事件游标不被接受",
+      "schema": "Event",
+      "valid": false,
+      "value": {
+        "seq": 3.5,
+        "type": "reset"
+      }
+    },
+    {
+      "name": "从已保存工作稿准备归一",
+      "schema": "NormalizationInput",
+      "valid": true,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "baseCutRevision": 1,
+        "workDraftRevision": 3
+      },
+      "requestOperationId": "normalizeCutDraft"
+    },
+    {
+      "name": "保存时禁止另交时间线",
+      "schema": "CutDraftInput",
+      "valid": false,
+      "value": {
+        "normalizationId": "00000000-0000-4000-8000-000000000080",
+        "acknowledgedChangeIds": [],
+        "timeline": {
+          "schemaVersion": "1",
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "tracks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000023",
+              "kind": "video",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000020",
+                  "kind": "video",
+                  "mediaId": "00000000-0000-4000-8000-000000000021",
+                  "takeId": "00000000-0000-4000-8000-000000000022",
+                  "timelineStartUs": 0,
+                  "range": {
+                    "inUs": 1000000,
+                    "outUs": 8000000
+                  },
+                  "gainDb": 0,
+                  "muted": false,
+                  "fit": "contain",
+                  "streamSelection": "default"
+                }
+              ],
+              "muted": false
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000025",
+              "kind": "subtitle",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000024",
+                  "kind": "subtitle",
+                  "timelineStartUs": 1000000,
+                  "durationUs": 3000000,
+                  "text": "你说，东西一直在你这儿？"
+                }
+              ],
+              "muted": false
+            }
+          ],
+          "burnSubtitles": false
+        }
+      }
+    },
+    {
+      "name": "部分结算仍持有预占",
+      "schema": "GenerationJob",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000050",
+        "revision": 1,
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "planId": "00000000-0000-4000-8000-000000000009",
+        "status": "submission_unknown",
+        "mediaIds": [],
+        "reservationStatus": "held",
+        "inputOutdated": false,
+        "connectionVersionId": "00000000-0000-4000-8000-000000000060",
+        "costStatus": "partial",
+        "confirmedCost": {
+          "currency": "CNY",
+          "amountMicros": "3000000"
+        },
+        "reservationRemaining": {
+          "currency": "CNY",
+          "amountMicros": "5000000"
+        },
+        "recoveryEpoch": 1
+      }
+    },
+    {
+      "name": "完整费用有明确终局金额",
+      "schema": "GenerationJob",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000050",
+        "revision": 1,
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "planId": "00000000-0000-4000-8000-000000000009",
+        "status": "submission_unknown",
+        "mediaIds": [],
+        "reservationStatus": "settled",
+        "inputOutdated": false,
+        "connectionVersionId": "00000000-0000-4000-8000-000000000060",
+        "costStatus": "final",
+        "confirmedCost": {
+          "currency": "CNY",
+          "amountMicros": "8000000"
+        },
+        "reservationRemaining": {
+          "currency": "CNY",
+          "amountMicros": "0"
+        },
+        "recoveryEpoch": 1,
+        "finalCost": {
+          "currency": "CNY",
+          "amountMicros": "8000000"
+        }
+      }
+    },
+    {
+      "name": "final缺最终费用",
+      "schema": "GenerationJob",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000050",
+        "revision": 1,
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "planId": "00000000-0000-4000-8000-000000000009",
+        "status": "submission_unknown",
+        "mediaIds": [],
+        "reservationStatus": "settled",
+        "inputOutdated": false,
+        "connectionVersionId": "00000000-0000-4000-8000-000000000060",
+        "costStatus": "final",
+        "confirmedCost": {
+          "currency": "CNY",
+          "amountMicros": "8000000"
+        },
+        "reservationRemaining": {
+          "currency": "CNY",
+          "amountMicros": "0"
+        },
+        "recoveryEpoch": 1
+      }
+    },
+    {
+      "name": "共享作业无项目",
+      "schema": "GenerationJob",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000050",
+        "revision": 1,
+        "scope": "shared",
+        "planId": "00000000-0000-4000-8000-000000000009",
+        "status": "submission_unknown",
+        "mediaIds": [],
+        "reservationStatus": "held",
+        "inputOutdated": false,
+        "connectionVersionId": "00000000-0000-4000-8000-000000000060",
+        "costStatus": "pending",
+        "confirmedCost": {
+          "currency": "CNY",
+          "amountMicros": "0"
+        },
+        "reservationRemaining": {
+          "currency": "CNY",
+          "amountMicros": "8000000"
+        },
+        "recoveryEpoch": 1
+      }
+    },
+    {
+      "name": "共享作业不得借用项目",
+      "schema": "GenerationJob",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000050",
+        "revision": 1,
+        "scope": "shared",
+        "planId": "00000000-0000-4000-8000-000000000009",
+        "status": "submission_unknown",
+        "mediaIds": [],
+        "reservationStatus": "held",
+        "inputOutdated": false,
+        "connectionVersionId": "00000000-0000-4000-8000-000000000060",
+        "costStatus": "pending",
+        "confirmedCost": {
+          "currency": "CNY",
+          "amountMicros": "0"
+        },
+        "reservationRemaining": {
+          "currency": "CNY",
+          "amountMicros": "8000000"
+        },
+        "recoveryEpoch": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001"
+      }
+    },
+    {
+      "name": "无剪辑的原素材交接包",
+      "schema": "DeliveryInput",
+      "valid": true,
+      "value": {
+        "sourceSelection": {
+          "takeIds": [
+            "00000000-0000-4000-8000-000000000022"
+          ],
+          "extraMediaIds": [],
+          "sourceBindings": []
+        },
+        "kind": "working",
+        "includeMedia": true,
+        "includeSrt": false
+      },
+      "requestOperationId": "createDelivery"
+    },
+    {
+      "name": "原素材包不能冒充最终交付",
+      "schema": "DeliveryInput",
+      "valid": false,
+      "value": {
+        "sourceSelection": {
+          "takeIds": [
+            "00000000-0000-4000-8000-000000000022"
+          ],
+          "extraMediaIds": [],
+          "sourceBindings": []
+        },
+        "kind": "final",
+        "includeMedia": true,
+        "includeSrt": false
+      }
+    },
+    {
+      "name": "工作包目标互斥",
+      "schema": "DeliveryInput",
+      "valid": false,
+      "value": {
+        "sourceSelection": {
+          "takeIds": [
+            "00000000-0000-4000-8000-000000000022"
+          ],
+          "extraMediaIds": [],
+          "sourceBindings": []
+        },
+        "kind": "working",
+        "includeMedia": true,
+        "includeSrt": false,
+        "cutRevisionId": "00000000-0000-4000-8000-000000000040"
+      }
+    },
+    {
+      "name": "原素材包不得省略源文件",
+      "schema": "DeliveryInput",
+      "valid": false,
+      "value": {
+        "sourceSelection": {
+          "takeIds": [
+            "00000000-0000-4000-8000-000000000022"
+          ],
+          "extraMediaIds": [],
+          "sourceBindings": []
+        },
+        "kind": "working",
+        "includeMedia": false,
+        "includeSrt": false
+      }
+    },
+    {
+      "name": "首次已有分镜CSV",
+      "schema": "ImportShotList",
+      "valid": true,
+      "value": {
+        "csvText": "episode,scene,shot_label,intent,dialogue,duration_seconds,notes\nE01,A,E01-SH01,双人中景建立桌子关系,林夏：你说，东西一直在你这儿？,7,夜间咖啡厅；林夏灰风衣与周衡深色外套；钥匙在桌面靠周衡一侧；D01\nE01,A,E01-SH02,周衡近景回答林夏,周衡：我答应过你父亲，等你回来。,8,视线指向林夏；人物位置和服装不变；钥匙尚在桌面；D02\nE01,A,E01-SH03,手部近景中林夏右手拿起带红线的黄铜钥匙,,6,入镜钥匙在桌面；出镜仅一把钥匙由林夏右手持有；红线保留\nE01,A,E01-SH04,林夏看钥匙后抬眼说出疑点,林夏：可这把钥匙，是我昨天才丢的。,9,右手已持钥匙并保持；先看钥匙再抬眼；原剧本关键词为昨天；D03\nE01,A,E01-SH05,周衡望向走廊入口并压低声音警告,周衡：那就别开那扇门。,8,视线与已记录入口方向一致；林夏仍持钥匙；保留反应停顿；D04\nE01,B,E01-SH06,林夏在走廊门前停住,,8,承接灰风衣与右手钥匙；没有插锁或开门；留出停顿\n",
+        "target": {
+          "mode": "new_structure"
+        }
+      },
+      "requestOperationId": "importShotList"
+    },
+    {
+      "name": "只创建空剪辑根",
+      "schema": "CutInput",
+      "valid": true,
+      "value": {
+        "name": "第一集草稿",
+        "episodeId": "00000000-0000-4000-8000-000000000090"
+      },
+      "requestOperationId": "createCut"
+    },
+    {
+      "name": "场次内道具从桌面到右手",
+      "schema": "ShotSpec",
+      "valid": true,
+      "value": {
+        "intent": "林夏拿起钥匙",
+        "references": [],
+        "entryState": {
+          "props": [
+            {
+              "propAssetId": "00000000-0000-4000-8000-000000000100",
+              "holderCharacterAssetId": null,
+              "hand": "none",
+              "location": "桌面"
+            }
+          ]
+        },
+        "exitState": {
+          "props": [
+            {
+              "propAssetId": "00000000-0000-4000-8000-000000000100",
+              "holderCharacterAssetId": "00000000-0000-4000-8000-000000000101",
+              "hand": "right",
+              "location": "林夏右手"
+            }
+          ]
+        },
+        "sourceExcerpts": [
+          {
+            "scriptRevisionId": "00000000-0000-4000-8000-000000000007",
+            "range": {
+              "startOffset": 0,
+              "endOffset": 5
+            },
+            "quote": "林夏拿钥匙"
+          }
+        ]
+      }
+    },
+    {
+      "name": "造型身份必须带固定版本",
+      "schema": "CharacterState",
+      "valid": false,
+      "value": {
+        "characterAssetId": "00000000-0000-4000-8000-000000000101",
+        "lookId": "00000000-0000-4000-8000-000000000030"
+      }
+    },
+    {
+      "name": "一次排除继承的音色参考",
+      "schema": "ReferenceOverride",
+      "valid": true,
+      "value": {
+        "subjectAssetId": "00000000-0000-4000-8000-000000000101",
+        "purpose": "voice",
+        "action": "exclude",
+        "references": []
+      }
+    },
+    {
+      "name": "排除不能夹带新参考",
+      "schema": "ReferenceOverride",
+      "valid": false,
+      "value": {
+        "subjectAssetId": "00000000-0000-4000-8000-000000000101",
+        "purpose": "voice",
+        "action": "exclude",
+        "references": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "purpose": "voice"
+          }
+        ]
+      }
+    },
+    {
+      "name": "文本分析必须选原文范围",
+      "schema": "PlanInput",
+      "valid": false,
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000006",
+        "purpose": "script_analysis",
+        "prompt": "按选定原文生成新增集场镜提案。",
+        "sourceScriptRevisionId": "00000000-0000-4000-8000-000000000007",
+        "output": {},
+        "additionalReferences": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "shotSources": [],
+        "proposalTarget": {
+          "mode": "new_structure"
+        }
+      }
+    },
+    {
+      "name": "取原混合音轨用于跨镜对白",
+      "schema": "MediaClip",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000110",
+        "kind": "audio",
+        "mediaId": "00000000-0000-4000-8000-000000000021",
+        "timelineStartUs": 0,
+        "range": {
+          "inUs": 1000000,
+          "outUs": 5000000
+        },
+        "gainDb": 0,
+        "muted": false,
+        "streamSelection": "embedded_audio"
+      }
+    },
+    {
+      "name": "实际对白与固定台词关联",
+      "schema": "DialogueBinding",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000111",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000005",
+        "dialogueId": "00000000-0000-4000-8000-000000000112",
+        "clipId": "00000000-0000-4000-8000-000000000110",
+        "usage": "native_mixed",
+        "sourceRange": {
+          "inUs": 1000000,
+          "outUs": 5000000
+        },
+        "voiceAssetRevisionId": "00000000-0000-4000-8000-000000000113"
+      }
+    },
+    {
+      "name": "改变长度且明确字幕决定",
+      "schema": "CutReplacementInput",
+      "valid": true,
+      "value": {
+        "baseCutRevision": 2,
+        "targetClipId": "00000000-0000-4000-8000-000000000020",
+        "takeId": "00000000-0000-4000-8000-000000000120",
+        "newRange": {
+          "inUs": 0,
+          "outUs": 4000000
+        },
+        "mode": "change_duration",
+        "trackDecisions": [
+          {
+            "clipId": "00000000-0000-4000-8000-000000000024",
+            "action": "move",
+            "timelineStartUs": 0,
+            "note": "字幕跟随该句新开始时间"
+          }
+        ],
+        "dramaBindings": [],
+        "workDraftRevision": 3
+      },
+      "requestOperationId": "previewCutReplacement"
+    },
+    {
+      "name": "移动决定必须有目标时间",
+      "schema": "CutReplacementInput",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 2,
+        "targetClipId": "00000000-0000-4000-8000-000000000020",
+        "takeId": "00000000-0000-4000-8000-000000000120",
+        "newRange": {
+          "inUs": 0,
+          "outUs": 4000000
+        },
+        "mode": "change_duration",
+        "trackDecisions": [
+          {
+            "clipId": "00000000-0000-4000-8000-000000000024",
+            "action": "move",
+            "note": "字幕跟随该句新开始时间"
+          }
+        ],
+        "dramaBindings": [],
+        "workDraftRevision": 3
+      }
+    },
+    {
+      "name": "旧评论到保留例外",
+      "schema": "DecisionInput",
+      "valid": true,
+      "value": {
+        "decision": "approved",
+        "note": "本版允许此非关键差异",
+        "acceptedExceptions": [
+          {
+            "sourceCommentId": "00000000-0000-4000-8000-000000000130",
+            "outcome": "retained",
+            "note": "表情强弱可接受，不影响因果"
+          }
+        ]
+      },
+      "requestOperationId": "decideReview"
+    },
+    {
+      "name": "例外必须填写具体理由",
+      "schema": "ReworkItem",
+      "valid": false,
+      "value": {
+        "sourceCommentId": "00000000-0000-4000-8000-000000000130",
+        "outcome": "retained",
+        "note": ""
+      }
+    },
+    {
+      "name": "素材检索元数据可更新",
+      "schema": "MediaMetadataChange",
+      "valid": true,
+      "value": {
+        "displayName": "林夏-灰风衣-侧面",
+        "tags": [
+          "角色",
+          "侧面"
+        ]
+      },
+      "requestOperationId": "changeMediaMetadata"
+    },
+    {
+      "name": "显式获取代理",
+      "schema": "AccessRequest",
+      "valid": true,
+      "value": {
+        "variant": "proxy",
+        "disposition": "inline"
+      },
+      "requestOperationId": "getMediaAccess"
+    },
+    {
+      "name": "禁止未指定访问内容",
+      "schema": "AccessRequest",
+      "valid": false,
+      "value": {}
+    },
+    {
+      "name": "可保存归一结果有精确帧事实",
+      "schema": "NormalizationResult",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000080",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "baseCutRevision": 1,
+        "requestHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "status": "ready",
+        "effectiveTimeline": {
+          "schemaVersion": "1",
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "tracks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000023",
+              "kind": "video",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000020",
+                  "kind": "video",
+                  "mediaId": "00000000-0000-4000-8000-000000000021",
+                  "takeId": "00000000-0000-4000-8000-000000000022",
+                  "timelineStartUs": 0,
+                  "range": {
+                    "inUs": 1000000,
+                    "outUs": 8000000
+                  },
+                  "gainDb": 0,
+                  "muted": false,
+                  "fit": "contain",
+                  "streamSelection": "default"
+                }
+              ],
+              "muted": false
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000025",
+              "kind": "subtitle",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000024",
+                  "kind": "subtitle",
+                  "timelineStartUs": 1000000,
+                  "durationUs": 3000000,
+                  "text": "你说，东西一直在你这儿？"
+                }
+              ],
+              "muted": false
+            }
+          ],
+          "burnSubtitles": false
+        },
+        "dramaBindings": [],
+        "lengthFrames": 168,
+        "durationUs": 7000000,
+        "normalizedItems": [
+          {
+            "clipId": "00000000-0000-4000-8000-000000000020",
+            "kind": "video",
+            "sourceMediaId": "00000000-0000-4000-8000-000000000021",
+            "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "sourceMapId": "00000000-0000-4000-8000-000000000140",
+            "productionCopyId": "00000000-0000-4000-8000-000000000141",
+            "sourceInFrame": 24,
+            "sourceOutFrame": 192,
+            "timelineStartFrame": 0,
+            "timelineEndFrame": 168
+          },
+          {
+            "clipId": "00000000-0000-4000-8000-000000000024",
+            "kind": "subtitle",
+            "timelineStartFrame": 24,
+            "timelineEndFrame": 96
+          }
+        ],
+        "changes": [],
+        "renderProfile": {
+          "id": "vertical-720",
+          "revision": 1,
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "audioSampleRate": 48000,
+          "audioChannels": 2,
+          "videoCodec": "h264",
+          "pixelFormat": "yuv420p",
+          "audioCodec": "aac",
+          "colorPolicy": "bt709-limited",
+          "fontBundleRevision": "fixture-1"
+        },
+        "rendererVersion": "fixture-1",
+        "normalizationVersion": "normalization-v1",
+        "workDraftSource": {
+          "revision": 3,
+          "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      }
+    },
+    {
+      "name": "ready归一结果不能缺实际条目",
+      "schema": "NormalizationResult",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000080",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "baseCutRevision": 1,
+        "requestHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "status": "ready",
+        "effectiveTimeline": {
+          "schemaVersion": "1",
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "tracks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000023",
+              "kind": "video",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000020",
+                  "kind": "video",
+                  "mediaId": "00000000-0000-4000-8000-000000000021",
+                  "takeId": "00000000-0000-4000-8000-000000000022",
+                  "timelineStartUs": 0,
+                  "range": {
+                    "inUs": 1000000,
+                    "outUs": 8000000
+                  },
+                  "gainDb": 0,
+                  "muted": false,
+                  "fit": "contain",
+                  "streamSelection": "default"
+                }
+              ],
+              "muted": false
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000025",
+              "kind": "subtitle",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000024",
+                  "kind": "subtitle",
+                  "timelineStartUs": 1000000,
+                  "durationUs": 3000000,
+                  "text": "你说，东西一直在你这儿？"
+                }
+              ],
+              "muted": false
+            }
+          ],
+          "burnSubtitles": false
+        },
+        "dramaBindings": [],
+        "lengthFrames": 168,
+        "durationUs": 7000000,
+        "changes": [],
+        "renderProfile": {
+          "id": "vertical-720",
+          "revision": 1,
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "audioSampleRate": 48000,
+          "audioChannels": 2,
+          "videoCodec": "h264",
+          "pixelFormat": "yuv420p",
+          "audioCodec": "aac",
+          "colorPolicy": "bt709-limited",
+          "fontBundleRevision": "fixture-1"
+        },
+        "rendererVersion": "fixture-1",
+        "normalizationVersion": "normalization-v1",
+        "workDraftSource": {
+          "revision": 3,
+          "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      }
+    },
+    {
+      "name": "视频归一必须固定源字节",
+      "schema": "NormalizedItem",
+      "valid": false,
+      "value": {
+        "clipId": "00000000-0000-4000-8000-000000000020",
+        "kind": "video",
+        "sourceMediaId": "00000000-0000-4000-8000-000000000021",
+        "sourceMapId": "00000000-0000-4000-8000-000000000140",
+        "productionCopyId": "00000000-0000-4000-8000-000000000141",
+        "sourceInFrame": 24,
+        "sourceOutFrame": 192,
+        "timelineStartFrame": 0,
+        "timelineEndFrame": 168
+      }
+    },
+    {
+      "name": "归一变化含前后对照",
+      "schema": "NormalizationChange",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000142",
+        "clipId": "00000000-0000-4000-8000-000000000020",
+        "kind": "frame_snap",
+        "message": "源区间向内吸附",
+        "requiresAcknowledgement": true,
+        "before": {
+          "range": {
+            "inUs": 1000001,
+            "outUs": 8000000
+          }
+        },
+        "after": {
+          "range": {
+            "inUs": 1041667,
+            "outUs": 8000000
+          },
+          "startFrame": 25,
+          "endFrame": 192
+        }
+      }
+    },
+    {
+      "name": "错误轨道内容类型",
+      "schema": "Track",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000145",
+        "kind": "audio",
+        "muted": false,
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000020",
+            "kind": "video",
+            "mediaId": "00000000-0000-4000-8000-000000000021",
+            "takeId": "00000000-0000-4000-8000-000000000022",
+            "timelineStartUs": 0,
+            "range": {
+              "inUs": 1000000,
+              "outUs": 8000000
+            },
+            "gainDb": 0,
+            "muted": false,
+            "fit": "contain",
+            "streamSelection": "default"
+          }
+        ]
+      }
+    },
+    {
+      "name": "外部成片和字幕固定组合",
+      "schema": "CutRevision",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000150",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "cutId": "00000000-0000-4000-8000-000000000151",
+        "number": 1,
+        "label": "外部稿1",
+        "origin": "external",
+        "status": "ready",
+        "mediaId": "00000000-0000-4000-8000-000000000152",
+        "subtitleMediaId": "00000000-0000-4000-8000-000000000153",
+        "durationUs": 46000000
+      }
+    },
+    {
+      "name": "CSV新增提案无需假剧本",
+      "schema": "Proposal",
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000180",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "baseContentRevision": 1,
+        "status": "proposed",
+        "sourceKind": "csv_import",
+        "sourceHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "operations": [
+          {
+            "opId": "00000000-0000-4000-8000-000000000181",
+            "action": "create",
+            "kind": "episode",
+            "temporaryId": "00000000-0000-4000-8000-000000000182",
+            "summary": "新增第一集",
+            "proposed": {
+              "title": "第一集",
+              "position": 0,
+              "status": "active"
+            }
+          }
+        ],
+        "target": {
+          "mode": "new_structure"
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "AI提案必须有实际原文修订与选区",
+      "schema": "Proposal",
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000180",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "baseContentRevision": 1,
+        "status": "proposed",
+        "sourceKind": "ai_analysis",
+        "sourceHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "operations": [
+          {
+            "opId": "00000000-0000-4000-8000-000000000181",
+            "action": "create",
+            "kind": "episode",
+            "temporaryId": "00000000-0000-4000-8000-000000000182",
+            "summary": "新增第一集",
+            "proposed": {
+              "title": "第一集",
+              "position": 0,
+              "status": "active"
+            }
+          }
+        ],
+        "target": {
+          "mode": "new_structure"
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "无时间线的对白源关系",
+      "schema": "SourceMediaBinding",
+      "value": {
+        "mediaId": "00000000-0000-4000-8000-000000000183",
+        "sourceRange": {
+          "inUs": 0,
+          "outUs": 2000000
+        },
+        "usage": "dialogue",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000005",
+        "dialogueId": "00000000-0000-4000-8000-000000000112",
+        "voiceAssetRevisionId": "00000000-0000-4000-8000-000000000113",
+        "note": "独立对白待后期核对口型"
+      },
+      "valid": true
+    },
+    {
+      "name": "源台词ID不能脱离修订身份",
+      "schema": "SourceMediaBinding",
+      "value": {
+        "mediaId": "00000000-0000-4000-8000-000000000183",
+        "sourceRange": {
+          "inUs": 0,
+          "outUs": 2000000
+        },
+        "usage": "dialogue",
+        "dialogueId": "00000000-0000-4000-8000-000000000112",
+        "voiceAssetRevisionId": "00000000-0000-4000-8000-000000000113",
+        "note": "独立对白待后期核对口型"
+      },
+      "valid": false
+    },
+    {
+      "name": "外部返工固定新成果",
+      "schema": "ReworkItem",
+      "value": {
+        "sourceCommentId": "00000000-0000-4000-8000-000000000130",
+        "outcome": "replaced",
+        "resultCutRevisionId": "00000000-0000-4000-8000-000000000150",
+        "note": "第二稿MP4与SRT已回传"
+      },
+      "valid": true
+    },
+    {
+      "name": "替换成果不能只有说明",
+      "schema": "ReworkItem",
+      "value": {
+        "sourceCommentId": "00000000-0000-4000-8000-000000000130",
+        "outcome": "replaced",
+        "note": "已经修好了"
+      },
+      "valid": false
+    },
+    {
+      "name": "cut工作包必须包含原素材",
+      "schema": "DeliveryInput",
+      "value": {
+        "cutRevisionId": "00000000-0000-4000-8000-000000000040",
+        "kind": "working",
+        "includeMedia": false,
+        "includeSrt": false
+      },
+      "valid": false
+    },
+    {
+      "name": "原素材包能离线说明已知与未知",
+      "schema": "DeliveryManifest",
+      "value": {
+        "schemaVersion": "1",
+        "deliveryId": "00000000-0000-4000-8000-000000000190",
+        "kind": "working",
+        "createdAt": "2026-09-07T12:00:00Z",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "origin": "selection",
+        "files": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000021",
+            "mediaIds": [
+              "00000000-0000-4000-8000-000000000021"
+            ],
+            "fileName": "source-21.mp4",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bytes": 1000,
+            "role": "source"
+          },
+          {
+            "fileName": "README.txt",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "readme"
+          },
+          {
+            "fileName": "shots.csv",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "shot_table"
+          },
+          {
+            "fileName": "sound.csv",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "sound_table"
+          }
+        ],
+        "externalTimelineKnown": false,
+        "outputSpec": {
+          "width": 720,
+          "height": 1280,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        },
+        "outputSpecBasis": "project_target",
+        "packageType": "source_package",
+        "sourcePolicy": "full_originals",
+        "handoffTableFile": "shots.csv",
+        "soundTableFile": "sound.csv",
+        "readmeFile": "README.txt",
+        "missingItems": [],
+        "unknownItems": [
+          "无后期工程映射"
+        ],
+        "sourceSelection": {
+          "takeIds": [
+            "00000000-0000-4000-8000-000000000022"
+          ],
+          "extraMediaIds": [],
+          "sourceBindings": []
+        },
+        "takes": [
+          {
+            "id": "00000000-0000-4000-8000-000000000022",
+            "revision": 1,
+            "projectId": "00000000-0000-4000-8000-000000000001",
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005",
+            "mediaId": "00000000-0000-4000-8000-000000000021",
+            "range": {
+              "inUs": 1000000,
+              "outUs": 8000000
+            }
+          }
+        ],
+        "selections": [],
+        "availability": {
+          "timelineKnown": false,
+          "preview": "not_applicable",
+          "subtitles": "not_requested",
+          "approved": false
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "原素材包不能伪称知道时间线",
+      "schema": "DeliveryManifest",
+      "value": {
+        "schemaVersion": "1",
+        "deliveryId": "00000000-0000-4000-8000-000000000190",
+        "kind": "working",
+        "createdAt": "2026-09-07T12:00:00Z",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "origin": "selection",
+        "files": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000021",
+            "mediaIds": [
+              "00000000-0000-4000-8000-000000000021"
+            ],
+            "fileName": "source-21.mp4",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bytes": 1000,
+            "role": "source"
+          },
+          {
+            "fileName": "README.txt",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "readme"
+          },
+          {
+            "fileName": "shots.csv",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "shot_table"
+          },
+          {
+            "fileName": "sound.csv",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "sound_table"
+          }
+        ],
+        "externalTimelineKnown": false,
+        "outputSpec": {
+          "width": 720,
+          "height": 1280,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        },
+        "outputSpecBasis": "project_target",
+        "packageType": "source_package",
+        "sourcePolicy": "full_originals",
+        "handoffTableFile": "shots.csv",
+        "soundTableFile": "sound.csv",
+        "readmeFile": "README.txt",
+        "missingItems": [],
+        "unknownItems": [
+          "无后期工程映射"
+        ],
+        "sourceSelection": {
+          "takeIds": [
+            "00000000-0000-4000-8000-000000000022"
+          ],
+          "extraMediaIds": [],
+          "sourceBindings": []
+        },
+        "takes": [
+          {
+            "id": "00000000-0000-4000-8000-000000000022",
+            "revision": 1,
+            "projectId": "00000000-0000-4000-8000-000000000001",
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005",
+            "mediaId": "00000000-0000-4000-8000-000000000021",
+            "range": {
+              "inUs": 1000000,
+              "outUs": 8000000
+            }
+          }
+        ],
+        "selections": [],
+        "availability": {
+          "timelineKnown": true,
+          "preview": "not_applicable",
+          "subtitles": "not_requested",
+          "approved": false
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "无批准原素材清单不能冒充最终交付",
+      "schema": "DeliveryManifest",
+      "value": {
+        "schemaVersion": "1",
+        "deliveryId": "00000000-0000-4000-8000-000000000190",
+        "kind": "final",
+        "createdAt": "2026-09-07T12:00:00Z",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "origin": "selection",
+        "files": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000021",
+            "mediaIds": [
+              "00000000-0000-4000-8000-000000000021"
+            ],
+            "fileName": "source-21.mp4",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bytes": 1000,
+            "role": "source"
+          },
+          {
+            "fileName": "README.txt",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "readme"
+          },
+          {
+            "fileName": "shots.csv",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "shot_table"
+          },
+          {
+            "fileName": "sound.csv",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 100,
+            "role": "sound_table"
+          }
+        ],
+        "externalTimelineKnown": false,
+        "outputSpec": {
+          "width": 720,
+          "height": 1280,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        },
+        "outputSpecBasis": "project_target",
+        "packageType": "source_package",
+        "sourcePolicy": "full_originals",
+        "handoffTableFile": "shots.csv",
+        "soundTableFile": "sound.csv",
+        "readmeFile": "README.txt",
+        "missingItems": [],
+        "unknownItems": [
+          "无后期工程映射"
+        ],
+        "sourceSelection": {
+          "takeIds": [
+            "00000000-0000-4000-8000-000000000022"
+          ],
+          "extraMediaIds": [],
+          "sourceBindings": []
+        },
+        "takes": [
+          {
+            "id": "00000000-0000-4000-8000-000000000022",
+            "revision": 1,
+            "projectId": "00000000-0000-4000-8000-000000000001",
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005",
+            "mediaId": "00000000-0000-4000-8000-000000000021",
+            "range": {
+              "inUs": 1000000,
+              "outUs": 8000000
+            }
+          }
+        ],
+        "selections": [],
+        "availability": {
+          "timelineKnown": false,
+          "preview": "not_applicable",
+          "subtitles": "not_requested",
+          "approved": false
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "ready交付必须有实际包结果",
+      "schema": "Delivery",
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000190",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "kind": "working",
+        "status": "ready",
+        "packageType": "source_package"
+      },
+      "valid": false
+    },
+    {
+      "name": "现有场次分镜计划",
+      "schema": "PlanInput",
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000006",
+        "purpose": "script_analysis",
+        "prompt": "按选定原文生成新增集场镜提案。",
+        "sourceScriptRevisionId": "00000000-0000-4000-8000-000000000007",
+        "output": {},
+        "additionalReferences": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "scriptRange": {
+          "startOffset": 0,
+          "endOffset": 14
+        },
+        "shotSources": [],
+        "proposalTarget": {
+          "mode": "append_to_scene",
+          "sceneId": "00000000-0000-4000-8000-000000000200",
+          "sceneRevision": 2,
+          "episodeId": "00000000-0000-4000-8000-000000000201"
+        },
+        "contextSources": [
+          {
+            "kind": "scene",
+            "objectId": "00000000-0000-4000-8000-000000000200",
+            "revision": 2
+          }
+        ]
+      },
+      "valid": true,
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "追加场次不可漏版本",
+      "schema": "ProposalTarget",
+      "value": {
+        "mode": "append_to_scene",
+        "sceneId": "00000000-0000-4000-8000-000000000200",
+        "episodeId": "00000000-0000-4000-8000-000000000201"
+      },
+      "valid": false
+    },
+    {
+      "name": "当前场次新增镜头提案",
+      "schema": "Proposal",
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000180",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "baseContentRevision": 1,
+        "status": "proposed",
+        "sourceKind": "csv_import",
+        "sourceHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "operations": [
+          {
+            "opId": "00000000-0000-4000-8000-000000000202",
+            "action": "create",
+            "kind": "shot",
+            "temporaryId": "00000000-0000-4000-8000-000000000203",
+            "summary": "新增一个补镜",
+            "proposed": {
+              "sceneId": "00000000-0000-4000-8000-000000000200",
+              "label": "SH-07",
+              "position": 6,
+              "spec": {
+                "intent": "桌面空位",
+                "references": []
+              },
+              "status": "active"
+            }
+          }
+        ],
+        "target": {
+          "mode": "append_to_scene",
+          "sceneId": "00000000-0000-4000-8000-000000000200",
+          "sceneRevision": 2,
+          "episodeId": "00000000-0000-4000-8000-000000000201"
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "追加场次不得新建父集",
+      "schema": "Proposal",
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000180",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "baseContentRevision": 1,
+        "status": "proposed",
+        "sourceKind": "csv_import",
+        "sourceHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "operations": [
+          {
+            "opId": "00000000-0000-4000-8000-000000000181",
+            "action": "create",
+            "kind": "episode",
+            "temporaryId": "00000000-0000-4000-8000-000000000182",
+            "summary": "新增第一集",
+            "proposed": {
+              "title": "第一集",
+              "position": 0,
+              "status": "active"
+            }
+          }
+        ],
+        "target": {
+          "mode": "append_to_scene",
+          "sceneId": "00000000-0000-4000-8000-000000000200",
+          "sceneRevision": 2,
+          "episodeId": "00000000-0000-4000-8000-000000000201"
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "采纳必须固定提案修订",
+      "schema": "ApplyProposal",
+      "value": {
+        "selectedOperationIds": [
+          "00000000-0000-4000-8000-000000000202"
+        ],
+        "proposalRevision": 2
+      },
+      "valid": true,
+      "requestOperationId": "applyProposal"
+    },
+    {
+      "name": "采纳不能遗漏建议版本",
+      "schema": "ApplyProposal",
+      "value": {
+        "selectedOperationIds": [
+          "00000000-0000-4000-8000-000000000202"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "name": "持久提示建议计划",
+      "schema": "PlanInput",
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "creative_assistance",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {},
+        "additionalReferences": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "assistance": {
+          "kind": "prepare_prompt",
+          "targetCapabilityId": "00000000-0000-4000-8000-000000000300",
+          "targetCapabilityRevision": 1
+        }
+      },
+      "valid": true,
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "反馈带固定观看版本",
+      "schema": "PlanInput",
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "creative_assistance",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {},
+        "additionalReferences": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "assistance": {
+          "kind": "prepare_rework",
+          "targetCapabilityId": "00000000-0000-4000-8000-000000000300",
+          "targetCapabilityRevision": 1,
+          "feedback": {
+            "reviewId": "00000000-0000-4000-8000-000000000304",
+            "commentId": "00000000-0000-4000-8000-000000000305"
+          },
+          "sourceCutRevisionId": "00000000-0000-4000-8000-000000000306"
+        }
+      },
+      "valid": true,
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "返工建议不能缺意见来源",
+      "schema": "PlanInput",
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "creative_assistance",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {},
+        "additionalReferences": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "assistance": {
+          "kind": "prepare_rework",
+          "targetCapabilityId": "00000000-0000-4000-8000-000000000300",
+          "targetCapabilityRevision": 1,
+          "sourceCutRevisionId": "00000000-0000-4000-8000-000000000306"
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "媒体计划固定建议修订",
+      "schema": "PlanInput",
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "video",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {
+          "aspectRatio": "9:16",
+          "durationSeconds": 7,
+          "resolution": "720p",
+          "withAudio": true
+        },
+        "additionalReferences": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "assistanceSource": {
+          "artifactId": "00000000-0000-4000-8000-000000000308",
+          "revision": 2
+        }
+      },
+      "valid": true,
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "主责为场次内部任务",
+      "schema": "TaskInput",
+      "value": {
+        "title": "咖啡厅制作",
+        "kind": "scene_owner",
+        "sceneId": "00000000-0000-4000-8000-000000000200",
+        "assigneeMembershipId": "00000000-0000-4000-8000-000000000311",
+        "stage": "planning",
+        "status": "open"
+      },
+      "valid": true,
+      "requestOperationId": "createTask"
+    },
+    {
+      "name": "主责不能缩成单镜任务",
+      "schema": "TaskInput",
+      "value": {
+        "title": "咖啡厅制作",
+        "kind": "scene_owner",
+        "sceneId": "00000000-0000-4000-8000-000000000200",
+        "shotId": "00000000-0000-4000-8000-000000000203",
+        "assigneeMembershipId": "00000000-0000-4000-8000-000000000311",
+        "stage": "planning",
+        "status": "open"
+      },
+      "valid": false
+    },
+    {
+      "name": "项目正式依据使用前次指针CAS",
+      "schema": "ConfirmCreativeBasis",
+      "value": {
+        "basisRevisionId": "00000000-0000-4000-8000-000000000320",
+        "usage": "project_default",
+        "expectedCurrentConfirmationId": null
+      },
+      "valid": true,
+      "requestOperationId": "confirmCreativeBasis"
+    },
+    {
+      "name": "旧稿按不可变依据确认",
+      "schema": "ConfirmCreativeBasis",
+      "value": {
+        "basisRevisionId": "00000000-0000-4000-8000-000000000320",
+        "usage": "cut_revision",
+        "cutRevisionId": "00000000-0000-4000-8000-000000000321"
+      },
+      "valid": true,
+      "requestOperationId": "confirmCreativeBasis"
+    },
+    {
+      "name": "旧稿确认不能兼改正式指针",
+      "schema": "ConfirmCreativeBasis",
+      "value": {
+        "basisRevisionId": "00000000-0000-4000-8000-000000000320",
+        "usage": "cut_revision",
+        "cutRevisionId": "00000000-0000-4000-8000-000000000321",
+        "expectedCurrentConfirmationId": null
+      },
+      "valid": false
+    },
+    {
+      "name": "项目正式指针不能为空缺省",
+      "schema": "ConfirmCreativeBasis",
+      "value": {
+        "basisRevisionId": "00000000-0000-4000-8000-000000000320",
+        "usage": "project_default"
+      },
+      "valid": false
+    },
+    {
+      "name": "画布契约：四种节点与独立草稿",
+      "schema": "SaveCanvas",
+      "valid": true,
+      "value": {
+        "schemaVersion": 1,
+        "document": {
+          "nodes": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "title": "素材 1",
+              "kind": "text",
+              "position": {
+                "x": 40,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "text",
+                "text": "保持同一人物与钥匙。"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "title": "素材 2",
+              "kind": "image",
+              "position": {
+                "x": 80,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000102",
+                "assetRevisionId": "00000000-0000-4000-8000-000000000202"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "title": "素材 3",
+              "kind": "video",
+              "position": {
+                "x": 120,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000103"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "title": "素材 4",
+              "kind": "audio",
+              "position": {
+                "x": 160,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000104"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "title": "素材 5",
+              "kind": "video",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "draft",
+                "prompt": "人物缓慢拿起钥匙",
+                "connectionId": "00000000-0000-4000-8000-000000000301",
+                "capabilityId": "00000000-0000-4000-8000-000000000302",
+                "output": {
+                  "aspectRatio": "9:16",
+                  "durationSeconds": 7,
+                  "withAudio": true
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "00000000-0000-4000-8000-000000000401",
+              "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+              "targetNodeId": "00000000-0000-4000-8000-000000000005",
+              "enabled": true,
+              "position": 0,
+              "purpose": "prompt"
+            }
+          ],
+          "groups": []
+        }
+      },
+      "requestOperationId": "saveCanvas"
+    },
+    {
+      "name": "画布契约：空画布",
+      "schema": "SaveCanvas",
+      "valid": true,
+      "value": {
+        "schemaVersion": 1,
+        "document": {
+          "nodes": [],
+          "edges": [],
+          "groups": []
+        }
+      },
+      "requestOperationId": "saveCanvas"
+    },
+    {
+      "name": "画布契约：不接收任务事实",
+      "schema": "SaveCanvas",
+      "valid": false,
+      "value": {
+        "schemaVersion": 1,
+        "document": {
+          "nodes": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "title": "素材 1",
+              "kind": "text",
+              "position": {
+                "x": 40,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "text",
+                "text": "保持同一人物与钥匙。"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "title": "素材 2",
+              "kind": "image",
+              "position": {
+                "x": 80,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000102",
+                "assetRevisionId": "00000000-0000-4000-8000-000000000202"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "title": "素材 3",
+              "kind": "video",
+              "position": {
+                "x": 120,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000103"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "title": "素材 4",
+              "kind": "audio",
+              "position": {
+                "x": 160,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000104"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "title": "素材 5",
+              "kind": "video",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "draft",
+                "prompt": "人物缓慢拿起钥匙",
+                "connectionId": "00000000-0000-4000-8000-000000000301",
+                "capabilityId": "00000000-0000-4000-8000-000000000302",
+                "output": {
+                  "aspectRatio": "9:16",
+                  "durationSeconds": 7,
+                  "withAudio": true
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "00000000-0000-4000-8000-000000000401",
+              "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+              "targetNodeId": "00000000-0000-4000-8000-000000000005",
+              "enabled": true,
+              "position": 0,
+              "purpose": "prompt"
+            }
+          ],
+          "groups": []
+        },
+        "jobs": []
+      },
+      "requestOperationId": "saveCanvas"
+    },
+    {
+      "name": "画布契约：不接收镜头绑定写入",
+      "schema": "SaveCanvas",
+      "valid": false,
+      "value": {
+        "schemaVersion": 1,
+        "document": {
+          "nodes": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "title": "素材 1",
+              "kind": "text",
+              "position": {
+                "x": 40,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "text",
+                "text": "保持同一人物与钥匙。"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "title": "素材 2",
+              "kind": "image",
+              "position": {
+                "x": 80,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000102",
+                "assetRevisionId": "00000000-0000-4000-8000-000000000202"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "title": "素材 3",
+              "kind": "video",
+              "position": {
+                "x": 120,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000103"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "title": "素材 4",
+              "kind": "audio",
+              "position": {
+                "x": 160,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000104"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "title": "素材 5",
+              "kind": "video",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "draft",
+                "prompt": "人物缓慢拿起钥匙",
+                "connectionId": "00000000-0000-4000-8000-000000000301",
+                "capabilityId": "00000000-0000-4000-8000-000000000302",
+                "output": {
+                  "aspectRatio": "9:16",
+                  "durationSeconds": 7,
+                  "withAudio": true
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "00000000-0000-4000-8000-000000000401",
+              "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+              "targetNodeId": "00000000-0000-4000-8000-000000000005",
+              "enabled": true,
+              "position": 0,
+              "purpose": "prompt"
+            }
+          ],
+          "groups": []
+        },
+        "bindings": []
+      },
+      "requestOperationId": "saveCanvas"
+    },
+    {
+      "name": "画布契约：文字不能伪装媒体",
+      "schema": "CanvasNode",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "title": "素材 1",
+        "kind": "text",
+        "position": {
+          "x": 40,
+          "y": 0
+        },
+        "width": 280,
+        "content": {
+          "type": "media",
+          "mediaId": "00000000-0000-4000-8000-000000000103"
+        }
+      }
+    },
+    {
+      "name": "画布契约：视频不能含文字正文",
+      "schema": "CanvasNode",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "title": "素材 3",
+        "kind": "video",
+        "position": {
+          "x": 120,
+          "y": 0
+        },
+        "width": 280,
+        "content": {
+          "type": "text",
+          "text": "保持同一人物与钥匙。"
+        }
+      }
+    },
+    {
+      "name": "画布契约：媒体身份不能混有提示词",
+      "schema": "CanvasNode",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "title": "素材 3",
+        "kind": "video",
+        "position": {
+          "x": 120,
+          "y": 0
+        },
+        "width": 280,
+        "content": {
+          "type": "media",
+          "mediaId": "00000000-0000-4000-8000-000000000103",
+          "prompt": "覆盖"
+        }
+      }
+    },
+    {
+      "name": "画布契约：草稿不接收完成状态",
+      "schema": "CanvasNode",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "title": "素材 5",
+        "kind": "video",
+        "position": {
+          "x": 200,
+          "y": 0
+        },
+        "width": 280,
+        "content": {
+          "type": "draft",
+          "prompt": "人物缓慢拿起钥匙",
+          "connectionId": "00000000-0000-4000-8000-000000000301",
+          "capabilityId": "00000000-0000-4000-8000-000000000302",
+          "output": {
+            "aspectRatio": "9:16",
+            "durationSeconds": 7,
+            "withAudio": true
+          },
+          "status": "succeeded"
+        }
+      }
+    },
+    {
+      "name": "画布契约：草稿可未选模型",
+      "schema": "CanvasNode",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000006",
+        "title": "素材 6",
+        "kind": "image",
+        "position": {
+          "x": 240,
+          "y": 0
+        },
+        "width": 280,
+        "content": {
+          "type": "draft",
+          "prompt": "",
+          "output": {}
+        }
+      }
+    },
+    {
+      "name": "画布契约：节点宽度必须可用",
+      "schema": "CanvasNode",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "title": "素材 3",
+        "kind": "video",
+        "position": {
+          "x": 120,
+          "y": 0
+        },
+        "width": 0,
+        "content": {
+          "type": "media",
+          "mediaId": "00000000-0000-4000-8000-000000000103"
+        }
+      }
+    },
+    {
+      "name": "画布契约：分组数超过容量",
+      "schema": "CanvasDocument",
+      "valid": false,
+      "value": {
+        "nodes": [],
+        "edges": [],
+        "groups": [
+          {
+            "id": "00000000-0000-4000-8000-000000009000",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009001",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009002",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009003",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009004",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009005",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009006",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009007",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009008",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009009",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009010",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009011",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009012",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009013",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009014",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009015",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009016",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009017",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009018",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009019",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009020",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009021",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009022",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009023",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009024",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009025",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009026",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009027",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009028",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009029",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009030",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009031",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009032",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009033",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009034",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009035",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009036",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009037",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009038",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009039",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009040",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009041",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009042",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009043",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009044",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009045",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009046",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009047",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009048",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009049",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009050",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009051",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009052",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009053",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009054",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009055",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009056",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009057",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009058",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009059",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009060",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009061",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009062",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009063",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009064",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009065",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009066",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009067",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009068",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009069",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009070",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009071",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009072",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009073",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009074",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009075",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009076",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009077",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009078",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009079",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009080",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009081",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009082",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009083",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009084",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009085",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009086",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009087",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009088",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009089",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009090",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009091",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009092",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009093",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009094",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009095",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009096",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009097",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009098",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009099",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009100",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009101",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009102",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009103",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009104",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009105",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009106",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009107",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009108",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009109",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009110",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009111",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009112",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009113",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009114",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009115",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009116",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009117",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009118",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009119",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009120",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009121",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009122",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009123",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009124",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009125",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009126",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009127",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009128",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009129",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009130",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009131",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009132",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009133",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009134",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009135",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009136",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009137",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009138",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009139",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009140",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009141",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009142",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009143",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009144",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009145",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009146",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009147",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009148",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009149",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009150",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009151",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009152",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009153",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009154",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009155",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009156",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009157",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009158",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009159",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009160",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009161",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009162",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009163",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009164",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009165",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009166",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009167",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009168",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009169",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009170",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009171",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009172",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009173",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009174",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009175",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009176",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009177",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009178",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009179",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009180",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009181",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009182",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009183",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009184",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009185",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009186",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009187",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009188",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009189",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009190",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009191",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009192",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009193",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009194",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009195",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009196",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009197",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009198",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009199",
+            "title": "组"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000009200",
+            "title": "组"
+          }
+        ]
+      }
+    },
+    {
+      "name": "画布契约：引用用途不能作为执行指令",
+      "schema": "CanvasReferenceEdge",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000401",
+        "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+        "targetNodeId": "00000000-0000-4000-8000-000000000005",
+        "enabled": true,
+        "position": 0,
+        "purpose": "execute"
+      }
+    },
+    {
+      "name": "画布契约：画布不能携带任意脚本",
+      "schema": "CanvasDocument",
+      "valid": false,
+      "value": {
+        "nodes": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "title": "素材 1",
+            "kind": "text",
+            "position": {
+              "x": 40,
+              "y": 0
+            },
+            "width": 280,
+            "content": {
+              "type": "text",
+              "text": "保持同一人物与钥匙。"
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "title": "素材 2",
+            "kind": "image",
+            "position": {
+              "x": 80,
+              "y": 0
+            },
+            "width": 280,
+            "content": {
+              "type": "media",
+              "mediaId": "00000000-0000-4000-8000-000000000102",
+              "assetRevisionId": "00000000-0000-4000-8000-000000000202"
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "title": "素材 3",
+            "kind": "video",
+            "position": {
+              "x": 120,
+              "y": 0
+            },
+            "width": 280,
+            "content": {
+              "type": "media",
+              "mediaId": "00000000-0000-4000-8000-000000000103"
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "title": "素材 4",
+            "kind": "audio",
+            "position": {
+              "x": 160,
+              "y": 0
+            },
+            "width": 280,
+            "content": {
+              "type": "media",
+              "mediaId": "00000000-0000-4000-8000-000000000104"
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "title": "素材 5",
+            "kind": "video",
+            "position": {
+              "x": 200,
+              "y": 0
+            },
+            "width": 280,
+            "content": {
+              "type": "draft",
+              "prompt": "人物缓慢拿起钥匙",
+              "connectionId": "00000000-0000-4000-8000-000000000301",
+              "capabilityId": "00000000-0000-4000-8000-000000000302",
+              "output": {
+                "aspectRatio": "9:16",
+                "durationSeconds": 7,
+                "withAudio": true
+              }
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "00000000-0000-4000-8000-000000000401",
+            "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+            "targetNodeId": "00000000-0000-4000-8000-000000000005",
+            "enabled": true,
+            "position": 0,
+            "purpose": "prompt"
+          }
+        ],
+        "groups": [],
+        "script": "executeAll()"
+      }
+    },
+    {
+      "name": "画布契约：保存文档封套",
+      "schema": "Canvas",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000501",
+        "projectId": "00000000-0000-4000-8000-000000000502",
+        "revision": 1,
+        "schemaVersion": 1,
+        "document": {
+          "nodes": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "title": "素材 1",
+              "kind": "text",
+              "position": {
+                "x": 40,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "text",
+                "text": "保持同一人物与钥匙。"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "title": "素材 2",
+              "kind": "image",
+              "position": {
+                "x": 80,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000102",
+                "assetRevisionId": "00000000-0000-4000-8000-000000000202"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "title": "素材 3",
+              "kind": "video",
+              "position": {
+                "x": 120,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000103"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "title": "素材 4",
+              "kind": "audio",
+              "position": {
+                "x": 160,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000104"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "title": "素材 5",
+              "kind": "video",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "draft",
+                "prompt": "人物缓慢拿起钥匙",
+                "connectionId": "00000000-0000-4000-8000-000000000301",
+                "capabilityId": "00000000-0000-4000-8000-000000000302",
+                "output": {
+                  "aspectRatio": "9:16",
+                  "durationSeconds": 7,
+                  "withAudio": true
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "00000000-0000-4000-8000-000000000401",
+              "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+              "targetNodeId": "00000000-0000-4000-8000-000000000005",
+              "enabled": true,
+              "position": 0,
+              "purpose": "prompt"
+            }
+          ],
+          "groups": []
+        },
+        "documentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "updatedAt": "2026-09-09T10:00:00Z"
+      }
+    },
+    {
+      "name": "画布契约：正式文档没有零版本",
+      "schema": "Canvas",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000501",
+        "projectId": "00000000-0000-4000-8000-000000000502",
+        "revision": 0,
+        "schemaVersion": 1,
+        "document": {
+          "nodes": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "title": "素材 1",
+              "kind": "text",
+              "position": {
+                "x": 40,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "text",
+                "text": "保持同一人物与钥匙。"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "title": "素材 2",
+              "kind": "image",
+              "position": {
+                "x": 80,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000102",
+                "assetRevisionId": "00000000-0000-4000-8000-000000000202"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "title": "素材 3",
+              "kind": "video",
+              "position": {
+                "x": 120,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000103"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "title": "素材 4",
+              "kind": "audio",
+              "position": {
+                "x": 160,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000104"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "title": "素材 5",
+              "kind": "video",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "draft",
+                "prompt": "人物缓慢拿起钥匙",
+                "connectionId": "00000000-0000-4000-8000-000000000301",
+                "capabilityId": "00000000-0000-4000-8000-000000000302",
+                "output": {
+                  "aspectRatio": "9:16",
+                  "durationSeconds": 7,
+                  "withAudio": true
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "00000000-0000-4000-8000-000000000401",
+              "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+              "targetNodeId": "00000000-0000-4000-8000-000000000005",
+              "enabled": true,
+              "position": 0,
+              "purpose": "prompt"
+            }
+          ],
+          "groups": []
+        },
+        "documentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "updatedAt": "2026-09-09T10:00:00Z"
+      }
+    },
+    {
+      "name": "画布契约：哈希必须完整",
+      "schema": "Canvas",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000501",
+        "projectId": "00000000-0000-4000-8000-000000000502",
+        "revision": 1,
+        "schemaVersion": 1,
+        "document": {
+          "nodes": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "title": "素材 1",
+              "kind": "text",
+              "position": {
+                "x": 40,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "text",
+                "text": "保持同一人物与钥匙。"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "title": "素材 2",
+              "kind": "image",
+              "position": {
+                "x": 80,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000102",
+                "assetRevisionId": "00000000-0000-4000-8000-000000000202"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "title": "素材 3",
+              "kind": "video",
+              "position": {
+                "x": 120,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000103"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "title": "素材 4",
+              "kind": "audio",
+              "position": {
+                "x": 160,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "media",
+                "mediaId": "00000000-0000-4000-8000-000000000104"
+              }
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "title": "素材 5",
+              "kind": "video",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "width": 280,
+              "content": {
+                "type": "draft",
+                "prompt": "人物缓慢拿起钥匙",
+                "connectionId": "00000000-0000-4000-8000-000000000301",
+                "capabilityId": "00000000-0000-4000-8000-000000000302",
+                "output": {
+                  "aspectRatio": "9:16",
+                  "durationSeconds": 7,
+                  "withAudio": true
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "00000000-0000-4000-8000-000000000401",
+              "sourceNodeId": "00000000-0000-4000-8000-000000000001",
+              "targetNodeId": "00000000-0000-4000-8000-000000000005",
+              "enabled": true,
+              "position": 0,
+              "purpose": "prompt"
+            }
+          ],
+          "groups": []
+        },
+        "documentHash": "abc",
+        "updatedAt": "2026-09-09T10:00:00Z"
+      }
+    },
+    {
+      "name": "画布契约：参考绑定",
+      "schema": "BindCanvasNode",
+      "valid": true,
+      "value": {
+        "role": "reference",
+        "shotId": "00000000-0000-4000-8000-000000000601",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000602"
+      },
+      "requestOperationId": "bindSceneCanvasNode"
+    },
+    {
+      "name": "画布契约：视频候选显式区间",
+      "schema": "BindCanvasNode",
+      "valid": true,
+      "value": {
+        "role": "candidate",
+        "shotId": "00000000-0000-4000-8000-000000000601",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000602",
+        "range": {
+          "inUs": 1000000,
+          "outUs": 8000000
+        }
+      },
+      "requestOperationId": "bindSceneCanvasNode"
+    },
+    {
+      "name": "画布契约：候选缺区间拒绝",
+      "schema": "BindCanvasNode",
+      "valid": false,
+      "value": {
+        "role": "candidate",
+        "shotId": "00000000-0000-4000-8000-000000000601",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000602"
+      },
+      "requestOperationId": "bindSceneCanvasNode"
+    },
+    {
+      "name": "画布契约：参考不能暗中创建候选",
+      "schema": "BindCanvasNode",
+      "valid": false,
+      "value": {
+        "role": "reference",
+        "shotId": "00000000-0000-4000-8000-000000000601",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000602",
+        "range": {
+          "inUs": 1000000,
+          "outUs": 8000000
+        }
+      },
+      "requestOperationId": "bindSceneCanvasNode"
+    },
+    {
+      "name": "画布契约：移除呈现仍保留候选",
+      "schema": "CanvasShotBinding",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000610",
+        "nodeId": "00000000-0000-4000-8000-000000000003",
+        "shotId": "00000000-0000-4000-8000-000000000601",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000602",
+        "role": "candidate",
+        "takeId": "00000000-0000-4000-8000-000000000611",
+        "nodeActive": false
+      }
+    },
+    {
+      "name": "画布契约：候选响应必须有Take",
+      "schema": "CanvasShotBinding",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000610",
+        "nodeId": "00000000-0000-4000-8000-000000000003",
+        "shotId": "00000000-0000-4000-8000-000000000601",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000602",
+        "role": "candidate",
+        "nodeActive": false
+      }
+    },
+    {
+      "name": "画布契约：参考响应不能有Take",
+      "schema": "CanvasShotBinding",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000610",
+        "nodeId": "00000000-0000-4000-8000-000000000003",
+        "shotId": "00000000-0000-4000-8000-000000000601",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000602",
+        "role": "reference",
+        "takeId": "00000000-0000-4000-8000-000000000611",
+        "nodeActive": false
+      }
+    },
+    {
+      "name": "画布契约：无镜头自由生成准备",
+      "schema": "PrepareCanvasGeneration",
+      "valid": true,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000005",
+        "shotSources": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      },
+      "requestOperationId": "prepareCanvasGeneration"
+    },
+    {
+      "name": "画布契约：明确关联多个镜头",
+      "schema": "PrepareCanvasGeneration",
+      "valid": true,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000005",
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000601",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000602"
+          },
+          {
+            "shotId": "00000000-0000-4000-8000-000000000603",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000604"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      },
+      "requestOperationId": "prepareCanvasGeneration"
+    },
+    {
+      "name": "画布契约：不能隐含选择上次镜头",
+      "schema": "PrepareCanvasGeneration",
+      "valid": false,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000005",
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      },
+      "requestOperationId": "prepareCanvasGeneration"
+    },
+    {
+      "name": "画布契约：准备接口不执行",
+      "schema": "PrepareCanvasGeneration",
+      "valid": false,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000005",
+        "shotSources": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "execute": true
+      },
+      "requestOperationId": "prepareCanvasGeneration"
+    },
+    {
+      "name": "画布契约：取回归档结果",
+      "schema": "MaterializeCanvasResults",
+      "valid": true,
+      "value": {
+        "jobId": "00000000-0000-4000-8000-000000000701",
+        "mediaIds": [
+          "00000000-0000-4000-8000-000000000702"
+        ],
+        "position": {
+          "x": 900,
+          "y": 0
+        }
+      },
+      "requestOperationId": "materializeCanvasResults"
+    },
+    {
+      "name": "画布契约：结果ID不能重复",
+      "schema": "MaterializeCanvasResults",
+      "valid": false,
+      "value": {
+        "jobId": "00000000-0000-4000-8000-000000000701",
+        "mediaIds": [
+          "00000000-0000-4000-8000-000000000702",
+          "00000000-0000-4000-8000-000000000702"
+        ],
+        "position": {
+          "x": 900,
+          "y": 0
+        }
+      },
+      "requestOperationId": "materializeCanvasResults"
+    },
+    {
+      "name": "画布契约：不能伪造呈现身份",
+      "schema": "MaterializeCanvasResults",
+      "valid": false,
+      "value": {
+        "jobId": "00000000-0000-4000-8000-000000000701",
+        "mediaIds": [
+          "00000000-0000-4000-8000-000000000702"
+        ],
+        "position": {
+          "x": 900,
+          "y": 0
+        },
+        "nodeId": "00000000-0000-4000-8000-000000000001"
+      },
+      "requestOperationId": "materializeCanvasResults"
+    },
+    {
+      "name": "画布契约：必须选实际结果",
+      "schema": "MaterializeCanvasResults",
+      "valid": false,
+      "value": {
+        "jobId": "00000000-0000-4000-8000-000000000701",
+        "mediaIds": [],
+        "position": {
+          "x": 900,
+          "y": 0
+        }
+      },
+      "requestOperationId": "materializeCanvasResults"
+    },
+    {
+      "name": "画布契约：个人视口独立保存",
+      "schema": "SaveSceneWorkspacePreference",
+      "valid": true,
+      "value": {
+        "mode": "canvas",
+        "selectedShotId": null,
+        "selectedNodeIds": [],
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "zoom": 0.45
+        },
+        "assetPanelOpen": false,
+        "assistantOpen": false
+      },
+      "requestOperationId": "saveSceneWorkspacePreference"
+    },
+    {
+      "name": "画布契约：首次偏好虚拟版本零",
+      "schema": "SceneWorkspacePreference",
+      "valid": true,
+      "value": {
+        "sceneId": "00000000-0000-4000-8000-000000000801",
+        "revision": 0,
+        "mode": "canvas",
+        "selectedShotId": null,
+        "selectedNodeIds": [],
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "zoom": 0.45
+        },
+        "assetPanelOpen": false,
+        "assistantOpen": false
+      }
+    },
+    {
+      "name": "画布契约：视口缩放不可为零",
+      "schema": "SaveSceneWorkspacePreference",
+      "valid": false,
+      "value": {
+        "mode": "canvas",
+        "selectedShotId": null,
+        "selectedNodeIds": [],
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "zoom": 0
+        },
+        "assetPanelOpen": false,
+        "assistantOpen": false
+      },
+      "requestOperationId": "saveSceneWorkspacePreference"
+    },
+    {
+      "name": "画布契约：不是第三种业务模式",
+      "schema": "SaveSceneWorkspacePreference",
+      "valid": false,
+      "value": {
+        "mode": "overview",
+        "selectedShotId": null,
+        "selectedNodeIds": [],
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "zoom": 0.45
+        },
+        "assetPanelOpen": false,
+        "assistantOpen": false
+      },
+      "requestOperationId": "saveSceneWorkspacePreference"
+    },
+    {
+      "name": "画布契约：模式切换不写采用",
+      "schema": "SaveSceneWorkspacePreference",
+      "valid": false,
+      "value": {
+        "mode": "canvas",
+        "selectedShotId": null,
+        "selectedNodeIds": [],
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "zoom": 0.45
+        },
+        "assetPanelOpen": false,
+        "assistantOpen": false,
+        "adoptedTakeId": "00000000-0000-4000-8000-000000000611"
+      },
+      "requestOperationId": "saveSceneWorkspacePreference"
+    },
+    {
+      "name": "工作稿保存独立于归一结果",
+      "schema": "SaveCutWorkDraft",
+      "valid": true,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "越界字幕及未决定事项允许工作稿存储",
+      "schema": "SaveCutWorkDraft",
+      "valid": true,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 9000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [
+            {
+              "id": "00000000-0000-4000-8000-000000000910",
+              "kind": "subtitle_placement",
+              "clipIds": [
+                "00000000-0000-4000-8000-000000000024"
+              ],
+              "note": "视频已经缩短，字幕位置尚未决定"
+            }
+          ],
+          "timingOrigins": []
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "空轨工作稿可恢复但不代表可渲染",
+      "schema": "SaveCutWorkDraft",
+      "valid": true,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "空字幕输入和零时长可以保留",
+      "schema": "SaveCutWorkDraft",
+      "valid": true,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 0,
+                    "text": ""
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "工作稿禁止额外权威字段normalizationId",
+      "schema": "SaveCutWorkDraft",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        },
+        "normalizationId": "00000000-0000-4000-8000-000000000001"
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "工作稿禁止额外权威字段approved",
+      "schema": "SaveCutWorkDraft",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        },
+        "approved": true
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "工作稿禁止额外权威字段tenantId",
+      "schema": "SaveCutWorkDraft",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        },
+        "tenantId": "00000000-0000-4000-8000-000000000002"
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "工作稿也拒绝负数时间",
+      "schema": "SaveCutWorkDraft",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": -1,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "工作稿拒绝轨道与条目种类错配",
+      "schema": "SaveCutWorkDraft",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "audio",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "工作稿拒绝超过32轨",
+      "schema": "SaveCutWorkDraft",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "未建立工作稿返回虚拟0且不伪造保存者",
+      "schema": "CutWorkDraft",
+      "valid": true,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "revision": 0,
+        "baseCutRevision": 1,
+        "currentCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        },
+        "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "issues": [],
+        "baseChanged": false,
+        "hasUnappliedChanges": false
+      }
+    },
+    {
+      "name": "服务器已保存与仍待处理分别表达",
+      "schema": "CutWorkDraft",
+      "valid": true,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "revision": 1,
+        "baseCutRevision": 1,
+        "currentCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 9000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [
+            {
+              "id": "00000000-0000-4000-8000-000000000910",
+              "kind": "subtitle_placement",
+              "clipIds": [
+                "00000000-0000-4000-8000-000000000024"
+              ],
+              "note": "视频已经缩短，字幕位置尚未决定"
+            }
+          ],
+          "timingOrigins": []
+        },
+        "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "issues": [
+          {
+            "code": "SUBTITLE_OUT_OF_BOUNDS",
+            "clipIds": [
+              "00000000-0000-4000-8000-000000000024"
+            ],
+            "message": "字幕超出片尾"
+          }
+        ],
+        "baseChanged": false,
+        "hasUnappliedChanges": true,
+        "updatedAt": "2026-09-10T08:00:00Z",
+        "updatedBy": "00000000-0000-4000-8000-000000000005"
+      }
+    },
+    {
+      "name": "虚拟工作稿不能伪造已保存作者",
+      "schema": "CutWorkDraft",
+      "valid": false,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "revision": 0,
+        "baseCutRevision": 1,
+        "currentCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": []
+        },
+        "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "issues": [],
+        "baseChanged": false,
+        "hasUnappliedChanges": false,
+        "updatedBy": "00000000-0000-4000-8000-000000000005"
+      }
+    },
+    {
+      "name": "持久工作稿必须返回保存时间",
+      "schema": "CutWorkDraft",
+      "valid": false,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "revision": 1,
+        "baseCutRevision": 1,
+        "currentCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 9000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [
+            {
+              "id": "00000000-0000-4000-8000-000000000910",
+              "kind": "subtitle_placement",
+              "clipIds": [
+                "00000000-0000-4000-8000-000000000024"
+              ],
+              "note": "视频已经缩短，字幕位置尚未决定"
+            }
+          ],
+          "timingOrigins": []
+        },
+        "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "issues": [
+          {
+            "code": "SUBTITLE_OUT_OF_BOUNDS",
+            "clipIds": [
+              "00000000-0000-4000-8000-000000000024"
+            ],
+            "message": "字幕超出片尾"
+          }
+        ],
+        "baseChanged": false,
+        "hasUnappliedChanges": true,
+        "updatedBy": "00000000-0000-4000-8000-000000000005"
+      }
+    },
+    {
+      "name": "归一请求拒绝另一份未保存时间线",
+      "schema": "NormalizationInput",
+      "valid": false,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "baseCutRevision": 1,
+        "workDraftRevision": 3,
+        "timeline": {
+          "schemaVersion": "1",
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "tracks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000023",
+              "kind": "video",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000020",
+                  "kind": "video",
+                  "mediaId": "00000000-0000-4000-8000-000000000021",
+                  "takeId": "00000000-0000-4000-8000-000000000022",
+                  "timelineStartUs": 0,
+                  "range": {
+                    "inUs": 1000000,
+                    "outUs": 8000000
+                  },
+                  "gainDb": 0,
+                  "muted": false,
+                  "fit": "contain",
+                  "streamSelection": "default"
+                }
+              ],
+              "muted": false
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000025",
+              "kind": "subtitle",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000024",
+                  "kind": "subtitle",
+                  "timelineStartUs": 1000000,
+                  "durationUs": 3000000,
+                  "text": "你说，东西一直在你这儿？"
+                }
+              ],
+              "muted": false
+            }
+          ],
+          "burnSubtitles": false
+        }
+      },
+      "requestOperationId": "normalizeCutDraft"
+    },
+    {
+      "name": "归一不能固定虚拟工作稿",
+      "schema": "NormalizationInput",
+      "valid": false,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "baseCutRevision": 1,
+        "workDraftRevision": 0
+      },
+      "requestOperationId": "normalizeCutDraft"
+    },
+    {
+      "name": "归一必须明确工作稿版本",
+      "schema": "NormalizationInput",
+      "valid": false,
+      "value": {
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "baseCutRevision": 1
+      },
+      "requestOperationId": "normalizeCutDraft"
+    },
+    {
+      "name": "归一结果必须暴露固定工作稿来源",
+      "schema": "NormalizationResult",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000080",
+        "revision": 1,
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "cutId": "00000000-0000-4000-8000-000000000070",
+        "baseCutRevision": 1,
+        "requestHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "status": "ready",
+        "effectiveTimeline": {
+          "schemaVersion": "1",
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "tracks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000023",
+              "kind": "video",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000020",
+                  "kind": "video",
+                  "mediaId": "00000000-0000-4000-8000-000000000021",
+                  "takeId": "00000000-0000-4000-8000-000000000022",
+                  "timelineStartUs": 0,
+                  "range": {
+                    "inUs": 1000000,
+                    "outUs": 8000000
+                  },
+                  "gainDb": 0,
+                  "muted": false,
+                  "fit": "contain",
+                  "streamSelection": "default"
+                }
+              ],
+              "muted": false
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000025",
+              "kind": "subtitle",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000024",
+                  "kind": "subtitle",
+                  "timelineStartUs": 1000000,
+                  "durationUs": 3000000,
+                  "text": "你说，东西一直在你这儿？"
+                }
+              ],
+              "muted": false
+            }
+          ],
+          "burnSubtitles": false
+        },
+        "dramaBindings": [],
+        "lengthFrames": 168,
+        "durationUs": 7000000,
+        "normalizedItems": [
+          {
+            "clipId": "00000000-0000-4000-8000-000000000020",
+            "kind": "video",
+            "sourceMediaId": "00000000-0000-4000-8000-000000000021",
+            "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "sourceMapId": "00000000-0000-4000-8000-000000000140",
+            "productionCopyId": "00000000-0000-4000-8000-000000000141",
+            "sourceInFrame": 24,
+            "sourceOutFrame": 192,
+            "timelineStartFrame": 0,
+            "timelineEndFrame": 168
+          },
+          {
+            "clipId": "00000000-0000-4000-8000-000000000024",
+            "kind": "subtitle",
+            "timelineStartFrame": 24,
+            "timelineEndFrame": 96
+          }
+        ],
+        "changes": [],
+        "renderProfile": {
+          "id": "vertical-720",
+          "revision": 1,
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "audioSampleRate": 48000,
+          "audioChannels": 2,
+          "videoCodec": "h264",
+          "pixelFormat": "yuv420p",
+          "audioCodec": "aac",
+          "colorPolicy": "bt709-limited",
+          "fontBundleRevision": "fixture-1"
+        },
+        "rendererVersion": "fixture-1",
+        "normalizationVersion": "normalization-v1"
+      }
+    },
+    {
+      "name": "显式只固定上次编排",
+      "schema": "FreezeCut",
+      "valid": true,
+      "value": {
+        "label": "上次已确认稿",
+        "expectedWorkDraftRevision": 7,
+        "excludeUnappliedWorkDraft": true
+      },
+      "requestOperationId": "freezeCut"
+    },
+    {
+      "name": "冻结拒绝缺失工作稿观察版本",
+      "schema": "FreezeCut",
+      "valid": false,
+      "value": {
+        "label": "不能静默排除工作"
+      },
+      "requestOperationId": "freezeCut"
+    },
+    {
+      "name": "冻结拒绝字符串版本号",
+      "schema": "FreezeCut",
+      "valid": false,
+      "value": {
+        "label": "审稿",
+        "expectedWorkDraftRevision": "7"
+      },
+      "requestOperationId": "freezeCut"
+    },
+    {
+      "name": "只列实际可读的恢复点",
+      "schema": "EditingHistoryPage",
+      "valid": true,
+      "value": {
+        "items": [
+          {
+            "revision": 3,
+            "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "updatedAt": "2026-09-10T08:00:00Z",
+            "updatedBy": "00000000-0000-4000-8000-000000000005",
+            "retainedFor": [
+              "checkpoint"
+            ]
+          }
+        ],
+        "latestRevision": 10,
+        "policy": {
+          "recentHours": 24,
+          "recentMaxRevisions": 100,
+          "checkpointMinutes": 15,
+          "checkpointDays": 7,
+          "dailyDays": 30,
+          "uncompressedByteBudget": 268435456
+        }
+      }
+    },
+    {
+      "name": "未建工作稿历史为空",
+      "schema": "EditingHistoryPage",
+      "valid": true,
+      "value": {
+        "items": [],
+        "latestRevision": 0,
+        "policy": {
+          "recentHours": 24,
+          "recentMaxRevisions": 100,
+          "checkpointMinutes": 15,
+          "checkpointDays": 7,
+          "dailyDays": 30,
+          "uncompressedByteBudget": 268435456
+        }
+      }
+    },
+    {
+      "name": "历史恢复点不能用虚拟0",
+      "schema": "EditingHistoryEntry",
+      "valid": false,
+      "value": {
+        "revision": 0,
+        "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "updatedAt": "2026-09-10T08:00:00Z",
+        "updatedBy": "00000000-0000-4000-8000-000000000005",
+        "retainedFor": [
+          "checkpoint"
+        ]
+      }
+    },
+    {
+      "name": "恢复点保留原因不重复",
+      "schema": "EditingHistoryEntry",
+      "valid": false,
+      "value": {
+        "revision": 3,
+        "documentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "updatedAt": "2026-09-10T08:00:00Z",
+        "updatedBy": "00000000-0000-4000-8000-000000000005",
+        "retainedFor": [
+          "checkpoint",
+          "checkpoint"
+        ]
+      }
+    },
+    {
+      "name": "本人客户端活动提示canvas",
+      "schema": "UpdateEditingPresence",
+      "valid": true,
+      "value": {
+        "target": {
+          "kind": "canvas",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "clientSessionId": "00000000-0000-4000-8000-000000000901",
+        "activity": "editing"
+      },
+      "requestOperationId": "updateEditingPresence"
+    },
+    {
+      "name": "提示身份不能由客户端指定canvas",
+      "schema": "UpdateEditingPresence",
+      "valid": false,
+      "value": {
+        "target": {
+          "kind": "canvas",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "clientSessionId": "00000000-0000-4000-8000-000000000901",
+        "activity": "editing",
+        "membershipId": "00000000-0000-4000-8000-000000000999"
+      },
+      "requestOperationId": "updateEditingPresence"
+    },
+    {
+      "name": "提示到期不能由客户端延长canvas",
+      "schema": "UpdateEditingPresence",
+      "valid": false,
+      "value": {
+        "target": {
+          "kind": "canvas",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "clientSessionId": "00000000-0000-4000-8000-000000000901",
+        "activity": "editing",
+        "expiresAt": "2099-01-01T00:00:00Z"
+      },
+      "requestOperationId": "updateEditingPresence"
+    },
+    {
+      "name": "本人客户端活动提示cut_work_draft",
+      "schema": "UpdateEditingPresence",
+      "valid": true,
+      "value": {
+        "target": {
+          "kind": "cut_work_draft",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "clientSessionId": "00000000-0000-4000-8000-000000000901",
+        "activity": "editing"
+      },
+      "requestOperationId": "updateEditingPresence"
+    },
+    {
+      "name": "提示身份不能由客户端指定cut_work_draft",
+      "schema": "UpdateEditingPresence",
+      "valid": false,
+      "value": {
+        "target": {
+          "kind": "cut_work_draft",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "clientSessionId": "00000000-0000-4000-8000-000000000901",
+        "activity": "editing",
+        "membershipId": "00000000-0000-4000-8000-000000000999"
+      },
+      "requestOperationId": "updateEditingPresence"
+    },
+    {
+      "name": "提示到期不能由客户端延长cut_work_draft",
+      "schema": "UpdateEditingPresence",
+      "valid": false,
+      "value": {
+        "target": {
+          "kind": "cut_work_draft",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "clientSessionId": "00000000-0000-4000-8000-000000000901",
+        "activity": "editing",
+        "expiresAt": "2099-01-01T00:00:00Z"
+      },
+      "requestOperationId": "updateEditingPresence"
+    },
+    {
+      "name": "编辑提示不是锁命令",
+      "schema": "UpdateEditingPresence",
+      "valid": false,
+      "value": {
+        "target": {
+          "kind": "canvas",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "clientSessionId": "00000000-0000-4000-8000-000000000901",
+        "activity": "locked"
+      },
+      "requestOperationId": "updateEditingPresence"
+    },
+    {
+      "name": "提示只返回活动身份与服务器时间",
+      "schema": "EditingPresence",
+      "valid": true,
+      "value": {
+        "target": {
+          "kind": "canvas",
+          "objectId": "00000000-0000-4000-8000-000000000900"
+        },
+        "entries": [
+          {
+            "membershipId": "00000000-0000-4000-8000-000000000005",
+            "clientSessionId": "00000000-0000-4000-8000-000000000901",
+            "activity": "editing",
+            "lastSeenAt": "2026-09-10T08:00:00Z",
+            "expiresAt": "2026-09-10T08:01:30Z"
+          }
+        ],
+        "serverTime": "2026-09-10T08:00:00Z"
+      }
+    },
+    {
+      "name": "工作稿保留精确时间来源以支持重选基线",
+      "schema": "SaveCutWorkDraft",
+      "valid": true,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": [
+            {
+              "clipId": "00000000-0000-4000-8000-000000000020",
+              "normalizationId": "00000000-0000-4000-8000-000000000080"
+            }
+          ]
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    },
+    {
+      "name": "时间来源只能引用已校验结果不能伪造帧事实",
+      "schema": "SaveCutWorkDraft",
+      "valid": false,
+      "value": {
+        "baseCutRevision": 1,
+        "document": {
+          "timeline": {
+            "schemaVersion": "1",
+            "spec": {
+              "width": 720,
+              "height": 1280,
+              "fpsNum": 24,
+              "fpsDen": 1,
+              "language": "zh-CN"
+            },
+            "tracks": [
+              {
+                "id": "00000000-0000-4000-8000-000000000023",
+                "kind": "video",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000020",
+                    "kind": "video",
+                    "mediaId": "00000000-0000-4000-8000-000000000021",
+                    "takeId": "00000000-0000-4000-8000-000000000022",
+                    "timelineStartUs": 0,
+                    "range": {
+                      "inUs": 1000000,
+                      "outUs": 8000000
+                    },
+                    "gainDb": 0,
+                    "muted": false,
+                    "fit": "contain",
+                    "streamSelection": "default"
+                  }
+                ],
+                "muted": false
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000025",
+                "kind": "subtitle",
+                "items": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000024",
+                    "kind": "subtitle",
+                    "timelineStartUs": 1000000,
+                    "durationUs": 3000000,
+                    "text": "你说，东西一直在你这儿？"
+                  }
+                ],
+                "muted": false
+              }
+            ],
+            "burnSubtitles": false
+          },
+          "dramaBindings": [],
+          "unresolvedEdits": [],
+          "timingOrigins": [
+            {
+              "clipId": "00000000-0000-4000-8000-000000000020",
+              "normalizationId": "00000000-0000-4000-8000-000000000080",
+              "sourceInFrame": 0
+            }
+          ]
+        }
+      },
+      "requestOperationId": "saveCutWorkDraft"
+    }
+  ]
+}

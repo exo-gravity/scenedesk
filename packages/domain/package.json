@@ -1,0 +1,7 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "name": "@drama/domain",
+  "exports": "./src/index.ts"
+}

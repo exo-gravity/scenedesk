@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-09-09T12:03:47.154Z",
+  "scope": "Installed direct Mantine packages; not a legal audit of every transitive package.",
+  "packages": [
+    {
+      "name": "@mantine/core",
+      "version": "9.6.0",
+      "declaredLicense": "MIT",
+      "licenseHeading": "MIT License",
+      "licenseSha256": "61c765e625bc25d55143f14de7554685c52f21d9e671d3d204304691a163d06a"
+    },
+    {
+      "name": "@mantine/hooks",
+      "version": "9.6.0",
+      "declaredLicense": "MIT",
+      "licenseHeading": "MIT License",
+      "licenseSha256": "61c765e625bc25d55143f14de7554685c52f21d9e671d3d204304691a163d06a"
+    },
+    {
+      "name": "@mantine/form",
+      "version": "9.6.0",
+      "declaredLicense": "MIT",
+      "licenseHeading": "MIT License",
+      "licenseSha256": "61c765e625bc25d55143f14de7554685c52f21d9e671d3d204304691a163d06a"
+    }
+  ]
+}

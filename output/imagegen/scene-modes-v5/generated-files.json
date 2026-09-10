@@ -1,0 +1,13 @@
+{
+  "method": "built-in image_gen; one image per mode, then focused corrections",
+  "storyboard": {
+    "initial": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-d62ca4e8-bcf1-4533-9549-279fe5c928db.png",
+    "selected": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-b830daf5-526f-4be0-8eed-e25a98a6ff11.png",
+    "delivered": "apps/web/public/previews/layouts/scene-storyboard-v5.png"
+  },
+  "canvas": {
+    "initial": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-af0ece04-434a-467e-a6b3-11f0b7fb466b.png",
+    "selected": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-aab0f8c2-e501-4245-b944-42d5d2d746ce.png",
+    "delivered": "apps/web/public/previews/layouts/scene-canvas-v5.png"
+  }
+}

@@ -1,0 +1,15 @@
+# Frontend implementation rules
+
+Reuse the accepted shared visual language and current core workspace samples. The older root Mantine theme and the newer isolated study palette coexist; do not treat the older warm-accent sample as the current brand requirement or claim full migration is complete.
+
+The shared visual language in `docs/design/shared-visual-language-v0.1.md` is user-approved: media first, light framing, compact global tools with comfortable local editing, contextual tools, differentiated surfaces/shapes, and restrained color. The v0.3 core workspace, navigation relationships and continuous scene workflow were explicitly accepted on 2026-09-10; see `docs/design/approved-baseline-2026-09-10.md`. Reuse the current visual samples; do not reopen the accepted layout or assume unseen branding decisions are approved. The current task remains in design/prototype mode. The user subsequently reported no issues for now with the v0.4 specialty studies; treat them as a provisional design baseline, open to later revision. This is not production authorization.
+
+- Before changing UI, read `docs/design/approved-baseline-2026-09-10.md`, `docs/design/mantine-ui-agent-spec-v0.1.md` and the relevant current v0.3/v0.4 design. `mantine-visual-sample-v0.2.md` is a historical component implementation record. User decisions and the scene MVP contract take precedence.
+- Use Mantine as the sole general UI library. No Tailwind or second general component system. Keep Phosphor icons; native semantic layout/media and CSS Modules are allowed.
+- Reuse `src/theme/` and `src/components/workspace/` first. Add shared variants to their owning definition and the `#/design/` sample, then compose them in pages. New migrated pages use Mantine directly; `components/ui.tsx` adapters exist for older pages.
+- Store raw colors/type/radius/shadow in the theme, reference semantic CSS variables or Mantine tokens in components. Dynamic media geometry and layout calculations are allowed. Do not remove focus rings, change media colors to indicate selection, or patch library sources.
+- Selection, adoption, actual cut use and fixed-version approval are separate facts. A generation result does not auto-adopt or replace a cut. Unknown submission never becomes an automatic paid retry.
+- `WorkspaceShell` owns layout preferences, not production facts. Do not introduce React Flow/NodeShell or pick a new player library as part of styling work; consult component-selection status.
+- Run `npm run ui:check`, the appropriate build/behavior checks, and inspect changed pages in a browser. A screenshot baseline update needs inspection, not blind regeneration. Report prototype limitations honestly.
+- Keep the early CSS layer declaration in `index.html`; production extraction can otherwise let legacy styles override Mantine. Check actual paint in the built app after stylesheet changes.
+- Migration is incremental: `style.css` is isolated in the `legacy` cascade layer. Do not add new page-specific rules there; new work belongs in scoped styles and the shared theme.

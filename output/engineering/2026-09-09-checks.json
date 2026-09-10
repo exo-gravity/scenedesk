@@ -1,0 +1,60 @@
+{
+  "checkedAt": "2026-09-09T08:50:43.947Z",
+  "node": "v22.23.2",
+  "npm": "10.9.8",
+  "scope": "S0 infrastructure and static contract; no business acceptance",
+  "checks": [
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "stdout": "\n> drama-platform@0.0.0 check\n> npm run contracts:check && npm run build && npm test\n\n\n> drama-platform@0.0.0 contracts:check\n> node scripts/check-generated.mjs\n\nGenerated TypeScript matches the design contract.\n\n> drama-platform@0.0.0 build\n> npm run typecheck && npm run build --workspace @drama/web\n\n\n> drama-platform@0.0.0 typecheck\n> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json\n\n\n> @drama/web@0.0.0 build\n> vite build\n\nvite v7.3.6 building client environment for production...\ntransforming...\n✓ 29 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.44 kB │ gzip:  0.35 kB\ndist/assets/index-DqiKsjYV.css    8.76 kB │ gzip:  2.80 kB\ndist/assets/index-CEBPM8fx.js   207.80 kB │ gzip: 66.22 kB\n✓ built in 459ms\n\n> drama-platform@0.0.0 test\n> node --import tsx --test tests/*.test.ts\n\nTAP version 13\n# Subtest: health distinguishes a runnable process from business or database readiness\nok 1 - health distinguishes a runnable process from business or database readiness\n  ---\n  duration_ms: 66.520791\n  type: 'test'\n  ...\n# Subtest: OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation\nok 2 - OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation\n  ---\n  duration_ms: 142.987875\n  type: 'test'\n  ...\n# Subtest: NTSC inward range keeps exact source frame bounds\nok 3 - NTSC inward range keeps exact source frame bounds\n  ---\n  duration_ms: 0.875375\n  type: 'test'\n  ...\n# Subtest: invalid or shorter-than-frame intervals are rejected\nok 4 - invalid or shorter-than-frame intervals are rejected\n  ---\n  duration_ms: 0.326958\n  type: 'test'\n  ...\n# Subtest: audio length is derived from global frame boundaries, not per-clip rounded sums\nok 5 - audio length is derived from global frame boundaries, not per-clip rounded sums\n  ---\n  duration_ms: 0.119875\n  type: 'test'\n  ...\n# Subtest: mock accepted: repeated scheduling cannot submit twice\nok 6 - mock accepted: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.117208\n  type: 'test'\n  ...\n# Subtest: mock rejected: repeated scheduling cannot submit twice\nok 7 - mock rejected: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.05325\n  type: 'test'\n  ...\n# Subtest: mock lost_reply: repeated scheduling cannot submit twice\nok 8 - mock lost_reply: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.044542\n  type: 'test'\n  ...\n# Subtest: lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved\nok 9 - lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved\n  ---\n  duration_ms: 0.126667\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 326.403083\n",
+      "stderr": ""
+    },
+    {
+      "command": "npm run db:migrate",
+      "exitCode": 0,
+      "stdout": "\n> drama-platform@0.0.0 db:migrate\n> node --env-file-if-exists=.env --import tsx scripts/migrate.ts\n\n{\"applied\":[],\"total\":1}\n",
+      "stderr": ""
+    },
+    {
+      "command": "npm run test:db",
+      "exitCode": 0,
+      "stdout": "\n> drama-platform@0.0.0 test:db\n> node --env-file-if-exists=.env --import tsx --test tests/integration/*.test.ts\n\nTAP version 13\n# Subtest: real PG migration: concurrent runners, rerun, modified history and failed DDL rollback\nok 1 - real PG migration: concurrent runners, rerun, modified history and failed DDL rollback\n  ---\n  duration_ms: 56.882583\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 160.774042\n",
+      "stderr": ""
+    },
+    {
+      "command": "npm run worker:check",
+      "exitCode": 0,
+      "stdout": "\n> drama-platform@0.0.0 worker:check\n> node --env-file-if-exists=.env --import tsx apps/worker/src/check.ts\n\n{\"workerPreflight\":\"pass\",\"processingEnabled\":false,\"reason\":\"Durable scheduling and media workers are S1/S2 work\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": "npm run mock:scenarios",
+      "exitCode": 0,
+      "stdout": "\n> drama-platform@0.0.0 mock:scenarios\n> tsx scripts/mock-scenarios.ts\n\n{\"scenario\":\"accepted\",\"status\":\"provider_pending\",\"submitCount\":1,\"providerJobId\":\"mock-provider-job-1\",\"evidenceCount\":1,\"persistent\":false,\"paidCalls\":0}\n{\"scenario\":\"rejected\",\"status\":\"failed\",\"submitCount\":1,\"evidenceCount\":0,\"persistent\":false,\"paidCalls\":0}\n{\"scenario\":\"lost_reply\",\"status\":\"submission_unknown\",\"submitCount\":1,\"evidenceCount\":0,\"persistent\":false,\"paidCalls\":0}\n",
+      "stderr": ""
+    },
+    {
+      "command": "npm audit --json",
+      "exitCode": 0,
+      "stdout": "{\n  \"auditReportVersion\": 2,\n  \"vulnerabilities\": {},\n  \"metadata\": {\n    \"vulnerabilities\": {\n      \"info\": 0,\n      \"low\": 0,\n      \"moderate\": 0,\n      \"high\": 0,\n      \"critical\": 0,\n      \"total\": 0\n    },\n    \"dependencies\": {\n      \"prod\": 80,\n      \"dev\": 161,\n      \"optional\": 54,\n      \"peer\": 0,\n      \"peerOptional\": 0,\n      \"total\": 241\n    }\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": ".venv/bin/python docs/implementation/check_design.py",
+      "exitCode": 0,
+      "stdout": "{\"result\": \"PASS\", \"operations\": 120, \"paths\": 94, \"schemas\": 174, \"examples\": 86, \"localLinks\": 467, \"versions\": {\"openapi-spec-validator\": \"0.9.0\", \"jsonschema\": \"4.26.0\"}}\n",
+      "stderr": ""
+    }
+  ],
+  "fileHashes": {
+    "package-lock.json": "a6a7d211b3636c964ff5926b1d379250029e84e19641928ed9696c667de34f07",
+    "compose.yaml": "8ec4d73042b8fe64da3b77d88191fdd6c15cf0bbf3ab51c2edfe5343213b918a",
+    "docs/implementation/openapi.json": "2e21f0dfa14fabf6044cf1ebbc3acf86a9b497910c2f0eb36400f9f55c408791",
+    "packages/contracts/src/generated.ts": "1fd39f420064fb47dfbbd66e5d127db2f36d366ecf6fe94f3b7d293a62fc9571",
+    "apps/web/src/App.tsx": "0c824d25c85fe5595b0e5158a3b4db2436d4dcddd8855c7b3aca638fa9c4df82",
+    "apps/web/src/main.tsx": "a9903b74c637fe52cfff2cd59430ffd2c1f872b5fcdc81715fc1187e0cc51371",
+    "apps/web/src/style.css": "947b5440bb849bac9e6876b6010c48b1899337a122c6f9b7794ac9cfaf916dc7"
+  },
+  "passed": true
+}

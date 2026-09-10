@@ -1,0 +1,109 @@
+### Page
+- Page URL: http://127.0.0.1:4311/#/delivery/
+- Page Title: 整集与交付 · 片场
+### Snapshot
+```yaml
+- generic [ref=e421]:
+  - complementary [ref=e422]:
+    - button "片场，返回工作室项目" [ref=e423] [cursor=pointer]:
+      - strong [ref=e427]: 片场
+      - generic [ref=e428]: PIANCHANG
+    - button "拾 拾光工作室 团队工作空间" [ref=e429] [cursor=pointer]:
+      - generic [ref=e430]: 拾
+      - generic [ref=e431]:
+        - strong [ref=e432]: 拾光工作室
+        - generic [ref=e433]: 团队工作空间
+    - navigation "工作室导航" [ref=e436]:
+      - button "工作室项目" [ref=e437] [cursor=pointer]
+      - button "我的工作 3" [ref=e440] [cursor=pointer]:
+        - text: 我的工作
+        - generic [ref=e443]: "3"
+    - generic [ref=e445]: 当前项目
+    - button "《旧钥匙》写实分镜示意 旧钥匙 写实短剧 · 9:16" [ref=e449] [cursor=pointer]:
+      - img "《旧钥匙》写实分镜示意" [ref=e1346]
+      - generic [ref=e453]:
+        - strong [ref=e454]: 旧钥匙
+        - generic [ref=e455]: 写实短剧 · 9:16
+    - navigation "项目导航" [ref=e458]:
+      - button "项目概览" [ref=e459] [cursor=pointer]
+      - button "剧本与设定" [ref=e462] [cursor=pointer]
+      - button "资产库" [ref=e465] [cursor=pointer]
+      - button "场次制作" [ref=e468] [cursor=pointer]
+      - button "整集与交付" [ref=e471] [cursor=pointer]
+    - generic [ref=e474]:
+      - button "视觉规范 01" [ref=e475] [cursor=pointer]:
+        - text: 视觉规范
+        - generic [ref=e478]: "01"
+      - button "成员与用量" [ref=e479] [cursor=pointer]
+      - generic [ref=e483]:
+        - generic "许知" [ref=e484]: 知
+        - generic [ref=e485]:
+          - strong [ref=e486]: 许知
+          - generic [ref=e487]: 制作人员 · 示例身份
+        - button "关于本地预览" [ref=e488] [cursor=pointer]
+  - generic [ref=e491]:
+    - banner [ref=e492]:
+      - generic [ref=e493]:
+        - button "拾光工作室" [ref=e494] [cursor=pointer]
+        - button "旧钥匙" [ref=e497] [cursor=pointer]
+        - generic [ref=e500]: 整集与交付
+      - generic [ref=e501]:
+        - button "本地设计预览" [ref=e502] [cursor=pointer]
+        - button "已保存在本机" [ref=e504] [cursor=pointer]
+        - button "查看我的待办" [ref=e507] [cursor=pointer]
+        - generic "许知" [ref=e510]: 知
+    - main [ref=e511]:
+      - generic [ref=e2885]:
+        - generic [ref=e2886]:
+          - generic [ref=e2887]:
+            - paragraph [ref=e2888]: ASSEMBLY & DELIVERY
+            - heading "从一场戏，到完整的一集" [level=1] [ref=e2889]
+            - paragraph [ref=e2890]: 选定场次版本，衔接整集；确认与交付都指向具体稿件。
+          - button "导出示例清单" [ref=e2892] [cursor=pointer]
+        - generic [ref=e2895]:
+          - button "整集编排" [ref=e2896] [cursor=pointer]
+          - button "工作包与回传" [ref=e2897] [cursor=pointer]
+          - generic [ref=e2898]: 第 1 集 · 重逢
+        - generic [ref=e2899]:
+          - generic [ref=e2900]:
+            - generic [ref=e2901]:
+              - heading "第 1 集 · 重逢" [level=2] [ref=e2902]
+              - generic [ref=e2903]: 草稿准备中
+            - generic [ref=e2904]:
+              - generic [ref=e2905]: "01"
+              - img "《旧钥匙》写实分镜示意" [ref=e2907]
+              - generic [ref=e2909]:
+                - heading "咖啡厅的旧钥匙" [level=3] [ref=e2910]
+                - paragraph [ref=e2911]: 6 镜 · 00:46
+                - combobox "整集使用的场次版本" [ref=e2912]:
+                  - option "选择已确认场次版本"
+                  - option "场次 v2 · 已确认" [selected]
+              - button "查看审阅" [ref=e2913] [cursor=pointer]
+            - generic [ref=e2921]:
+              - generic [ref=e2922]: "02"
+              - generic [ref=e2926]:
+                - heading "咖啡厅外" [level=3] [ref=e2927]
+                - paragraph [ref=e2928]: 还没有可用于整集的场次版本。
+                - generic [ref=e2929]: 待制作
+              - button "查看剧集戏文" [ref=e2930] [cursor=pointer]
+            - paragraph [ref=e2934]: 新草稿不会自动覆盖这里选定的场次版本。整集的声音、字幕、节奏和最终结果仍需独立确认。
+            - heading "下一集的准备" [level=2] [ref=e2937]
+            - button [ref=e2938] [cursor=pointer]:
+              - img "《旧钥匙》写实分镜示意" [ref=e2940]
+              - generic [ref=e2942]:
+                - heading "第 2 集 · 留下的线索" [level=3] [ref=e2943]
+                - paragraph [ref=e2944]: 沿用林夏的造型与旧铜钥匙，保留资产固定版本。
+          - complementary [ref=e2947]:
+            - heading "整集交付检查" [level=2] [ref=e2948]
+            - generic [ref=e2949]: 全部场次具有可用版本
+            - generic [ref=e2953]: 整集画面、声音与字幕已核对
+            - generic [ref=e2957]: 主创确认指定整集稿件
+            - generic [ref=e2961]: 导出文件与来源清单已就绪
+            - generic [ref=e2965]:
+              - heading "整集暂不可交付" [level=3] [ref=e2968]
+              - paragraph [ref=e2969]: 当前示例还缺少第二场和整集审阅。场次通过不等于整集通过。
+              - button "生成最终交付" [disabled] [ref=e2970]
+  - status [ref=e2878]:
+    - generic [ref=e2881]: 已模拟确认此场次版本；整集仍需独立审阅。
+    - button "关闭提示" [ref=e2882] [cursor=pointer]
+```

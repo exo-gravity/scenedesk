@@ -1,0 +1,57 @@
+### Result
+{"modalFocus":true,"emptyValidation":true,"formSaved":"反应镜头 / 导入素材","escapeAndFocusReturn":true,"keyboardOrder":"SH02,SH03,SH01","resize":{"before":"15","after":"16"},"collapsedSize":"0","restoredSize":"16","virtualRows":11,"media":{"duration":4,"paused":true,"time":0.928064,"width":360,"height":640,"trackCount":1,"trackMode":"disabled"},"captionToggled":"showing","persistedSizes":"[16,59,25]","allBasicChecksPassed":false}
+### Ran Playwright code
+```js
+await (async (page) => {
+ const report = {};
+ await page.getByRole("button",{name:"编辑镜头"}).click();
+ const name=page.getByRole("textbox",{name:"镜头名称"});
+ await name.waitFor();
+ report.modalFocus=await name.evaluate(el=>el===document.activeElement);
+ await name.fill("");
+ await page.getByRole("button",{name:"保存参数"}).click();
+ report.emptyValidation=await page.getByText("请输入镜头名称",{exact:true}).isVisible();
+ await name.fill("反应镜头");
+ await page.getByRole("button",{name:"保存参数"}).click();
+ await page.getByRole("dialog").waitFor({state:"hidden"});
+ report.formSaved=await page.getByTestId("saved").innerText();
+ await page.getByRole("button",{name:"编辑镜头"}).click();
+ await name.waitFor();
+ await page.keyboard.press("Escape");
+ await page.getByRole("dialog").waitFor({state:"hidden"});
+ await page.waitForFunction(()=>document.activeElement?.textContent==="编辑镜头");
+ report.escapeAndFocusReturn=true;
+ await page.getByRole("button",{name:"移动 SH01"}).focus();
+ await page.keyboard.press("Space");
+ await page.waitForTimeout(150);
+ await page.keyboard.press("ArrowDown");
+ await page.waitForTimeout(150);
+ await page.keyboard.press("ArrowDown");
+ await page.waitForTimeout(150);
+ await page.keyboard.press("Space");
+ await page.waitForTimeout(300);
+ report.keyboardOrder=await page.getByTestId("order").innerText();
+ const separator=page.getByRole("separator").first();
+ const before=await separator.getAttribute("aria-valuenow");
+ await separator.focus();
+ await page.keyboard.press("ArrowRight");
+ await page.waitForTimeout(100);
+ report.resize={before,after:await separator.getAttribute("aria-valuenow")};
+ await page.getByRole("button",{name:"切换左侧面板"}).click();
+ await page.waitForTimeout(150);
+ report.collapsedSize=await separator.getAttribute("aria-valuenow");
+ await page.getByRole("button",{name:"切换左侧面板"}).click();
+ await page.waitForTimeout(150);
+ report.restoredSize=await separator.getAttribute("aria-valuenow");
+ report.virtualRows=await page.locator("[data-asset]").count();
+ await page.getByRole("button",{name:"play",exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector("video").currentTime>0.9);
+ await page.getByRole("button",{name:"pause",exact:true}).click();
+ report.media=await page.locator("video").evaluate(v=>({duration:v.duration,paused:v.paused,time:v.currentTime,width:v.videoWidth,height:v.videoHeight,trackCount:v.textTracks.length,trackMode:v.textTracks[0]?.mode}));
+ await page.getByRole("button",{name:"closed captions",exact:true}).click();
+ report.captionToggled=await page.locator("video").evaluate(v=>v.textTracks[0].mode);
+ report.persistedSizes=await page.evaluate(()=>localStorage.getItem("drama-component-spike-sizes"));
+ report.allBasicChecksPassed=report.modalFocus&&report.emptyValidation&&report.formSaved==="反应镜头 / 导入素材"&&report.escapeAndFocusReturn&&report.keyboardOrder==="SH02,SH01,SH03"&&report.resize.before!==report.resize.after&&Number(report.collapsedSize)===0&&Number(report.restoredSize)>0&&report.virtualRows<1000&&report.media.time>0.9&&report.media.paused;
+ return report;
+})(page);
+```

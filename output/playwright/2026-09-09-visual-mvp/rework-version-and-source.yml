@@ -1,0 +1,227 @@
+- generic [ref=e421]:
+  - complementary [ref=e422]:
+    - button "片场，返回工作室项目" [ref=e423] [cursor=pointer]:
+      - strong [ref=e427]: 片场
+      - generic [ref=e428]: PIANCHANG
+    - button "拾 拾光工作室 团队工作空间" [ref=e429] [cursor=pointer]:
+      - generic [ref=e430]: 拾
+      - generic [ref=e431]:
+        - strong [ref=e432]: 拾光工作室
+        - generic [ref=e433]: 团队工作空间
+    - navigation "工作室导航" [ref=e436]:
+      - button "工作室项目" [ref=e437] [cursor=pointer]
+      - button "我的工作 3" [ref=e440] [cursor=pointer]:
+        - text: 我的工作
+        - generic [ref=e443]: "3"
+    - generic [ref=e445]: 当前项目
+    - button "《旧钥匙》写实分镜示意 旧钥匙 写实短剧 · 9:16" [ref=e449] [cursor=pointer]:
+      - img "《旧钥匙》写实分镜示意" [ref=e1346]
+      - generic [ref=e453]:
+        - strong [ref=e454]: 旧钥匙
+        - generic [ref=e455]: 写实短剧 · 9:16
+    - navigation "项目导航" [ref=e458]:
+      - button "项目概览" [ref=e459] [cursor=pointer]
+      - button "剧本与设定" [ref=e462] [cursor=pointer]
+      - button "资产库" [ref=e465] [cursor=pointer]
+      - button "场次制作" [ref=e468] [cursor=pointer]
+      - button "整集与交付" [ref=e471] [cursor=pointer]
+    - generic [ref=e941]:
+      - generic [ref=e942]: 第 1 集 · 重逢
+      - button "01 咖啡厅 制作中" [ref=e945] [cursor=pointer]:
+        - generic [ref=e946]: "01"
+        - text: 咖啡厅
+        - generic [ref=e947]: 制作中
+      - button "02 咖啡厅外" [ref=e948] [cursor=pointer]:
+        - generic [ref=e949]: "02"
+        - text: 咖啡厅外
+      - button "第 2 集 · 留下的线索" [ref=e952] [cursor=pointer]
+    - generic [ref=e474]:
+      - button "视觉规范 01" [ref=e475] [cursor=pointer]:
+        - text: 视觉规范
+        - generic [ref=e478]: "01"
+      - button "成员与用量" [ref=e479] [cursor=pointer]
+      - generic [ref=e483]:
+        - generic "许知" [ref=e484]: 知
+        - generic [ref=e485]:
+          - strong [ref=e486]: 许知
+          - generic [ref=e487]: 制作人员 · 示例身份
+        - button "关于本地预览" [ref=e488] [cursor=pointer]
+  - generic [ref=e491]:
+    - banner [ref=e492]:
+      - generic [ref=e493]:
+        - button "拾光工作室" [ref=e494] [cursor=pointer]
+        - button "旧钥匙" [ref=e497] [cursor=pointer]
+        - generic [ref=e500]: 场次制作
+      - generic [ref=e501]:
+        - button "本地设计预览" [ref=e502] [cursor=pointer]
+        - button "已保存在本机" [ref=e504] [cursor=pointer]
+        - button "查看我的待办" [ref=e507] [cursor=pointer]
+        - generic "许知" [ref=e510]: 知
+    - main [ref=e511]:
+      - generic [ref=e955]:
+        - generic [ref=e956]:
+          - generic [ref=e957]:
+            - generic [ref=e958]:
+              - generic [ref=e959]: 第 1 集 · 重逢
+              - generic [ref=e962]: 场次 01
+            - generic [ref=e963]:
+              - heading "咖啡厅的旧钥匙" [level=1] [ref=e964]
+              - generic [ref=e965]: 制作中
+            - generic [ref=e966]:
+              - generic [ref=e967]: 日 / 内
+              - generic [ref=e970]: 6 个镜头
+              - generic [ref=e973]: 46 秒编排
+              - generic [ref=e976]:
+                - generic "许知" [ref=e977]: 知
+                - text: 许知主责
+          - generic [ref=e978]:
+            - button "预演场次" [ref=e979] [cursor=pointer]
+            - button "整集与交付" [ref=e1918] [cursor=pointer]
+        - generic [ref=e985]:
+          - navigation "场次视图" [ref=e986]:
+            - button "制作" [ref=e987] [cursor=pointer]
+            - button "剪辑" [ref=e990] [cursor=pointer]
+            - button "审阅 2" [ref=e1921] [cursor=pointer]:
+              - text: 审阅
+              - generic [ref=e996]: "2"
+          - generic [ref=e997]:
+            - text: 创作依据已确认
+            - generic [ref=e1000]: ·
+            - button "查看戏文" [ref=e1001] [cursor=pointer]
+        - generic [ref=e1922]:
+          - generic [ref=e1923]:
+            - generic [ref=e1924]:
+              - generic [ref=e1925]:
+                - heading "场次审阅" [level=2] [ref=e1926]
+                - combobox "审阅版本" [ref=e1927]:
+                  - option "v2 · 待审阅" [selected]
+                  - option "v1 · 需修改"
+                - generic [ref=e1928]: 待审阅
+              - generic [ref=e1929]: 固定稿件 · 6 镜
+            - generic [ref=e1930]:
+              - generic [ref=e1931]:
+                - generic [ref=e1932]: 9:16 静帧预演
+                - img "SH-01 静帧预演" [ref=e1934]
+                - generic [ref=e1936]: 旧钥匙 / SH-01
+              - generic [ref=e1937]:
+                - button "回到开头" [ref=e1938] [cursor=pointer]
+                - button "播放静帧预演" [ref=e1941] [cursor=pointer]
+                - generic [ref=e1944]:
+                  - text: 00:00
+                  - generic [ref=e1945]: / 00:46
+                - slider "预演位置" [ref=e1946] [cursor=pointer]: "0"
+                - generic "本地静帧预演不包含真实声音" [ref=e1947]
+                - button "放大预演" [ref=e1950] [cursor=pointer]
+            - generic [ref=e1953]:
+              - generic [ref=e1956]:
+                - strong [ref=e1957]: 你正在查看固定版本 v2
+                - paragraph [ref=e1958]: 新候选和新草稿不会改变这份内容，意见始终留在此版本。
+              - button "查看镜头来源" [ref=e1959] [cursor=pointer]
+            - generic [ref=e1962]:
+              - button "《旧钥匙》写实分镜示意 SH-01 / A" [ref=e1963] [cursor=pointer]:
+                - img "《旧钥匙》写实分镜示意" [ref=e1965]
+                - generic [ref=e1967]: SH-01 / A
+              - button "《旧钥匙》写实分镜示意 SH-02 / A" [ref=e1968] [cursor=pointer]:
+                - img "《旧钥匙》写实分镜示意" [ref=e1970]
+                - generic [ref=e1972]: SH-02 / A
+              - button "《旧钥匙》写实分镜示意 SH-03 / A" [ref=e1973] [cursor=pointer]:
+                - img "《旧钥匙》写实分镜示意" [ref=e1975]
+                - generic [ref=e1977]: SH-03 / A
+              - button "《旧钥匙》写实分镜示意 SH-04 / B" [ref=e2088] [cursor=pointer]:
+                - img "《旧钥匙》写实分镜示意" [ref=e1980]
+                - generic [ref=e1982]: SH-04 / B
+              - button "《旧钥匙》写实分镜示意 SH-05 / A" [ref=e1983] [cursor=pointer]:
+                - img "《旧钥匙》写实分镜示意" [ref=e1985]
+                - generic [ref=e1987]: SH-05 / A
+              - button "《旧钥匙》写实分镜示意 SH-06 / A" [ref=e1988] [cursor=pointer]:
+                - img "《旧钥匙》写实分镜示意" [ref=e1990]
+                - generic [ref=e1992]: SH-06 / A
+          - complementary [ref=e1993]:
+            - heading "审阅意见 1" [level=2] [ref=e2089]
+            - generic [ref=e1998]:
+              - button "全部意见" [ref=e1999] [cursor=pointer]
+              - button "待处理" [ref=e2000] [cursor=pointer]
+            - article [ref=e2090]:
+              - generic [ref=e2091]:
+                - generic "许知" [ref=e2092]: 知
+                - strong [ref=e2093]: 许知
+                - generic [ref=e2094]: 制作
+              - button "00:00 v2" [ref=e2095] [cursor=pointer]:
+                - text: 00:00
+                - generic [ref=e2098]: v2
+              - paragraph [ref=e2099]: 开场保留人物位置，雨后自然光再柔和一点。
+              - generic [ref=e2100]:
+                - button "标记已处理" [ref=e2101] [cursor=pointer]
+                - button "准备修改" [ref=e2104] [cursor=pointer]
+            - generic [ref=e2006]:
+              - generic [ref=e2007]:
+                - generic [ref=e2008]: 添加意见
+                - generic [ref=e2009]: 00:00
+              - textbox "添加意见" [ref=e2010]:
+                - /placeholder: 描述需要保留或修改的内容…
+              - button "记录到 v2" [disabled] [ref=e2107]
+            - generic [ref=e2014]:
+              - generic [ref=e2015]: 主创决定 · 预览操作
+              - generic [ref=e2016]:
+                - button "需要修改" [ref=e2017] [cursor=pointer]
+                - button "确认场次" [ref=e2018] [cursor=pointer]
+              - generic [ref=e2021]: 场次确认后可用于整集，整集另行确认。
+  - dialog [ref=e2108]:
+    - generic [ref=e2109]:
+      - generic [ref=e2110]:
+        - heading "按意见准备修改" [level=2] [ref=e2111]
+        - paragraph [ref=e2112]: 第 1 集 / 咖啡厅 / SH-01 · 相对而坐
+      - button "关闭" [active] [ref=e2113] [cursor=pointer]
+    - generic [ref=e2116]:
+      - generic [ref=e2117]:
+        - img "《旧钥匙》写实分镜示意" [ref=e2119]
+        - generic [ref=e2121]:
+          - generic [ref=e2122]: 仅本次试作
+          - heading "双人中景，建立人物与桌面的空间关系" [level=3] [ref=e2123]
+          - paragraph [ref=e2124]: 中景 · 固定 · 6 秒 · 9:16
+      - generic [ref=e2125]: v2 / 00:00：开场保留人物位置，雨后自然光再柔和一点。
+      - generic [ref=e2129]: 修改要求与保留项
+      - textbox "修改要求与保留项" [ref=e2130]: 根据场次 v2 的意见准备修改：开场保留人物位置，雨后自然光再柔和一点。 保留当前人物、服装、空间与道具参考。只准备新尝试，旧稿保持不变。
+      - generic [ref=e2131]:
+        - generic [ref=e2132]: 本次引用
+        - generic [ref=e2133]: 来自当前场次 · 固定示例版本
+      - generic [ref=e2134]:
+        - generic [ref=e2135]:
+          - img "《旧钥匙》写实分镜示意" [ref=e2137]
+          - generic [ref=e2139]:
+            - text: 林夏
+            - generic [ref=e2140]: 角色 / v2
+        - generic [ref=e2143]:
+          - img "《旧钥匙》写实分镜示意" [ref=e2145]
+          - generic [ref=e2147]:
+            - text: 周远
+            - generic [ref=e2148]: 角色 / v1
+        - generic [ref=e2151]:
+          - img "《旧钥匙》写实分镜示意" [ref=e2153]
+          - generic [ref=e2155]:
+            - text: 临街咖啡厅
+            - generic [ref=e2156]: 场景 / v1
+        - generic [ref=e2159]:
+          - img "《旧钥匙》写实分镜示意" [ref=e2161]
+          - generic [ref=e2163]:
+            - text: 旧铜钥匙
+            - generic [ref=e2164]: 道具 / v1
+      - generic [ref=e2167]:
+        - generic [ref=e2168]:
+          - text: 视频模型
+          - combobox "视频模型" [disabled] [ref=e2169]:
+            - option "Seedance · 待接入" [selected]
+        - generic [ref=e2170]:
+          - text: 生成数量
+          - combobox "生成数量" [ref=e2171]:
+            - option "1 个候选" [selected]
+            - option "2 个候选"
+            - option "3 个候选"
+      - generic [ref=e2172]:
+        - generic [ref=e2173]:
+          - strong [ref=e2174]: 本地模拟，不产生费用
+          - generic [ref=e2175]: 真实接入后在此核对模型能力、计价与预算。
+        - generic [ref=e2176]: ¥ 0.00
+      - generic [ref=e2177]:
+        - button "保存提示，稍后继续" [ref=e2178] [cursor=pointer]
+        - button "模拟生成 · 不计费" [ref=e2179] [cursor=pointer]

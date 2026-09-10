@@ -1,0 +1,427 @@
+{
+  "description": "结构样例：不代表真实媒体或可用供应商能力。业务跨字段规则另由 AT 用例验证。",
+  "samples": [
+    {
+      "name": "创建项目",
+      "schema": "CreateProject",
+      "valid": true,
+      "value": {
+        "name": "旧钥匙",
+        "leadMembershipId": "00000000-0000-4000-8000-000000000008",
+        "spec": {
+          "width": 720,
+          "height": 1280,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        }
+      },
+      "requestOperationId": "createProject"
+    },
+    {
+      "name": "视频实际输入",
+      "schema": "PlanInput",
+      "valid": true,
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "video",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "references": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {
+          "aspectRatio": "9:16",
+          "durationSeconds": 7,
+          "resolution": "720p",
+          "withAudio": true
+        }
+      },
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "文本提案计划",
+      "schema": "PlanInput",
+      "valid": true,
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000006",
+        "purpose": "script_analysis",
+        "prompt": "按集场镜拆解，保留已有结构。",
+        "references": [],
+        "sourceScriptRevisionId": "00000000-0000-4000-8000-000000000007",
+        "output": {}
+      },
+      "requestOperationId": "createGenerationPlan"
+    },
+    {
+      "name": "执行已确认计划",
+      "schema": "ExecutePlan",
+      "valid": true,
+      "value": {
+        "planId": "00000000-0000-4000-8000-000000000009"
+      },
+      "requestOperationId": "executeGenerationPlan"
+    },
+    {
+      "name": "角色并存造型",
+      "schema": "AssetRevisionInput",
+      "valid": true,
+      "value": {
+        "definition": {
+          "description": "林夏，成年女性",
+          "references": [
+            {
+              "mediaId": "00000000-0000-4000-8000-000000000010",
+              "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+              "purpose": "identity"
+            }
+          ],
+          "looks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000030",
+              "revision": 1,
+              "label": "灰色风衣",
+              "references": [
+                {
+                  "mediaId": "00000000-0000-4000-8000-000000000010",
+                  "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+                  "purpose": "identity"
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000031",
+              "revision": 1,
+              "label": "晚礼服",
+              "references": [
+                {
+                  "mediaId": "00000000-0000-4000-8000-000000000010",
+                  "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+                  "purpose": "identity"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "requestOperationId": "reviseAsset"
+    },
+    {
+      "name": "合法媒体区间",
+      "schema": "TakeInput",
+      "valid": true,
+      "value": {
+        "shotId": "00000000-0000-4000-8000-000000000004",
+        "shotRevisionId": "00000000-0000-4000-8000-000000000005",
+        "mediaId": "00000000-0000-4000-8000-000000000021",
+        "range": {
+          "inUs": 1000000,
+          "outUs": 8000000
+        }
+      },
+      "requestOperationId": "createTake"
+    },
+    {
+      "name": "剪辑与字幕",
+      "schema": "CutDraftInput",
+      "valid": true,
+      "value": {
+        "timeline": {
+          "schemaVersion": "1",
+          "spec": {
+            "width": 720,
+            "height": 1280,
+            "fpsNum": 24,
+            "fpsDen": 1,
+            "language": "zh-CN"
+          },
+          "tracks": [
+            {
+              "id": "00000000-0000-4000-8000-000000000023",
+              "kind": "video",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000020",
+                  "kind": "video",
+                  "mediaId": "00000000-0000-4000-8000-000000000021",
+                  "takeId": "00000000-0000-4000-8000-000000000022",
+                  "timelineStartUs": 0,
+                  "range": {
+                    "inUs": 1000000,
+                    "outUs": 8000000
+                  },
+                  "gainDb": 0,
+                  "muted": false,
+                  "fit": "contain"
+                }
+              ],
+              "muted": false
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000025",
+              "kind": "subtitle",
+              "items": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000024",
+                  "kind": "subtitle",
+                  "timelineStartUs": 1000000,
+                  "durationUs": 3000000,
+                  "text": "你说，东西一直在你这儿？"
+                }
+              ],
+              "muted": false
+            }
+          ],
+          "burnSubtitles": false
+        }
+      },
+      "requestOperationId": "saveCutDraft"
+    },
+    {
+      "name": "冻结版本",
+      "schema": "FreezeCut",
+      "valid": true,
+      "value": {
+        "label": "审稿 A"
+      },
+      "requestOperationId": "freezeCut"
+    },
+    {
+      "name": "审阅候选",
+      "schema": "ReviewInput",
+      "valid": true,
+      "value": {
+        "subject": {
+          "takeId": "00000000-0000-4000-8000-000000000022"
+        }
+      },
+      "requestOperationId": "createReview"
+    },
+    {
+      "name": "审阅固定成片",
+      "schema": "ReviewInput",
+      "valid": true,
+      "value": {
+        "subject": {
+          "cutRevisionId": "00000000-0000-4000-8000-000000000040"
+        }
+      },
+      "requestOperationId": "createReview"
+    },
+    {
+      "name": "局部时间码评论",
+      "schema": "CommentInput",
+      "valid": true,
+      "value": {
+        "body": "钥匙接触位置需要修正。",
+        "startUs": 2000000,
+        "endUs": 3000000
+      },
+      "requestOperationId": "createComment"
+    },
+    {
+      "name": "最终交付",
+      "schema": "DeliveryInput",
+      "valid": true,
+      "value": {
+        "cutRevisionId": "00000000-0000-4000-8000-000000000040",
+        "reviewId": "00000000-0000-4000-8000-000000000041",
+        "kind": "final",
+        "includeMedia": true,
+        "includeSrt": true
+      },
+      "requestOperationId": "createDelivery"
+    },
+    {
+      "name": "真实费用大额字符串",
+      "schema": "Money",
+      "valid": true,
+      "value": {
+        "currency": "CNY",
+        "amountMicros": "900719925474099100"
+      }
+    },
+    {
+      "name": "账单负调整",
+      "schema": "Money",
+      "valid": true,
+      "value": {
+        "currency": "CNY",
+        "amountMicros": "-2000000"
+      }
+    },
+    {
+      "name": "提交结果未知",
+      "schema": "GenerationJob",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000050",
+        "revision": 1,
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "planId": "00000000-0000-4000-8000-000000000009",
+        "status": "submission_unknown",
+        "mediaIds": [],
+        "reservationStatus": "held",
+        "inputOutdated": false
+      }
+    },
+    {
+      "name": "事件游标",
+      "schema": "Event",
+      "valid": true,
+      "value": {
+        "seq": "9007199254740993",
+        "type": "resource_changed",
+        "resourceKind": "generation_job",
+        "resourceId": "00000000-0000-4000-8000-000000000050",
+        "resourceRevision": 2
+      }
+    },
+    {
+      "name": "供应商限制",
+      "schema": "CapabilityInputRule",
+      "valid": true,
+      "value": {
+        "kind": "image",
+        "purposes": [
+          "identity"
+        ],
+        "minCount": 1,
+        "maxCount": 3,
+        "maxBytes": 10000000,
+        "mimeTypes": [
+          "image/png"
+        ]
+      }
+    },
+    {
+      "name": "非法双审阅目标",
+      "schema": "ReviewInput",
+      "valid": false,
+      "value": {
+        "subject": {
+          "takeId": "00000000-0000-4000-8000-000000000022",
+          "cutRevisionId": "00000000-0000-4000-8000-000000000040"
+        }
+      }
+    },
+    {
+      "name": "缺失审阅目标",
+      "schema": "ReviewInput",
+      "valid": false,
+      "value": {
+        "subject": {}
+      }
+    },
+    {
+      "name": "浮点金额不被接受",
+      "schema": "Money",
+      "valid": false,
+      "value": {
+        "currency": "CNY",
+        "amountMicros": 8.1
+      }
+    },
+    {
+      "name": "未知费用不能伪造币种",
+      "schema": "Money",
+      "valid": false,
+      "value": {
+        "currency": "元",
+        "amountMicros": "0"
+      }
+    },
+    {
+      "name": "不接受未声明模型字段",
+      "schema": "PlanInput",
+      "valid": false,
+      "value": {
+        "scope": "project",
+        "projectId": "00000000-0000-4000-8000-000000000001",
+        "connectionId": "00000000-0000-4000-8000-000000000002",
+        "capabilityId": "00000000-0000-4000-8000-000000000003",
+        "purpose": "video",
+        "prompt": "两位成年人在咖啡厅交谈。",
+        "references": [
+          {
+            "mediaId": "00000000-0000-4000-8000-000000000010",
+            "assetRevisionId": "00000000-0000-4000-8000-000000000011",
+            "purpose": "identity"
+          }
+        ],
+        "shotSources": [
+          {
+            "shotId": "00000000-0000-4000-8000-000000000004",
+            "shotRevisionId": "00000000-0000-4000-8000-000000000005"
+          }
+        ],
+        "output": {
+          "aspectRatio": "9:16",
+          "durationSeconds": 7,
+          "resolution": "720p",
+          "withAudio": true
+        },
+        "autoPurchaseMore": true
+      }
+    },
+    {
+      "name": "首版不接受广告项目类型",
+      "schema": "CreateProject",
+      "valid": false,
+      "value": {
+        "name": "广告",
+        "leadMembershipId": "00000000-0000-4000-8000-000000000008",
+        "spec": {
+          "width": 720,
+          "height": 1280,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        },
+        "kind": "advertising"
+      }
+    },
+    {
+      "name": "负时间范围",
+      "schema": "Range",
+      "valid": false,
+      "value": {
+        "inUs": -1,
+        "outUs": 1000
+      }
+    },
+    {
+      "name": "无效 UUID",
+      "schema": "ExecutePlan",
+      "valid": false,
+      "value": {
+        "planId": "not-a-plan-id"
+      }
+    },
+    {
+      "name": "浮点事件游标不被接受",
+      "schema": "Event",
+      "valid": false,
+      "value": {
+        "seq": 3.5,
+        "type": "reset"
+      }
+    }
+  ]
+}

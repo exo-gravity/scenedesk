@@ -1,0 +1,17 @@
+async (page) => {
+ const errors=[]; page.on('pageerror', e=>errors.push(e.message));
+ const button=name=>page.getByRole('button',{name,exact:true});
+ const snap=async name=>{await page.waitForTimeout(220);await page.screenshot({path:`output/playwright/2026-09-10-production-details/${name}.png`,scale:'css'});};
+ await page.goto('http://127.0.0.1:4312/#/journey/?variant=finishing&topic=sound&tone=light');await page.reload();
+ await page.getByRole('heading',{name:'咖啡厅 · 声音与字幕',exact:true}).waitFor();
+ await page.setViewportSize({width:1512,height:982});
+ const caption=page.getByText('原来，他一直留着。',{exact:true});
+ const getStyle=()=>caption.evaluate(el=>({color:getComputedStyle(el).color,background:getComputedStyle(el).backgroundColor}));
+ const light=await getStyle();await snap('03-sound');
+ await button('字幕').click();await snap('04-subtitle');
+ await button('声音').click();await page.setViewportSize({width:1366,height:768});await snap('10-compact-sound');
+ await button('切换明暗').click();const dark=await getStyle();await snap('13-dark-sound');
+ if(JSON.stringify(light)!==JSON.stringify(dark))throw new Error('字幕随工作台反色');
+ if(errors.length)throw new Error(errors.join(';'));
+ return {checks:[{name:'字幕在明暗工作台中保持相同内容样式',pass:true},{name:'最终样式走查无页面脚本错误',pass:true}],light,dark,errors};
+}

@@ -1,0 +1,18 @@
+
+> drama-canvas-stack-closure@0.0.0 check
+> tsc --noEmit && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 1105 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.41 kB │ gzip:   0.32 kB
+dist/assets/index-DV9kBE6z.css  255.23 kB │ gzip:  38.01 kB
+dist/assets/index-CiLoKkTi.js   906.59 kB │ gzip: 270.50 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.89s

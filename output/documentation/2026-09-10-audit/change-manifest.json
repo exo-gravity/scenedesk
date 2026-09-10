@@ -1,0 +1,584 @@
+{
+  "checkedAt": "2026-09-10T02:13:20.656668+00:00",
+  "scope": "Documentation corrections, historical notices and verification report paths only; no UI or business implementation. Before hashes were captured at audit start.",
+  "modifiedMarkdown": 44,
+  "modifiedVerificationScripts": 3,
+  "modified": [
+    {
+      "path": "docs/ai-drama-workbench-tenancy-v0.1.md",
+      "beforeSha256": "fdda80a0830952826d7372ea67a59e04f7f07ed15af4e179cf910c54f79a0a9b",
+      "afterSha256": "b91302d9b004f1c3448160f7e3efd009c32cb48bb30f99334504533d1fb04c02"
+    },
+    {
+      "path": "docs/ai-video-platform-mvp-plan-v0.2.md",
+      "beforeSha256": "66f6cc06f3d11016c1cce1a504892d5062b0f052ed65b3393b17e3bc879542b3",
+      "afterSha256": "e2082f6111f56812f5b516bc3149f35a986e41dcaaa51b3c932ab565c7a704a1"
+    },
+    {
+      "path": "docs/ai-video-product-lines-v0.1.md",
+      "beforeSha256": "d7c2bcbd596b41b602f51e25ec4794c190183ea7131a00512c39b635da2a8225",
+      "afterSha256": "7f1b792c33d9caa9955ba7db1a06864f465da5f6d6add8416a31a58e7c1167bf"
+    },
+    {
+      "path": "docs/ai-drama-workbench-product-design-v1.0.md",
+      "beforeSha256": "69c3fd8d885171ab686e17a3e3085423d70bfd0435fa60983dc8650b437f0941",
+      "afterSha256": "8d51fe2c7ff76ccce378dca0b09d7b770258ea10a24a204d0518a68c8a638e24"
+    },
+    {
+      "path": "docs/ai-drama-workspace-decision-and-validation-v0.1.md",
+      "beforeSha256": "75145a9742cbafa0d9f0f941f598a826dec446d508975a6f80154211313b63a6",
+      "afterSha256": "75d7fced2fa487ee7d3436c2a125e2d121fffc44d4f9f9edfd53719eb1ffef96"
+    },
+    {
+      "path": "docs/ai-drama-workbench-product-design-v1.1.md",
+      "beforeSha256": "ace741708417212dbdbd2e0bea892d37ea5b6e4dffd8149b87d8f4baddcdf0fc",
+      "afterSha256": "3b043a2c574b9757e9c3ff4354824412653999186383871b49889ad6afdf2596"
+    },
+    {
+      "path": "docs/ai-drama-workbench-assets-v0.1.md",
+      "beforeSha256": "3f32a1786770b803c3e4c58fea554f4cdb76092b20c62220912ecb1bd4bc3c2b",
+      "afterSha256": "cdeae19bd92b449a3438bb01be8fc9394e282a55a32ce64b1e3480a7d75b7b18"
+    },
+    {
+      "path": "docs/ai-marketing-video-mvp-v0.1.md",
+      "beforeSha256": "6f61de55e9e79e6aa9a798c4bf635209e0d456a955b815ac3de3b18d9af639a8",
+      "afterSha256": "3755687872e680c8a8281370d19ce4e1632cfd55509afd83b100f06484eea2f4"
+    },
+    {
+      "path": "docs/ai-drama-scene-mvp-interaction-v0.1.md",
+      "beforeSha256": "bd4a68459cf0bf018651414f9adc311a2d36663e8bbf5796f765c47a75edb84c",
+      "afterSha256": "fca3bdb1c533a84cc89ca081e5a4c0119b9510d1c9f9acc81cfa1c8d5deae589"
+    },
+    {
+      "path": "docs/ai-drama-product-core-decision-questions-v0.1.md",
+      "beforeSha256": "618562dfc00d60d289fed7afba165ac3bb9069424f4edf9adfb75af9e18953d3",
+      "afterSha256": "7657bda6bbc35e44b4a6b87e654fe669e9b08071dc2bbd50cbcbcda9d4f345d8"
+    },
+    {
+      "path": "docs/ai-video-platform-review-2026-09-07.md",
+      "beforeSha256": "460b0f3e8ba7fa287a81ae1275f97cde001d255733f9ad76cdb5b809349da2c1",
+      "afterSha256": "a44aafb32924a5bd0a37fd5385b07ad6ba03bd4efe941a5e4bec63840db90e22"
+    },
+    {
+      "path": "docs/ai-drama-workbench-core-design-v0.1.md",
+      "beforeSha256": "5e7a22c3d15ab8269bb68d120c3d9512ad934ac49c31dac835c04683ee65e04c",
+      "afterSha256": "f3b2c65863a64b2c0959814164c9470e518ae851208db0838a5886fde4da2ea6"
+    },
+    {
+      "path": "docs/README.md",
+      "beforeSha256": "38af9e9efc71fa6aa6ee3ab566b53f03447fde5905cff9460840fb2d26eb0de3",
+      "afterSha256": "87bec652b893fe178b7e8bd3b7fabed43a7953e8fbf1dd6138128d2971641b0a"
+    },
+    {
+      "path": "docs/ai-drama-workbench-core-design-v0.2.md",
+      "beforeSha256": "1a675b84ad96485a5b940c5a235c9727f1eec5102abfe301ac6ef0c020679bfa",
+      "afterSha256": "64a1c327b5c8a1d988cc0eff456a56ddf8cea00d0eaf6bf1cb3964fc03370591"
+    },
+    {
+      "path": "docs/ai-video-platform-mvp-plan-v0.1.md",
+      "beforeSha256": "1d6239173e7acec39d55bd34cafdb9596f4df650e79aa588eff8e993d709a93f",
+      "afterSha256": "4c6a74131c55f4991f01e0df1cde6d39e9b14287a9e7d238519772c330d62140"
+    },
+    {
+      "path": "docs/ai-video-product-lines-v0.2.md",
+      "beforeSha256": "2ec240cfcb334e66f645563eda70b5625b2e5cc40f40bc1c63d9ae4cce47e2ad",
+      "afterSha256": "f677a9c30d8db8ad2c54a06b0d388a933518abbe491728f94794f701378a7381"
+    },
+    {
+      "path": "docs/design/mvp-visual-prototype-v0.1.md",
+      "beforeSha256": "631edd758709adc7c691cad2a8867c26ec7461060cfe684d6f6bfd69495c9ab1",
+      "afterSha256": "08baf2792764fe95903592a1b39d82cbaa3403959706d75257c9f26914e16de2"
+    },
+    {
+      "path": "docs/design/scene-walkthrough-review-v0.3.md",
+      "beforeSha256": "479e3033146a2b59d092506228a16ca249a0fa6a139dacd2e766aae4993018b7",
+      "afterSha256": "17115d7f3790ff148575b31b4de9d823a3a9e33ca355f88a7ed422a51c065233"
+    },
+    {
+      "path": "docs/design/visual-directions-review-v0.1.md",
+      "beforeSha256": "4b3b93831d51fe4997d4d22b0fb23b1a09ac2cefaa79fb1f316e0cbd893b43da",
+      "afterSha256": "b2d6e1555d61f6af9d66a8ead0afa4a69dcd7dea923ea21b3ffa25ad05d1f62c"
+    },
+    {
+      "path": "docs/design/mantine-ui-agent-spec-v0.1.md",
+      "beforeSha256": "87ff587b7666ec3f69d743c837c5f315f80e466325b81a60a3d64ffc139e3478",
+      "afterSha256": "8b1d24670dea62feaaba78c1696d6c4765efeaba8edda313b83d7fe16ce05cd4"
+    },
+    {
+      "path": "docs/design/core-workspace-recommendation-v0.2.md",
+      "beforeSha256": "00a3eba00596b9d862b245a3b9969140e16b87433a1687509f448197680a2090",
+      "afterSha256": "0b6df481e752164e56ae454c29635603c632418804bf1ec777852b5bb25c0829"
+    },
+    {
+      "path": "docs/design/shared-visual-language-v0.1.md",
+      "beforeSha256": "d6aad0aa83eaa02883deba095ad4e3c0e2fc4d6b02089dbb4780f6a88f50ec48",
+      "afterSha256": "4faace77acbcb28c63a656213d93abab6ca1bfd08ca0829fe61e7d2f25743d7b"
+    },
+    {
+      "path": "docs/design/journey-independent-review-2026-09-10.md",
+      "beforeSha256": "8acf687e48b7a485fddb71ef205b0a228752aa1653a4d356c301b66d8bced3c0",
+      "afterSha256": "314a7d6ce92c865f03b4efaac3b05ba3af1a38a0df7ce3e3682b856e28d8acad"
+    },
+    {
+      "path": "docs/design/scene-dual-mode-visuals-v0.4.md",
+      "beforeSha256": "2333e9baa38406faee2b85d6722c767e4b9a9a1b570158a54f9d9eda0c5b004a",
+      "afterSha256": "522069c3ce52a99d5f38a633623f4fe4e9c4af37c9474174914b539f80a82b88"
+    },
+    {
+      "path": "docs/design/navigation-and-core-flow-v0.1.md",
+      "beforeSha256": "b4008c722046981d9c8593c200bbbfc0676fc88d3edf287f4095a0b728fb18d3",
+      "afterSha256": "a6c100240ab991489a792bf79dda7711c90c32be4531bc2c2adf188b1631a764"
+    },
+    {
+      "path": "docs/design/mantine-visual-sample-v0.2.md",
+      "beforeSha256": "242c3ea33ae2638fd3c4e90d75a473d639e9d0f24b4dd589689dcea1fb3e85ee",
+      "afterSha256": "a9dc706186342aad109f74adacc9d6d29625f90129e213a704ad9f0f0d2563c7"
+    },
+    {
+      "path": "docs/design/scene-canvas-interaction-v0.1.md",
+      "beforeSha256": "6d6ee1b8b8ed9614f227d31522b6a2dbf56f68a45121bfeebe017e3cf04a61a7",
+      "afterSha256": "000ce42da42ed81e615d5f51f583a927e58483f8a7431cb4814a716c0e2446e6"
+    },
+    {
+      "path": "docs/design/production-detail-design-v0.4.md",
+      "beforeSha256": "5927e91bdbfaf1073a1ee94a43d2fe45f4093b055e4bf3a86a84facca25d0d15",
+      "afterSha256": "029fe08b153f1f5760fd5e934de53c83ba4315ad091a80ccc53a830f565c4897"
+    },
+    {
+      "path": "docs/design/layout-concepts-v0.3.md",
+      "beforeSha256": "50b1b0761c23d41da448cb27e624d846e4540d4f67a1f1e63050f0081f16cad3",
+      "afterSha256": "88d670afc3178f4dcb5ef780b1afd146b4e161b50de8f10a6c1e8a1ccc0ec445"
+    },
+    {
+      "path": "docs/design/visual-design-discussion-v0.1.md",
+      "beforeSha256": "cf8d513df8b1d852a45299aadbfaf067471a1d8457fe3f3dbd5cf9aab04c206e",
+      "afterSha256": "a29ccb820cd0832d7cf31952a917a8174798d4d35a80e3045037a2a588898027"
+    },
+    {
+      "path": "docs/design/workspace-recommendation-visuals-v0.2.md",
+      "beforeSha256": "b6b2ab38bfc6a433f05d02f60ea36af10a7932fc576e1eb412f17868ded4ddf3",
+      "afterSha256": "576e20a5aac28cd7b13c7f43304f17f8f0c88a0cf60faefa7421eb370d2ab864"
+    },
+    {
+      "path": "docs/implementation/check_design.py",
+      "beforeSha256": "97edae07a04bb739c0d9cc7e5985e8f05e4db2fd32d1fd9f35d30ab192da52ac",
+      "afterSha256": "4a3675efd0a89ce76d380cf7d72c6f92446cae3d1a8f2358de748aea492750e4"
+    },
+    {
+      "path": "docs/implementation/17-frontend-component-selection.md",
+      "beforeSha256": "d15932e46fd74f97d6777f84021953070d672b6381f9b3b00832c44f1d021bbe",
+      "afterSha256": "7612e1b6d2da2f87e6f817f3a6f173e5d0f4fb1e64e3f8ec60a51c1f934f78e0"
+    },
+    {
+      "path": "docs/implementation/20-external-validation-and-launch-plan.md",
+      "beforeSha256": "f03a4a4aefac9466a424f1d5cbabea1262ea81b53205d567e858201684825ee6",
+      "afterSha256": "b85ed82154701887bffca1e487e8d61aeba73e51d6836a685300130746a9179f"
+    },
+    {
+      "path": "docs/implementation/09-decisions-and-open-items.md",
+      "beforeSha256": "2319140accd20ff970b30ac15aea588d87ef59e339332235be488033d99e9ead",
+      "afterSha256": "b45f206030a75ae393238a78f9aeecc449ac432707c1139e5a20d842e24cee8c"
+    },
+    {
+      "path": "docs/implementation/05-architecture-and-operations.md",
+      "beforeSha256": "5ac8f41d241e43891c3d897df957bf97e52e0522739618b7b452e192d4344998",
+      "afterSha256": "360c8b6db5df1f953601dafb65625dbe61f05fdb1a7cd94a7ff1475db7682bfe"
+    },
+    {
+      "path": "docs/implementation/02-interaction-spec.md",
+      "beforeSha256": "e911ef5d44c74f4d049de5bc5eed75fe4ad70b267c944b469c79088f8c7c167c",
+      "afterSha256": "3ab41aec923f6cc58a4afe6bccaebfcfd4ec0dc72fa327e908b691a22e74e43f"
+    },
+    {
+      "path": "docs/implementation/15-engineering-readiness.md",
+      "beforeSha256": "30c763f3f8fc46a5c6671be69611ab029475ce1b8212e3f7d6666bf6575c5e5e",
+      "afterSha256": "b825497539c07e430e3032d09d7f6a9e9f9ab1d8b38f7662cc6edb3de136493c"
+    },
+    {
+      "path": "docs/implementation/README.md",
+      "beforeSha256": "5a7c36efe3f652bc741caf7116784c8efaea2fecbf39925f838394b049a07ae2",
+      "afterSha256": "ed7575d88f21498f1720213491065d74e8909cdb3b36629b31baa7efdb14541e"
+    },
+    {
+      "path": "docs/implementation/16-implementation-backlog.md",
+      "beforeSha256": "630c26af1fb5b71c68beee2402de7961de2a8208ca49c0e08186d2d8f0159fde",
+      "afterSha256": "968b85615ea2c34876e4cf2bc2f3fd51f15ca2ac7312cde82100e7e4afb9a6a3"
+    },
+    {
+      "path": "docs/implementation/18-canvas-workspace-contract.md",
+      "beforeSha256": "862d0abc541c644bcef3b4b98375563e313a11cf92fe2a432a054bdae75f752e",
+      "afterSha256": "84c37cf6c6c9eceacca0ae0dee776ac7b13ff3217ebe948d8760720f01b64fd3"
+    },
+    {
+      "path": "docs/implementation/19-design-closure-and-implementation-entry.md",
+      "beforeSha256": "4be5ca74696ba06539d4bc743f82588096affd73b446ebc74bd5d502b2bd9082",
+      "afterSha256": "4049940a37628756ba118dd09f47c4180041fc6e18a5af3d43f50905395ba9cd"
+    },
+    {
+      "path": "docs/implementation/14-scene-mvp-closure.md",
+      "beforeSha256": "8a3dde1cfba1233acef76ceec58553c00e44b7aa32106b21215dd46ebd0bc3ed",
+      "afterSha256": "204229d8cda790e1127363b8aa134a88227e5ec4774b0464d71b38c3ed008960"
+    },
+    {
+      "path": "README.md",
+      "beforeSha256": "6384dd4c7f18454d57492d588e816bc9710b57351da2fed0c377f45a256a1b53",
+      "afterSha256": "4bf5ebfb76ddd9ca78b8a7343eb9060dbbf74d4031eefe22000eb4b3f9fc6391"
+    },
+    {
+      "path": "apps/web/AGENTS.md",
+      "beforeSha256": "584e5eab60e6dbef7712d2a86277679fc3fa11480c17ef616eff4c7c5bf7cb17",
+      "afterSha256": "0bcb6d3afbee563049df0110f56cf5472004c645f454b9b1b35b695ea38b08fc"
+    },
+    {
+      "path": "scripts/verify-local.mjs",
+      "beforeSha256": "75301cbfc0c9193be539df7bbb06585b7d5b3e4eb97857134cb4d4b3d69d88bd",
+      "afterSha256": "2d35d113a8309f0cf93fc6bf4afb8d2c147b392eb39df69ab229af38a033e978"
+    },
+    {
+      "path": "scripts/verify-visual.mjs",
+      "beforeSha256": "18bf039188b2ec65abf70723c45af545af0340e7811200264afe0705398a53be",
+      "afterSha256": "239e22b5138857c0726620344c329ff4032610085bb1978893130193a5104324"
+    }
+  ],
+  "added": [
+    {
+      "path": "docs/history/README.md",
+      "sha256": "a569bfe1130dc42164297529d879e103a815c9267db1b6b08878e7bf07ca3168"
+    },
+    {
+      "path": "docs/documentation-audit-2026-09-10.md",
+      "sha256": "87d8593c492b2e675a0520971f496f2f5f91fc76063a80214ad288a5afab2ed9"
+    }
+  ],
+  "removed": [],
+  "protectedUnchanged": [
+    {
+      "path": "docs/research/2026-09-07-tenant-isolation.md",
+      "sha256": "d03a67f28b3a3371ef9e66bd8ab3c04de07b40c06c3acb5b9076d7dbb1ffd64a"
+    },
+    {
+      "path": "docs/research/2026-09-08-creative-context-mechanism-deep-dive.md",
+      "sha256": "73f011b10aad4eab99b20204ea0aa4c725c8d4c5ce9fedcaaffb049362a943f7"
+    },
+    {
+      "path": "docs/research/2026-09-09-scene-canvas-interactions.md",
+      "sha256": "530fd847ccd0cfb4caf0610302b580c908c14181cd99ff0cbce5120d3a08a854"
+    },
+    {
+      "path": "docs/research/2026-09-07-implementation-model-evidence.md",
+      "sha256": "89131a67aeb87ab2725c73657add6bd0d619913ab06710852597339894cc9b04"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-flora-weavy.md",
+      "sha256": "74a27700e1da3d576978e1d3e85d582030ef48e5b730e25977527179f7229397"
+    },
+    {
+      "path": "docs/research/2026-09-07-china-drama-workbenches.md",
+      "sha256": "d973c84fa54fd96f2d1566b0310bbaacf76426318ab95c4da4cd2868f93e9dc1"
+    },
+    {
+      "path": "docs/research/2026-09-07-seedance-priority.md",
+      "sha256": "fee23dd19d15f1a6428291c3c88130d592c78ae3710a6f2ca8719452412f761f"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-value-review.md",
+      "sha256": "21fc0bb651414839b93a5d07dd968c106f12bd47777ea247e09e408d0f4f63b6"
+    },
+    {
+      "path": "docs/research/2026-09-07-workbench-market-review.md",
+      "sha256": "8b5c5e6f512f6a96723a7c40e1c220cfc1e92f409fa5634e6040029876d0dee8"
+    },
+    {
+      "path": "docs/research/2026-09-07-libtv-higgsfield-runway-review.md",
+      "sha256": "93d8ceb5f86900c906e79da483d134bcdf8363a89ba226e89a5c43c24072ded6"
+    },
+    {
+      "path": "docs/research/2026-09-08-narrative-mechanism-deep-dive.md",
+      "sha256": "48886b9c157a0e5ec9da1aad4e1ff429e0b370cff651def1b3c390391a1db171"
+    },
+    {
+      "path": "docs/research/2026-09-07-libtv-and-review.md",
+      "sha256": "bb801d48f1cb1a916203a7c946a4b8ccc697708622e319b48b24c2c443c564be"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-china-research-v2.md",
+      "sha256": "c49ac5598a86790ed81f22fe68ec823fda5eeb6ddaf853057a57327844e29c97"
+    },
+    {
+      "path": "docs/research/2026-09-08-agent-mechanism-deep-dive.md",
+      "sha256": "c2d95012ec91bd6967cded4607d21027fc2cf34e46f2a90852a8fcefa54d8f6e"
+    },
+    {
+      "path": "docs/research/2026-09-07-libtv-jimeng-canvas-review.md",
+      "sha256": "c8b788633bd7a2f851727f090185bcb14a1de95def41f180e3edc1cb17c36ce8"
+    },
+    {
+      "path": "docs/research/2026-09-09-frontend-ui-evaluation.md",
+      "sha256": "9a6fdadacf0d834c660eff829ae598119830600f427180c82d049a8eba580bae"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-jimeng-research-v2.md",
+      "sha256": "eeaf39b23a7175859dc175807864c18d242bffbb78e68d8a6b12b5a391310ba4"
+    },
+    {
+      "path": "docs/research/2026-09-07-jimeng-canvas-official.md",
+      "sha256": "c4744af7a1b96c57a761a3ea4ada15f685d21a9cbbe46b4e38a42e8cb80eb7f3"
+    },
+    {
+      "path": "docs/research/2026-09-09-specialized-stack-closure.md",
+      "sha256": "1ab1338fd309b662fd678b1f92342e74edb1e16b4a071d3687dd7dc6fe445c0c"
+    },
+    {
+      "path": "docs/research/2026-09-07-runway-veo-workflows.md",
+      "sha256": "76ca423365671fd7ac44e1d21740acf5cc152f5bafef123723c4a858bb19d5db"
+    },
+    {
+      "path": "docs/research/2026-09-07-implementation-infra-evidence.md",
+      "sha256": "c7cba7618fb96d5bcfe879dd12818b22d3605ddc84916fc3b7c0d98eb398e482"
+    },
+    {
+      "path": "docs/research/2026-09-09-frontend-media-evaluation.md",
+      "sha256": "59411965948e1bd4676f9feca2030abf92d178f2482089eaec526f7ceb285bc3"
+    },
+    {
+      "path": "docs/research/2026-09-07-kling-wan-workflows.md",
+      "sha256": "c2be9b81468b1b609cd042bc37f379e1c2c2d4d192d1119a7da284d5b4c40586"
+    },
+    {
+      "path": "docs/research/2026-09-07-production-apis.md",
+      "sha256": "fead820d7e803e3ce5da338c7545bb171c5ac30bba52399ceae202b8d08221fe"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-international-workflows-v2.md",
+      "sha256": "d6ce1ced49aeb593f5ed00b481e1249aa5595b91ec5e3f43e945416ed8e8cb31"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-cinematic-workbenches-v2.md",
+      "sha256": "50bcc7b175d6eff6950571a6247491b8104f16a105ed94f2cc193491ebe1695e"
+    },
+    {
+      "path": "docs/research/2026-09-07-advertising-product-workflows.md",
+      "sha256": "bb701e87d5b8caba7f0012fa17dce1e71bb89270765231ba7eed21b1248056d2"
+    },
+    {
+      "path": "docs/research/2026-09-07-model-production-workflows.md",
+      "sha256": "caf95eb75dc29813e8ffa02427764091fbd95281b93e9be7e9d6a7f4819ed93a"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-market-review-v2.md",
+      "sha256": "7371edc1198313f716e710dbbd2543a855745392c4a71245d795dd6adea69035"
+    },
+    {
+      "path": "docs/research/2026-09-07-global-workbenches.md",
+      "sha256": "4fa784cdf1649bcd119ac8ad97723b2b1489d5861fa748f8b24d0e2cc24d53f0"
+    },
+    {
+      "path": "docs/research/2026-09-08-recipe-mechanism-deep-dive.md",
+      "sha256": "dda55af9d061b2322e443999c12eac2ab0ab3bbdc9920d63d42cfb1542f9a2f1"
+    },
+    {
+      "path": "docs/research/2026-09-09-engineering-stack-evidence.md",
+      "sha256": "7ff413c44ee73acea02a4d8538b3cb7daa73ac8c911fa26e08faf472e5ac3b02"
+    },
+    {
+      "path": "docs/research/2026-09-09-review-handoff-patterns.md",
+      "sha256": "4bc4eb03bf0f976c3e190e17e9b83db7ac1f1049db7b45239c143e25e669da1c"
+    },
+    {
+      "path": "docs/design/design-handoff-2026-09-10.json",
+      "sha256": "14d00058a4915d6c7781b10ebaecd87a167919630326c319e9b8a673193b442b"
+    },
+    {
+      "path": "docs/implementation/api-operations.md",
+      "sha256": "4d3ad954cdc55214d354276cc89a97d1a02f07e366a574f534f8fd79c9d1dda4"
+    },
+    {
+      "path": "docs/implementation/implementation-handoff-manifest.json",
+      "sha256": "e75d2bf13b653b55b08a4a8f1237c682f4d3e744c531e3e714a2b84ffd08ea0e"
+    },
+    {
+      "path": "docs/implementation/validation-report.md",
+      "sha256": "cc5178f083ed44e95b18ab81d40c7bb14eaee9361981c5585d22e2e2415c85d2"
+    },
+    {
+      "path": "docs/implementation/openapi.json",
+      "sha256": "1a67b6d9574457449e9946fadb35a1bb156514cbe8e0f85f9318b99d76adb7b9"
+    },
+    {
+      "path": "docs/implementation/sample-payloads.json",
+      "sha256": "12c1b5b479d2da77038ccd9936af8b315831f9809540388e93aa28fb4e7de9b1"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline-manifest.json",
+      "sha256": "4fc66e25954f1ce842e33759a654d9d474398cd65fe67e1ae49b5044640938aa"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/drama-recheck.md",
+      "sha256": "19eacfdff2b09cb87c6829ffa2f9ec1de0551ef11775f8f1389c52b74a39f897"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/decision-log.md",
+      "sha256": "6ab8a026b2cb06c08df1116ec6157cfc628d755844dc9bb899333c7ac9def37d"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/decision-log.json",
+      "sha256": "c4ec7288c486d2e3d88d47851f83f74228d16e1072b8cf4ea55d7583f774f17e"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/drama-review.md",
+      "sha256": "58727202d1f055c558c0dc19c0894f85cf0f4fde15d657be75055c0a9bbca30d"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/product-review.md",
+      "sha256": "2d5a2b821bd78101f46ba777b6e96cd96eecee09fa660ee23ac508fa51daafdc"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/README.md",
+      "sha256": "db276098c9d004b974c83bf4685a71526440d1c8199d94c3612590c016953004"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/product-recheck.md",
+      "sha256": "7528fb7eb1897c1b1b8b67fa25e6f7ea819b3cea772802eb87494c966e3d7661"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/technical-review.md",
+      "sha256": "1230de65074be61c5fd8d296cd3f815ef698c9207712c2a94daffce6d7ce5d94"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/technical-recheck.md",
+      "sha256": "ce505ccf55727173ab48bd9d7eec6fb54ff85c4f700021beeb524da6fa7c2d10"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/closure-decisions.md",
+      "sha256": "6dfca00516e0e23a0137832136f2e968f7dbbe403e095f518abc8d4a42ebcbdd"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/closure-product-review.md",
+      "sha256": "7684bf75c1151b164a43de14d853bf9ce893f22aac0dea7d4ac7b4dcd2af8aac"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/closure-recheck.md",
+      "sha256": "b9256567a536bf4e404cd1237ef97bb58dada35a0b1ca5f2dce3f2406855e0c6"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/canvas-closure-review.md",
+      "sha256": "7e155d922e61adf6eaa48a0aa651114179d712142b7af93b66319d455ae444f9"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/information-architecture-review.md",
+      "sha256": "6fbb0f624d45c7626e0b678235116f4490268c41109c253e3931b9b11c2ee02c"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/README.md",
+      "sha256": "301ebfbe56c6e6f47454e313503f2cc906d4227bcd66316fafaef5e081d72197"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/visual-interaction-review.md",
+      "sha256": "413e3f88d68417e6e4f0f60c9b781f5c60902fa0f5297969d1ec191c4423e7e3"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/creation-workflow-review.md",
+      "sha256": "5fb50d34964358ec2c69362d54096876cfda95dbdb63b5193aac49f0a4ce1dbb"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/CONTEXT.md",
+      "sha256": "722fecdddcf5c63462eaaf2fd48df6c689ab67ec675fb187b3324db5b53559cb"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/ai-drama-workbench-product-design-v1.0.md",
+      "sha256": "9417fc5b74cb5b72d34768091a0c2b80787f766e251b098dfcd3b8d428d0328f"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/research/2026-09-07-implementation-model-evidence.md",
+      "sha256": "89131a67aeb87ab2725c73657add6bd0d619913ab06710852597339894cc9b04"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/research/2026-09-07-implementation-infra-evidence.md",
+      "sha256": "c7cba7618fb96d5bcfe879dd12818b22d3605ddc84916fc3b7c0d98eb398e482"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/adr/0003-uncertain-provider-submission.md",
+      "sha256": "6228ceae721842aa2531d308afd356391fa3ec587d11292fa3091cccf8c0aeaf"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/adr/0002-freeze-review-and-explicit-adoption.md",
+      "sha256": "6067c99b77ad984110591a69a3d8f407a54973c91963ec3383f21635ddd0247d"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/adr/0001-production-records-independent-of-views.md",
+      "sha256": "42ac4f4517d509e5e1b3fb10ad283f87cb1e9d7ecc950e6790b4c23965e16824"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/check_design.py",
+      "sha256": "55cd0acd1e9b092ceac7cfaf59932fd743cc8bee2fb44964d9a167f8880b978c"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/01-product-requirements.md",
+      "sha256": "c70098f8c916edc0206f25e10b4d112e0bf11933773123ca698c766e678b0aaf"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md",
+      "sha256": "4ec534f4e063afe0ce74329cc2a3078e2e763ecc526e70ef50b07f9571d3ffd0"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/09-decisions-and-open-items.md",
+      "sha256": "e5d930f8b56c071cc4e6e1e5fdba42b6a7c4af8631d49ba83f632d408d51bcb2"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/05-architecture-and-operations.md",
+      "sha256": "fa2c240fe62ff2e540966d195ea12745b8fb1ba14376ff292d915ee27f5ec788"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/api-operations.md",
+      "sha256": "87e14b05201e0d4d2b20fceb75338c010c06f3b9301affff28695344ab4f6410"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/10-production-fixture.md",
+      "sha256": "d1020ab47476c22efee3122e6aefabf113ba0c886b9ba7bbb36edead6377c198"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/02-interaction-spec.md",
+      "sha256": "134cb58e71b51f4493c7e422901f4eb6551e6eb0c76ff198e5ecb2ddcfcece59"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/validation-requirements.txt",
+      "sha256": "a1b2f7202ed11c8408d2c6c2a360b4749253d8df08bcfb1cf8c02e5dc4fcfee5"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/README.md",
+      "sha256": "1e614704b8fb39ed55fbd711337f406c1176b5996b6986cbebbd4d3c806cebc6"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/04-state-execution-and-budget.md",
+      "sha256": "dc81fcc96e4a754ee5dd890804749ae7fa75d94cb0483ca09d0625fd24da59d4"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/validation-report.md",
+      "sha256": "4016aa9678057f5094fec2ee208b8653df88a08469d4affc4b8ba17801a6fa2d"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/openapi.json",
+      "sha256": "5640f59d07d28d8681d52466a5f940aa75056bed2ff0c9454d33b1d1924fb4dc"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py",
+      "sha256": "34a51672644ce4567c731b0900efde31af1ec60d25804f78e5e5be05d46ba053"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/07-provider-adapter.md",
+      "sha256": "6c2d55102fcbb1eeb74a75d972c96de7715ad28f9e8a8d7fd2e22cfc587fefd7"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/sample-payloads.json",
+      "sha256": "32ed6ba831e6aaac334b1e094dfd8f9f803662dc9a931a619c0c72d19ca78bcc"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/06-api-contract.md",
+      "sha256": "b095d8ab717a8453ed54268859a734d902344b20ec52ec1254ec00f3135a13a9"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline/docs/implementation/08-verification-and-delivery-plan.md",
+      "sha256": "56a643b02107112d5caea3f4ca5b5aea5ffc1205d68032bb042df790ffe63c15"
+    }
+  ]
+}

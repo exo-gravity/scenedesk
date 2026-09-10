@@ -1,0 +1,1677 @@
+<!doctype html>
+<html lang="en" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Scene Canvas Basics</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Scene Canvas Basics" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-visualize-standalone&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Scene Canvas Basics&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 10px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover,
+.nav-link:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled=&quot;true&quot;] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .nav-link,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;scene-canvas-basics&quot; aria-label=&quot;同一场次的分镜模式与自由画布示意&quot;&gt;
+  &lt;style&gt;
+    #scene-canvas-basics{--sc-bg:#141414;--sc-panel:#1b1b1b;--sc-raised:#242424;--sc-border:#373737;--sc-text:#eaeaea;--sc-muted:#b8b8b8;--sc-accent:#edb878;color:var(--sc-text);background:var(--sc-bg);font:14px/1.5 -apple-system,BlinkMacSystemFont,&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif;border:1px solid var(--sc-border);border-radius:8px;overflow:hidden;color-scheme:dark}
+    #scene-canvas-basics *{box-sizing:border-box}
+    #scene-canvas-basics button{font:inherit;color:inherit;background:transparent;border:1px solid transparent;border-radius:6px;padding:7px 12px;cursor:pointer}
+    #scene-canvas-basics button:focus-visible{outline:2px solid #86b9e8;outline-offset:2px}
+    #scene-canvas-basics button:hover{background:var(--sc-raised)}
+    #scene-canvas-basics button[aria-pressed=&quot;true&quot;]{color:var(--sc-accent);background:#342b20;border-color:#66513a}
+    #scene-canvas-basics .sc-header{display:flex;align-items:center;gap:20px;padding:16px 20px;border-bottom:1px solid var(--sc-border);flex-wrap:wrap}
+    #scene-canvas-basics .sc-context{min-width:155px;display:grid;gap:3px}
+    #scene-canvas-basics .sc-context small{color:var(--sc-muted);font-size:12px}
+    #scene-canvas-basics .sc-context strong{font-size:18px;font-weight:500}
+    #scene-canvas-basics .sc-work-nav{display:flex;gap:4px;flex-wrap:wrap}
+    #scene-canvas-basics .sc-review{margin-left:auto;border-color:#66513a;color:var(--sc-accent)}
+    #scene-canvas-basics .sc-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 20px;flex-wrap:wrap;border-bottom:1px solid var(--sc-border)}
+    #scene-canvas-basics .sc-modes{display:flex;gap:4px;padding:3px;border:1px solid var(--sc-border);border-radius:8px;background:var(--sc-panel)}
+    #scene-canvas-basics .sc-modes button{padding:7px 14px}
+    #scene-canvas-basics .sc-subtle{color:var(--sc-muted);font-size:12px}
+    #scene-canvas-basics .sc-board{display:grid;grid-template-columns:minmax(0,1fr) 228px;min-height:430px}
+    #scene-canvas-basics .sc-shots{padding:20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-content:start}
+    #scene-canvas-basics .sc-shot{padding:0;overflow:hidden;text-align:left;border:1px solid var(--sc-border);background:var(--sc-panel);border-radius:7px;min-width:0}
+    #scene-canvas-basics .sc-shot[aria-pressed=&quot;true&quot;]{border-color:var(--sc-accent);background:var(--sc-panel)}
+    #scene-canvas-basics .sc-photo{display:flex;align-items:center;justify-content:center;min-height:102px;background:#252729;color:#c1c4c7;position:relative;padding:20px;text-align:center;font-size:13px}
+    #scene-canvas-basics .sc-photo::before,#scene-canvas-basics .sc-photo::after{content:&quot;&quot;;position:absolute;width:17px;height:17px;border-color:#5b5e62;border-style:solid;pointer-events:none}
+    #scene-canvas-basics .sc-photo::before{top:10px;left:10px;border-width:1px 0 0 1px}
+    #scene-canvas-basics .sc-photo::after{right:10px;bottom:10px;border-width:0 1px 1px 0}
+    #scene-canvas-basics .sc-shot-label{padding:9px 10px;display:grid;gap:2px;color:var(--sc-text)}
+    #scene-canvas-basics .sc-shot-label span{font-size:12px;color:var(--sc-muted)}
+    #scene-canvas-basics .sc-aside{padding:20px 16px;background:var(--sc-panel);border-left:1px solid var(--sc-border);display:flex;flex-direction:column;gap:17px}
+    #scene-canvas-basics .sc-aside strong{font-weight:500}
+    #scene-canvas-basics .sc-reference{border-left:2px solid #626262;padding-left:9px;color:var(--sc-muted);margin-top:7px;font-size:12px}
+    #scene-canvas-basics .sc-input{background:var(--sc-raised);border:1px solid var(--sc-border);border-radius:6px;padding:12px;color:var(--sc-text);font-size:13px}
+    #scene-canvas-basics .sc-candidates{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+    #scene-canvas-basics .sc-chip{border:1px solid var(--sc-border);padding:4px 7px;border-radius:5px;color:var(--sc-muted);font-size:12px}
+    #scene-canvas-basics .sc-chip.active{color:var(--sc-accent);border-color:#66513a}
+    #scene-canvas-basics .sc-tray{grid-column:1/-1;margin-top:4px;border-top:1px solid var(--sc-border);padding-top:13px;font-size:12px;color:var(--sc-muted)}
+    #scene-canvas-basics .sc-tray summary{cursor:pointer}
+    #scene-canvas-basics .sc-tray p{margin:9px 0 0}
+    #scene-canvas-basics .sc-canvas{padding:24px 22px 20px;min-height:430px;background-color:var(--sc-bg);background-image:radial-gradient(#343434 1px,transparent 1px);background-size:18px 18px;display:grid;grid-template-columns:minmax(135px,.72fr) minmax(230px,1.5fr) minmax(125px,.68fr);gap:22px;align-items:center}
+    #scene-canvas-basics .sc-materials{display:grid;gap:20px;align-content:center}
+    #scene-canvas-basics .sc-node{background:var(--sc-panel);border:1px solid var(--sc-border);border-radius:7px;padding:12px;min-width:0;position:relative}
+    #scene-canvas-basics .sc-node-title{font-size:12px;color:var(--sc-muted);margin-bottom:9px}
+    #scene-canvas-basics .sc-node p{margin:0;font-size:13px}
+    #scene-canvas-basics .sc-ref-photo{min-height:70px;background:#2b2927;display:grid;place-items:center;color:#c8bcae;padding:10px;text-align:center;font-size:13px}
+    #scene-canvas-basics .sc-group{border:1px solid #756048;background:#1b1b1bf2;padding:15px;border-radius:9px;position:relative}
+    #scene-canvas-basics .sc-group::before,#scene-canvas-basics .sc-group::after{content:&quot;&quot;;position:absolute;left:-23px;top:37%;width:22px;border-top:1px solid #a18663}
+    #scene-canvas-basics .sc-group::after{top:69%}
+    #scene-canvas-basics .sc-group-heading{color:var(--sc-accent);font-size:13px;margin-bottom:13px}
+    #scene-canvas-basics .sc-node.selected{border-color:var(--sc-accent)}
+    #scene-canvas-basics .sc-node.selected .sc-photo{min-height:132px;margin:0 -1px}
+    #scene-canvas-basics .sc-lineage{padding:6px 0;text-align:center;color:#b8a285;font-size:12px}
+    #scene-canvas-basics .sc-local-prompt{margin-top:10px;display:grid;gap:8px}
+    #scene-canvas-basics .sc-free{align-self:start;margin-top:34px;transform:translateY(4px);border-color:#4b4f4c}
+    #scene-canvas-basics .sc-foot{border-top:1px solid var(--sc-border);padding:12px 20px;color:var(--sc-muted);font-size:12px;display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;background:var(--sc-panel)}
+    #scene-canvas-basics .sc-edit{padding:24px;display:grid;gap:20px;min-height:430px;align-content:start}
+    #scene-canvas-basics .sc-player{background:#202223;min-height:180px;display:grid;place-items:center;text-align:center;gap:10px;padding:24px;border:1px solid var(--sc-border)}
+    #scene-canvas-basics .sc-player strong{font-weight:500;font-size:17px}
+    #scene-canvas-basics .sc-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+    #scene-canvas-basics .sc-clip{background:var(--sc-raised);padding:13px 7px;border:1px solid var(--sc-border);font-size:12px;text-align:center;border-radius:5px}
+    #scene-canvas-basics .sc-clip.selected{border-color:#a18663;color:var(--sc-accent)}
+    #scene-canvas-basics .sc-review-body{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:20px;padding:24px;min-height:430px}
+    #scene-canvas-basics .sc-comment{background:var(--sc-panel);padding:16px;border:1px solid var(--sc-border);border-radius:6px;align-self:start}
+    #scene-canvas-basics .sc-comment p{font-size:13px;line-height:1.7}
+    #scene-canvas-basics [hidden]{display:none!important}
+    @media(max-width:800px){#scene-canvas-basics .sc-board{grid-template-columns:minmax(0,1fr) 205px}#scene-canvas-basics .sc-shots{grid-template-columns:repeat(2,minmax(0,1fr));padding:15px;gap:10px}#scene-canvas-basics .sc-canvas{grid-template-columns:minmax(120px,.75fr) minmax(200px,1.25fr);padding:20px;gap:20px}#scene-canvas-basics .sc-free{grid-column:1/-1;max-width:none;margin:0;transform:none}#scene-canvas-basics .sc-header{gap:12px}}
+    @media(max-width:540px){#scene-canvas-basics .sc-header{padding:14px;gap:10px}#scene-canvas-basics .sc-context{width:100%}#scene-canvas-basics .sc-review{margin-left:0;font-size:12px}#scene-canvas-basics .sc-bar{padding:12px 14px}#scene-canvas-basics .sc-board{display:block}#scene-canvas-basics .sc-aside{border-left:0;border-top:1px solid var(--sc-border)}#scene-canvas-basics .sc-canvas{display:flex;flex-direction:column;align-items:stretch;padding:16px;gap:14px}#scene-canvas-basics .sc-materials{grid-template-columns:1fr 1fr;gap:12px}#scene-canvas-basics .sc-group::before,#scene-canvas-basics .sc-group::after{display:none}#scene-canvas-basics .sc-strip{grid-template-columns:repeat(3,minmax(0,1fr))}#scene-canvas-basics .sc-review-body{grid-template-columns:1fr;padding:16px}#scene-canvas-basics .sc-edit{padding:16px}#scene-canvas-basics .sc-foot{padding:12px 14px}}
+    @media(pointer:coarse){#scene-canvas-basics button{min-height:44px}}
+    #scene-canvas-basics .fc-tools{padding:10px 16px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;border-bottom:1px solid var(--sc-border);background:var(--sc-panel)}
+    #scene-canvas-basics .fc-tools button{font-size:12px;padding:5px 9px;border-color:var(--sc-border)}
+    #scene-canvas-basics .fc-tools .fc-spacer{flex:1}
+    #scene-canvas-basics .fc-viewport{height:410px;position:relative;overflow:hidden;background-color:var(--sc-bg);background-image:radial-gradient(#343434 1px,transparent 1px);background-size:18px 18px;touch-action:none}
+    #scene-canvas-basics .fc-world{position:absolute;inset:0;transform-origin:0 0}
+    #scene-canvas-basics .fc-links{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+    #scene-canvas-basics .fc-links path{fill:none;stroke:#95816a;stroke-width:1.3}
+    #scene-canvas-basics .fc-card{position:absolute;background:var(--sc-panel);border:1px solid var(--sc-border);border-radius:7px;box-shadow:0 3px 8px #0003}
+    #scene-canvas-basics .fc-card.selected{border-color:var(--sc-accent)}
+    #scene-canvas-basics .fc-card header{padding:8px 9px;display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--sc-border)}
+    #scene-canvas-basics .fc-card .fc-handle{padding:0;text-align:left;flex:1;border-radius:2px;font-size:12px;cursor:grab;touch-action:none}
+    #scene-canvas-basics .fc-card .fc-handle:active{cursor:grabbing}
+    #scene-canvas-basics .fc-card .fc-plus{padding:1px 6px;border-color:var(--sc-border);font-size:14px}
+    #scene-canvas-basics .fc-card .fc-picture{background:#28292b;min-height:76px;display:grid;place-items:center;margin:9px;color:#bfc1c4;padding:12px;text-align:center;font-size:13px}
+    #scene-canvas-basics .fc-card .fc-meta{padding:0 10px 10px;color:var(--sc-muted);font-size:12px}
+    #scene-canvas-basics .fc-card .fc-note{padding:16px 12px;font-size:13px;overflow-wrap:anywhere}
+    #scene-canvas-basics .fc-localtools{position:absolute;z-index:4;display:flex;gap:3px;background:var(--sc-raised);border:1px solid var(--sc-border);border-radius:6px;padding:3px;box-shadow:0 4px 10px #0005;max-width:calc(100% - 16px);flex-wrap:wrap}
+    #scene-canvas-basics .fc-localtools button{font-size:12px;padding:5px 9px}
+    #scene-canvas-basics .fc-selectbox{position:absolute;pointer-events:none;border:1px solid var(--sc-accent);background:#edb87818;z-index:3}
+    #scene-canvas-basics .fc-composer{padding:15px 20px;background:var(--sc-panel);border-top:1px solid var(--sc-border)}
+    #scene-canvas-basics .fc-compose-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    #scene-canvas-basics .fc-compose-head strong{font-size:13px;font-weight:500}
+    #scene-canvas-basics .fc-refs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    #scene-canvas-basics .fc-refs label{font-size:12px;padding:5px 8px;border:1px solid var(--sc-border);border-radius:5px;display:flex;align-items:center;gap:6px;cursor:pointer}
+    #scene-canvas-basics textarea{font:14px/1.6 inherit;font-family:inherit;font-size:14px;line-height:1.6;color:var(--sc-text);background:var(--sc-raised);border:1px solid var(--sc-border);border-radius:6px;resize:vertical;width:100%;padding:10px;min-height:72px;display:block}
+    #scene-canvas-basics .fc-compose-bottom{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+    #scene-canvas-basics .fc-primary{background:var(--sc-accent);color:#201a13}
+    #scene-canvas-basics .fc-primary:hover{background:#f1c792}
+    #scene-canvas-basics .fc-plan{padding:12px;background:var(--sc-raised);border:1px solid var(--sc-border);border-radius:6px;margin-top:12px;font-size:13px}
+    #scene-canvas-basics .fc-hint{font-size:12px;color:var(--sc-muted)}
+    @media(max-width:540px){#scene-canvas-basics .fc-viewport{height:auto;overflow:visible;touch-action:auto;padding:56px 14px 16px}#scene-canvas-basics .fc-world{position:relative;inset:auto;transform:none!important;display:grid;gap:14px}#scene-canvas-basics .fc-card{position:relative!important;left:auto!important;top:auto!important;width:100%!important}#scene-canvas-basics .fc-links,#scene-canvas-basics .fc-selectbox{display:none}#scene-canvas-basics .fc-localtools{position:absolute;left:14px!important;top:10px!important}#scene-canvas-basics .fc-tools [data-zoom],#scene-canvas-basics .fc-tools [data-fit],#scene-canvas-basics .fc-tools [data-tool]{display:none}#scene-canvas-basics .fc-composer{padding:15px}#scene-canvas-basics textarea{font-size:16px}}
+  &lt;/style&gt;
+  &lt;header class=&quot;sc-header&quot;&gt;
+    &lt;div class=&quot;sc-context&quot;&gt;&lt;small&gt;旧钥匙 / 第1集 / S03&lt;/small&gt;&lt;strong&gt;咖啡厅&lt;/strong&gt;&lt;/div&gt;
+    &lt;nav class=&quot;sc-work-nav&quot; aria-label=&quot;场次工作区&quot;&gt;
+      &lt;button type=&quot;button&quot; data-work=&quot;production&quot; aria-pressed=&quot;true&quot;&gt;镜头制作&lt;/button&gt;
+      &lt;button type=&quot;button&quot; data-work=&quot;edit&quot; aria-pressed=&quot;false&quot;&gt;剪辑&lt;/button&gt;
+    &lt;/nav&gt;
+    &lt;button type=&quot;button&quot; class=&quot;sc-review&quot; data-work=&quot;review&quot; aria-pressed=&quot;false&quot;&gt;审阅稿 v1 · 待修改&lt;/button&gt;
+  &lt;/header&gt;
+  &lt;section data-section=&quot;production&quot; aria-label=&quot;镜头制作&quot;&gt;
+    &lt;div class=&quot;sc-bar&quot;&gt;
+      &lt;div class=&quot;sc-modes&quot; role=&quot;group&quot; aria-label=&quot;当前场次的制作模式&quot;&gt;
+        &lt;button type=&quot;button&quot; data-mode=&quot;board&quot; aria-pressed=&quot;true&quot;&gt;分镜模式&lt;/button&gt;
+        &lt;button type=&quot;button&quot; data-mode=&quot;canvas&quot; aria-pressed=&quot;false&quot;&gt;自由画布&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;sc-subtle&quot; data-current aria-live=&quot;polite&quot;&gt;当前镜头 SH04 · 拿起旧钥匙&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;sc-board&quot; data-view=&quot;board&quot;&gt;
+      &lt;div class=&quot;sc-shots&quot; data-shots&gt;
+        &lt;button type=&quot;button&quot; class=&quot;sc-shot&quot; data-shot=&quot;0&quot; aria-pressed=&quot;false&quot;&gt;&lt;span class=&quot;sc-photo&quot;&gt;双人 · 中景&lt;/span&gt;&lt;span class=&quot;sc-shot-label&quot;&gt;SH01 相对而坐&lt;span&gt;当前采用 A&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;sc-shot&quot; data-shot=&quot;1&quot; aria-pressed=&quot;false&quot;&gt;&lt;span class=&quot;sc-photo&quot;&gt;林夏 · 近景&lt;/span&gt;&lt;span class=&quot;sc-shot-label&quot;&gt;SH02 迟来的追问&lt;span&gt;当前采用 A&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;sc-shot&quot; data-shot=&quot;2&quot; aria-pressed=&quot;false&quot;&gt;&lt;span class=&quot;sc-photo&quot;&gt;陈默 · 近景&lt;/span&gt;&lt;span class=&quot;sc-shot-label&quot;&gt;SH03 欲言又止&lt;span&gt;当前采用 A&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;sc-shot&quot; data-shot=&quot;3&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;sc-photo&quot;&gt;手与钥匙 · 特写&lt;/span&gt;&lt;span class=&quot;sc-shot-label&quot;&gt;SH04 拿起旧钥匙&lt;span&gt;当前采用 A · 候选 B&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;sc-shot&quot; data-shot=&quot;4&quot; aria-pressed=&quot;false&quot;&gt;&lt;span class=&quot;sc-photo&quot;&gt;林夏 · 特写&lt;/span&gt;&lt;span class=&quot;sc-shot-label&quot;&gt;SH05 回忆的眼神&lt;span&gt;当前采用 A&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;sc-shot&quot; data-shot=&quot;5&quot; aria-pressed=&quot;false&quot;&gt;&lt;span class=&quot;sc-photo&quot;&gt;双人 · 中景&lt;/span&gt;&lt;span class=&quot;sc-shot-label&quot;&gt;SH06 沉默的对视&lt;span&gt;当前采用 A&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+        &lt;details class=&quot;sc-tray&quot;&gt;&lt;summary&gt;未归入镜头 · 1&lt;/summary&gt;&lt;p&gt;探索便签：钥匙能否先倒映在咖啡杯里？&lt;/p&gt;&lt;/details&gt;
+      &lt;/div&gt;
+      &lt;aside class=&quot;sc-aside&quot; aria-label=&quot;当前镜头的制作内容&quot;&gt;
+        &lt;div&gt;&lt;strong data-shot-title&gt;SH04 拿起旧钥匙&lt;/strong&gt;&lt;div class=&quot;sc-candidates&quot;&gt;&lt;span class=&quot;sc-chip&quot;&gt;A · 当前采用&lt;/span&gt;&lt;span class=&quot;sc-chip active&quot; data-candidate&gt;B · 正在查看&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div&gt;&lt;span class=&quot;sc-subtle&quot;&gt;本次参考&lt;/span&gt;&lt;div class=&quot;sc-reference&quot;&gt;林夏 · 人物参考&lt;/div&gt;&lt;div class=&quot;sc-reference&quot;&gt;咖啡厅 · 场景参考&lt;/div&gt;&lt;/div&gt;
+        &lt;div&gt;&lt;div class=&quot;sc-subtle&quot; style=&quot;margin-bottom:8px&quot;&gt;本次提示&lt;/div&gt;&lt;div class=&quot;sc-input&quot; data-prompt&gt;先接触钥匙，再握住抬起。保留人物、构图和节奏。&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;sc-subtle&quot;&gt;Seedance · 9:16&lt;/div&gt;
+      &lt;/aside&gt;
+    &lt;/div&gt;
+    &lt;div data-view=&quot;canvas&quot; aria-label=&quot;当前场次自由画布&quot;&gt;
+      &lt;div class=&quot;fc-tools&quot; role=&quot;group&quot; aria-label=&quot;画布工具&quot;&gt;
+        &lt;button type=&quot;button&quot; data-tool=&quot;select&quot; aria-pressed=&quot;true&quot;&gt;选择&lt;/button&gt;&lt;button type=&quot;button&quot; data-tool=&quot;pan&quot; aria-pressed=&quot;false&quot;&gt;手形&lt;/button&gt;
+        &lt;button type=&quot;button&quot; data-add&gt;＋ 文字&lt;/button&gt;&lt;button type=&quot;button&quot; data-undo&gt;撤销&lt;/button&gt;&lt;span class=&quot;fc-spacer&quot;&gt;&lt;/span&gt;
+        &lt;button type=&quot;button&quot; data-fit&gt;适应内容&lt;/button&gt;&lt;button type=&quot;button&quot; data-zoom=&quot;-1&quot; aria-label=&quot;缩小画布&quot;&gt;−&lt;/button&gt;&lt;span class=&quot;sc-subtle&quot; data-scale&gt;100%&lt;/span&gt;&lt;button type=&quot;button&quot; data-zoom=&quot;1&quot; aria-label=&quot;放大画布&quot;&gt;＋&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;fc-viewport&quot; aria-label=&quot;拖动节点标题移动；空白拖动框选；空格加拖动平移&quot;&gt;
+        &lt;div class=&quot;fc-world&quot;&gt;&lt;svg class=&quot;fc-links&quot; aria-hidden=&quot;true&quot;&gt;&lt;/svg&gt;&lt;/div&gt;
+        &lt;div class=&quot;fc-selectbox&quot; hidden&gt;&lt;/div&gt;
+        &lt;div class=&quot;fc-localtools&quot; role=&quot;group&quot; aria-label=&quot;选中节点的工具&quot;&gt;&lt;button type=&quot;button&quot; data-continue&gt;继续创作&lt;/button&gt;&lt;button type=&quot;button&quot; data-copy&gt;复制&lt;/button&gt;&lt;button type=&quot;button&quot; data-remove&gt;移出画布&lt;/button&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;section class=&quot;fc-composer&quot; aria-label=&quot;选中节点的创作输入&quot;&gt;
+        &lt;div class=&quot;fc-compose-head&quot;&gt;&lt;strong data-composer-title&gt;候选 B · 继续创作&lt;/strong&gt;&lt;span class=&quot;sc-subtle&quot; data-composer-kind&gt;视频&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;fc-refs&quot; role=&quot;group&quot; aria-label=&quot;本次实际引用&quot;&gt;&lt;/div&gt;
+        &lt;label class=&quot;sc-subtle&quot; for=&quot;fc-prompt&quot;&gt;本次提示&lt;/label&gt;
+        &lt;textarea id=&quot;fc-prompt&quot; rows=&quot;2&quot;&gt;先接触钥匙，再握住抬起。保留人物、构图和节奏。&lt;/textarea&gt;
+        &lt;div class=&quot;fc-compose-bottom&quot;&gt;&lt;span class=&quot;fc-hint&quot; data-model&gt;Seedance · 9:16 · 生成计划示意&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;fc-primary&quot; data-prepare&gt;准备生成&lt;/button&gt;&lt;/div&gt;
+        &lt;div class=&quot;fc-plan&quot; role=&quot;status&quot; hidden&gt;&lt;/div&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section data-section=&quot;edit&quot; class=&quot;sc-edit&quot; hidden aria-label=&quot;共用的场次剪辑&quot;&gt;
+    &lt;div&gt;&lt;strong&gt;咖啡厅 · 当前剪辑草稿&lt;/strong&gt;&lt;div class=&quot;sc-subtle&quot;&gt;6 个镜头 · 46 秒&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;sc-player&quot;&gt;&lt;div&gt;&lt;strong&gt;场次连续预览&lt;/strong&gt;&lt;div class=&quot;sc-subtle&quot;&gt;当前片段 SH04 · 使用 A&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;sc-strip&quot;&gt;&lt;div class=&quot;sc-clip&quot;&gt;SH01 · A&lt;/div&gt;&lt;div class=&quot;sc-clip&quot;&gt;SH02 · A&lt;/div&gt;&lt;div class=&quot;sc-clip&quot;&gt;SH03 · A&lt;/div&gt;&lt;div class=&quot;sc-clip selected&quot;&gt;SH04 · A&lt;/div&gt;&lt;div class=&quot;sc-clip&quot;&gt;SH05 · A&lt;/div&gt;&lt;div class=&quot;sc-clip&quot;&gt;SH06 · A&lt;/div&gt;&lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section data-section=&quot;review&quot; class=&quot;sc-review-body&quot; hidden aria-label=&quot;共用的固定稿审阅&quot;&gt;
+    &lt;div&gt;&lt;div style=&quot;margin-bottom:14px&quot;&gt;咖啡厅 · 审阅稿 v1&lt;/div&gt;&lt;div class=&quot;sc-player&quot;&gt;&lt;div&gt;&lt;strong&gt;固定版本 v1&lt;/strong&gt;&lt;div class=&quot;sc-subtle&quot;&gt;00:24 / 00:46 · SH04 使用 A&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;aside class=&quot;sc-comment&quot;&gt;&lt;span class=&quot;sc-chip active&quot;&gt;待修改&lt;/span&gt;&lt;p&gt;00:24 · SH04&lt;/p&gt;&lt;p&gt;拿钥匙的接触点再自然一些，保留人物和节奏。&lt;/p&gt;&lt;div class=&quot;sc-subtle&quot;&gt;主创意见 · 绑定 v1&lt;/div&gt;&lt;/aside&gt;
+  &lt;/section&gt;
+  &lt;footer class=&quot;sc-foot&quot;&gt;&lt;span data-status aria-live=&quot;polite&quot;&gt;S03 咖啡厅 · 分镜模式 · SH04&lt;/span&gt;&lt;span&gt;制作采用 A · 剪辑使用 A · 审阅稿 v1&lt;/span&gt;&lt;/footer&gt;
+  &lt;script&gt;
+    (function(){
+      const root=document.getElementById(&#x27;scene-canvas-basics&#x27;);
+      const state={work:&#x27;production&#x27;,mode:&#x27;canvas&#x27;,shot:3};
+      const shots=[
+        [&#x27;SH01&#x27;,&#x27;相对而坐&#x27;,&#x27;双人 · 中景&#x27;,&#x27;两人在窗边相对而坐，保留雨天环境和空间关系。&#x27;],
+        [&#x27;SH02&#x27;,&#x27;迟来的追问&#x27;,&#x27;林夏 · 近景&#x27;,&#x27;林夏抬眼追问，保留人物造型和窗边光线。&#x27;],
+        [&#x27;SH03&#x27;,&#x27;欲言又止&#x27;,&#x27;陈默 · 近景&#x27;,&#x27;陈默迟疑后移开目光，保持情绪克制。&#x27;],
+        [&#x27;SH04&#x27;,&#x27;拿起旧钥匙&#x27;,&#x27;手与钥匙 · 特写&#x27;,&#x27;先接触钥匙，再握住抬起。保留人物、构图和节奏。&#x27;],
+        [&#x27;SH05&#x27;,&#x27;回忆的眼神&#x27;,&#x27;林夏 · 特写&#x27;,&#x27;林夏望着钥匙，目光停顿，保留造型和节奏。&#x27;],
+        [&#x27;SH06&#x27;,&#x27;沉默的对视&#x27;,&#x27;双人 · 中景&#x27;,&#x27;两人沉默对视，保持前后镜头的座位和视线关系。&#x27;]
+      ];
+      function render(){
+        const shot=shots[state.shot];
+        root.querySelectorAll(&#x27;[data-work]&#x27;).forEach(b=&gt;b.setAttribute(&#x27;aria-pressed&#x27;,String(b.dataset.work===state.work)));
+        root.querySelectorAll(&#x27;[data-section]&#x27;).forEach(e=&gt;e.hidden=e.dataset.section!==state.work);
+        root.querySelectorAll(&#x27;[data-mode]&#x27;).forEach(b=&gt;b.setAttribute(&#x27;aria-pressed&#x27;,String(b.dataset.mode===state.mode)));
+        root.querySelectorAll(&#x27;[data-view]&#x27;).forEach(e=&gt;e.hidden=e.dataset.view!==state.mode);
+        root.querySelectorAll(&#x27;[data-shot]&#x27;).forEach(b=&gt;b.setAttribute(&#x27;aria-pressed&#x27;,String(Number(b.dataset.shot)===state.shot)));
+        root.querySelector(&#x27;[data-current]&#x27;).textContent=&#x27;当前镜头 &#x27;+shot[0]+&#x27; · &#x27;+shot[1];
+        root.querySelector(&#x27;[data-shot-title]&#x27;).textContent=shot[0]+&#x27; &#x27;+shot[1];
+        root.querySelector(&#x27;[data-prompt]&#x27;).textContent=shot[3];
+        root.querySelector(&#x27;[data-candidate]&#x27;).textContent=state.shot===3?&#x27;B · 正在查看&#x27;:&#x27;A · 正在查看&#x27;;
+        root.querySelector(&#x27;[data-status]&#x27;).textContent=&#x27;S03 咖啡厅 · &#x27;+(state.work===&#x27;production&#x27;?(state.mode===&#x27;board&#x27;?&#x27;分镜模式&#x27;:&#x27;自由画布&#x27;)+&#x27; · &#x27;+shot[0]:state.work===&#x27;edit&#x27;?&#x27;共用剪辑&#x27;:&#x27;共用审阅 · v1&#x27;);
+      }
+      root.querySelectorAll(&#x27;[data-work]&#x27;).forEach(b=&gt;b.addEventListener(&#x27;click&#x27;,()=&gt;{state.work=b.dataset.work;render();}));
+      root.querySelectorAll(&#x27;[data-mode]&#x27;).forEach(b=&gt;b.addEventListener(&#x27;click&#x27;,()=&gt;{state.mode=b.dataset.mode;render();}));
+      root.querySelectorAll(&#x27;[data-shot]&#x27;).forEach(b=&gt;b.addEventListener(&#x27;click&#x27;,()=&gt;{state.shot=Number(b.dataset.shot);render();}));
+      render();
+      const viewport=root.querySelector(&#x27;.fc-viewport&#x27;),world=root.querySelector(&#x27;.fc-world&#x27;),svg=root.querySelector(&#x27;.fc-links&#x27;),local=root.querySelector(&#x27;.fc-localtools&#x27;),composer=root.querySelector(&#x27;.fc-composer&#x27;),prompt=root.querySelector(&#x27;#fc-prompt&#x27;),refs=root.querySelector(&#x27;.fc-refs&#x27;),plan=root.querySelector(&#x27;.fc-plan&#x27;),box=root.querySelector(&#x27;.fc-selectbox&#x27;);
+      const width=Math.max(650,viewport.clientWidth);
+      let nodes=[
+        {id:&#x27;person&#x27;,x:22,y:112,w:142,title:&#x27;人物参考 · 林夏&#x27;,body:&#x27;米色外套&#x27;,type:&#x27;image&#x27;,refs:[],prompt:&#x27;保持林夏的人物造型。&#x27;},
+        {id:&#x27;cafe&#x27;,x:22,y:250,w:142,title:&#x27;场景参考 · 咖啡厅&#x27;,body:&#x27;雨天 · 窗边&#x27;,type:&#x27;image&#x27;,refs:[],prompt:&#x27;保留窗边的雨天光线。&#x27;},
+        {id:&#x27;a&#x27;,x:width*.25,y:194,w:Math.min(226,width*.26),title:&#x27;结果 A&#x27;,body:&#x27;手与钥匙 · 特写&#x27;,type:&#x27;video&#x27;,shot:&#x27;SH04&#x27;,meta:&#x27;SH04 · 当前采用&#x27;,refs:[&#x27;person&#x27;,&#x27;cafe&#x27;],prompt:&#x27;拿起桌上的旧钥匙。&#x27;},
+        {id:&#x27;b&#x27;,x:width*.63,y:77,w:Math.min(246,width*.28),title:&#x27;结果 B&#x27;,body:&#x27;手与钥匙 · 新尝试&#x27;,type:&#x27;video&#x27;,shot:&#x27;SH04&#x27;,meta:&#x27;SH04 · 候选&#x27;,refs:[&#x27;a&#x27;],prompt:&#x27;先接触钥匙，再握住抬起。保留人物、构图和节奏。&#x27;}
+      ];
+      let selected=new Set([&#x27;b&#x27;]),tool=&#x27;select&#x27;,space=false,pan={x:0,y:0},scale=1,serial=0,gesture=null;
+      const history=[],composerDrafts=new Map(),referenceDrafts=new Map();
+      const make=(tag,cls,text)=&gt;{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
+      const active=()=&gt;nodes.find(n=&gt;selected.has(n.id));
+      const small=()=&gt;viewport.clientWidth&lt;540;
+      const save=()=&gt;{history.push(JSON.stringify({nodes,selected:[...selected]}));if(history.length&gt;30)history.shift();};
+      const point=e=&gt;{const r=viewport.getBoundingClientRect();return{x:(e.clientX-r.left-pan.x)/scale,y:(e.clientY-r.top-pan.y)/scale};};
+      function geometry(){
+        world.style.transform=&#x27;translate(&#x27;+pan.x+&#x27;px,&#x27;+pan.y+&#x27;px) scale(&#x27;+scale+&#x27;)&#x27;;
+        root.querySelector(&#x27;[data-scale]&#x27;).textContent=Math.round(scale*100)+&#x27;%&#x27;;
+        nodes.forEach(n=&gt;{const e=world.querySelector(&#x27;[data-node=&quot;&#x27;+n.id+&#x27;&quot;]&#x27;);if(e){e.style.left=n.x+&#x27;px&#x27;;e.style.top=n.y+&#x27;px&#x27;;e.style.width=n.w+&#x27;px&#x27;;e.classList.toggle(&#x27;selected&#x27;,selected.has(n.id));}});
+        svg.replaceChildren();svg.setAttribute(&#x27;width&#x27;,String(viewport.clientWidth));svg.setAttribute(&#x27;height&#x27;,String(viewport.clientHeight));
+        nodes.forEach(n=&gt;n.refs.forEach(id=&gt;{const from=nodes.find(x=&gt;x.id===id);if(!from)return;const path=document.createElementNS(&#x27;http://www.w3.org/2000/svg&#x27;,&#x27;path&#x27;),sx=from.x+from.w,sy=from.y+66,tx=n.x,ty=n.y+66,delta=Math.max(30,Math.abs(tx-sx)/2);path.setAttribute(&#x27;d&#x27;,&#x27;M &#x27;+sx+&#x27; &#x27;+sy+&#x27; C &#x27;+(sx+delta)+&#x27; &#x27;+sy+&#x27;, &#x27;+(tx-delta)+&#x27; &#x27;+ty+&#x27;, &#x27;+tx+&#x27; &#x27;+ty);svg.append(path);}));
+        const n=active();local.hidden=!n;
+        if(n){local.style.left=Math.max(8,Math.min(viewport.clientWidth-local.offsetWidth-8,n.x*scale+pan.x))+&#x27;px&#x27;;local.style.top=Math.max(8,Math.min(viewport.clientHeight-45,n.y*scale+pan.y-43))+&#x27;px&#x27;;}
+      }
+      function showComposer(){
+        const n=active();composer.hidden=!n;plan.hidden=true;if(!n)return;
+        root.querySelector(&#x27;[data-composer-title]&#x27;).textContent=selected.size&gt;1?selected.size+&#x27; 个节点 · 共同参考&#x27;:n.title+(n.type===&#x27;text&#x27;?&#x27; · 编辑文字&#x27;:n.draft?&#x27; · 创作草稿&#x27;:&#x27; · 从结果继续&#x27;);
+        root.querySelector(&#x27;[data-composer-kind]&#x27;).textContent=n.shot?&#x27;关联 &#x27;+n.shot:&#x27;尚未关联镜头&#x27;;
+        refs.replaceChildren();
+        const inputIds=n.type===&#x27;text&#x27;?[]:n.draft?n.refs:[...selected];
+        const key=[...selected].sort().join(&#x27;|&#x27;);
+        inputIds.forEach(id=&gt;{const source=nodes.find(x=&gt;x.id===id);if(!source)return;const label=make(&#x27;label&#x27;),check=make(&#x27;input&#x27;);check.type=&#x27;checkbox&#x27;;check.checked=referenceDrafts.has(key)?referenceDrafts.get(key).includes(id):true;check.dataset.ref=id;check.addEventListener(&#x27;change&#x27;,()=&gt;{referenceDrafts.set(key,[...refs.querySelectorAll(&#x27;input:checked&#x27;)].map(x=&gt;x.dataset.ref));plan.hidden=true;});label.append(check,document.createTextNode(source.title));refs.append(label);});
+        prompt.value=composerDrafts.get(n.id)??n.prompt??&#x27;&#x27;;
+        root.querySelector(&#x27;[data-prepare]&#x27;).textContent=n.type===&#x27;text&#x27;?&#x27;保存文字&#x27;:&#x27;准备生成&#x27;;
+        root.querySelector(&#x27;[data-model]&#x27;).textContent=n.type===&#x27;text&#x27;?&#x27;文字便签&#x27;:(n.type===&#x27;image&#x27;?&#x27;图片模型&#x27;:&#x27;Seedance&#x27;)+&#x27; · 9:16 · 生成计划示意&#x27;;
+      }
+      function choose(id,shift){if(shift){selected.has(id)?selected.delete(id):selected.add(id);}else selected=new Set([id]);const n=active();if(n?.shot){const index=shots.findIndex(s=&gt;s[0]===n.shot);if(index&gt;=0)state.shot=index;render();}geometry();showComposer();}
+      function draw(){
+        world.querySelectorAll(&#x27;.fc-card&#x27;).forEach(e=&gt;e.remove());
+        nodes.forEach(n=&gt;{
+          const card=make(&#x27;article&#x27;,&#x27;fc-card&#x27;);card.dataset.node=n.id;
+          const header=make(&#x27;header&#x27;),handle=make(&#x27;button&#x27;,&#x27;fc-handle&#x27;,n.title),plus=make(&#x27;button&#x27;,&#x27;fc-plus&#x27;,&#x27;＋&#x27;);handle.type=plus.type=&#x27;button&#x27;;handle.setAttribute(&#x27;aria-label&#x27;,&#x27;选择或移动 &#x27;+n.title);plus.setAttribute(&#x27;aria-label&#x27;,&#x27;从 &#x27;+n.title+&#x27; 继续创作&#x27;);
+          header.append(handle,plus);card.append(header,make(&#x27;div&#x27;,n.type===&#x27;text&#x27;?&#x27;fc-note&#x27;:&#x27;fc-picture&#x27;,n.body));if(n.meta)card.append(make(&#x27;div&#x27;,&#x27;fc-meta&#x27;,n.meta));
+          handle.addEventListener(&#x27;click&#x27;,e=&gt;{if(gesture?.moved)return;choose(n.id,e.shiftKey);});
+          handle.addEventListener(&#x27;pointerdown&#x27;,e=&gt;{if(e.button!==0||small())return;e.stopPropagation();e.preventDefault();if(!selected.has(n.id)){selected=e.shiftKey?new Set([...selected,n.id]):new Set([n.id]);}save();gesture={kind:&#x27;nodes&#x27;,start:point(e),orig:nodes.filter(x=&gt;selected.has(x.id)).map(x=&gt;({id:x.id,x:x.x,y:x.y})),moved:false};viewport.setPointerCapture(e.pointerId);geometry();showComposer();});
+          handle.addEventListener(&#x27;keydown&#x27;,e=&gt;{if(![&#x27;ArrowLeft&#x27;,&#x27;ArrowRight&#x27;,&#x27;ArrowUp&#x27;,&#x27;ArrowDown&#x27;].includes(e.key))return;e.preventDefault();save();const d=e.shiftKey?20:5;n.x+=e.key===&#x27;ArrowLeft&#x27;?-d:e.key===&#x27;ArrowRight&#x27;?d:0;n.y+=e.key===&#x27;ArrowUp&#x27;?-d:e.key===&#x27;ArrowDown&#x27;?d:0;geometry();});
+          plus.addEventListener(&#x27;click&#x27;,()=&gt;{selected=new Set([n.id]);branch();});
+          card.addEventListener(&#x27;click&#x27;,e=&gt;{if(!e.target.closest(&#x27;button&#x27;))choose(n.id,e.shiftKey);});world.append(card);
+        });geometry();showComposer();
+      }
+      function branch(){
+        const n=active();if(!n)return;save();const id=&#x27;draft&#x27;+(++serial),wanted=[...selected];
+        const next={id,x:n.x+n.w+72,y:n.y+20,w:230,title:&#x27;新尝试 &#x27;+serial,body:&#x27;待生成&#x27;,type:n.type===&#x27;text&#x27;?&#x27;image&#x27;:n.type,draft:true,shot:n.shot,meta:n.shot?n.shot+&#x27; · 草稿&#x27;:&#x27;未归入镜头&#x27;,refs:wanted,prompt:composerDrafts.get(n.id)??n.prompt??&#x27;&#x27;};nodes.push(next);selected=new Set([id]);
+        if(!small())pan={x:Math.min(0,viewport.clientWidth-next.x*scale-next.w*scale-30),y:0};draw();
+      }
+      function remove(){if(!selected.size)return;save();nodes=nodes.filter(n=&gt;!selected.has(n.id));selected.clear();draw();}
+      root.querySelector(&#x27;[data-continue]&#x27;).addEventListener(&#x27;click&#x27;,branch);
+      root.querySelector(&#x27;[data-copy]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{const n=active();if(!n)return;save();const copy=JSON.parse(JSON.stringify(n));copy.id=&#x27;copy&#x27;+(++serial);copy.x+=35;copy.y+=40;copy.title+=&#x27; · 副本&#x27;;nodes.push(copy);selected=new Set([copy.id]);draw();});
+      root.querySelector(&#x27;[data-remove]&#x27;).addEventListener(&#x27;click&#x27;,remove);
+      root.querySelector(&#x27;[data-undo]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{const h=history.pop();if(h){const old=JSON.parse(h);nodes=old.nodes;selected=new Set(old.selected);draw();}});
+      function addText(pos){save();const n={id:&#x27;text&#x27;+(++serial),x:pos?.x??80,y:pos?.y??90,w:220,title:&#x27;探索便签 &#x27;+serial,body:&#x27;记录新的画面想法&#x27;,type:&#x27;text&#x27;,refs:[],prompt:&#x27;记录新的画面想法&#x27;};nodes.push(n);selected=new Set([n.id]);draw();}
+      root.querySelector(&#x27;[data-add]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;addText({x:(60-pan.x)/scale,y:(80-pan.y)/scale}));
+      root.querySelectorAll(&#x27;[data-tool]&#x27;).forEach(b=&gt;b.addEventListener(&#x27;click&#x27;,()=&gt;{tool=b.dataset.tool;root.querySelectorAll(&#x27;[data-tool]&#x27;).forEach(x=&gt;x.setAttribute(&#x27;aria-pressed&#x27;,String(x===b)));}));
+      function zoom(next,cx=viewport.clientWidth/2,cy=viewport.clientHeight/2){const bounded=Math.max(.6,Math.min(1.6,next)),ratio=bounded/scale;pan={x:cx-(cx-pan.x)*ratio,y:cy-(cy-pan.y)*ratio};scale=bounded;geometry();}
+      root.querySelectorAll(&#x27;[data-zoom]&#x27;).forEach(b=&gt;b.addEventListener(&#x27;click&#x27;,()=&gt;zoom(scale+Number(b.dataset.zoom)*.1)));
+      root.querySelector(&#x27;[data-fit]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{if(!nodes.length)return;const left=Math.min(...nodes.map(n=&gt;n.x))-30,top=Math.min(...nodes.map(n=&gt;n.y))-52,right=Math.max(...nodes.map(n=&gt;n.x+n.w))+30,bottom=Math.max(...nodes.map(n=&gt;n.y+155))+20;scale=Math.min(1,Math.max(.6,Math.min(viewport.clientWidth/(right-left),viewport.clientHeight/(bottom-top))));pan={x:-left*scale,y:-top*scale};geometry();});
+      viewport.addEventListener(&#x27;dblclick&#x27;,e=&gt;{if(!e.target.closest(&#x27;.fc-card,.fc-localtools&#x27;))addText(point(e));});
+      viewport.addEventListener(&#x27;pointerdown&#x27;,e=&gt;{
+        if(e.target.closest(&#x27;.fc-card,.fc-localtools&#x27;)||small())return;e.preventDefault();
+        const r=viewport.getBoundingClientRect();gesture={kind:tool===&#x27;pan&#x27;||space||e.button===1?&#x27;pan&#x27;:&#x27;box&#x27;,start:{x:e.clientX-r.left,y:e.clientY-r.top},orig:{...pan},shift:e.shiftKey,moved:false};viewport.setPointerCapture(e.pointerId);
+      });
+      viewport.addEventListener(&#x27;pointermove&#x27;,e=&gt;{
+        if(!gesture)return;const r=viewport.getBoundingClientRect(),p={x:e.clientX-r.left,y:e.clientY-r.top};
+        if(gesture.kind===&#x27;nodes&#x27;){const wp=point(e);gesture.orig.forEach(o=&gt;{const n=nodes.find(x=&gt;x.id===o.id);n.x=o.x+wp.x-gesture.start.x;n.y=o.y+wp.y-gesture.start.y;});gesture.moved=true;geometry();return;}
+        const dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;if(Math.abs(dx)+Math.abs(dy)&gt;3)gesture.moved=true;
+        if(gesture.kind===&#x27;pan&#x27;){pan={x:gesture.orig.x+dx,y:gesture.orig.y+dy};geometry();}
+        else{gesture.rect={left:Math.min(p.x,gesture.start.x),top:Math.min(p.y,gesture.start.y),right:Math.max(p.x,gesture.start.x),bottom:Math.max(p.y,gesture.start.y)};box.hidden=false;Object.assign(box.style,{left:gesture.rect.left+&#x27;px&#x27;,top:gesture.rect.top+&#x27;px&#x27;,width:Math.abs(dx)+&#x27;px&#x27;,height:Math.abs(dy)+&#x27;px&#x27;});}
+      });
+      function finish(){if(!gesture)return;if(gesture.kind===&#x27;box&#x27;){if(!gesture.shift)selected.clear();if(gesture.rect&amp;&amp;gesture.moved){const b=gesture.rect;nodes.forEach(n=&gt;{const x=n.x*scale+pan.x,y=n.y*scale+pan.y;if(x+n.w*scale&gt;=b.left&amp;&amp;x&lt;=b.right&amp;&amp;y+155*scale&gt;=b.top&amp;&amp;y&lt;=b.bottom)selected.add(n.id);});}box.hidden=true;geometry();showComposer();}gesture=null;}
+      viewport.addEventListener(&#x27;pointerup&#x27;,finish);viewport.addEventListener(&#x27;pointercancel&#x27;,finish);
+      viewport.addEventListener(&#x27;wheel&#x27;,e=&gt;{if(small())return;e.preventDefault();if(e.ctrlKey||e.metaKey){const r=viewport.getBoundingClientRect();zoom(scale*(e.deltaY&gt;0?.95:1.05),e.clientX-r.left,e.clientY-r.top);}else{pan.x-=e.deltaX;pan.y-=e.deltaY;geometry();}},{passive:false});
+      root.addEventListener(&#x27;keydown&#x27;,e=&gt;{if(e.target.closest(&#x27;input,textarea,select&#x27;))return;if(e.code===&#x27;Space&#x27;){space=true;e.preventDefault();}if((e.key===&#x27;Delete&#x27;||e.key===&#x27;Backspace&#x27;)&amp;&amp;state.mode===&#x27;canvas&#x27;){e.preventDefault();remove();}if((e.metaKey||e.ctrlKey)&amp;&amp;e.key.toLowerCase()===&#x27;z&#x27;&amp;&amp;state.mode===&#x27;canvas&#x27;){e.preventDefault();root.querySelector(&#x27;[data-undo]&#x27;).click();}});
+      root.addEventListener(&#x27;keyup&#x27;,e=&gt;{if(e.code===&#x27;Space&#x27;)space=false;});root.addEventListener(&#x27;focusout&#x27;,()=&gt;{space=false;});
+      prompt.addEventListener(&#x27;input&#x27;,()=&gt;{const n=active();if(n)composerDrafts.set(n.id,prompt.value);plan.hidden=true;});
+      root.querySelector(&#x27;[data-prepare]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{const n=active();if(!n)return;if(n.type===&#x27;text&#x27;){save();n.body=prompt.value;n.prompt=prompt.value;draw();return;}const ids=[...refs.querySelectorAll(&#x27;input:checked&#x27;)].map(x=&gt;x.dataset.ref),names=ids.map(id=&gt;nodes.find(x=&gt;x.id===id)?.title).filter(Boolean);plan.textContent=&#x27;生成计划示意 · &#x27;+(n.type===&#x27;image&#x27;?&#x27;图片&#x27;:&#x27;视频&#x27;)+&#x27; · 参考：&#x27;+(names.join(&#x27;、&#x27;)||&#x27;无&#x27;)+&#x27;。实际生成前显示可用模型参数与费用；此处不执行模型调用。&#x27;;plan.hidden=false;});
+      const resize=new ResizeObserver(()=&gt;geometry());resize.observe(viewport);
+      root.querySelectorAll(&#x27;[data-mode],[data-work]&#x27;).forEach(b=&gt;b.addEventListener(&#x27;click&#x27;,()=&gt;{if(state.mode===&#x27;canvas&#x27;&amp;&amp;state.work===&#x27;production&#x27;){const shot=shots[state.shot];let n=nodes.find(x=&gt;selected.has(x.id)&amp;&amp;x.shot===shot[0])||nodes.find(x=&gt;x.shot===shot[0]);if(!n&amp;&amp;b.dataset.mode===&#x27;canvas&#x27;){n={id:&#x27;shot&#x27;+shot[0],x:width*.35,y:85,w:226,title:shot[0]+&#x27; · 结果 A&#x27;,body:shot[2],type:&#x27;video&#x27;,shot:shot[0],meta:shot[0]+&#x27; · 当前采用&#x27;,refs:[],prompt:shot[3]};nodes.push(n);selected=new Set([n.id]);draw();}else if(n&amp;&amp;b.dataset.mode===&#x27;canvas&#x27;){selected=new Set([n.id]);geometry();showComposer();}requestAnimationFrame(geometry);}}));
+      draw();
+      requestAnimationFrame(()=&gt;{if(serial===0&amp;&amp;!small()){const w=viewport.clientWidth,a=nodes.find(n=&gt;n.id===&#x27;a&#x27;),b=nodes.find(n=&gt;n.id===&#x27;b&#x27;);if(a&amp;&amp;b){a.x=w*.29;a.w=Math.min(226,w*.27);b.x=w*.64;b.w=Math.min(246,w*.29);draw();}}});
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerdown&quot;, handlePointer);
+    document.removeEventListener(&quot;pointercancel&quot;, handlePointer);
+    document.removeEventListener(&quot;click&quot;, handleTouchClick);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerdown&quot;, handlePointer);
+  document.addEventListener(&quot;pointercancel&quot;, handlePointer);
+  document.addEventListener(&quot;click&quot;, handleTouchClick);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-tabs&quot;&gt;
+(() =&gt; {
+  const selector = &#x27;.nav[role=&quot;tablist&quot;] [role=&quot;tab&quot;]&#x27;;
+  const disabled = &#x27;:disabled,[aria-disabled=&quot;true&quot;]&#x27;;
+  const selectTab = (selected) =&gt; {
+    const panelId = selected.getAttribute(&quot;aria-controls&quot;);
+    for (const tab of selected.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;)) {
+      const active = tab === selected;
+      tab.classList.toggle(&quot;active&quot;, active);
+      tab.setAttribute(&quot;aria-selected&quot;, String(active));
+      const id = tab.getAttribute(&quot;aria-controls&quot;);
+      const panel = id &amp;&amp; document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden &amp;&amp; selected.id) {
+          panel.setAttribute(&quot;aria-labelledby&quot;, selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) =&gt; {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === &quot;click&quot;) {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;),
+    ).filter((candidate) =&gt; !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === &quot;ArrowRight&quot; || event.key === &quot;ArrowDown&quot;) {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === &quot;ArrowLeft&quot; || event.key === &quot;ArrowUp&quot;) {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === &quot;Home&quot;) {
+      next = 0;
+    } else if (event.key === &quot;End&quot;) {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll(&#x27;.nav[role=&quot;tablist&quot;]&#x27;)) {
+    const selected =
+      list.querySelector(&#x27;[role=&quot;tab&quot;][aria-selected=&quot;true&quot;]&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;].active&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;]&#x27;);
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener(&quot;click&quot;, interact);
+  document.addEventListener(&quot;keydown&quot;, interact);
+  window.addEventListener(&quot;pagehide&quot;, () =&gt; {
+    document.removeEventListener(&quot;click&quot;, interact);
+    document.removeEventListener(&quot;keydown&quot;, interact);
+  }, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>

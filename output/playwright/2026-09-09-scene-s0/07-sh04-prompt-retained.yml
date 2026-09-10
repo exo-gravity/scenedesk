@@ -1,0 +1,164 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - strong [ref=e5]: S0 交互验证
+    - generic [ref=e6]: 虚构内容与内存状态 · 刷新重置 · 无真实生成、渲染、审批或费用
+    - link "查看设计契约 ↗" [ref=e7] [cursor=pointer]:
+      - /url: /design/openapi.json
+  - banner [ref=e8]:
+    - generic [ref=e9]:
+      - text: 片场
+      - generic [ref=e10]: WORKBENCH
+    - generic [ref=e11]: 示例工作室 / 旧钥匙 / 第 1 集
+    - generic [ref=e12]: 工程 API 可用
+  - generic [ref=e13]:
+    - complementary [ref=e14]:
+      - paragraph [ref=e15]: 项目内容
+      - heading "旧钥匙" [level=3] [ref=e16]
+      - paragraph [ref=e17]: 写实短剧 · 9:16
+      - generic [ref=e18]: 第 1 集
+      - button "01 咖啡厅 当前场次 · 6 镜" [ref=e19] [cursor=pointer]:
+        - text: 01 咖啡厅
+        - generic [ref=e20]: 当前场次 · 6 镜
+      - paragraph [ref=e21]: 完整 MVP 后续入口
+      - paragraph [ref=e22]: 整集编排与交付第 2 集与资产复用内部后期回传
+      - generic [ref=e23]: 当前页面只验证场次交互。以上入口将在 S1–S3 实现。
+      - generic [ref=e24]:
+        - generic [ref=e25]: 制
+        - generic [ref=e26]:
+          - strong [ref=e27]: 场次主责
+          - generic [ref=e28]: 示例制作人员
+      - paragraph [ref=e29]: 成员协助 · 主创确认方向与结果
+    - main [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - paragraph [ref=e33]: SCENE 01 · 日 / 内
+          - heading "咖啡厅的旧钥匙" [level=1] [ref=e34]
+          - paragraph [ref=e35]: 钥匙从桌面交到林夏右手，人物关系在短暂停顿中发生变化。
+        - generic [ref=e36]:
+          - strong [ref=e37]: 6 个镜头
+          - generic [ref=e38]: 46 秒编排示意
+          - generic [ref=e39]: 正式创作依据：示例已确认
+      - generic [ref=e40]:
+        - navigation "场次视图" [ref=e41]:
+          - button "制作" [ref=e42] [cursor=pointer]
+          - button "剪辑" [ref=e43] [cursor=pointer]
+          - button "审阅" [ref=e44] [cursor=pointer]
+        - generic [ref=e45]: 场次上下文随视图保留
+      - status [ref=e46]: 提示草稿保留在当前页面内存，可重开继续编辑；未保存至业务数据库。
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - heading "分镜与候选" [level=2] [ref=e50]
+            - button "生成分镜建议" [ref=e51] [cursor=pointer]
+          - generic [ref=e52]:
+            - button "01 分镜占位 · 非模型画面 6s SH-01 双人中景，建立桌面与人物位置 2 个模拟候选 采用 A 剪辑使用 A" [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]:
+                - generic [ref=e55]: "01"
+                - generic [ref=e56]: 分镜占位 · 非模型画面
+                - generic [ref=e57]: 6s
+              - generic [ref=e58]:
+                - strong [ref=e59]: SH-01
+                - paragraph [ref=e60]: 双人中景，建立桌面与人物位置
+                - generic [ref=e61]:
+                  - generic [ref=e62]: 2 个模拟候选
+                  - generic [ref=e63]: 采用 A
+                - generic [ref=e64]: 剪辑使用 A
+            - button "02 分镜占位 · 非模型画面 8s SH-02 林夏追问钥匙的来历 2 个模拟候选 采用 A 剪辑使用 A" [ref=e65] [cursor=pointer]:
+              - generic [ref=e66]:
+                - generic [ref=e67]: "02"
+                - generic [ref=e68]: 分镜占位 · 非模型画面
+                - generic [ref=e69]: 8s
+              - generic [ref=e70]:
+                - strong [ref=e71]: SH-02
+                - paragraph [ref=e72]: 林夏追问钥匙的来历
+                - generic [ref=e73]:
+                  - generic [ref=e74]: 2 个模拟候选
+                  - generic [ref=e75]: 采用 A
+                - generic [ref=e76]: 剪辑使用 A
+            - button "03 分镜占位 · 非模型画面 7s SH-03 周远避开目光，停顿后回答 2 个模拟候选 采用 A 剪辑使用 A" [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]:
+                - generic [ref=e79]: "03"
+                - generic [ref=e80]: 分镜占位 · 非模型画面
+                - generic [ref=e81]: 7s
+              - generic [ref=e82]:
+                - strong [ref=e83]: SH-03
+                - paragraph [ref=e84]: 周远避开目光，停顿后回答
+                - generic [ref=e85]:
+                  - generic [ref=e86]: 2 个模拟候选
+                  - generic [ref=e87]: 采用 A
+                - generic [ref=e88]: 剪辑使用 A
+            - button "04 分镜占位 · 非模型画面 9s SH-04 钥匙从桌面移到林夏右手 2 个模拟候选 采用 A 剪辑使用 A" [ref=e89] [cursor=pointer]:
+              - generic [ref=e90]:
+                - generic [ref=e91]: "04"
+                - generic [ref=e92]: 分镜占位 · 非模型画面
+                - generic [ref=e93]: 9s
+              - generic [ref=e94]:
+                - strong [ref=e95]: SH-04
+                - paragraph [ref=e96]: 钥匙从桌面移到林夏右手
+                - generic [ref=e97]:
+                  - generic [ref=e98]: 2 个模拟候选
+                  - generic [ref=e99]: 采用 A
+                - generic [ref=e100]: 剪辑使用 A
+            - button "05 分镜占位 · 非模型画面 8s SH-05 林夏握住钥匙，表情变化 2 个模拟候选 采用 A 剪辑使用 A" [ref=e101] [cursor=pointer]:
+              - generic [ref=e102]:
+                - generic [ref=e103]: "05"
+                - generic [ref=e104]: 分镜占位 · 非模型画面
+                - generic [ref=e105]: 8s
+              - generic [ref=e106]:
+                - strong [ref=e107]: SH-05
+                - paragraph [ref=e108]: 林夏握住钥匙，表情变化
+                - generic [ref=e109]:
+                  - generic [ref=e110]: 2 个模拟候选
+                  - generic [ref=e111]: 采用 A
+                - generic [ref=e112]: 剪辑使用 A
+            - button "06 分镜占位 · 非模型画面 8s SH-06 双人反应，保留片尾停顿 2 个模拟候选 采用 A 剪辑使用 A" [ref=e113] [cursor=pointer]:
+              - generic [ref=e114]:
+                - generic [ref=e115]: "06"
+                - generic [ref=e116]: 分镜占位 · 非模型画面
+                - generic [ref=e117]: 8s
+              - generic [ref=e118]:
+                - strong [ref=e119]: SH-06
+                - paragraph [ref=e120]: 双人反应，保留片尾停顿
+                - generic [ref=e121]:
+                  - generic [ref=e122]: 2 个模拟候选
+                  - generic [ref=e123]: 采用 A
+                - generic [ref=e124]: 剪辑使用 A
+        - complementary [ref=e125]:
+          - generic [ref=e126]:
+            - heading "SH-04" [level=2] [ref=e176]
+            - generic [ref=e128]: 当前镜头
+          - paragraph [ref=e129]: 钥匙从桌面移到林夏右手
+          - paragraph [ref=e130]: 明确参考
+          - generic [ref=e131]:
+            - text: 林夏 / 灰风衣 v1
+            - generic [ref=e132]: 造型
+          - generic [ref=e133]:
+            - text: 咖啡厅 / 日景 v1
+            - generic [ref=e134]: 空间
+          - paragraph [ref=e135]: 以上为虚构设定标签，未上传参考媒体。
+          - generic [ref=e136]:
+            - button "准备本次提示" [active] [ref=e137] [cursor=pointer]
+            - button "准备生成" [ref=e138] [cursor=pointer]
+          - separator [ref=e139]
+          - paragraph [ref=e140]: 候选比较 · 模拟元数据
+          - generic [ref=e141]:
+            - generic [ref=e142]: 候选 A
+            - button "当前采用" [ref=e143] [cursor=pointer]
+          - generic [ref=e144]:
+            - generic [ref=e145]: 候选 B
+            - button "采用 B" [ref=e146] [cursor=pointer]
+          - generic [ref=e147]:
+            - strong [ref=e148]: 剪辑中的使用：A
+            - paragraph [ref=e149]: 采用 A 与剪辑分别记录。
+            - button "将当前采用用于草稿" [disabled] [ref=e150]
+  - complementary "创作操作" [ref=e178]:
+    - button "关闭操作面板" [ref=e179] [cursor=pointer]: ×
+    - paragraph [ref=e180]: SH-04 · 咖啡厅
+    - heading "准备本次提示" [level=2] [ref=e181]
+    - paragraph [ref=e182]: 模拟建议与计划，不调用 AI；关闭面板保留本次页面的编辑，刷新会重置。
+    - generic [ref=e183]: 可编辑提示建议
+    - textbox "可编辑提示建议" [ref=e184]: 仅 SH-04：右手拿起钥匙，保持身份与服装。
+    - paragraph [ref=e185]: 保留
+    - paragraph [ref=e186]: 人物身份、灰风衣、日景空间和相邻镜头节奏。
+    - button "保留演示草稿" [ref=e187] [cursor=pointer]
+    - button "用此建议准备计划" [ref=e188] [cursor=pointer]

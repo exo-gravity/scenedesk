@@ -1,0 +1,605 @@
+{
+  "date": "2026-09-07",
+  "authority": "User authorized autonomous design adjudication; AI role reviews, no human sign-off.",
+  "closureDefinition": "Design rules/contracts/acceptance are specified; runtime and user validation remain pending.",
+  "decisions": [
+    {
+      "id": "TECH-01",
+      "severity": "P0",
+      "title": "分笔费用没有“账单已完整”的结清事实",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "新增费用完整性与单列控制预留；部分条目不触发整项结清。累计账单与明细按账号级费用身份去重，不能因多连接或恢复双计。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/04-state-execution-and-budget.md",
+        "docs/implementation/07-provider-adapter.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md"
+      ],
+      "acceptance": [
+        "AT-18",
+        "AT-46"
+      ]
+    },
+    {
+      "id": "TECH-02",
+      "severity": "P0",
+      "title": "新审阅轮次与 final 创建未规定同一把锁",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "新审阅、正式决定和final建立竞争同一固定subject锁，以事务先后决定资格。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/04-state-execution-and-budget.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md"
+      ],
+      "acceptance": [
+        "AT-26",
+        "AT-27"
+      ]
+    },
+    {
+      "id": "TECH-03",
+      "severity": "P0",
+      "title": "帧归一、成片长度和来源映射未形成冻结事实",
+      "sourceReport": "technical-review.md",
+      "disposition": "modified",
+      "decision": "采用唯一normalization-v1并固定精确帧、样本、源映射和构建；先归一确认再保存。不扩大为专业时间线，首版只支持顺序视频与显式音频字幕。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/05-architecture-and-operations.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md"
+      ],
+      "acceptance": [
+        "AT-23",
+        "AT-24",
+        "AT-43"
+      ]
+    },
+    {
+      "id": "TECH-04",
+      "severity": "P1",
+      "title": "实际生成输入及其解析来源版本回显不完整",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "明确requested/resolved输入、来源追踪、计量项和价格版本，实际参考可回显并与请求比对。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/07-provider-adapter.md"
+      ],
+      "acceptance": [
+        "AT-10",
+        "AT-37"
+      ]
+    },
+    {
+      "id": "TECH-05",
+      "severity": "P1",
+      "title": "连接可换凭据，旧作业没有明确账号／秘密版本绑定",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "连接账号身份与版本不可变，同账号凭据后继须核验；跨账号新建连接，旧任务不读取当前账号。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/05-architecture-and-operations.md",
+        "docs/implementation/07-provider-adapter.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md"
+      ],
+      "acceptance": [
+        "AT-19"
+      ]
+    },
+    {
+      "id": "TECH-06",
+      "severity": "P1",
+      "title": "租约失效后的迟到回执缺少独立接收路径",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "过期持有者仅追加不可变回执；当前有效Worker核验后推进，失效租约不丢弃provider ID也不重复购买。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/04-state-execution-and-budget.md",
+        "docs/implementation/07-provider-adapter.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md"
+      ],
+      "acceptance": [
+        "AT-13",
+        "AT-14",
+        "AT-15"
+      ]
+    },
+    {
+      "id": "TECH-07",
+      "severity": "P1",
+      "title": "派生预览有数据表，公开 API 无法选取",
+      "sourceReport": "technical-review.md",
+      "disposition": "modified",
+      "decision": "开放original/proxy/poster及派生状态/恢复；波形后置。代理失败不静默退回原片，不阻断已就绪原片下载。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/05-architecture-and-operations.md",
+        "docs/implementation/06-api-contract.md"
+      ],
+      "acceptance": [
+        "AT-42"
+      ]
+    },
+    {
+      "id": "TECH-08",
+      "severity": "P1",
+      "title": "原始素材缺可检索身份与可携带来源记录",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "媒体可读名称、标签、来源与搜索进入API；更改元数据不改变原字节和历史清单。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/05-architecture-and-operations.md",
+        "docs/implementation/06-api-contract.md"
+      ],
+      "acceptance": [
+        "AT-08",
+        "AT-42"
+      ]
+    },
+    {
+      "id": "TECH-09",
+      "severity": "P1",
+      "title": "共享制作缺工作室单层预算分支",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "shared只占工作室预算，project双层；共享生成与项目并发竞争同一工作室余额。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/04-state-execution-and-budget.md",
+        "docs/implementation/07-provider-adapter.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md"
+      ],
+      "acceptance": [
+        "AT-12",
+        "AT-46"
+      ]
+    },
+    {
+      "id": "TECH-10",
+      "severity": "P1",
+      "title": "旧备份恢复缺可执行的隔离集合与放行条件",
+      "sourceReport": "technical-review.md",
+      "disposition": "accepted",
+      "decision": "恢复epoch与旧未终局任务quarantine覆盖queued及备份缺失消费；未分配费用有账本身份，逐连接核平后放行。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/05-architecture-and-operations.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md"
+      ],
+      "acceptance": [
+        "AT-32",
+        "AT-46"
+      ]
+    },
+    {
+      "id": "PROD-01",
+      "severity": "P0",
+      "title": "首发任务、完整 MVP 和工程夹具的验收口径不一致",
+      "sourceReport": "product-review.md",
+      "disposition": "modified",
+      "decision": "分别定义工程贯通、实际模型制作和工作室价值门槛；S1先用导入素材贯通，S3两集夹具，S4真实连续两集，不以46秒替代MVP。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/01-product-requirements.md",
+        "docs/implementation/08-verification-and-delivery-plan.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/12-mvp-workflows-and-pilot.md"
+      ],
+      "acceptance": [
+        "AT-35",
+        "AT-36"
+      ]
+    },
+    {
+      "id": "PROD-02",
+      "severity": "P0",
+      "title": "不等长候选替换只有风险提示，没有可执行编辑规则",
+      "sourceReport": "product-review.md",
+      "disposition": "accepted",
+      "decision": "两种片段替换政策明确；不够长不自动变速/补帧，声轨字幕逐项决定，新台词绑定明确处理。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/11-transaction-and-implementation-blueprint.md",
+        "docs/implementation/12-mvp-workflows-and-pilot.md"
+      ],
+      "acceptance": [
+        "AT-39",
+        "AT-40",
+        "AT-43"
+      ]
+    },
+    {
+      "id": "PROD-03",
+      "severity": "P0",
+      "title": "实际输入的继承、覆盖和一次性修改规则不确定",
+      "sourceReport": "product-review.md",
+      "disposition": "accepted",
+      "decision": "按剧目/场次/镜头/本次输入确定覆盖顺序，按角色用途分组；排除不回流，一次性修改不暗改镜头。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/12-mvp-workflows-and-pilot.md"
+      ],
+      "acceptance": [
+        "AT-10",
+        "AT-37"
+      ]
+    },
+    {
+      "id": "PROD-04",
+      "severity": "P1",
+      "title": "首次成功路径仍依赖未说明的分镜录入与参考准备",
+      "sourceReport": "product-review.md",
+      "disposition": "modified",
+      "decision": "固定文本与CSV入口，空项目无需假剧本；AI与CSV只新增，导入后人工移动。复杂AI修订和任意文档解析后置。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/01-product-requirements.md",
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/12-mvp-workflows-and-pilot.md"
+      ],
+      "acceptance": [
+        "AT-05",
+        "AT-33",
+        "AT-45"
+      ]
+    },
+    {
+      "id": "PROD-05",
+      "severity": "P1",
+      "title": "外部精剪是默认交付路径之一，却缺可直接使用的交接包约定",
+      "sourceReport": "product-review.md",
+      "disposition": "accepted",
+      "decision": "原素材包无需cut；完整源文件去重，附人读区间与已知声音说明，外部MP4/SRT固定配套版本。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-28",
+        "AT-41"
+      ]
+    },
+    {
+      "id": "PROD-06",
+      "severity": "P1",
+      "title": "意见能定位旧来源，但返工结果与复核缺少连续记录",
+      "sourceReport": "product-review.md",
+      "disposition": "accepted",
+      "decision": "从旧评论建立任务与新稿处理链；保留例外有理由，外部返工可指向固定cut revision，完成任务不等于批准。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/06-api-contract.md"
+      ],
+      "acceptance": [
+        "AT-29",
+        "AT-44"
+      ]
+    },
+    {
+      "id": "PROD-07",
+      "severity": "P1",
+      "title": "资产确认与共享维护的日常职责没有和简单权限对齐",
+      "sourceReport": "product-review.md",
+      "disposition": "modified",
+      "decision": "草稿可试用；项目确认由负责人/管理者承担，共享发布由管理者承担。不引入复杂审批工作流。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/01-product-requirements.md",
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/06-api-contract.md"
+      ],
+      "acceptance": [
+        "AT-04",
+        "AT-06",
+        "AT-07"
+      ]
+    },
+    {
+      "id": "PROD-08",
+      "severity": "P1",
+      "title": "媒体“保存并可检索”的产品承诺缺少可识别元数据",
+      "sourceReport": "product-review.md",
+      "disposition": "accepted",
+      "decision": "媒体名称和标签检索、来源记录及固定交付快照进入日常工作流。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/06-api-contract.md"
+      ],
+      "acceptance": [
+        "AT-42"
+      ]
+    },
+    {
+      "id": "PROD-09",
+      "severity": "P1",
+      "title": "试点指标完整，但决策目标与对照方法仍无法直接执行",
+      "sourceReport": "product-review.md",
+      "disposition": "accepted",
+      "decision": "每对任务各用一种流程，任务单位为连续两集；一次准备、增量、失败和未决分别报告，20%/10%为预设待验假设。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/08-verification-and-delivery-plan.md",
+        "docs/implementation/12-mvp-workflows-and-pilot.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-35",
+        "AT-36"
+      ]
+    },
+    {
+      "id": "PROD-10",
+      "severity": "P2",
+      "title": "广告复用承诺大于现有公共候选、采用和交付契约",
+      "sourceReport": "product-review.md",
+      "disposition": "deferred",
+      "decision": "修正复用承诺：公共执行/媒体等可复用，现有Take/Selection仍属短剧；广告目标与审批在独立里程碑设计，不现在制造空通用实体。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "future_advertising",
+      "documents": [
+        "docs/implementation/05-architecture-and-operations.md",
+        "docs/implementation/09-decisions-and-open-items.md"
+      ],
+      "acceptance": [
+        "AT-36"
+      ]
+    },
+    {
+      "id": "DRAMA-01",
+      "severity": "P0",
+      "title": "镜头入镜／出镜状态、参考绑定与解析优先级",
+      "sourceReport": "drama-review.md",
+      "disposition": "accepted",
+      "decision": "角色、道具和空间入口/出口状态及分层优先级固定；生成成功不能确认叙事连续性。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-37",
+        "AT-38"
+      ]
+    },
+    {
+      "id": "DRAMA-02",
+      "severity": "P0",
+      "title": "台词版本到实际声音、字幕的直接关联",
+      "sourceReport": "drama-review.md",
+      "disposition": "accepted",
+      "decision": "固定台词修订与实际声音/字幕使用分开；剪辑有clip绑定，无cut素材包有sourceBindings，同长改词也提示影响。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-39",
+        "AT-44"
+      ]
+    },
+    {
+      "id": "DRAMA-03",
+      "severity": "P1",
+      "title": "原生混合音轨的单句返工和对白跨切点路径",
+      "sourceReport": "drama-review.md",
+      "disposition": "modified",
+      "decision": "支持原生混合轨、独立音轨及跨反应镜头声音；混合轨静音须说明损失。自动分轨/口型修复后置，质量仍人工复查。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/02-interaction-spec.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-23",
+        "AT-39",
+        "AT-40"
+      ]
+    },
+    {
+      "id": "DRAMA-04",
+      "severity": "P1",
+      "title": "拆镜／合镜后的内容覆盖与来源映射验收",
+      "sourceReport": "drama-review.md",
+      "disposition": "modified",
+      "decision": "文本选区和quote固定；AI只新增，人工拆合保留sourceExcerpts/sourceShotIds并检查覆盖，不自动重写已有制作。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/10-production-fixture.md"
+      ],
+      "acceptance": [
+        "AT-05",
+        "AT-45"
+      ]
+    },
+    {
+      "id": "DRAMA-05",
+      "severity": "P1",
+      "title": "长段输出不连续选取、实际剪辑与当前采用的关系",
+      "sourceReport": "drama-review.md",
+      "disposition": "accepted",
+      "decision": "Take保持单连续区间，时间线允许同镜多Take多次使用；偏好selection与实际叙事覆盖分开。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/03-domain-data-model.md",
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-20",
+        "AT-21",
+        "AT-40"
+      ]
+    },
+    {
+      "id": "DRAMA-06",
+      "severity": "P1",
+      "title": "可独立使用的精剪工作包与外部字幕回传",
+      "sourceReport": "drama-review.md",
+      "disposition": "accepted",
+      "decision": "两种工作包与最终交付分开；无cut不造时间线；源区间/声音/版本交接真实接手验证，MP4/SRT回传不猜工程映射。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-28",
+        "AT-41"
+      ]
+    },
+    {
+      "id": "DRAMA-07",
+      "severity": "P1",
+      "title": "版本化质量基线、剧情关键失败项与返工复查范围",
+      "sourceReport": "drama-review.md",
+      "disposition": "accepted",
+      "decision": "样片质量依据包含具体关键剧情错误、非关键例外、前后接点/场次复查和整集完整观看。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/06-api-contract.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-35",
+        "AT-39",
+        "AT-44"
+      ]
+    },
+    {
+      "id": "DRAMA-08",
+      "severity": "P1",
+      "title": "连续两集和三类返工进入明确阶段门槛",
+      "sourceReport": "drama-review.md",
+      "disposition": "accepted",
+      "decision": "增加接续第二集、换装复用、同长改词/变长/多区间返工和真实内部后期F3，工程与用户试点分开。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/08-verification-and-delivery-plan.md",
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-35",
+        "AT-39",
+        "AT-40",
+        "AT-41"
+      ]
+    },
+    {
+      "id": "DRAMA-09",
+      "severity": "P1",
+      "title": "可比的全制作成本记录及停止／转路径规则",
+      "sourceReport": "drama-review.md",
+      "disposition": "accepted",
+      "decision": "费用按job唯一及真实外部成本汇总，初始投入和第二集增量分开；预设尝试/人时停止规则，不以失败样本删除制造收益。",
+      "designStatus": "closed",
+      "executionStatus": "pending",
+      "implementationScope": "current_mvp",
+      "documents": [
+        "docs/implementation/10-production-fixture.md",
+        "docs/implementation/12-mvp-workflows-and-pilot.md",
+        "docs/implementation/13-production-quality-and-handoff.md"
+      ],
+      "acceptance": [
+        "AT-18",
+        "AT-35",
+        "AT-36"
+      ]
+    }
+  ]
+}

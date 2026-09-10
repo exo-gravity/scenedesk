@@ -1,0 +1,67 @@
+### Result
+{"checks":["1366 下助手与中央不重叠","助手不是模态遮罩","低高度输入和提交入口仍在视口内","窄屏素材浏览收起助手","素材空搜索有明确反馈","快速参考选择器可见未被裁切","参考能够重新加入","生成失败后保留继续编辑的草稿","作业保留提交时输入快照","提交待核对禁止直接再次提交","明确核对后进入可编辑重提状态","空场次不伪造审阅稿","空场次无伪造生成输入","压力示例包含 24 个稳定镜头身份","画布包含第 24 镜头","画布工具操作保留选择与输入","压力状态不产生整页横向或纵向溢出","取消选择后隐藏输入","无目标引用被禁止","状态走查无运行异常"],"errors":[]}
+### Ran Playwright code
+```js
+await (async (page) => {
+ await page.goto('http://127.0.0.1:4312/#/journey/?variant=recommendation&screen=production&mode=storyboard&tone=dark&assistant=off');
+ await page.reload(); await page.setViewportSize({ width: 1366, height: 768 });
+ const checks = []; const errors=[]; page.on('pageerror', e=>errors.push(String(e)));
+ const ok=(n,c)=>{ if(!c) throw new Error(n); checks.push(n); }; const click=n=>page.getByRole('button',{name:n,exact:true}).click();
+ await page.getByRole('textbox',{name:'SH-04提示词',exact:true}).waitFor();
+ await click('助手');
+ const central=await page.getByRole('region',{name:'场次创作区',exact:true}).boundingBox(); const assistant=await page.getByRole('complementary',{name:'创作助手',exact:true}).boundingBox();
+ ok('1366 下助手与中央不重叠',central.x+central.width<=assistant.x+1);
+ ok('助手不是模态遮罩',await page.locator('[aria-modal="true"]').count()===0);
+ const textbox=await page.getByRole('textbox',{name:'SH-04提示词',exact:true}).boundingBox(); const submit=await page.getByRole('button',{name:'查看生成计划',exact:true}).boundingBox();
+ ok('低高度输入和提交入口仍在视口内',textbox.height>=54 && submit.y+submit.height<=768);
+ await page.screenshot({path:'output/playwright/2026-09-10-scene-walkthrough/04-compact-storyboard.png',animations:'disabled'});
+ await click('参考');
+ ok('窄屏素材浏览收起助手',await page.getByRole('complementary',{name:'创作助手',exact:true}).count()===0);
+ await page.getByRole('textbox',{name:'搜索参考素材',exact:true}).fill('不存在的道具');
+ ok('素材空搜索有明确反馈',await page.getByText('没有匹配的参考素材',{exact:true}).isVisible());
+ await click('清空搜索'); await click('收起参考浏览'); await click('移除参考 旧铜钥匙'); await click('加参考');
+ const picker=page.getByRole('button',{name:/旧铜钥匙 · v1/});
+ await picker.waitFor({state:'visible'});
+ ok('快速参考选择器可见未被裁切',await picker.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}));
+ await picker.click();
+ ok('参考能够重新加入',await page.getByRole('button',{name:'移除参考 旧铜钥匙',exact:true}).isVisible());
+ await page.getByRole('textbox',{name:'SH-04提示词',exact:true}).fill('提交快照：保留右手接触。');
+ await click('查看生成计划'); await page.getByLabel('本次模拟结果',{exact:true}).selectOption('failure'); await click('模拟提交');
+ await page.getByRole('textbox',{name:'SH-04提示词',exact:true}).fill('提交后继续编辑的草稿。');
+ await page.getByRole('button',{name:'编辑后重新提交',exact:true}).waitFor();
+ ok('生成失败后保留继续编辑的草稿',await page.getByRole('textbox',{name:'SH-04提示词',exact:true}).inputValue()==='提交后继续编辑的草稿。');
+ await page.screenshot({path:'output/playwright/2026-09-10-scene-walkthrough/05-failure.png',animations:'disabled'});
+ await click('生成作业'); await page.getByText('本次提交的输入',{exact:true}).click();
+ ok('作业保留提交时输入快照',await page.getByText('提交快照：保留右手接触。',{exact:true}).isVisible());
+ await click('关闭生成作业'); await click('编辑后重新提交'); await page.getByLabel('本次模拟结果',{exact:true}).selectOption('unknown'); await click('模拟提交');
+ await page.getByRole('button',{name:'查看作业',exact:true}).waitFor();
+ ok('提交待核对禁止直接再次提交',await page.getByRole('button',{name:'提交待核对',exact:true}).isDisabled());
+ await click('查看作业');
+ await page.screenshot({path:'output/playwright/2026-09-10-scene-walkthrough/06-unknown.png',animations:'disabled'});
+ await click('模拟核对：确认未成功');
+ ok('明确核对后进入可编辑重提状态',await page.getByRole('button',{name:'编辑后重新提交',exact:true}).isVisible());
+ await click('状态演示'); await click('载入空场次');
+ ok('空场次不伪造审阅稿',await page.getByRole('button',{name:'暂无审阅稿',exact:true}).isDisabled());
+ ok('空场次无伪造生成输入',await page.getByRole('region',{name:'当前创作输入',exact:true}).count()===0);
+ await page.screenshot({path:'output/playwright/2026-09-10-scene-walkthrough/07-empty.png',animations:'disabled'});
+ await click('状态演示'); await click('载入 24 镜头压力示例');
+ ok('压力示例包含 24 个稳定镜头身份',await page.getByRole('button',{name:/^选择 SH-/}).count()===24);
+ await click('选择 SH-24'); await click('自由画布'); await click('定位当前内容');
+ ok('画布包含第 24 镜头',await page.getByRole('button',{name:'选择SH-24 / A · 当前采用',exact:true}).count()===1);
+ await click('适应内容');
+ ok('画布工具操作保留选择与输入',await page.getByRole('textbox',{name:'SH-24提示词',exact:true}).isVisible());
+ await page.screenshot({path:'output/playwright/2026-09-10-scene-walkthrough/08-canvas-many.png',animations:'disabled'});
+ await click('分镜'); await click('全场总览');
+ await page.screenshot({path:'output/playwright/2026-09-10-scene-walkthrough/09-storyboard-many.png',animations:'disabled'});
+ ok('压力状态不产生整页横向或纵向溢出',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth && document.documentElement.scrollHeight<=innerHeight));
+ await click('状态演示'); await click('重置为六镜头场次'); await click('自由画布');
+ const canvas=page.getByLabel('自由画布',{exact:true});
+ await canvas.click({position:{x:20,y:110}});
+ ok('取消选择后隐藏输入',await page.getByRole('region',{name:'当前创作输入',exact:true}).count()===0);
+ await click('参考');
+ ok('无目标引用被禁止',await page.getByRole('button',{name:'引用到 未选择对象',exact:true}).first().isDisabled());
+ ok('状态走查无运行异常',errors.length===0);
+ return {checks,errors};
+}
+)(page);
+```

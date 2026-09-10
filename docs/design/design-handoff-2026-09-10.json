@@ -1,0 +1,167 @@
+{
+  "kind": "design-review-snapshot",
+  "date": "2026-09-10",
+  "engineeringAuthorized": false,
+  "acceptedBaseline": "v0.3 core workspace and navigation",
+  "newDesignForReview": "v0.4 script, sound/subtitles, asset versions, save recovery",
+  "apiContractVersionUnchanged": "1.2.0",
+  "verification": {
+    "build": "passed",
+    "uiRules": "passed",
+    "interactionChecks": 37,
+    "finalCaptionChecks": 2,
+    "actualBusinessAcceptance": false
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "6384dd4c7f18454d57492d588e816bc9710b57351da2fed0c377f45a256a1b53"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "38af9e9efc71fa6aa6ee3ab566b53f03447fde5905cff9460840fb2d26eb0de3"
+    },
+    {
+      "path": "apps/web/AGENTS.md",
+      "sha256": "584e5eab60e6dbef7712d2a86277679fc3fa11480c17ef616eff4c7c5bf7cb17"
+    },
+    {
+      "path": "apps/web/src/App.tsx",
+      "sha256": "bc8a5c4b09d32ce31b6c584979f0227f8e1ff82dccc1fef7798ebe6555d4e0b4"
+    },
+    {
+      "path": "apps/web/src/pages/ProductionDetailPrototype.tsx",
+      "sha256": "2cc8859687a27fc0779e3ceee26f5eafe358ada357feb4741382566a5a5d789a"
+    },
+    {
+      "path": "apps/web/src/pages/production-detail.module.css",
+      "sha256": "db69a2fdd9397582563315a5c1b59a45250516e3dd6b07f0e51bf1a0c46c31e1"
+    },
+    {
+      "path": "apps/web/src/pages/WorkspaceRecommendationPrototype.tsx",
+      "sha256": "ce03e7760885abd830f1dda7560c802484ad9f4a6be5a43fc65282e0c598c1b6"
+    },
+    {
+      "path": "apps/web/src/theme/shared-language-study.ts",
+      "sha256": "f9b688ba0db5ea2cc5310795a7abfa64bf70b63fba30611937c42af6744502e2"
+    },
+    {
+      "path": "scripts/check-ui.ts",
+      "sha256": "bf19786dd84f464af7d7ffdd1e553adc5e2fea5c591a39e4dc7ef7754cb04884"
+    },
+    {
+      "path": "docs/design/approved-baseline-2026-09-10.md",
+      "sha256": "38657ecdfbc988ed4af840bf1a6b9a90c4f236e7c1d24f97365d310a11d6b08e"
+    },
+    {
+      "path": "docs/design/production-detail-design-v0.4.md",
+      "sha256": "5927e91bdbfaf1073a1ee94a43d2fe45f4093b055e4bf3a86a84facca25d0d15"
+    },
+    {
+      "path": "docs/design/scene-walkthrough-review-v0.3.md",
+      "sha256": "479e3033146a2b59d092506228a16ca249a0fa6a139dacd2e766aae4993018b7"
+    },
+    {
+      "path": "docs/design/core-workspace-recommendation-v0.2.md",
+      "sha256": "00a3eba00596b9d862b245a3b9969140e16b87433a1687509f448197680a2090"
+    },
+    {
+      "path": "docs/design/navigation-and-core-flow-v0.1.md",
+      "sha256": "b4008c722046981d9c8593c200bbbfc0676fc88d3edf287f4095a0b728fb18d3"
+    },
+    {
+      "path": "docs/design/workspace-recommendation-visuals-v0.2.md",
+      "sha256": "b6b2ab38bfc6a433f05d02f60ea36af10a7932fc576e1eb412f17868ded4ddf3"
+    },
+    {
+      "path": "docs/implementation/README.md",
+      "sha256": "5a7c36efe3f652bc741caf7116784c8efaea2fecbf39925f838394b049a07ae2"
+    },
+    {
+      "path": "docs/implementation/19-design-closure-and-implementation-entry.md",
+      "sha256": "4be5ca74696ba06539d4bc743f82588096affd73b446ebc74bd5d502b2bd9082"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/01-script.png",
+      "sha256": "5c287edf763860e73c9951baf1585fb1cc20d8e9ea5f615978a642e4161d4444"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/02-script-proposal.png",
+      "sha256": "bfbe488019ac840f136408037b44b7e366016bb258d496dc620ade85f4dd2cd0"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/03-sound.png",
+      "sha256": "f6811e61f154475e7eaec32f2b04ffc2a6bd256ba9be460f4d1708ea9c4ef80c"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/04-subtitle.png",
+      "sha256": "3d512404105592cb6993ff3bd2e71b0f6122a55114acebb59e03a4294ae3bff3"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/05-time-impact.png",
+      "sha256": "70780ab64c1859f0857a9cad77c7777263bbffb268c0ab596395bccfdbc1bb41"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/06-asset-v2.png",
+      "sha256": "683a94fa2a4c83ac461f2bc052308ba6e259ec4aca5d27d0fe696e7955d399a9"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/07-conflict.png",
+      "sha256": "b24678a908326cff4b9169c55bed03a3ec8ba9970ca01d8d99508f0cb3ce26eb"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/08-second-conflict.png",
+      "sha256": "0d72f77bc684bf1b14eabfc9dcf92f88ce3581790b1031165f3d1c546cde3c51"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/09-compact-script.png",
+      "sha256": "138ee2886db2804af72b37233f209a226077142cd4ce01c34a29e182d0a2a017"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/10-compact-sound.png",
+      "sha256": "db85078fb8eb085fc01a4e7cc599833f97a5fbae31db451fdd3c392d6daf1e85"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/11-compact-asset.png",
+      "sha256": "9edfe9bcf142ddff1b6889640266b508f7e1168dea874132c8b812c2a2b09cbf"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/12-compact-recovery.png",
+      "sha256": "92145c24eb58faf547345ec66cf0dd73418af6b283d124e95b67cb2d22915265"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/13-dark-sound.png",
+      "sha256": "eb896f0d0a7a7238fd078f24db97239cf404c357e3982d3f8fe98faeb31bef53"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/14-compact-conflict.png",
+      "sha256": "070375820e3e994f682727b470843cb075a28f5be3ce3b198e39ce2ab8dfd635"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/caption-checks.json",
+      "sha256": "55ba9d969012fa929ba57fa572b966f9350ed81ea9e34fb349b9410a31a5fb98"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/caption-visual-check.js",
+      "sha256": "f241a22c23958d194407f2bccdd0ef93cae6e3616508078712bfbac82dfcd3b9"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/checks.json",
+      "sha256": "f223186232939248adc4c3ceb715fe4082ecacc525fc33d47b9b53c3a779639d"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/verification.md",
+      "sha256": "ea7f9cdd68470423c783e4912e6ac868e58b657ad39b3be7341b1f3ae9294a13"
+    },
+    {
+      "path": "output/playwright/2026-09-10-production-details/walkthrough.js",
+      "sha256": "41551fec823d2b51865c8b098ce4bcef029cfe213905e0366fd1fe8b2493d8c7"
+    }
+  ],
+  "specialtyReview": {
+    "userFeedback": "暂时没有问题了",
+    "status": "no objections for now; provisional design baseline",
+    "engineeringAuthorized": false,
+    "changeScope": "documentation status only; previous implementation verification retained"
+  }
+}

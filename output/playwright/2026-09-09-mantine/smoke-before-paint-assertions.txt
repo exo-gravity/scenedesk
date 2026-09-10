@@ -1,0 +1,60 @@
+### Result
+{"passed":true,"checks":[{"name":"double click restores the default fixed panel width","passed":true},{"name":"collapsed navigation remains reachable at 900px","passed":true},{"name":"narrow drawer keeps generation action inside viewport","passed":true,"detail":{"x":774.9806518554688,"y":847,"width":110,"height":32}},{"name":"lazy design route loads in production build","passed":true},{"name":"no runtime errors in production chunks","passed":true,"detail":[]}]}
+### Ran Playwright code
+```js
+await (async (page) => {
+  const errors = [];
+  const capture = error => errors.push(String(error));
+  page.on('pageerror', capture);
+  const checks = [];
+  const check = (name, value, detail) => { checks.push({name, passed: Boolean(value), detail}); if (!value) throw new Error(name + ': ' + JSON.stringify(detail)); };
+  await page.setViewportSize({width: 1512, height: 982});
+  await page.goto('http://127.0.0.1:4313/#/scene/production');
+  await page.getByRole('textbox', {name: '本次提示词', exact: true}).waitFor();
+  const handle = page.getByRole('separator');
+  await handle.focus();
+  await page.keyboard.press('ArrowLeft');
+  await handle.dblclick();
+  await page.waitForFunction(() => Math.abs(document.querySelector('[aria-label="镜头检查与生成面板"]').getBoundingClientRect().width - 380) < 1);
+  check('double click restores the default fixed panel width', Math.abs((await page.getByRole('complementary', {name: '镜头检查与生成面板'}).boundingBox()).width - 380) < 1);
+  await page.mouse.move(220, 210);
+  await page.screenshot({path: 'output/playwright/2026-09-09-mantine/final-production-1512.png'});
+  await page.getByRole('button', {name: '准备生成', exact: true}).click();
+  await page.getByRole('dialog').waitFor();
+  await page.getByRole('textbox', {name: '本次提示', exact: true}).waitFor();
+  await page.screenshot({path: 'output/playwright/2026-09-09-mantine/final-generation-plan.png'});
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({state: 'hidden'});
+  await page.setViewportSize({width: 900, height: 900});
+  check('collapsed navigation remains reachable at 900px', await page.getByRole('button', {name: '展开导航', exact: true}).isVisible());
+  await page.getByRole('button', {name: '镜头面板', exact: true}).click();
+  await page.waitForFunction(() => { const dialog = document.querySelector('[role=dialog]'); return dialog && dialog.getBoundingClientRect().right <= innerWidth + 1; });
+  const cta = await page.getByRole('dialog').getByRole('button', {name: '准备生成', exact: true}).boundingBox();
+  check('narrow drawer keeps generation action inside viewport', cta.y + cta.height <= 900, cta);
+  await page.screenshot({path: 'output/playwright/2026-09-09-mantine/final-narrow-drawer.png'});
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({state: 'hidden'});
+  await page.setViewportSize({width: 1366, height: 900});
+  await page.getByRole('textbox', {name: '本次提示词', exact: true}).waitFor();
+  await page.screenshot({path: 'output/playwright/2026-09-09-mantine/final-production-1366.png'});
+  await page.setViewportSize({width: 1512, height: 982});
+  await page.goto('http://127.0.0.1:4313/#/design/');
+  await page.getByRole('heading', {name: '同一套视觉，清楚的制作判断。'}).waitFor();
+  check('lazy design route loads in production build', await page.getByRole('button', {name: '保存样板', exact: true}).isVisible());
+  await page.screenshot({path: 'output/playwright/2026-09-09-mantine/final-design-controls.png'});
+  await page.getByRole('tab', {name: '创作组件', exact: true}).click();
+  await page.mouse.move(220, 210);
+  await page.screenshot({path: 'output/playwright/2026-09-09-mantine/final-design-creative.png'});
+  await page.getByRole('tab', {name: '状态与反馈', exact: true}).click();
+  await page.screenshot({path: 'output/playwright/2026-09-09-mantine/final-design-states.png'});
+  check('no runtime errors in production chunks', errors.length === 0, errors);
+  page.off('pageerror', capture);
+  return {passed: true, checks};
+}
+)(page);
+```
+### Page
+- Page URL: http://127.0.0.1:4313/#/design/
+- Page Title: 视觉规范 · 片场
+### Events
+- New console entries: .playwright-cli/console-2026-09-09T11-48-05-702Z.log#L8-L20

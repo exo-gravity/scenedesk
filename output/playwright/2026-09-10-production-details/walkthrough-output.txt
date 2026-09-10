@@ -1,0 +1,139 @@
+### Result
+{"checks":[{"name":"未保存戏文禁止准备新提案","pass":true},{"name":"保存文本不自动改变正式依据","pass":true},{"name":"旧来源提案不能采纳","pass":true},{"name":"来源更新保留人工提案修改","pass":true},{"name":"只新增选中镜头并阻止重复采纳","pass":true},{"name":"已知重复对白阻止固定","pass":true},{"name":"明确原轨静音后可固定","pass":true},{"name":"非法字幕区间阻止固定","pass":true},{"name":"编辑使字幕核对失效","pass":true},{"name":"固定 v2 只读","pass":true},{"name":"固定 v2 不随草稿改变","pass":true},{"name":"旧 v1 保留原字幕","pass":true},{"name":"旧 v1 保留原轨配置","pass":true},{"name":"时长影响未处理不能应用","pass":true},{"name":"声音处理也必须明确","pass":true},{"name":"字幕按显式选择前移","pass":true},{"name":"环境声明确裁切至新片尾","pass":true},{"name":"浏览 v2 不直接改变引用","pass":true},{"name":"仅当前草稿改用 v2","pass":true},{"name":"范围浏览不修改引用","pass":true},{"name":"离线保留输入且不准备生成","pass":true},{"name":"恢复后保留输入并提示冲突","pass":true},{"name":"重复打开对照不会重置合并文本","pass":true},{"name":"二次冲突拒绝旧基线且保留合并","pass":true},{"name":"读取新版本保留人工合并","pass":true},{"name":"明确复核后存为新修订","pass":true},{"name":"本地旧内容仍有副本","pass":true},{"name":"剧本准备 1366×768 无整页溢出","pass":true},{"name":"紧凑剧本编辑区不遮住确认入口","pass":true},{"name":"声音与字幕 1366×768 无整页溢出","pass":true},{"name":"紧凑声音面板主要操作可滚动到达","pass":true},{"name":"资产版本 1366×768 无整页溢出","pass":true},{"name":"保存与冲突 1366×768 无整页溢出","pass":true},{"name":"紧凑冲突对照占布局空间且不遮盖原输入","pass":true},{"name":"返回已确认核心页面","pass":true},{"name":"核心入口可到专项设计","pass":true},{"name":"走查无页面脚本异常","pass":true}],"total":37,"errors":[]}
+### Ran Playwright code
+```js
+await (async (page) => {
+ const checks=[]; const errors=[]; page.on('pageerror', e=>errors.push(e.message));
+ const ok=(name,pass)=>{checks.push({name,pass}); if(!pass) throw new Error(name);};
+ const button=(name)=>page.getByRole('button',{name,exact:true});
+ const snap=async name=>{await page.waitForTimeout(220);await page.screenshot({path:`output/playwright/2026-09-10-production-details/${name}.png`,scale:'css'});};
+ await page.setViewportSize({width:1512,height:982});
+ await page.goto('http://127.0.0.1:4312/#/journey/?variant=finishing&topic=script&tone=light');
+ await page.reload();
+ await page.getByRole('textbox',{name:'剧本正文',exact:true}).waitFor();
+ await snap('01-script');
+ const script=page.getByRole('textbox',{name:'剧本正文',exact:true});
+ const original=await script.inputValue();
+ await button('查看分镜建议示例').click();
+ await page.getByLabel('SH-7 叙事意图',{exact:true}).fill('保留匙环磨痕，停顿后切向林夏。');
+ await script.fill(original+'\n\n林夏缓缓放下钥匙。');
+ ok('未保存戏文禁止准备新提案',await button('查看分镜建议示例').isDisabled());
+ await button('保存文本修订').click();
+ ok('保存文本不自动改变正式依据',await page.getByText('正式依据 r1',{exact:true}).isVisible());
+ ok('旧来源提案不能采纳',await button('追加选中的 2 个镜头').isDisabled());
+ ok('来源更新保留人工提案修改',(await page.getByLabel('SH-7 叙事意图',{exact:true}).inputValue()).includes('停顿'));
+ await button('查看分镜建议示例').click();
+ await page.getByRole('checkbox',{name:'新增 SH-08 · 林夏认出钥匙',exact:true}).uncheck();
+ await page.getByLabel('SH-7 叙事意图',{exact:true}).fill('匙环磨痕清晰，留出辨认时间。');
+ await button('追加选中的 1 个镜头').click();
+ ok('只新增选中镜头并阻止重复采纳',await page.getByText('咖啡厅 · 7 个示例镜头',{exact:true}).isVisible() && await button('已新增 1 个示例镜头').isDisabled());
+ await snap('02-script-proposal');
+ await button('声音与字幕').click();
+ await snap('03-sound');
+ await page.getByRole('checkbox',{name:'加入替代对白示例',exact:true}).check();
+ ok('已知重复对白阻止固定',await button('模拟固定声音字幕稿').isDisabled());
+ await page.getByLabel('视频原生混合音轨',{exact:true}).selectOption('mute');
+ ok('明确原轨静音后可固定',await button('模拟固定声音字幕稿').isEnabled());
+ await button('字幕').click();
+ await page.getByLabel('场次出点（秒）',{exact:true}).fill('30');
+ await page.getByLabel('字幕正文',{exact:true}).focus();
+ ok('非法字幕区间阻止固定',await button('模拟固定声音字幕稿').isDisabled());
+ await page.getByLabel('场次出点（秒）',{exact:true}).fill('35');
+ await page.getByRole('checkbox',{name:'模拟已完成人工回放核对',exact:true}).check();
+ await page.getByLabel('字幕正文',{exact:true}).fill('原来，你一直留着。');
+ ok('编辑使字幕核对失效',!(await page.getByRole('checkbox',{name:'模拟已完成人工回放核对',exact:true}).isChecked()));
+ await snap('04-subtitle');
+ await button('模拟固定声音字幕稿').click();
+ ok('固定 v2 只读',await page.getByLabel('字幕正文',{exact:true}).getAttribute('readonly')!==null);
+ await page.getByLabel('声音字幕版本',{exact:true}).selectOption('0');
+ await page.getByLabel('字幕正文',{exact:true}).fill('新的草稿台词。');
+ await page.getByLabel('声音字幕版本',{exact:true}).selectOption('2');
+ ok('固定 v2 不随草稿改变',(await page.getByLabel('字幕正文',{exact:true}).inputValue())==='原来，你一直留着。');
+ await page.getByLabel('声音字幕版本',{exact:true}).selectOption('1');
+ ok('旧 v1 保留原字幕',(await page.getByLabel('字幕正文',{exact:true}).inputValue())==='原来，他一直留着。');
+ await button('声音').click();
+ ok('旧 v1 保留原轨配置',(await page.getByLabel('视频原生混合音轨',{exact:true}).inputValue())==='keep');
+ await page.getByLabel('声音字幕版本',{exact:true}).selectOption('0');
+ await button('时长影响').click();
+ await button('预览时长影响').click();
+ ok('时长影响未处理不能应用',await button('应用本次时长示例').isDisabled());
+ await page.getByLabel('SH-05 字幕（31—35 秒）',{exact:true}).selectOption('follow');
+ ok('声音处理也必须明确',await button('应用本次时长示例').isDisabled());
+ await page.getByLabel('咖啡厅环境声（0—46 秒）',{exact:true}).selectOption('trim');
+ await snap('05-time-impact');
+ await button('应用本次时长示例').click();
+ await button('字幕').click();
+ ok('字幕按显式选择前移',(await page.getByLabel('场次入点（秒）',{exact:true}).inputValue())==='28' && (await page.getByLabel('场次出点（秒）',{exact:true}).inputValue())==='32');
+ await button('声音').click();
+ ok('环境声明确裁切至新片尾',await page.getByText('场次 0—43s · 独立环境声示例',{exact:true}).isVisible());
+ await button('资产版本').click();
+ await button('v2 · 草稿').click();
+ ok('浏览 v2 不直接改变引用',await button('本次尝试引用 v2').isEnabled());
+ await button('本次尝试引用 v2').click();
+ const usage=await page.locator('dl').innerText();
+ ok('仅当前草稿改用 v2',usage.includes('v2 · 草稿设定') && usage.includes('v1 · 固定输入') && usage.includes('资产 v1 · 固定依据') && usage.includes('v1 · 已确认'));
+ await snap('06-asset-v2');
+ await page.getByLabel('资产范围',{exact:true}).selectOption('studio');
+ ok('范围浏览不修改引用',(await page.locator('dl').innerText())===usage);
+ await button('保存与冲突').click();
+ const mine=page.getByLabel('本地动作提示',{exact:true});
+ await button('模拟离线').click();
+ await mine.fill('先触碰匙环，停半拍，保持五指自然。');
+ ok('离线保留输入且不准备生成',await button('准备生成').isDisabled());
+ await button('模拟恢复连接并核对').click();
+ ok('恢复后保留输入并提示冲突',(await mine.inputValue()).includes('五指自然') && await page.getByText('保存冲突 · 自动同步已暂停',{exact:true}).isVisible());
+ await button('对照并处理').click();
+ const merge=page.getByLabel('准备保存的合并动作',{exact:true});
+ await merge.fill('保留同伴的慢动作，同时加入半拍停顿。');
+ ok('重复打开对照不会重置合并文本',await button('对照已展开').isDisabled());
+ await snap('07-conflict');
+ await page.getByRole('checkbox',{name:'已核对 r13，只应用这段动作修改',exact:true}).check();
+ await button('模拟又有同伴更新').click();
+ await button('按 r13 保存合并结果').click();
+ ok('二次冲突拒绝旧基线且保留合并',(await merge.inputValue()).includes('半拍停顿') && await button('按 r13 保存合并结果').isDisabled());
+ await snap('08-second-conflict');
+ await button('读取 r14 后重新核对').click();
+ ok('读取新版本保留人工合并',(await merge.inputValue()).includes('半拍停顿'));
+ await page.getByRole('checkbox',{name:'已核对 r14，只应用这段动作修改',exact:true}).check();
+ await button('按 r14 保存合并结果').click();
+ ok('明确复核后存为新修订',await page.getByText('演示基线 r15 · 已模拟保存',{exact:true}).isVisible() && await button('准备生成').isEnabled());
+ ok('本地旧内容仍有副本',await page.getByText('本次本地副本 · 1 份',{exact:true}).isVisible());
+ await page.setViewportSize({width:1366,height:768});
+ for(const [label,name] of [['剧本准备','09-compact-script'],['声音与字幕','10-compact-sound'],['资产版本','11-compact-asset'],['保存与冲突','12-compact-recovery']]){
+  await button(label).click();
+  const size=await page.evaluate(()=>({w:document.documentElement.scrollWidth,h:document.documentElement.scrollHeight,iw:innerWidth,ih:innerHeight}));
+  ok(`${label} 1366×768 无整页溢出`,size.w<=size.iw && size.h<=size.ih);
+  if(label==='剧本准备'){
+   const editor=await page.getByRole('textbox',{name:'剧本正文',exact:true}).boundingBox();
+   const footer=await button('模拟主创确认 r2').boundingBox();
+   ok('紧凑剧本编辑区不遮住确认入口',editor.y+editor.height<footer.y);
+  }
+  if(label==='声音与字幕'){
+   await page.getByRole('complementary',{name:'声音字幕编辑',exact:true}).hover();
+   await page.mouse.wheel(0,650);
+   await page.waitForTimeout(220);
+   const action=await button('模拟固定声音字幕稿').boundingBox();
+   ok('紧凑声音面板主要操作可滚动到达',action.y>=90 && action.y+action.height<=768);
+  }
+  await snap(name);
+ }
+ await button('模拟同伴修改').click(); await button('对照并处理').click();
+ await button('模拟又有同伴更新').click();
+ await page.getByLabel('准备保存的合并动作',{exact:true}).fill('紧凑视图保留人工合并。');
+ const localBox=await page.getByLabel('本地动作提示',{exact:true}).boundingBox();
+ const remoteBox=await page.getByLabel('准备保存的合并动作',{exact:true}).boundingBox();
+ ok('紧凑冲突对照占布局空间且不遮盖原输入',localBox.x+localBox.width<remoteBox.x);
+ await snap('14-compact-conflict');
+ await button('声音与字幕').click(); await button('切换明暗').click(); await snap('13-dark-sound');
+ await button('回已确认方案').click(); await button('专项设计').waitFor();
+ ok('返回已确认核心页面',page.url().includes('variant=recommendation'));
+ await button('专项设计').click(); await page.getByRole('textbox',{name:'剧本正文',exact:true}).waitFor();
+ ok('核心入口可到专项设计',page.url().includes('variant=finishing'));
+ ok('走查无页面脚本异常',errors.length===0);
+ return {checks,total:checks.length,errors};
+}
+)(page);
+```
+### Page
+- Page URL: http://127.0.0.1:4312/#/journey/?variant=finishing&topic=script&tone=dark
+- Page Title: 制作专项设计 · 片场

@@ -1,0 +1,110 @@
+### Page
+- Page URL: http://127.0.0.1:4311/#/settings/
+- Page Title: 成员与用量 · 片场
+### Snapshot
+```yaml
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - button "片场，返回工作室项目" [ref=f1e5] [cursor=pointer]:
+      - strong [ref=f1e9]: 片场
+      - generic [ref=f1e10]: PIANCHANG
+    - button "拾 拾光工作室 团队工作空间" [ref=f1e11] [cursor=pointer]:
+      - generic [ref=f1e12]: 拾
+      - generic [ref=f1e13]:
+        - strong [ref=f1e14]: 拾光工作室
+        - generic [ref=f1e15]: 团队工作空间
+    - navigation "工作室导航" [ref=f1e18]:
+      - button "工作室项目" [ref=f1e19] [cursor=pointer]
+      - button "我的工作 3" [ref=f1e22] [cursor=pointer]:
+        - text: 我的工作
+        - generic [ref=f1e25]: "3"
+    - generic [ref=f1e27]: 当前项目
+    - button "《旧钥匙》写实分镜示意 旧钥匙 写实短剧 · 9:16" [ref=f1e31] [cursor=pointer]:
+      - img "《旧钥匙》写实分镜示意" [ref=f1e33]
+      - generic [ref=f1e35]:
+        - strong [ref=f1e36]: 旧钥匙
+        - generic [ref=f1e37]: 写实短剧 · 9:16
+    - navigation "项目导航" [ref=f1e40]:
+      - button "项目概览" [ref=f1e41] [cursor=pointer]
+      - button "剧本与设定" [ref=f1e44] [cursor=pointer]
+      - button "资产库" [ref=f1e47] [cursor=pointer]
+      - button "场次制作" [ref=f1e50] [cursor=pointer]
+      - button "整集与交付" [ref=f1e53] [cursor=pointer]
+    - generic [ref=f1e56]:
+      - button "视觉规范 01" [ref=f1e57] [cursor=pointer]:
+        - text: 视觉规范
+        - generic [ref=f1e60]: "01"
+      - button "成员与用量" [ref=f1e61] [cursor=pointer]
+      - generic [ref=f1e65]:
+        - generic "许知" [ref=f1e66]: 知
+        - generic [ref=f1e67]:
+          - strong [ref=f1e68]: 许知
+          - generic [ref=f1e69]: 制作人员 · 示例身份
+        - button "关于本地预览" [ref=f1e70] [cursor=pointer]
+  - generic [ref=f1e73]:
+    - banner [ref=f1e74]:
+      - generic [ref=f1e75]:
+        - button "拾光工作室" [ref=f1e76] [cursor=pointer]
+        - button "旧钥匙" [ref=f1e79] [cursor=pointer]
+        - generic [ref=f1e82]: 成员与用量
+      - generic [ref=f1e83]:
+        - button "本地设计预览" [ref=f1e84] [cursor=pointer]
+        - button "已保存在本机" [ref=f1e86] [cursor=pointer]
+        - button "查看我的待办" [ref=f1e89] [cursor=pointer]
+        - generic "许知" [ref=f1e92]: 知
+    - main [ref=f1e93]:
+      - generic [ref=f1e94]:
+        - generic [ref=f1e96]:
+          - paragraph [ref=f1e97]: WORKSPACE SETTINGS
+          - heading "简单协作，清楚的边界" [level=1] [ref=f1e98]
+          - paragraph [ref=f1e99]: 工作室管理成员与连接，项目内明确主创与协作者。
+        - generic [ref=f1e100]:
+          - generic [ref=f1e101]:
+            - heading "拾光工作室成员" [level=2] [ref=f1e104]
+            - generic [ref=f1e105]:
+              - generic [ref=f1e106]:
+                - generic "陈舟" [ref=f1e107]: 舟
+                - generic [ref=f1e108]:
+                  - strong [ref=f1e109]: 陈舟
+                  - generic [ref=f1e110]: 项目主创
+                - generic [ref=f1e111]: 所有者
+              - generic [ref=f1e112]:
+                - generic "许知" [ref=f1e113]: 知
+                - generic [ref=f1e114]:
+                  - strong [ref=f1e115]: 许知
+                  - generic [ref=f1e116]: 制作协作者
+                - generic [ref=f1e117]: 成员
+              - generic [ref=f1e118]:
+                - generic "宋宁" [ref=f1e119]: 宁
+                - generic [ref=f1e120]:
+                  - strong [ref=f1e121]: 宋宁
+                  - generic [ref=f1e122]: 后期协作者
+                - generic [ref=f1e123]: 成员
+            - paragraph [ref=f1e124]: 当前均为示例身份；不限制工作室人数。正式版本支持内部成员邀请，外包协作后置。
+          - generic [ref=f1e125]:
+            - heading "模型连接与用量" [level=2] [ref=f1e128]
+            - generic [ref=f1e129]:
+              - generic [ref=f1e133]:
+                - strong [ref=f1e134]: Seedance
+                - generic [ref=f1e135]: 主视频模型优先接入方向
+              - generic [ref=f1e136]: 未接入
+            - generic [ref=f1e137]:
+              - text: 本地预览真实消费
+              - strong [ref=f1e138]: ¥ 0.00
+              - paragraph [ref=f1e139]: 模拟生成不调用模型，不占用真实预算。
+          - generic [ref=f1e140]:
+            - heading "本地预览数据" [level=2] [ref=f1e143]
+            - paragraph [ref=f1e144]: 编辑内容仅保存在本机浏览器。你可以随时恢复初始示例，重新走查不同操作。
+            - button "重置本地示例" [ref=f1e145] [cursor=pointer]
+  - dialog [ref=f1e148]:
+    - generic [ref=f1e149]:
+      - generic [ref=f1e150]:
+        - heading "重置本地示例" [level=2] [ref=f1e151]
+        - paragraph [ref=f1e152]: 只清除本浏览器里的这套设计预览状态。
+      - button "关闭" [active] [ref=f1e153] [cursor=pointer]
+    - generic [ref=f1e156]:
+      - paragraph [ref=f1e157]: 你在原型中编辑的提示、分镜、剪辑和评论将恢复为初始示例。
+      - generic [ref=f1e158]:
+        - button "保留当前内容" [ref=f1e159] [cursor=pointer]
+        - button "重置示例" [ref=f1e160] [cursor=pointer]
+```

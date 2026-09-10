@@ -1,0 +1,154 @@
+{
+  "checks": [
+    {
+      "name": "未保存戏文禁止准备新提案",
+      "pass": true
+    },
+    {
+      "name": "保存文本不自动改变正式依据",
+      "pass": true
+    },
+    {
+      "name": "旧来源提案不能采纳",
+      "pass": true
+    },
+    {
+      "name": "来源更新保留人工提案修改",
+      "pass": true
+    },
+    {
+      "name": "只新增选中镜头并阻止重复采纳",
+      "pass": true
+    },
+    {
+      "name": "已知重复对白阻止固定",
+      "pass": true
+    },
+    {
+      "name": "明确原轨静音后可固定",
+      "pass": true
+    },
+    {
+      "name": "非法字幕区间阻止固定",
+      "pass": true
+    },
+    {
+      "name": "编辑使字幕核对失效",
+      "pass": true
+    },
+    {
+      "name": "固定 v2 只读",
+      "pass": true
+    },
+    {
+      "name": "固定 v2 不随草稿改变",
+      "pass": true
+    },
+    {
+      "name": "旧 v1 保留原字幕",
+      "pass": true
+    },
+    {
+      "name": "旧 v1 保留原轨配置",
+      "pass": true
+    },
+    {
+      "name": "时长影响未处理不能应用",
+      "pass": true
+    },
+    {
+      "name": "声音处理也必须明确",
+      "pass": true
+    },
+    {
+      "name": "字幕按显式选择前移",
+      "pass": true
+    },
+    {
+      "name": "环境声明确裁切至新片尾",
+      "pass": true
+    },
+    {
+      "name": "浏览 v2 不直接改变引用",
+      "pass": true
+    },
+    {
+      "name": "仅当前草稿改用 v2",
+      "pass": true
+    },
+    {
+      "name": "范围浏览不修改引用",
+      "pass": true
+    },
+    {
+      "name": "离线保留输入且不准备生成",
+      "pass": true
+    },
+    {
+      "name": "恢复后保留输入并提示冲突",
+      "pass": true
+    },
+    {
+      "name": "重复打开对照不会重置合并文本",
+      "pass": true
+    },
+    {
+      "name": "二次冲突拒绝旧基线且保留合并",
+      "pass": true
+    },
+    {
+      "name": "读取新版本保留人工合并",
+      "pass": true
+    },
+    {
+      "name": "明确复核后存为新修订",
+      "pass": true
+    },
+    {
+      "name": "本地旧内容仍有副本",
+      "pass": true
+    },
+    {
+      "name": "剧本准备 1366×768 无整页溢出",
+      "pass": true
+    },
+    {
+      "name": "紧凑剧本编辑区不遮住确认入口",
+      "pass": true
+    },
+    {
+      "name": "声音与字幕 1366×768 无整页溢出",
+      "pass": true
+    },
+    {
+      "name": "紧凑声音面板主要操作可滚动到达",
+      "pass": true
+    },
+    {
+      "name": "资产版本 1366×768 无整页溢出",
+      "pass": true
+    },
+    {
+      "name": "保存与冲突 1366×768 无整页溢出",
+      "pass": true
+    },
+    {
+      "name": "紧凑冲突对照占布局空间且不遮盖原输入",
+      "pass": true
+    },
+    {
+      "name": "返回已确认核心页面",
+      "pass": true
+    },
+    {
+      "name": "核心入口可到专项设计",
+      "pass": true
+    },
+    {
+      "name": "走查无页面脚本异常",
+      "pass": true
+    }
+  ],
+  "total": 37,
+  "errors": []
+}

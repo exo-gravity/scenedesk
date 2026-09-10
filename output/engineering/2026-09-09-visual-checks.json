@@ -1,0 +1,38 @@
+{
+  "checkedAt": "2026-09-09T09:54:45.439Z",
+  "node": "v22.23.2",
+  "npm": "10.9.8",
+  "scope": "Local visual prototype and existing regression checks; no business acceptance or real provider calls",
+  "checks": [
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "stdout": "\n> drama-platform@0.0.0 check\n> npm run contracts:check && npm run build && npm test\n\n\n> drama-platform@0.0.0 contracts:check\n> node scripts/check-generated.mjs\n\nGenerated TypeScript matches the design contract.\n\n> drama-platform@0.0.0 build\n> npm run typecheck && npm run build --workspace @drama/web\n\n\n> drama-platform@0.0.0 typecheck\n> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json\n\n\n> @drama/web@0.0.0 build\n> vite build\n\nvite v7.3.6 building client environment for production...\ntransforming...\n✓ 4576 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.49 kB │ gzip:   0.35 kB\ndist/assets/index-D0Sc-_ic.css   64.65 kB │ gzip:  13.95 kB\ndist/assets/index-C4v8PhUK.js   399.74 kB │ gzip: 112.50 kB\n✓ built in 2.03s\n\n> drama-platform@0.0.0 test\n> node --import tsx --test tests/*.test.ts\n\nTAP version 13\n# Subtest: health distinguishes a runnable process from business or database readiness\nok 1 - health distinguishes a runnable process from business or database readiness\n  ---\n  duration_ms: 76.334125\n  type: 'test'\n  ...\n# Subtest: OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation\nok 2 - OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation\n  ---\n  duration_ms: 146.3815\n  type: 'test'\n  ...\n# Subtest: NTSC inward range keeps exact source frame bounds\nok 3 - NTSC inward range keeps exact source frame bounds\n  ---\n  duration_ms: 1.185166\n  type: 'test'\n  ...\n# Subtest: invalid or shorter-than-frame intervals are rejected\nok 4 - invalid or shorter-than-frame intervals are rejected\n  ---\n  duration_ms: 0.383417\n  type: 'test'\n  ...\n# Subtest: audio length is derived from global frame boundaries, not per-clip rounded sums\nok 5 - audio length is derived from global frame boundaries, not per-clip rounded sums\n  ---\n  duration_ms: 0.127791\n  type: 'test'\n  ...\n# Subtest: mock accepted: repeated scheduling cannot submit twice\nok 6 - mock accepted: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.117291\n  type: 'test'\n  ...\n# Subtest: mock rejected: repeated scheduling cannot submit twice\nok 7 - mock rejected: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.051583\n  type: 'test'\n  ...\n# Subtest: mock lost_reply: repeated scheduling cannot submit twice\nok 8 - mock lost_reply: repeated scheduling cannot submit twice\n  ---\n  duration_ms: 0.043542\n  type: 'test'\n  ...\n# Subtest: lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved\nok 9 - lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved\n  ---\n  duration_ms: 0.124875\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 348.355542\n",
+      "stderr": ""
+    },
+    {
+      "command": "npm audit --json",
+      "exitCode": 0,
+      "stdout": "{\n  \"auditReportVersion\": 2,\n  \"vulnerabilities\": {},\n  \"metadata\": {\n    \"vulnerabilities\": {\n      \"info\": 0,\n      \"low\": 0,\n      \"moderate\": 0,\n      \"high\": 0,\n      \"critical\": 0,\n      \"total\": 0\n    },\n    \"dependencies\": {\n      \"prod\": 81,\n      \"dev\": 161,\n      \"optional\": 54,\n      \"peer\": 0,\n      \"peerOptional\": 0,\n      \"total\": 242\n    }\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": ".venv/bin/python docs/implementation/check_design.py",
+      "exitCode": 0,
+      "stdout": "{\"result\": \"PASS\", \"operations\": 120, \"paths\": 94, \"schemas\": 174, \"examples\": 86, \"localLinks\": 470, \"versions\": {\"openapi-spec-validator\": \"0.9.0\", \"jsonschema\": \"4.26.0\"}}\n",
+      "stderr": ""
+    }
+  ],
+  "fileHashes": {
+    "package-lock.json": "96a504bb63143f50e0823b4ee687d117b75c252fa94ef90d3a36204488fbe914",
+    "apps/web/src/App.tsx": "5bbd07e2359536e3a80b69c47ca7dd59eb20a414dbf23ee511d5e02f22331688",
+    "apps/web/src/model.ts": "82ffe0493b77fee92fdf9551d581d9ad5bece1e31ff4ad07686303aa62fe472e",
+    "apps/web/src/components/ui.tsx": "c8cbd564000968ecaa5884e550d09699f05a3c04f5c874ef86d53765c060d047",
+    "apps/web/src/pages/ScenePage.tsx": "c10eafd4ef29f43e95ae2d5f0d9b0e760c00a94fc391287c22bbab24e5d5fc46",
+    "apps/web/src/pages/ContentPages.tsx": "12225e28019232505290f7f81a5f85751a68f2c407c30ea1b0404ae6d9ed88e2",
+    "apps/web/src/pages/WorkspacePages.tsx": "2c92499cd262f69362ec5c7901359fc3b6acd4260fce351ef590e8a58633dd71",
+    "apps/web/src/style.css": "8ae903f6cc9d6b4a6f4dab6f31695e228a596c33e7290a90b0e029beea811d77",
+    "apps/web/public/demo/old-key-storyboard.png": "9da9c33f81494e51a53f37f432584a5709c260b957bff891ecf178e08c31596a"
+  },
+  "passed": true
+}

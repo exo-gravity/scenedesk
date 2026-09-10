@@ -1,0 +1,16 @@
+{
+  "method": "built-in image_gen edit",
+  "refinements": [
+    {
+      "name": "storyboard",
+      "source": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-d62ca4e8-bcf1-4533-9549-279fe5c928db.png",
+      "prompt": "Use case: precise-object-edit. Input 1 is the EDIT TARGET, a completed Chinese UI mockup. Make only one tiny correction: immediately below the right-panel warm \"准备生成\" button there is a small empty checkbox next to the text \"新结果保留为候选\". REMOVE the checkbox entirely and keep that text as ordinary muted non-interactive helper text, aligned with the prompt panel left edge. Retain the same overall dimensions and every other pixel/composition as closely as possible: all media, hands, faces, rails, header, Chinese copy, cards, borders, typography, modes and controls. Do not change any layout or add anything. The helper is a fact and must not appear optional. No other redesign."
+    },
+    {
+      "name": "canvas",
+      "source": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-af0ece04-434a-467e-a6b3-11f0b7fb466b.png",
+      "reference": "/Users/gandy/.codex/generated_images/01a07a96-32f1-76c1-95bd-c972e57ef7fd/exec-d62ca4e8-bcf1-4533-9549-279fe5c928db.png",
+      "prompt": "Use case: precise-object-edit. Input image 1 is the EDIT TARGET: the free canvas UI. Input image 2 is a supporting EXACT APP SHELL reference: the storyboard mode of this same app.\nChange ONLY the shallow top TWO header rows (approximately upper 130px) and the narrow left 68px icon rail of image 1 to match image 2 precisely in positioning, sizes, margins, icon style, typography, button widths and subtle color usage. This is the same scene with a view switch; the common frame must not move.\nRetain the top breadcrumb and edit tabs of image 2: \"旧钥匙 / 第1集 / 咖啡厅\", \"镜头制作\" selected, \"剪辑\"; right \"预览整场\", \"审阅稿 v1 · 待修改\". Match spacing and coordinates from image 2.\nIn the SECOND ROW mode switch use image 2's plain text styling and exact geometry, but select \"自由画布\" and deselect \"分镜模式\". Do NOT add little icons inside the mode buttons (reference 2 has none). Match image 2's right-hand \"素材\", \"历史\", \"助手\" controls. Use exactly the same rail icons as image 2 including filmstrip selected.\nEverything below these header rows, except the left icon rail, is LOCKED: preserve independent nodes, all photos, outlines, curved connections, labels, current A adopted/B viewed distinction, composer, bottom controls and complete media. Do not rearrange nodes, do not add a storyboard strip, no right sidebar. Preserve output dimensions. No other redesign."
+    }
+  ]
+}

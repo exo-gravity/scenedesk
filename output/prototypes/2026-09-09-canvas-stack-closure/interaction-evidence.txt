@@ -1,0 +1,83 @@
+### Result
+{"passed":true,"reactStrictMode":true,"nodeCount":3,"edgeCount":2,"mantineInputAndPortal":true,"nodeHeaderDrag":true,"pointerConnection":true,"modeAndReloadRestore":true,"media":{"paused":true,"time":0.787202,"duration":4,"tracks":1,"cues":2},"queryDirtyDraftPreserved":true,"mutationAttempts":1,"sortOrder":"SH02,SH03,SH01","virtualRows":{"total":10000,"mountedBefore":11,"mountedAfter":11},"pageErrors":[]}
+### Ran Playwright code
+```js
+await (async (page) => {
+  const errors=[];
+  page.on('pageerror',error=>errors.push(String(error)));
+  const ok=(condition,message)=>{if(!condition)throw new Error(message);};
+  await page.setViewportSize({width:1366,height:1250});
+  await page.reload();
+  await page.getByRole('textbox',{name:'REF 创作输入'}).waitFor();
+  const state=async()=>JSON.parse(await page.getByTestId('canvas-state').textContent());
+  const before=await state();
+  await page.getByRole('textbox',{name:'REF 创作输入'}).fill('咖啡厅，共用参考；正在输入，不拖动节点。');
+  await page.getByRole('textbox',{name:'REF 创作输入'}).press('Delete');
+  const afterEdit=await state();
+  ok(afterEdit.nodes.length===3,'Input Delete removed a node');
+  ok(JSON.stringify(before.nodes[0].position)===JSON.stringify(afterEdit.nodes[0].position),'Input moved its node');
+  await page.getByRole('combobox',{name:'REF 模型'}).click();
+  await page.getByRole('option',{name:'导入素材',exact:true}).click();
+  ok((await state()).nodes[0].model==='导入素材','Mantine portal select failed');
+
+  const title=await page.getByTestId('drag-REF').boundingBox();
+  await page.mouse.move(title.x+80,title.y+10);await page.mouse.down();await page.mouse.move(title.x+140,title.y+90,{steps:12});await page.mouse.up();
+  const moved=(await state()).nodes[0].position;
+  ok(moved.x>before.nodes[0].position.x+50&&moved.y>before.nodes[0].position.y+60,'Header drag failed');
+
+  const from=await page.locator('[data-node="REF"] .react-flow__handle.source').boundingBox();
+  const to=await page.locator('[data-node="SH02"] .react-flow__handle.target').boundingBox();
+  await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:18});await page.mouse.up();
+  ok((await state()).edges.some(e=>e.source==='REF'&&e.target==='SH02'),'Pointer connection failed');
+
+  await page.getByRole('button',{name:'保存本地布局',exact:true}).click();
+  const saved=await state();
+  await page.getByRole('button',{name:'分镜模式',exact:true}).click();
+  ok(await page.locator('video').count()===0,'Media stayed mounted when leaving canvas');
+  await page.getByRole('button',{name:'自由画布',exact:true}).click();
+  ok(JSON.stringify(await state())===JSON.stringify(saved),'Mode switch changed canvas input/layout');
+  await page.reload();
+  await page.getByRole('button',{name:'恢复本地布局',exact:true}).click();
+  ok(JSON.stringify(await state())===JSON.stringify(saved),'Reload/restore lost layout or input');
+
+  const media=page.locator('video');
+  await page.waitForFunction(()=>document.querySelector('video')?.readyState>=2);
+  await page.getByRole('button',{name:'play',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('video')?.currentTime>0.2);
+  await page.getByRole('button',{name:'pause',exact:true}).click();
+  const paused=await media.evaluate(v=>v.paused);
+  const slider=page.getByRole('slider',{name:'seek',exact:true});
+  await slider.focus();await slider.press('ArrowRight');
+  const mediaState=await media.evaluate(v=>({paused:v.paused,time:v.currentTime,duration:v.duration,tracks:v.textTracks.length,cues:v.textTracks[0]?.cues?.length}));
+  ok(paused&&mediaState.time>0.5&&mediaState.duration>0&&mediaState.tracks===1&&mediaState.cues>0,'Media controls or captions failed');
+
+  await page.getByRole('textbox',{name:'独立本地草稿'}).fill('这个草稿不可被后台更新覆盖');
+  await page.getByRole('button',{name:'模拟服务端更新',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('[data-testid="revision"]')?.textContent.includes('2'));
+  ok(await page.getByRole('textbox',{name:'独立本地草稿'}).inputValue()==='这个草稿不可被后台更新覆盖','Query overwrote dirty draft');
+  await page.getByRole('button',{name:'模拟失败写入',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('[data-testid="attempts"]')?.textContent.includes('1 次'));
+  await page.waitForTimeout(1200);
+  ok((await page.getByTestId('attempts').textContent()).includes('1 次'),'Mutation retried');
+
+  const h1=await page.getByRole('button',{name:'移动 SH01',exact:true}).boundingBox();
+  const h3=await page.getByRole('button',{name:'移动 SH03',exact:true}).boundingBox();
+  await page.mouse.move(h1.x+h1.width/2,h1.y+h1.height/2);await page.mouse.down();await page.mouse.move(h3.x+h3.width/2,h3.y+h3.height/2+10,{steps:20});await page.mouse.up();
+  await page.waitForTimeout(200);
+  const order=await page.getByTestId('order').textContent();
+  ok(order!=='SH01,SH02,SH03','Pointer sorting failed');
+
+  const list=page.getByTestId('assets');
+  const mountedBefore=await list.locator('[data-asset]').count();
+  await list.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  await page.waitForFunction(()=>document.querySelector('[data-asset="9999"]')!==null);
+  const mountedAfter=await list.locator('[data-asset]').count();
+  ok(mountedBefore<30&&mountedAfter<30,'Virtual list mounted too many rows');
+  await page.screenshot({path:'verified.png',fullPage:true});
+  ok(errors.length===0,'Browser runtime error: '+errors.join('\n'));
+  return {passed:true,reactStrictMode:true,nodeCount:saved.nodes.length,edgeCount:saved.edges.length,mantineInputAndPortal:true,nodeHeaderDrag:true,pointerConnection:true,modeAndReloadRestore:true,media:mediaState,queryDirtyDraftPreserved:true,mutationAttempts:1,sortOrder:order,virtualRows:{total:10000,mountedBefore,mountedAfter},pageErrors:errors};
+}
+)(page);
+```
+### Events
+- New console entries: .playwright-cli/console-2026-09-09T15-33-20-682Z.log#L2-L3

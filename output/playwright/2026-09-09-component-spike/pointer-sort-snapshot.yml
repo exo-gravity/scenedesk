@@ -1,0 +1,68 @@
+- generic [ref=f2e1]:
+  - main [ref=f2e3]:
+    - heading "前端组件兼容性验证" [level=1] [ref=f2e4]
+    - paragraph [ref=f2e5]: 隔离的技术样例；不代表产品页面迁移、真实生成或完整剪辑。
+    - generic [ref=f2e6]:
+      - button "编辑镜头" [ref=f2e7] [cursor=pointer]
+      - button "切换左侧面板" [ref=f2e10] [cursor=pointer]
+      - paragraph [ref=f2e13]: 本地模拟数据已读取
+    - generic [ref=f2e14]:
+      - generic [ref=f2e15]:
+        - heading "镜头排序" [level=2] [ref=f2e109]
+        - generic [ref=f2e19]:
+          - button "移动 SH02" [active] [ref=f2e20]: ⠿
+          - generic [ref=f2e21]: SH02 · 镜头素材
+        - generic [ref=f2e16]:
+          - button "移动 SH01" [ref=f2e17]: ⠿
+          - generic [ref=f2e18]: SH01 · 镜头素材
+        - generic [ref=f2e22]:
+          - button "移动 SH03" [ref=f2e23]: ⠿
+          - generic [ref=f2e24]: SH03 · 镜头素材
+        - status [ref=f2e110]: SH02,SH01,SH03
+        - heading "1000 条素材" [level=2] [ref=f2e111]
+        - generic "虚拟素材列表" [ref=f2e112]:
+          - generic [ref=f2e113]:
+            - generic [ref=f2e114]: 素材 1
+            - generic [ref=f2e115]: 素材 2
+            - generic [ref=f2e116]: 素材 3
+            - generic [ref=f2e117]: 素材 4
+            - generic [ref=f2e118]: 素材 5
+            - generic [ref=f2e119]: 素材 6
+            - generic [ref=f2e120]: 素材 7
+            - generic [ref=f2e121]: 素材 8
+            - generic [ref=f2e122]: 素材 9
+            - generic [ref=f2e123]: 素材 10
+            - generic [ref=f2e124]: 素材 11
+      - separator [ref=f2e25]
+      - generic [ref=f2e35]:
+        - heading "原生媒体与播放控制" [level=2] [ref=f2e36]
+        - region "video player" [ref=f2e37]:
+          - generic [ref=f2e39]:
+            - generic:
+              - button "play" [ref=f2e40] [cursor=pointer]:
+                - generic [ref=f2e45]:
+                  - generic [aria-hidden]:
+                    - generic: Play
+              - generic [ref=f2e47] [cursor=pointer]:
+                - slider "seek" [ref=f2e53]: "0.255367975059516"
+                - generic: en 0:00
+              - button "playback time" [ref=f2e54]: 0:00 / 0:04
+              - button "unmute" [ref=f2e55] [cursor=pointer]:
+                - generic [ref=f2e60]:
+                  - generic [aria-hidden]:
+                    - generic: Unmute
+              - button "closed captions" [ref=f2e61] [cursor=pointer]:
+                - generic [ref=f2e66]:
+                  - generic [aria-hidden]:
+                    - generic: Disable captions
+        - status [ref=f2e67]: 0.93 秒
+      - separator [ref=f2e68]
+      - generic [ref=f2e78]:
+        - heading "选型集成范围" [level=2] [ref=f2e79]
+        - paragraph [ref=f2e80]: Mantine 样式与弹窗
+        - paragraph [ref=f2e81]: Splitter 折叠与尺寸记忆
+        - paragraph [ref=f2e82]: dnd-kit 排序
+        - paragraph [ref=f2e83]: Media Chrome 播放与字幕
+        - paragraph [ref=f2e84]: Query 与 Virtual
+        - status [ref=f2e85]: 反应镜头 / 导入素材
+  - status [ref=f2e107]: Draggable item SH03 was dropped over droppable target SH03

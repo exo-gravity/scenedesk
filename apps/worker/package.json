@@ -1,0 +1,9 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "name": "@drama/worker",
+  "dependencies": {
+    "pg": "8.23.0"
+  }
+}

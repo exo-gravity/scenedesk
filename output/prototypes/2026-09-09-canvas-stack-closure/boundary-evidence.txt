@@ -1,0 +1,30 @@
+### Result
+{"mediaPointerSeekWithoutNodeDrag":true,"time":2.600376,"keyboardOrder":"SH03,SH02,SH01","wheelPan":true,"zoom":true}
+### Ran Playwright code
+```js
+await (async(page)=>{
+  const state=async()=>JSON.parse(await page.getByTestId('canvas-state').textContent());
+  const before=JSON.stringify((await state()).nodes.map(n=>n.position));
+  const seek=await page.getByRole('slider',{name:'seek',exact:true}).boundingBox();
+  await page.mouse.click(seek.x+seek.width*0.65,seek.y+seek.height/2);
+  if(JSON.stringify((await state()).nodes.map(n=>n.position))!==before)throw new Error('Media pointer seek moved node');
+  const rangeTime=await page.locator('video').evaluate(v=>v.currentTime);
+  if(rangeTime<1)throw new Error('Pointer seek did not change time');
+  const oldOrder=await page.getByTestId('order').textContent();
+  const handle=page.getByRole('button',{name:'移动 SH02',exact:true});await handle.focus();
+  await page.keyboard.press('Space');await page.keyboard.press('ArrowDown');await page.keyboard.press('Space');
+  await page.waitForTimeout(200);
+  const newOrder=await page.getByTestId('order').textContent();
+  if(oldOrder===newOrder)throw new Error('Keyboard reorder failed');
+  const view=page.locator('.react-flow__viewport');
+  const initial=await view.getAttribute('style');
+  await page.mouse.move(1050,400);await page.mouse.wheel(0,100);
+  await page.waitForTimeout(150);
+  const panned=await view.getAttribute('style');
+  if(initial===panned)throw new Error('Wheel pan failed');
+  await page.getByRole('button',{name:'Zoom In',exact:true}).click();await page.waitForTimeout(350);
+  if(panned===await view.getAttribute('style'))throw new Error('Zoom failed');
+  return{mediaPointerSeekWithoutNodeDrag:true,time:rangeTime,keyboardOrder:newOrder,wheelPan:true,zoom:true};
+}
+)(page);
+```

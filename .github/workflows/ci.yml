@@ -1,0 +1,41 @@
+name: S0 checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+        env:
+          POSTGRES_USER: drama_local
+          POSTGRES_PASSWORD: drama_local_only
+          POSTGRES_DB: drama_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U drama_local -d drama_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://drama_local:drama_local_only@127.0.0.1:5432/drama_ci
+      PROVIDER_MODE: mock
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.14'
+      - run: npm install --global npm@10.9.8
+      - run: npm ci
+      - run: pip install -r docs/implementation/validation-requirements.txt
+      - run: python docs/implementation/check_design.py
+      - run: npm run check
+      - run: npm run db:migrate
+      - run: npm run test:db
+      - run: npm run worker:check

@@ -1,0 +1,848 @@
+{
+  "checkedOn": "2026-09-09",
+  "purpose": "Registry evidence only; these versions are not installed in the product or accepted by runtime integration tests.",
+  "packages": [
+    {
+      "name": "@cloudflare/kumo",
+      "registryUrl": "https://registry.npmjs.org/%40cloudflare%2Fkumo",
+      "version": "2.13.2",
+      "publishedAt": "2026-09-08T14:04:50.488Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "@phosphor-icons/react": "^2.1.10",
+        "echarts": "^6.0.0",
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0",
+        "zod": "^4.0.0"
+      },
+      "peerDependenciesMeta": {
+        "zod": {
+          "optional": true
+        },
+        "echarts": {
+          "optional": true
+        }
+      },
+      "dependencies": {
+        "@base-ui/react": "^1.6.0",
+        "@shikijs/langs": "^4.0.0",
+        "@shikijs/themes": "^4.0.0",
+        "cnfast": "^0.0.8",
+        "d3-geo": "^3.1.1",
+        "motion": "^12.34.1",
+        "react-day-picker": "^9.13.2",
+        "shiki": "^4.0.0",
+        "use-sync-external-store": "^1.6.0"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cloudflare/kumo.git",
+        "directory": "packages/kumo"
+      },
+      "distIntegrity": "sha512-pNJ3fjwIOz4d3T5pxJMS9yc/2fcTuosdak824MxB60xY4yn/vRomHzRACeNuGvpV52ooHdlrEzpMC4uDhvIQVA==",
+      "distTags": {
+        "backport": "2.3.1",
+        "latest": "2.13.2"
+      }
+    },
+    {
+      "name": "@mantine/core",
+      "registryUrl": "https://registry.npmjs.org/%40mantine%2Fcore",
+      "version": "9.6.0",
+      "publishedAt": "2026-08-31T15:33:29.598Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "@mantine/hooks": "9.6.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "clsx": "^2.1.1",
+        "type-fest": "^5.8.0",
+        "@floating-ui/react": "^0.27.20",
+        "react-number-format": "^5.4.5",
+        "react-remove-scroll": "^2.7.2"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/mantinedev/mantine.git",
+        "type": "git",
+        "directory": "packages/@mantine/core"
+      },
+      "distIntegrity": "sha512-WpdtSv9q2k4RrAVUxBlABMyEul4vv94EkjoVuQglBBC7jVmLhBBgI64HltE6di/l6zvj9D7k1vgkbVjyxQsn1g==",
+      "distTags": {
+        "legacy": "7.17.8",
+        "next": "9.5.1-alpha.1",
+        "latest": "9.6.0"
+      }
+    },
+    {
+      "name": "@mantine/form",
+      "registryUrl": "https://registry.npmjs.org/%40mantine%2Fform",
+      "version": "9.6.0",
+      "publishedAt": "2026-08-31T15:29:41.067Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^19.2.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "klona": "^2.0.6",
+        "fast-deep-equal": "^3.1.3",
+        "@standard-schema/spec": "^1.1.0"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/mantinedev/mantine.git",
+        "type": "git",
+        "directory": "packages/@mantine/form"
+      },
+      "distIntegrity": "sha512-4TbT/DiixG5uWjgm/HNQlS3Ac0Ov35WVcAW6HQ7Q4+NGuj8mED4gBXHzqVywNi7PhshivdNMox3zADvHIOyUdA==",
+      "distTags": {
+        "legacy": "7.17.8",
+        "next": "9.5.1-alpha.1",
+        "latest": "9.6.0"
+      }
+    },
+    {
+      "name": "@base-ui/react",
+      "registryUrl": "https://registry.npmjs.org/%40base-ui%2Freact",
+      "version": "1.8.0",
+      "publishedAt": "2026-09-04T08:52:51.986Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^17 || ^18 || ^19",
+        "date-fns": "^4.0.0",
+        "react-dom": "^17 || ^18 || ^19",
+        "@date-fns/tz": "^1.2.0",
+        "@types/react": "^17 || ^18 || ^19"
+      },
+      "peerDependenciesMeta": {
+        "date-fns": {
+          "optional": true
+        },
+        "@date-fns/tz": {
+          "optional": true
+        },
+        "@types/react": {
+          "optional": true
+        }
+      },
+      "dependencies": {
+        "@babel/runtime": "^7.29.7",
+        "@base-ui/utils": "0.4.0",
+        "@floating-ui/utils": "^0.2.12",
+        "@floating-ui/react-dom": "^2.1.9",
+        "use-sync-external-store": "^1.6.0"
+      },
+      "engines": {
+        "node": ">=14.0.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/mui/base-ui.git",
+        "type": "git",
+        "directory": "packages/react"
+      },
+      "distIntegrity": "sha512-P0/1sxo6SBVZOklKMIedvTWqw2s2IQzi9x5bIVsXu980cuSOD4NeuRSs+/L7LZQfDkZP/uRZyGPyfFl/B1oH+Q==",
+      "distTags": {
+        "latest": "1.8.0"
+      }
+    },
+    {
+      "name": "@heroui/react",
+      "registryUrl": "https://registry.npmjs.org/%40heroui%2Freact",
+      "version": "3.2.4",
+      "publishedAt": "2026-08-07T13:22:12.106Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "@react-aria/i18n": "^3.13.1",
+        "@react-aria/ssr": "^3.10.1",
+        "@react-aria/utils": "^3.34.1",
+        "react": ">=19.0.0",
+        "react-aria": "^3.51.0",
+        "react-aria-components": "^1.20.0",
+        "react-dom": ">=19.0.0",
+        "tailwindcss": ">=4.0.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "@radix-ui/react-avatar": "1.1.11",
+        "@react-stately/utils": "3.12.1",
+        "@react-types/color": "3.2.0",
+        "@react-types/shared": "3.36.1",
+        "input-otp": "1.4.2",
+        "tailwind-merge": "3.4.0",
+        "tailwind-variants": "3.3.1",
+        "@heroui/styles": "3.2.4"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/heroui-inc/heroui.git",
+        "directory": "packages/react"
+      },
+      "distIntegrity": "sha512-ZXCTyz1G7bgCdHVxRPy4vIRI/wdb0ZvzEUJGG7CAEp0zqQsKrTH1o9i3Ns8yM6EidtAyfMosULN29gFA3wegBA==",
+      "distTags": {
+        "alpha": "3.0.0-beta.2",
+        "canary": "0.0.0-canary-20260306161133",
+        "rc": "3.0.0-rc.1",
+        "latest": "3.2.4"
+      }
+    },
+    {
+      "name": "@xyflow/react",
+      "registryUrl": "https://registry.npmjs.org/%40xyflow%2Freact",
+      "version": "12.11.6",
+      "publishedAt": "2026-09-01T12:07:53.778Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": ">=17",
+        "react-dom": ">=17",
+        "@types/react": ">=17",
+        "@types/react-dom": ">=17"
+      },
+      "peerDependenciesMeta": {
+        "@types/react": {
+          "optional": true
+        },
+        "@types/react-dom": {
+          "optional": true
+        }
+      },
+      "dependencies": {
+        "zustand": "^4.4.0",
+        "classcat": "^5.0.3",
+        "@xyflow/system": "0.0.82"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/xyflow/xyflow.git",
+        "type": "git",
+        "directory": "packages/react"
+      },
+      "distIntegrity": "sha512-9XsEJNHjatKYndszKTF/bsU7FOP9dJ6V/EQwzy3oMdtqgBuUq7BjKSwkEo+C7s4qHstHQfwwoHA3E8QfpPxZZQ==",
+      "distTags": {
+        "next": "12.0.0-next.5",
+        "latest": "12.11.6"
+      }
+    },
+    {
+      "name": "@vidstack/react",
+      "registryUrl": "https://registry.npmjs.org/%40vidstack%2Freact",
+      "version": "0.6.15",
+      "publishedAt": "2024-04-19T07:25:48.130Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^18.0.0",
+        "vidstack": "0.6.15",
+        "maverick.js": "0.37.0",
+        "@types/react": "^18.0.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {},
+      "engines": {
+        "node": ">=16"
+      },
+      "repository": {
+        "url": "https://github.com/vidstack/vidstack.git",
+        "type": "git",
+        "directory": "packages/react"
+      },
+      "distIntegrity": "sha512-S8KkYCte84Pqwb8Zd9vuOCe2YuaXqRdtYQ22zSvDUPlS7m8ilYs6ypfHwZzmgSVZdayVU1C703aFMSdcLfpxpg==",
+      "distTags": {
+        "latest": "0.6.15",
+        "next": "1.15.6"
+      }
+    },
+    {
+      "name": "media-chrome",
+      "registryUrl": "https://registry.npmjs.org/media-chrome",
+      "version": "4.19.2",
+      "publishedAt": "2026-06-10T19:22:37.983Z",
+      "license": "MIT",
+      "peerDependencies": {},
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "ce-la-react": "^0.3.2"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/muxinc/media-chrome.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-4ai1ITN8wBhwugQcRgqe3tN0z6OSKGOXqHLNrS04MgKFfsLqu6Dm8MPq02pI9Y9ZKoXtFjIl85jOryIW9es3BA==",
+      "distTags": {
+        "next": "1.0.0-rc.5",
+        "latest": "4.19.2",
+        "canary": "4.19.3-canary.2"
+      }
+    },
+    {
+      "name": "video.js",
+      "registryUrl": "https://registry.npmjs.org/video.js",
+      "version": "8.24.0",
+      "publishedAt": "2026-08-03T10:12:56.271Z",
+      "license": "Apache-2.0",
+      "peerDependencies": {},
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "global": "4.4.0",
+        "mux.js": "^7.0.1",
+        "mpd-parser": "^1.4.0",
+        "m3u8-parser": "^7.2.0",
+        "@videojs/xhr": "2.7.0",
+        "videojs-font": "4.2.0",
+        "aes-decrypter": "^4.0.2",
+        "@babel/runtime": "^7.28.4",
+        "videojs-vtt.js": "0.15.5",
+        "@videojs/vhs-utils": "^4.1.2",
+        "@videojs/http-streaming": "^3.17.5",
+        "videojs-contrib-quality-levels": "4.1.0"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/videojs/video.js.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-ZUuxTlDRkEWhpp2mvGCSFzI0Tc3zcC6IUZbIhBcZ3QW0Ms+IRp/tzYkhqexcMYwrcukRFiWWJmRANsLKvv8Vsg==",
+      "distTags": {
+        "next-5": "5.20.5",
+        "latest-5": "5.20.5",
+        "latest-6": "6.12.1",
+        "next-6": "6.13.0",
+        "latest-7": "7.21.2",
+        "next-7": "7.21.7",
+        "latest": "8.24.0",
+        "next": "8.24.0"
+      }
+    },
+    {
+      "name": "react-player",
+      "registryUrl": "https://registry.npmjs.org/react-player",
+      "version": "3.4.0",
+      "publishedAt": "2025-11-13T19:27:56.980Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "@types/react": "^17.0.0 || ^18 || ^19",
+        "react": "^17.0.2 || ^18 || ^19",
+        "react-dom": "^17.0.2 || ^18 || ^19"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "@mux/mux-player-react": "^3.8.0",
+        "cloudflare-video-element": "^1.3.4",
+        "dash-video-element": "^0.3.0",
+        "hls-video-element": "^1.5.9",
+        "spotify-audio-element": "^1.0.3",
+        "tiktok-video-element": "^0.1.1",
+        "twitch-video-element": "^0.1.5",
+        "vimeo-video-element": "^1.6.1",
+        "wistia-video-element": "^1.3.5",
+        "youtube-video-element": "^1.8.0"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cookpete/react-player.git"
+      },
+      "distIntegrity": "sha512-QpQSHXtnMBKjQVNeaCYMtTVcynWQ0DDDhz/FJu1OR9PHLC1Aih94UqNstywzSHbJ6Oc7lI8/7kDDqcIvyTI6zQ==",
+      "distTags": {
+        "canary": "3.0.0-canary.4",
+        "beta": "3.0.0-beta.4",
+        "latest": "3.4.0"
+      }
+    },
+    {
+      "name": "react-resizable-panels",
+      "registryUrl": "https://registry.npmjs.org/react-resizable-panels",
+      "version": "4.12.4",
+      "publishedAt": "2026-09-06T12:58:03.537Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {},
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/bvaughn/react-resizable-panels.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-SOsSj4e9U7vxL15MbgTfl35IO4vxSW4Xb0b1gtJVbRPWv7FOezcgOA00Mi0jP8XqC3y7jOQxpsGs/9zLKHPitA==",
+      "distTags": {
+        "next": "1.0.0",
+        "issue-297": "2.0.8-rc.1",
+        "alpha": "4.7.1-alpha.1",
+        "latest": "4.12.4"
+      }
+    },
+    {
+      "name": "allotment",
+      "registryUrl": "https://registry.npmjs.org/allotment",
+      "version": "1.20.5",
+      "publishedAt": "2025-12-19T16:41:50.136Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "classnames": "^2.3.0",
+        "eventemitter3": "^5.0.0",
+        "fast-deep-equal": "^3.1.3",
+        "lodash.clamp": "^4.0.0",
+        "lodash.debounce": "^4.0.0",
+        "usehooks-ts": "^3.1.1"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/johnwalley/allotment.git"
+      },
+      "distIntegrity": "sha512-7i4NT7ieXEyAd5lBrXmE7WHz/e7hRuo97+j+TwrPE85ha6kyFURoc76nom0dWSZ1pTKVEAMJy/+f3/Isfu/41A==",
+      "distTags": {
+        "alpha": "1.11.2-alpha.1",
+        "latest": "1.20.5"
+      }
+    },
+    {
+      "name": "dockview",
+      "registryUrl": "https://registry.npmjs.org/dockview",
+      "version": "8.2.0",
+      "publishedAt": "2026-08-19T21:24:50.733Z",
+      "license": "MIT",
+      "peerDependencies": {},
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "dockview-core": "^8.2.0"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dockview/dockview.git",
+        "directory": "packages/dockview"
+      },
+      "distIntegrity": "sha512-Jj+fnFWSrdEhF+1DmpGNYjEvyqf7J0FHkDqsD98wL4WOYB2CSKavDCL49B3LHIGYvWNN7Q1O1j4p7Pts38CM5A==",
+      "distTags": {
+        "experimental": "0.0.0-experimental-0193732ed-20260807",
+        "latest": "8.2.0"
+      }
+    },
+    {
+      "name": "@dnd-kit/react",
+      "registryUrl": "https://registry.npmjs.org/%40dnd-kit%2Freact",
+      "version": "0.5.0",
+      "publishedAt": "2026-06-11T13:05:25.810Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "tslib": "^2.6.2",
+        "@dnd-kit/dom": "^0.5.0",
+        "@dnd-kit/state": "^0.5.0",
+        "@dnd-kit/abstract": "^0.5.0"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-abQPLI8lmfVE+v/n+pqy5WFxrw6T2Yg0UQZsL78dp5DKci7dKTVDjvLWqvass+XTFtzJmsZEjk1NdqE6xG8Jiw==",
+      "distTags": {
+        "latest": "0.5.0",
+        "beta": "0.5.1-beta-20260905201412"
+      }
+    },
+    {
+      "name": "@dnd-kit/core",
+      "registryUrl": "https://registry.npmjs.org/%40dnd-kit%2Fcore",
+      "version": "6.3.1",
+      "publishedAt": "2024-12-05T17:10:19.974Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": ">=16.8.0",
+        "react-dom": ">=16.8.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "tslib": "^2.0.0",
+        "@dnd-kit/accessibility": "^3.1.1",
+        "@dnd-kit/utilities": "^3.2.2"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "directory": "packages/core"
+      },
+      "distIntegrity": "sha512-xkGBRQQab4RLwgXxoqETICr6S5JlogafbhNsidmrkVv2YRs5MLwpjoF2qpiGjQt8S9AoxtIV603s0GIUpY5eYQ==",
+      "distTags": {
+        "latest": "6.3.1",
+        "next": "6.3.1-next-202411517925"
+      }
+    },
+    {
+      "name": "@dnd-kit/sortable",
+      "registryUrl": "https://registry.npmjs.org/%40dnd-kit%2Fsortable",
+      "version": "10.0.0",
+      "publishedAt": "2024-12-04T18:39:12.664Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": ">=16.8.0",
+        "@dnd-kit/core": "^6.3.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "@dnd-kit/utilities": "^3.2.2",
+        "tslib": "^2.0.0"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "directory": "packages/sortable"
+      },
+      "distIntegrity": "sha512-+xqhmIIzvAYMGfBYYnbKuNicfSsk4RksY2XdmJhT+HAC01nix6fHCztU68jooFiMUB01Ky3F0FyOvhG/BZrWkg==",
+      "distTags": {
+        "latest": "10.0.0",
+        "next": "10.0.0-next-202410244445"
+      }
+    },
+    {
+      "name": "@atlassian/pragmatic-drag-and-drop",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "@tanstack/react-virtual",
+      "registryUrl": "https://registry.npmjs.org/%40tanstack%2Freact-virtual",
+      "version": "3.14.11",
+      "publishedAt": "2026-09-07T14:19:33.115Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "@tanstack/virtual-core": "3.17.9"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/TanStack/virtual.git",
+        "type": "git",
+        "directory": "packages/react-virtual"
+      },
+      "distIntegrity": "sha512-SStWf8bYdTgAquYqG4Pi2+d1XimQKoCIJ94H3jsm0D6UA0yqffvWuvUzrrQ4idewFWq8BSPpahnmLVosJIAs6g==",
+      "distTags": {
+        "alpha": "3.0.0-alpha.2",
+        "beta": "3.0.0-beta.68",
+        "latest": "3.14.11"
+      }
+    },
+    {
+      "name": "react-virtuoso",
+      "registryUrl": "https://registry.npmjs.org/react-virtuoso",
+      "version": "4.18.13",
+      "publishedAt": "2026-09-05T14:29:31.458Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": ">=16 || >=17 || >= 18 || >= 19",
+        "react-dom": ">=16 || >=17 || >= 18 || >=19"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {},
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/petyosi/react-virtuoso.git",
+        "type": "git",
+        "directory": "packages/react-virtuoso"
+      },
+      "distIntegrity": "sha512-M4kP7zbV7JmLrnJYs0X2FBA8gnNlHisSYuKMyeJVYtWz31CAJeP57dgPJzfneUdKDKmL9SiqvcBQ32si8CfQSQ==",
+      "distTags": {
+        "@autoheight": "0.17.6-beta",
+        "preview": "1.10.3-beta.0",
+        "next": "2.2.9-beta.1",
+        "rollup-build": "2.8.0-alpha.4",
+        "default-export": "0.0.0-development",
+        "prepend": "0.0.0-prepend",
+        "initial-location-fix": "4.8.0-development",
+        "horizontal": "0.0.0-semantic-release",
+        "latest": "4.18.13"
+      }
+    },
+    {
+      "name": "@tanstack/react-query",
+      "registryUrl": "https://registry.npmjs.org/%40tanstack%2Freact-query",
+      "version": "5.102.8",
+      "publishedAt": "2026-08-27T16:06:57.089Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^18 || ^19"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "@tanstack/query-core": "5.102.8"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/TanStack/query.git",
+        "type": "git",
+        "directory": "packages/react-query"
+      },
+      "distIntegrity": "sha512-TYBea4OuXWD7MhaSHq069TWbFe7rcwWN6kzT7JF0OKi1K6c1gTv2IzD6A6ExJsCMozdkqBWeuIUZmu4KQg0O5A==",
+      "distTags": {
+        "alpha": "5.0.0-alpha.91",
+        "beta": "5.0.0-beta.35",
+        "rc": "5.0.0-rc.16",
+        "previous": "4.44.0",
+        "latest": "5.102.8"
+      }
+    },
+    {
+      "name": "react-hook-form",
+      "registryUrl": "https://registry.npmjs.org/react-hook-form",
+      "version": "7.87.0",
+      "publishedAt": "2026-08-30T02:36:19.125Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^16.8.0 || ^17 || ^18 || ^19"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {},
+      "engines": {
+        "node": ">=18.0.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/react-hook-form/react-hook-form.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-zhFzWvLxNHH+8839OnZcUxgMZw88ah2jZWDWvKWgF3Tpbnd0vKL+dlcuU3nZVWESZQjd81EW8K+wU+cYfYAc0w==",
+      "distTags": {
+        "next": "7.60.0-next.0",
+        "alpha": "8.0.0-alpha.5",
+        "beta": "8.0.0-beta.3",
+        "latest": "7.87.0"
+      }
+    },
+    {
+      "name": "zustand",
+      "registryUrl": "https://registry.npmjs.org/zustand",
+      "version": "5.0.15",
+      "publishedAt": "2026-08-13T00:39:55.466Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "immer": ">=9.0.6",
+        "react": ">=18.0.0",
+        "@types/react": ">=18.0.0",
+        "use-sync-external-store": ">=1.2.0"
+      },
+      "peerDependenciesMeta": {
+        "immer": {
+          "optional": true
+        },
+        "react": {
+          "optional": true
+        },
+        "@types/react": {
+          "optional": true
+        },
+        "use-sync-external-store": {
+          "optional": true
+        }
+      },
+      "dependencies": {},
+      "engines": {
+        "node": ">=12.20.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/pmndrs/zustand.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A==",
+      "distTags": {
+        "latest": "5.0.15"
+      }
+    },
+    {
+      "name": "wavesurfer.js",
+      "registryUrl": "https://registry.npmjs.org/wavesurfer.js",
+      "version": "7.12.11",
+      "publishedAt": "2026-07-17T07:35:48.934Z",
+      "license": "BSD-3-Clause",
+      "peerDependencies": {},
+      "peerDependenciesMeta": {},
+      "dependencies": {},
+      "engines": {},
+      "repository": {
+        "url": "git+ssh://git@github.com/katspaugh/wavesurfer.js.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-Sx0yZIz7jRJ9J9p7UL+pl9y0UQBB6UN/XNo+R7Gy4tCR5xZI9jMyA0dnt1R8TMVSQ4LZ10SeB2HJYQ+dV2dPSA==",
+      "distTags": {
+        "alpha": "7.0.0-alpha.58",
+        "latest": "7.12.11",
+        "beta": "8.0.0-beta.5"
+      }
+    },
+    {
+      "name": "@uppy/core",
+      "registryUrl": "https://registry.npmjs.org/%40uppy%2Fcore",
+      "version": "6.0.1",
+      "publishedAt": "2026-09-07T10:06:07.661Z",
+      "license": "MIT",
+      "peerDependencies": {},
+      "peerDependenciesMeta": {},
+      "dependencies": {
+        "lodash": "^4.18.1",
+        "nanoid": "^5.1.11",
+        "preact": "^10.29.2",
+        "p-queue": "^9.3.3",
+        "p-retry": "^6.1.0",
+        "classnames": "^2.5.1",
+        "mime-match": "^1.0.2",
+        "namespace-emitter": "^2.0.1",
+        "@transloadit/prettier-bytes": "^2.0.0"
+      },
+      "engines": {},
+      "repository": {
+        "url": "git+https://github.com/transloadit/uppy.git",
+        "type": "git"
+      },
+      "distIntegrity": "sha512-H+v4tOBPYY8Cf0JWoGa3+JPTl9Of8SBaVUH5TNwGgynncTWrQtuyGK91hv9wOjm0SFds3X5psPx1ArhngdSrBg==",
+      "distTags": {
+        "next": "4.0.0-beta.12",
+        "latest": "6.0.1"
+      }
+    },
+    {
+      "name": "@uppy/react",
+      "registryUrl": "https://registry.npmjs.org/%40uppy%2Freact",
+      "version": "6.0.0",
+      "publishedAt": "2026-08-26T08:47:51.642Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "@uppy/core": "^6.0.0",
+        "@uppy/dashboard": "^6.0.0",
+        "@uppy/screen-capture": "^6.0.0",
+        "@uppy/status-bar": "^6.0.0",
+        "@uppy/webcam": "^6.0.0",
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0"
+      },
+      "peerDependenciesMeta": {
+        "@uppy/dashboard": {
+          "optional": true
+        },
+        "@uppy/screen-capture": {
+          "optional": true
+        },
+        "@uppy/status-bar": {
+          "optional": true
+        },
+        "@uppy/webcam": {
+          "optional": true
+        }
+      },
+      "dependencies": {
+        "@uppy/components": "^2.0.0",
+        "preact": "^10.29.2",
+        "use-sync-external-store": "^1.6.0"
+      },
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/transloadit/uppy.git"
+      },
+      "distIntegrity": "sha512-AgPeeEGCz4FFN2zblqrJs8zQzzDKPoToM4dkWsHXF/Ndm1BmI4uF8NkVjEvmzwjF4e2JPxRvk52baYTeSSKruQ==",
+      "distTags": {
+        "next": "4.0.0-beta.8",
+        "latest": "6.0.0"
+      }
+    },
+    {
+      "name": "@uppy/aws-s3",
+      "registryUrl": "https://registry.npmjs.org/%40uppy%2Faws-s3",
+      "version": "6.1.0",
+      "publishedAt": "2026-09-07T10:04:30.859Z",
+      "license": "MIT",
+      "peerDependencies": {
+        "@uppy/core": "^6.0.1"
+      },
+      "peerDependenciesMeta": {},
+      "dependencies": {},
+      "engines": {},
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/transloadit/uppy.git"
+      },
+      "distIntegrity": "sha512-br0dQU7Q4WfW21FBkXyCG2zRdGxH1xO5By9Mt3n3YKL8v/dC9MCFtuqW30+8hIij/eVVrB2JrOFFfmw1iXwuUA==",
+      "distTags": {
+        "next": "4.0.0-beta.8",
+        "latest": "6.1.0"
+      }
+    },
+    {
+      "name": "@mantine/hooks",
+      "registryUrl": "https://registry.npmjs.org/%40mantine%2Fhooks",
+      "version": "9.6.0",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^19.2.0"
+      },
+      "dependencies": {},
+      "distIntegrity": "sha512-r+1RWxc0F2XK9exKIk3Cxc17eyDTEtRqvomeQMCqI4S2Z3A78ObAGuNS8WXn8aqDGN66MJlO+WV7oCgQn2iQfQ=="
+    },
+    {
+      "name": "@mantine/notifications",
+      "registryUrl": "https://registry.npmjs.org/%40mantine%2Fnotifications",
+      "version": "9.6.0",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "@mantine/core": "9.6.0",
+        "@mantine/hooks": "9.6.0"
+      },
+      "dependencies": {
+        "@mantine/store": "9.6.0",
+        "react-transition-group": "4.4.5"
+      },
+      "distIntegrity": "sha512-1sTE7EaGpr6LX7ykE8DOwpTNxi3U7AHF7Ve/oBd1VEe2k/5RmEYLTWpexxf7WwNpEmHCi99MvG7qUMQJyqc9Fg=="
+    },
+    {
+      "name": "@dnd-kit/helpers",
+      "registryUrl": "https://registry.npmjs.org/%40dnd-kit%2Fhelpers",
+      "version": "0.5.0",
+      "license": "MIT",
+      "peerDependencies": {},
+      "dependencies": {
+        "tslib": "^2.6.2",
+        "@dnd-kit/abstract": "^0.5.0"
+      },
+      "distIntegrity": "sha512-i4y+51/icSw+OHMr/su19qhnmNhAzh8PnBwXvapFYTd+64oodIyJRiRkB+hhfxAfnur7RYSW8qacDTrXjg2XOg=="
+    },
+    {
+      "name": "@atlaskit/pragmatic-drag-and-drop",
+      "registryUrl": "https://registry.npmjs.org/%40atlaskit%2Fpragmatic-drag-and-drop",
+      "version": "3.1.0",
+      "license": "Apache-2.0",
+      "peerDependencies": {},
+      "dependencies": {
+        "raf-schd": "^4.0.3",
+        "@babel/runtime": "^7.0.0",
+        "bind-event-listener": "^3.0.0"
+      },
+      "distIntegrity": "sha512-VU+2Oh6OgvC6D1xiX3lfm1gZJsaSPD+ZKjAHodOQ9IO6RfOvAyReLlK5ut9gIUpPmbD8d09wlCs7y4A6/I8c5Q=="
+    }
+  ],
+  "lookupNotes": [
+    "Initial @atlassian/pragmatic-drag-and-drop lookup returned 404; correct published scope is @atlaskit, fetched separately."
+  ]
+}
