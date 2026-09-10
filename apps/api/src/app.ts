@@ -10,6 +10,8 @@ import { proposalRoutes } from "./modules/content/proposals.js";
 import { contentRoutes } from "./modules/content/routes.js";
 import { creativeRoutes } from "./modules/creative/routes.js";
 import { taskRoutes } from "./modules/tasks/routes.js";
+import { mediaRoutes } from "./modules/media/routes.js";
+import type { MediaServices } from "./modules/media/model.js";
 import { invitationRoutes } from "./modules/identity/invitations.js";
 import { oidcRoutes } from "./modules/identity/oidc.js";
 import type { Configuration } from "openid-client";
@@ -20,6 +22,7 @@ export type BusinessOptions = {
   secret: string;
   schema?: string;
   localIdentity?: boolean;
+  media?: MediaServices;
   auth?: { pool: Pool; config: Configuration };
 };
 
@@ -55,6 +58,12 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     proposalRoutes(app, context);
     creativeRoutes(app, context);
     taskRoutes(app, context);
+    mediaRoutes(app, {
+      ...context,
+      ...(business.media ? { media: business.media } : {}),
+    });
+    if (business.media)
+      app.addHook("onReady", () => business.media!.store.verify());
     if (business.auth) {
       app.addHook("onReady", async () => {
         const client = await business.auth!.pool.connect();
@@ -91,9 +100,12 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
       if (database) {
         await database.verify();
         await pool.query("SELECT 1");
+        await business?.media?.store.verify();
         return {
           status: "ok",
-          scope: "identity_projects_and_content",
+          scope: business?.media
+            ? "identity_projects_content_and_media"
+            : "identity_projects_and_content",
           businessReady: true,
           completeMvp: false,
         };

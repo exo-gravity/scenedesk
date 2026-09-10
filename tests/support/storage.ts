@@ -7,13 +7,14 @@ import {
   CreateBucketCommand,
   PutBucketVersioningCommand,
 } from "@aws-sdk/client-s3";
-import { MediaStore, type StoreConfiguration } from "@drama/media";
+import {
+  MediaStore,
+  mediaStoragePolicy,
+  type StoreConfiguration,
+} from "@drama/media";
 
-// Frozen, loopback-only compatibility fixture, not a production storage recommendation.
-export const MINIO_TEST_IMAGE =
-  "minio/minio@sha256:d249d1fb6966de4d8ad26c04754b545205ff15a62e4fd19ebd0f26fa5baacbc0";
-export const MC_IMAGE =
-  "minio/mc@sha256:fb8f773eac8ef9d6da0486d5dec2f42f219358bcb8de579d1623d518c9ebd4cc";
+import { MINIO_TEST_IMAGE, MC_IMAGE } from "../../scripts/local-storage.js";
+export { MINIO_TEST_IMAGE, MC_IMAGE };
 const exec = promisify(execFile);
 
 export async function storageFixture(t: TestContext) {
@@ -155,59 +156,9 @@ export async function storageFixture(t: TestContext) {
       });
       child.stdin.end(input);
     });
-  const bucket = `arn:aws:s3:::${config.bucket}`;
-  for (const [role, credentials, statements] of [
-    [
-      "signer",
-      signer,
-      [
-        {
-          Effect: "Allow",
-          Action: ["s3:GetBucketVersioning"],
-          Resource: [bucket],
-        },
-        {
-          Effect: "Allow",
-          Action: ["s3:PutObject"],
-          Resource: [`${bucket}/staging/*`],
-        },
-        {
-          Effect: "Allow",
-          Action: ["s3:GetObjectVersion"],
-          Resource: [`${bucket}/originals/*`, `${bucket}/derivatives/*`],
-        },
-      ],
-    ],
-    [
-      "worker",
-      worker,
-      [
-        {
-          Effect: "Allow",
-          Action: ["s3:GetBucketVersioning"],
-          Resource: [bucket],
-        },
-        {
-          Effect: "Allow",
-          Action: ["s3:GetObject"],
-          Resource: [`${bucket}/staging/*`],
-        },
-        {
-          Effect: "Allow",
-          Action: ["s3:GetObjectVersion"],
-          Resource: [
-            `${bucket}/staging/*`,
-            `${bucket}/originals/*`,
-            `${bucket}/derivatives/*`,
-          ],
-        },
-        {
-          Effect: "Allow",
-          Action: ["s3:PutObject"],
-          Resource: [`${bucket}/originals/*`, `${bucket}/derivatives/*`],
-        },
-      ],
-    ],
+  for (const [role, credentials] of [
+    ["api", signer],
+    ["worker", worker],
   ] as const) {
     await mc([
       "admin",
@@ -219,7 +170,7 @@ export async function storageFixture(t: TestContext) {
     ]);
     await mc(
       ["admin", "policy", "create", "fixture", role, "/dev/stdin"],
-      JSON.stringify({ Version: "2012-10-17", Statement: statements }),
+      JSON.stringify(mediaStoragePolicy(config.bucket, role)),
     );
     await mc([
       "admin",

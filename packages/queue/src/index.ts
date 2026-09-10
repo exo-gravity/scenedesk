@@ -16,7 +16,7 @@ export {
 
 /** A scheduling hint only. The handler resolves tenant and authority from its business root. */
 export type StepEnvelope = {
-  taskKind: "media_probe";
+  taskKind: "media_probe" | "media_derivative";
   businessId: string;
   stepRevision: number;
   epoch: number;
@@ -29,7 +29,8 @@ export function parseEnvelope(input: unknown): StepEnvelope {
   if (
     Object.keys(value).sort().join(",") !==
       "businessId,epoch,stepRevision,taskKind" ||
-    value.taskKind !== "media_probe" ||
+    typeof value.taskKind !== "string" ||
+    !["media_probe", "media_derivative"].includes(value.taskKind) ||
     typeof value.businessId !== "string" ||
     !uuid.test(value.businessId) ||
     !Number.isSafeInteger(value.epoch) ||
@@ -39,7 +40,7 @@ export function parseEnvelope(input: unknown): StepEnvelope {
   )
     throw new Error("Invalid internal step envelope");
   return {
-    taskKind: "media_probe",
+    taskKind: value.taskKind as StepEnvelope["taskKind"],
     businessId: value.businessId,
     epoch: Number(value.epoch),
     stepRevision: Number(value.stepRevision),
@@ -95,7 +96,7 @@ export async function createScheduler(pool: Pool, options: Options) {
         throw new Error("Invalid step date");
       return boss.send(internalQueue, data, {
         db: { executeSql: (text, values) => sql.query(text, values) },
-        singletonKey: `${data.businessId}:${data.stepRevision}:${data.epoch}`,
+        singletonKey: `${data.taskKind}:${data.businessId}:${data.stepRevision}:${data.epoch}`,
         ...(startAfter ? { startAfter } : {}),
       });
     },
@@ -130,11 +131,16 @@ export async function runInternalWorker(
           const data = parseEnvelope(job.data);
           await handler(data, { signal: job.signal, queueJobId: job.id });
         } catch (error) {
-          options.onError(
-            error instanceof Error ? error : new Error("Internal step failed"),
-          );
-          // Full errors may contain private media URLs. Keep queue output generic.
-          throw new Error("Internal step failed; consult worker diagnostics");
+          try {
+            options.onError(
+              error instanceof Error
+                ? error
+                : new Error("Internal step failed"),
+            );
+          } finally {
+            // A diagnostic callback failure must not leak private errors into queue output either.
+            throw new Error("Internal step failed; consult worker diagnostics");
+          }
         }
       },
     );

@@ -34,6 +34,7 @@ export type Transaction = {
   tenantRole?: string;
   projectId?: string;
   projectRole?: string;
+  resourceScope?: "project" | "shared" | "all";
 };
 export type Scope = { tenantId?: string; projectId?: string; write: boolean };
 export class Database {
@@ -113,6 +114,27 @@ export class Database {
       sql.release();
     }
   }
+}
+
+/** Called before command replay, using the actual root or an explicitly requested scope. */
+export async function bindResourceProject(
+  tx: Transaction,
+  projectId: string,
+  write: boolean,
+) {
+  const found = await tx.sql.query("SELECT lock_project($1,$2) AS role", [
+    projectId,
+    write,
+  ]);
+  requireThat(
+    found.rows[0]?.role,
+    404,
+    "NOT_FOUND",
+    "项目不存在或无访问权限。",
+  );
+  tx.projectId = projectId;
+  tx.projectRole = found.rows[0].role;
+  tx.resourceScope = "project";
 }
 export async function audit(
   tx: Transaction,

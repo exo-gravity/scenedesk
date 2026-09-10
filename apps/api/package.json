@@ -4,6 +4,10 @@
   "type": "module",
   "name": "@drama/api",
   "dependencies": {
+    "@drama/contracts": "0.0.0",
+    "@drama/database": "0.0.0",
+    "@drama/media": "0.0.0",
+    "@drama/queue": "0.0.0",
     "csv-parse": "7.0.2",
     "fastify": "5.12.3",
     "openid-client": "6.8.8",

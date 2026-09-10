@@ -12,6 +12,17 @@ const authorizationFunctions = [
   "change_project_lead(uuid,uuid,bigint,uuid)",
   "accept_invitation(text,uuid)",
 ] as const;
+const mediaAuthorizationFunctions = [
+  "media_worker_login()",
+  "resolve_media_work(uuid,text,bigint,bigint)",
+  "scan_media_work(integer)",
+] as const;
+const mediaPolicyFunctions = [
+  "media_scope_read(uuid,uuid)",
+  "media_scope_write(uuid,uuid)",
+  "media_worker_login()",
+  "media_worker_row(uuid,uuid,text)",
+] as const;
 
 export function sqlIdentifier(value: string): string {
   if (!/^[a-z][a-z0-9_]{0,62}$/.test(value))
@@ -68,6 +79,29 @@ export async function grantRuntimeAccess(
     "creative_payload(jsonb)",
     "capture_creative_basis(text,uuid)",
   ])
+    await client.query(
+      `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,
+    );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${["upload_intents", "media", "upload_provenance_evidence", "media_provenance_evidence"].map((table) => `${scope}.${table}`).join(",")} TO ${target}`,
+  );
+  await client.query(`GRANT SELECT ON ${scope}.media_derivatives TO ${target}`);
+  await client.query(
+    `GRANT SELECT(epoch) ON ${scope}.media_processing_state TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(status,step_revision,processing_attempts,issue,retryable,revision,updated_at) ON ${scope}.upload_intents TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(display_name,tags,provenance,status,issue,revision,updated_at) ON ${scope}.media TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(status,step_revision,epoch,processing_attempts,issue,revision,updated_at) ON ${scope}.media_derivatives TO ${target}`,
+  );
+  await client.query(
+    `GRANT DELETE ON ${scope}.media_provenance_evidence TO ${target}`,
+  );
+  for (const signature of mediaPolicyFunctions)
     await client.query(
       `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,
     );
@@ -149,8 +183,19 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT INSERT ON ${scope}.memberships,${scope}.project_memberships TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT ON ${["media_processing_state", "upload_intents", "media", "media_derivatives"].map((table) => `${scope}.${table}`).join(",")} TO ${target}`,
+  );
+  // Row locks in trusted context resolution require UPDATE, without a public mutation function.
+  await client.query(
+    `GRANT UPDATE ON ${scope}.upload_intents,${scope}.media_derivatives TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(epoch) ON ${scope}.media_processing_state TO ${target}`,
+  );
   for (const signature of [
     ...authorizationFunctions,
+    ...mediaAuthorizationFunctions,
     "enforce_tenant_owner()",
     "enforce_project_lead()",
   ]) {
@@ -161,4 +206,68 @@ export async function hardenAuthorizationFunctions(
       `ALTER FUNCTION ${scope}.${signature} SET search_path TO pg_catalog,${scope},pg_temp`,
     );
   }
+}
+
+export async function grantMediaWorkerAccess(
+  client: PoolClient,
+  schema: string,
+  workerRole: string,
+  schedulerRole: string,
+) {
+  if (workerRole === schedulerRole)
+    throw new Error("Business and scheduling logins must be separate");
+  const scope = sqlIdentifier(schema),
+    worker = sqlIdentifier(workerRole),
+    scheduler = sqlIdentifier(schedulerRole);
+  const roles = await client.query(
+    "SELECT rolname,rolcanlogin,rolsuper,rolbypassrls,rolcreaterole,rolcreatedb FROM pg_roles WHERE rolname=ANY($1::text[])",
+    [[workerRole, schedulerRole]],
+  );
+  if (
+    roles.rows.length !== 2 ||
+    roles.rows.some(
+      (r) =>
+        !r.rolcanlogin ||
+        r.rolsuper ||
+        r.rolbypassrls ||
+        r.rolcreaterole ||
+        r.rolcreatedb,
+    )
+  )
+    throw new Error("Media runtime requires unprivileged logins");
+  await client.query(
+    `GRANT USAGE ON SCHEMA ${scope} TO ${worker},${scheduler}`,
+  );
+  await client.query(
+    `UPDATE ${scope}.media_processing_state SET worker_role=$1,scheduler_role=$2 WHERE singleton`,
+    [workerRole, schedulerRole],
+  );
+  await client.query(
+    `GRANT SELECT ON ${["upload_intents", "media", "media_derivatives", "upload_provenance_evidence"].map((table) => `${scope}.${table}`).join(",")} TO ${worker}`,
+  );
+  await client.query(
+    `GRANT SELECT(epoch) ON ${scope}.media_processing_state TO ${worker}`,
+  );
+  await client.query(`GRANT INSERT ON ${scope}.media_derivatives TO ${worker}`);
+  await client.query(
+    `GRANT UPDATE(status,staging_version_id,step_revision,processing_attempts,issue,retryable,revision,updated_at) ON ${scope}.upload_intents TO ${worker}`,
+  );
+  await client.query(
+    `GRANT UPDATE(kind,status,immutable_key,storage_version_id,sha256,bytes,mime,duration_us,width,height,fps_num,fps_den,has_audio,probe_metadata,issue,revision,updated_at) ON ${scope}.media TO ${worker}`,
+  );
+  await client.query(
+    `GRANT UPDATE(status,immutable_key,storage_version_id,sha256,bytes,mime,duration_us,width,height,step_revision,processing_attempts,issue,revision,updated_at) ON ${scope}.media_derivatives TO ${worker}`,
+  );
+  for (const signature of [
+    ...mediaPolicyFunctions,
+    "tenant_role(uuid)",
+    "project_role(uuid)",
+    "resolve_media_work(uuid,text,bigint,bigint)",
+  ])
+    await client.query(
+      `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${worker}`,
+    );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.scan_media_work(integer) TO ${scheduler}`,
+  );
 }

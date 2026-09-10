@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import {
   grantRuntimeAccess,
+  hardenAuthorizationFunctions,
   migrate,
   verifyRuntimeRole,
 } from "@drama/database";
@@ -31,6 +32,12 @@ try {
   const sql = await admin.connect();
   try {
     await sql.query("BEGIN");
+    const owner = await sql.query<{ role: string }>(
+      "SELECT r.rolname AS role FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles r ON r.oid=p.proowner WHERE n.nspname='drama' AND p.proname='authenticate_session' AND p.prosecdef",
+    );
+    if (owner.rows.length !== 1)
+      throw new Error("Existing authorization owner could not be resolved");
+    await hardenAuthorizationFunctions(sql, "drama", owner.rows[0]!.role);
     await grantRuntimeAccess(
       sql,
       "drama",

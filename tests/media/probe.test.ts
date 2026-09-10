@@ -293,6 +293,7 @@ test(
       "timeout kills the container with enforced resource limits and no writable host paths",
       async () => {
         const controller = new AbortController();
+        let containerName = "";
         const running = runMediaProcess(
           image,
           "/ffmpeg",
@@ -309,33 +310,26 @@ test(
             "null",
             "-",
           ],
-          { signal: controller.signal, timeoutMs: 5000 },
+          {
+            signal: controller.signal,
+            timeoutMs: 5000,
+            onCreated: (name) => {
+              containerName = name;
+            },
+          },
         );
         // Attach rejection handling immediately; inspect the live, bounded job before cancellation.
         const outcome = running.then(
           () => undefined,
           (error: unknown) => error,
         );
-        let ids: string[] = [];
         for (let i = 0; i < 30; i++) {
-          ids = (
-            await exec("docker", [
-              "ps",
-              "--filter",
-              "name=scenedesk-media-",
-              "--format",
-              "{{.ID}}",
-            ])
-          ).stdout
-            .trim()
-            .split("\n")
-            .filter(Boolean);
-          if (ids.length) break;
+          if (containerName) break;
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
-        assert.equal(ids.length, 1);
+        assert.ok(containerName);
         const info = JSON.parse(
-          (await exec("docker", ["inspect", ids[0]!])).stdout,
+          (await exec("docker", ["inspect", containerName])).stdout,
         )[0];
         assert.equal(info.Config.Image, FFMPEG_IMAGE);
         assert.equal(info.Config.User, "65532:65532");
@@ -367,13 +361,14 @@ test(
               "ps",
               "--all",
               "--filter",
-              "name=scenedesk-media-",
+              `name=${containerName}`,
               "--format",
               "{{.ID}}",
             ])
           ).stdout.trim(),
           "",
         );
+        let timedContainer = "";
         await assert.rejects(
           runMediaProcess(
             undefined,
@@ -391,7 +386,12 @@ test(
               "null",
               "-",
             ],
-            { timeoutMs: 500 },
+            {
+              timeoutMs: 500,
+              onCreated: (name) => {
+                timedContainer = name;
+              },
+            },
           ),
           { code: "MEDIA_TIMEOUT" },
         );
@@ -401,7 +401,7 @@ test(
               "ps",
               "--all",
               "--filter",
-              "name=scenedesk-media-",
+              `name=${timedContainer}`,
               "--format",
               "{{.ID}}",
             ])

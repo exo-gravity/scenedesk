@@ -1,6 +1,8 @@
 import { Pool } from "pg";
 import { buildApp } from "./app.js";
 import { discoverIssuer } from "./modules/identity/oidc.js";
+import { mediaStoreFromEnvironment } from "@drama/media";
+import { createScheduler } from "@drama/queue";
 if (process.env.APP_ENV && process.env.APP_ENV !== "local")
   throw new Error("S0 scaffold supports APP_ENV=local only");
 if (process.env.PROVIDER_MODE && process.env.PROVIDER_MODE !== "mock")
@@ -54,6 +56,16 @@ const config = businessEnabled
         process.env.OIDC_ALLOW_LOCAL === "true",
     })
   : undefined;
+const mediaStore = businessEnabled
+  ? mediaStoreFromEnvironment(process.env)
+  : undefined;
+const mediaQueue = mediaStore
+  ? await createScheduler(pool!, {
+      schema: process.env.QUEUE_SCHEMA ?? "scenedesk_queue",
+      onError: () =>
+        console.error("Media scheduling service reported a failure"),
+    })
+  : undefined;
 const app = buildApp(
   pool,
   businessEnabled
@@ -63,10 +75,15 @@ const app = buildApp(
         schema: process.env.DATABASE_SCHEMA ?? "drama",
         auth: { pool: authPool!, config: config! },
         localIdentity: process.env.OIDC_ALLOW_LOCAL === "true",
+        ...(mediaStore && mediaQueue
+          ? { media: { store: mediaStore, schedule: mediaQueue.schedule } }
+          : {}),
       }
     : undefined,
 );
 app.addHook("onClose", async () => {
+  await mediaQueue?.close();
+  mediaStore?.close();
   await pool?.end();
   await authPool?.end();
 });
@@ -77,7 +94,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const)
 try {
   await app.listen({ host, port });
   console.log(
-    `SceneDesk API: http://${host}:${port}; ${businessEnabled ? "identity/project services enabled" : "S0 bootstrap"}; provider mode mock`,
+    `SceneDesk API: http://${host}:${port}; ${businessEnabled ? "business services enabled" : "S0 bootstrap"}; media ${mediaStore ? "enabled" : "unconfigured"}; provider mode mock`,
   );
 } catch (error) {
   await app.close();

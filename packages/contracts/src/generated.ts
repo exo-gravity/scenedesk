@@ -2886,6 +2886,7 @@ export interface components {
             sourceUploadId?: string;
             /** Format: uuid */
             sourceRenderTaskId?: string;
+            issue?: components["schemas"]["MediaProcessingIssue"];
             displayName: string;
             originalFileName?: string;
             tags: string[];
@@ -2933,6 +2934,7 @@ export interface components {
             };
             /** Format: uuid */
             mediaId?: string;
+            issue?: components["schemas"]["MediaProcessingIssue"];
         };
         UploadComplete: {
             sha256: string;
@@ -3774,6 +3776,12 @@ export interface components {
             durationUs?: number;
             width?: number;
             height?: number;
+            issue?: components["schemas"]["MediaProcessingIssue"];
+        };
+        MediaProcessingIssue: {
+            code: string;
+            message: string;
+            retryable: boolean;
         };
         ProbeTiming: {
             /** @enum {string} */

@@ -15214,6 +15214,9 @@
             "type": "string",
             "format": "uuid"
           },
+          "issue": {
+            "$ref": "#/components/schemas/MediaProcessingIssue"
+          },
           "displayName": {
             "type": "string",
             "minLength": 1,
@@ -15481,6 +15484,9 @@
           "mediaId": {
             "type": "string",
             "format": "uuid"
+          },
+          "issue": {
+            "$ref": "#/components/schemas/MediaProcessingIssue"
           }
         },
         "required": [
@@ -19469,6 +19475,9 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 9007199254740991
+          },
+          "issue": {
+            "$ref": "#/components/schemas/MediaProcessingIssue"
           }
         },
         "required": [
@@ -19476,6 +19485,29 @@
           "kind",
           "status",
           "profileRevision"
+        ],
+        "additionalProperties": false
+      },
+      "MediaProcessingIssue": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "retryable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable"
         ],
         "additionalProperties": false
       },

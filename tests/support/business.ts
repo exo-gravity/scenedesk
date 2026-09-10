@@ -2,17 +2,28 @@ import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import type { TestContext } from "node:test";
 type HTTPMethods = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-import { buildApp } from "../../apps/api/src/app.js";
+import { buildApp, type BusinessOptions } from "../../apps/api/src/app.js";
 import { Secrets } from "../../apps/api/src/kernel/crypto.js";
 import { issueSession } from "../../apps/api/src/modules/identity/sessions.js";
 import { databaseFixture } from "./database.js";
 
-export async function businessFixture(t: TestContext) {
+export async function businessFixture(
+  t: TestContext,
+  configure?: (
+    database: Awaited<ReturnType<typeof databaseFixture>>,
+  ) => Promise<Pick<BusinessOptions, "media">>,
+) {
   const db = await databaseFixture(t);
   const secret = randomBytes(32).toString("base64url"),
     secrets = new Secrets(secret);
   const origin = "http://127.0.0.1:4311";
-  const app = buildApp(db.runtime, { schema: db.schema, secret, origin });
+  const extra = await configure?.(db);
+  const app = buildApp(db.runtime, {
+    schema: db.schema,
+    secret,
+    origin,
+    ...extra,
+  });
   t.after(() => app.close());
   await app.ready();
   const identity = (name: string) =>
