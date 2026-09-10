@@ -46,6 +46,7 @@ export function AssetMetadataEditor({
       ...old,
       input: { ...old.input, [key]: value },
     }));
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <form
       className={classes.editor}
@@ -65,10 +66,7 @@ export function AssetMetadataEditor({
             body: value,
           },
           {
-            onSuccess: async () => {
-              await draft.clear();
-              done();
-            },
+            onCommitted: () => void draft.complete(done),
           },
         );
       }}

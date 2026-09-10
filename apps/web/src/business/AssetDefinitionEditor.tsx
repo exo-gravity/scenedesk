@@ -118,6 +118,7 @@ export function AssetDefinitionEditor({
     input = draft.value.input;
   const change = (next: Definition) =>
     draft.setValue((value) => ({ ...value, input: next }));
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <form
       className={classes.editor}
@@ -146,10 +147,7 @@ export function AssetDefinitionEditor({
             },
           },
           {
-            onSuccess: async (revision) => {
-              await draft.clear();
-              done(revision);
-            },
+            onCommitted: (revision) => void draft.complete(() => done(revision)),
           },
         );
       }}

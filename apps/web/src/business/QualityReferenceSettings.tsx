@@ -50,6 +50,7 @@ function QualityEditor({
   const conflict = draft.baseVersion !== project.revision;
   const refs = (ids: string[]): Schema<"Reference">[] =>
     ids.map((mediaId) => ({ mediaId, purpose: "composition" }));
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <Stack>
       <DraftNotice draft={draft} />
@@ -123,10 +124,7 @@ function QualityEditor({
                 },
               },
               {
-                onSuccess: async (p) => {
-                  await draft.clear();
-                  saved(p);
-                },
+                onCommitted: (p) => void draft.complete(() => saved(p)),
               },
             )
           }

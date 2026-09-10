@@ -77,12 +77,16 @@ export function ContentWorkspace({
   const handledLink = useRef("");
   useEffect(() => {
     const key = JSON.stringify([linkedScene, linkedShot, linkedRevision]);
-    if (
-      !content.data ||
-      (!linkedScene && !linkedShot) ||
-      key === handledLink.current
-    )
+    if (!content.data) return;
+    if (!linkedScene && !linkedShot) {
+      if (handledLink.current) {
+        handledLink.current = "";
+        setHistory(undefined);
+        setHistoryRevision(undefined);
+      }
       return;
+    }
+    if (key === handledLink.current) return;
     handledLink.current = key;
     const shot = content.data.shots.find((s) => s.id === linkedShot);
     const scene = content.data.scenes.find(
@@ -96,7 +100,7 @@ export function ContentWorkspace({
     if (shot) {
       setHistoryRevision(linkedRevision ?? shot.specRevisionId);
       setHistory(shot);
-    }
+    } else setHistory(undefined);
   }, [content.data, linkedScene, linkedShot, linkedRevision]);
   const [archive, setArchive] = useState<{
     kind: ContentEditing["kind"];
@@ -121,6 +125,9 @@ export function ContentWorkspace({
   const tree = content.data,
     p = project.data,
     active = p.status === "active";
+  const missingLink = linkedShot
+    ? !tree.shots.some((s) => s.id === linkedShot)
+    : linkedScene && !tree.scenes.some((s) => s.id === linkedScene);
   const episodes = tree.episodes.filter(
     (e) => archived || e.status === "active",
   );
@@ -262,6 +269,22 @@ export function ContentWorkspace({
   };
   return (
     <>
+      {missingLink && (
+        <Alert title="链接中的内容不可用">
+          <Text>
+            指定的{linkedShot ? "镜头" : "场次"}
+            不存在或不在当前可访问内容中。下方为当前项目内容，请重新选择。
+          </Text>
+          <Button
+            mt="sm"
+            onClick={() => {
+              location.hash = location.hash.split("?")[0]!;
+            }}
+          >
+            返回项目集场镜
+          </Button>
+        </Alert>
+      )}
       <ErrorNotice
         error={project.error ?? content.error}
         retry={() => {
@@ -763,6 +786,11 @@ function ShotHistory({
   const revision = history.data?.find((r) => r.id === id);
   return (
     <Stack>
+      {history.data && id && !revision && (
+        <Alert title="指定的要求版本不可用">
+          这份镜头要求不存在或无访问权限，请明确选择其他版本。
+        </Alert>
+      )}
       <ErrorNotice error={history.error} />
       {history.isPending ? (
         <Loader />

@@ -338,6 +338,7 @@ function MediaMetadata({
           ? "是"
           : "否"
         : value || "未填写";
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <form
       className={classes.metadata}
@@ -371,10 +372,7 @@ function MediaMetadata({
             },
           },
           {
-            onSuccess: async () => {
-              await draft.clear();
-              done();
-            },
+            onCommitted: () => void draft.complete(done),
           },
         );
       }}

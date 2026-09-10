@@ -327,6 +327,7 @@ function CreateAsset({
       1,
     ),
     command = useCommand<Schema<"Asset">>();
+  if (draft.committed) return <DraftNotice draft={draft} />;
   const value = draft.value;
   return (
     <form
@@ -349,10 +350,7 @@ function CreateAsset({
             },
           },
           {
-            onSuccess: async (asset) => {
-              await draft.clear();
-              done(asset);
-            },
+            onCommitted: (asset) => void draft.complete(() => done(asset)),
           },
         );
       }}

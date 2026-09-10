@@ -112,6 +112,7 @@ export function TaskEditor(
       (s.status === "active" &&
         (!value.sceneId || s.sceneId === value.sceneId)),
   );
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <form
       onSubmit={(event) => {
@@ -151,10 +152,8 @@ export function TaskEditor(
               body: input,
             },
             {
-              onSuccess: async (saved) => {
-                await draft.clear();
-                props.done(saved);
-              },
+              onCommitted: (saved) =>
+                void draft.complete(() => props.done(saved)),
             },
           );
         } catch (error) {

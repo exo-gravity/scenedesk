@@ -29,14 +29,13 @@ export function ImportForm({
   initialSceneId,
   onCreated,
 }: Props & { onCreated: (id: string) => void }) {
-  const available = activeScenes(tree),
-    initialScene = available.find((s) => s.id === initialSceneId);
+  const available = activeScenes(tree);
   const draft = useContentDraft(
     `${path}/shot-list-imports`,
     {
       csvText: "",
-      mode: initialScene ? "append_to_scene" : "new_structure",
-      sceneId: initialScene?.id ?? "",
+      mode: initialSceneId ? "append_to_scene" : "new_structure",
+      sceneId: initialSceneId ?? "",
     },
     tree.revision,
   );
@@ -70,6 +69,19 @@ export function ImportForm({
   }
   function submit() {
     const scene = available.find((s) => s.id === value.sceneId);
+    if (
+      !active ||
+      !draft.ready ||
+      draft.recovered ||
+      stale ||
+      fileLoading ||
+      !value.csvText.trim()
+    )
+      return;
+    if (value.mode === "append_to_scene" && !scene) {
+      setFileError("所选场次已不可用，请重新选择追加场次或明确改为新建结构。");
+      return;
+    }
     const target: Schema<"ProposalTarget"> =
       value.mode === "append_to_scene" && scene
         ? {
@@ -86,16 +98,20 @@ export function ImportForm({
         body: { csvText: value.csvText, target },
       },
       {
-        onSuccess: async (p) => {
-          await draft.clear();
-          onCreated(p.id);
-        },
+        onCommitted: (p) => void draft.complete(() => onCreated(p.id)),
       },
     );
   }
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <Stack gap="lg">
       <DraftNotice draft={draft} />
+      {value.mode === "append_to_scene" &&
+        !available.some((s) => s.id === value.sceneId) && (
+          <Alert title="所选追加场次不可用">
+            请重新选择场次，或明确将导入目标改为新建结构。CSV 内容仍保留。
+          </Alert>
+        )}
       <ErrorNotice error={command.error} />
       <div className={classes.columns}>
         <Stack>

@@ -100,3 +100,5 @@ python docs/implementation/check_design.py
 优先阅读[21 技术定案](21-technical-baseline-closure.md)和[19 收口清单](19-design-closure-and-implementation-entry.md)，再按[18 画布工程设计](18-canvas-workspace-contract.md)和[16 工作包](16-implementation-backlog.md)实施。模型／基础设施／试点／广告与商业验证见[20](20-external-validation-and-launch-plan.md)。当前主稿v1.3、实施包v1.3、OpenAPI1.3.0；技术收尾新增7个API及AT-64–75。此前12个画布API继续保留，业务路由尚未实现。
 
 当前实际资产引用与失败恢复的实现证据见[场镜资产引用](33-creative-asset-bindings.md)；工程执行与合入要求见仓库[工程约定](../../AGENTS.md)。
+
+编辑器明确提交后的清理与恢复、提案草稿转移以及失效定位行为见[编辑器提交后恢复](34-editor-completion-recovery.md)。

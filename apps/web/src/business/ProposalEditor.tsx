@@ -151,10 +151,7 @@ export function ProposalEditor({
         body: edit,
       },
       {
-        onSuccess: async () => {
-          await draft.clear();
-          onSaved(selected);
-        },
+        onCommitted: () => void draft.complete(() => onSaved(selected)),
       },
     );
   }
@@ -169,13 +166,11 @@ export function ProposalEditor({
         },
       },
       {
-        onSuccess: async () => {
-          await draft.clear();
-          setConfirm(false);
-        },
+        onCommitted: () => void draft.complete(() => setConfirm(false)),
       },
     );
   }
+  if (draft.committed) return <DraftNotice draft={draft} />;
   if (editing && !readOnly)
     return (
       <OperationEditor
@@ -184,14 +179,17 @@ export function ProposalEditor({
         version={draft.baseVersion}
         operation={editing}
         onCancel={() => setEditingId(undefined)}
-        onSave={(op) => {
-          update({
-            operations: edit.operations.map((old) =>
-              old.opId === op.opId ? op : old,
-            ),
-          });
-          setEditingId(undefined);
-        }}
+        onSave={(op) =>
+          draft.stage({
+            ...draft.value,
+            edit: {
+              ...edit,
+              operations: edit.operations.map((old) =>
+                old.opId === op.opId ? op : old,
+              ),
+            },
+          })
+        }
       />
     );
   return (
@@ -471,7 +469,7 @@ function OperationEditor({
   path: string;
   version: number;
   operation: Operation;
-  onSave: (op: Operation) => void;
+  onSave: (op: Operation) => Promise<boolean>;
   onCancel: () => void;
 }) {
   const draft = useContentDraft(
@@ -502,7 +500,7 @@ function OperationEditor({
     setOp((old) => ({ ...old, proposed: { ...old.proposed, ...body } }));
   const changeSpec = (body: Partial<Schema<"ShotSpec">>) =>
     change({ spec: { ...spec!, ...body } });
-  function finish() {
+  async function finish() {
     const saved = structuredClone(op);
     if (spec) {
       const value = duration.trim();
@@ -521,9 +519,10 @@ function OperationEditor({
       else delete body.spec.plannedDurationUs;
     }
     saved.summary = `${kindName[saved.kind]}：${title(saved)}`;
-    onSave(saved);
-    void draft.clear();
+    if (await onSave(saved)) void draft.complete(onCancel, "local");
+    else setError("无法保留到本地提案草稿。本项输入仍保留，请重试。");
   }
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <Stack gap="lg">
       <DraftNotice draft={draft} />
@@ -642,8 +641,9 @@ function OperationEditor({
         <Button
           variant="subtle"
           onClick={() => {
-            void draft.clear();
-            onCancel();
+            void draft.clear().then((cleared) => {
+              if (cleared) onCancel();
+            });
           }}
         >
           取消本项修改
