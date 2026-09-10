@@ -1,0 +1,20 @@
+.player {
+  width: 100%;
+  background: var(--ws-media);
+  --media-control-background: var(--ws-media);
+  --media-control-hover-background: var(--ws-media);
+  --media-font-family: var(--mantine-font-family);
+}
+.video {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+}
+.audio {
+  height: 0;
+  width: 0;
+}
+.controls {
+  width: 100%;
+}

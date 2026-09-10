@@ -2,6 +2,13 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: [
+      "media-chrome/react",
+      "media-chrome/dist/lang/zh-CN.js",
+      "media-chrome/dist/utils/i18n.js",
+    ],
+  },
   build: {
     rollupOptions: {
       output: {

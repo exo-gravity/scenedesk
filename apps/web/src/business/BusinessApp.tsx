@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import {
   Anchor,
   Badge,
@@ -23,6 +23,7 @@ import {
   Buildings,
   FolderSimple,
   Users,
+  Images,
 } from "@phosphor-icons/react";
 import {
   api,
@@ -37,6 +38,7 @@ import {
 import { ErrorNotice, SectionHeading, Empty, tenantPath } from "./common";
 import { Projects } from "./Projects";
 import { Members } from "./Members";
+const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
 import classes from "./workbench.module.css";
 import {
   invitationFromFragment,
@@ -190,6 +192,16 @@ function Workspace({ hash }: { hash: string }) {
           </Button>
           {tenantId && (
             <Button
+              leftSection={<Images size={18} />}
+              variant="subtle"
+              component="a"
+              href={`#/app/t/${tenantId}/media`}
+            >
+              共享素材
+            </Button>
+          )}
+          {tenantId && (
+            <Button
               leftSection={<Users size={18} />}
               variant="subtle"
               component="a"
@@ -278,6 +290,7 @@ function Workspace({ hash }: { hash: string }) {
               section={segments[4]}
               projectId={segments[4] === "p" ? segments[5] : undefined}
               contentView={segments[6] === "content"}
+              mediaView={segments[6] === "media"}
             />
           )}
         </main>
@@ -290,11 +303,13 @@ function TenantArea({
   section,
   projectId,
   contentView,
+  mediaView,
 }: {
   tenantId: string;
   section?: string | undefined;
   projectId?: string | undefined;
   contentView?: boolean | undefined;
+  mediaView?: boolean | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -308,6 +323,12 @@ function TenantArea({
     );
   if (!own || own.status !== "active")
     return <Empty>你已没有这个工作室的访问权限。</Empty>;
+  if (section === "media" || (projectId && mediaView))
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载素材工作区" />}>
+        <MediaWorkspace tenantId={tenantId} own={own} projectId={projectId} />
+      </Suspense>
+    );
   return section === "members" ? (
     <Members tenantId={tenantId} own={own} members={members.data} />
   ) : (

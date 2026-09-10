@@ -51,6 +51,7 @@ npm run dev:media-worker
 - `npm run test:db`：51 项通过，覆盖既有身份、内容、提案、创作依据、任务和队列回归。
 - `npm run test:media`：25 项通过，含真实存储、解码和业务联调。业务新增原子入队回滚、真实独立数据库身份的队列消费、固定版本中断恢复、摘要拒绝、海报失败／恢复、共享读写和撤权重放、遗漏提示补偿、有限重试及显式恢复。
 - 设计校验：142 操作、110 路径、219 Schema、157 样例通过。
-- 本地持久数据库已应用迁移；受限存储初始化及重复运行均通过。独立 Worker 启动通过，实际浏览器从 4311 跨域直传一张 96×64 PNG（409 字节），原文件及海报均由常驻 Worker 验收为 ready。此为浏览器网络联调，素材页面的操作和视觉验收另行完成；远端 CI 结果后续补记。
+- 本地持久数据库已应用迁移；受限存储初始化及重复运行均通过。独立 Worker 启动通过，实际浏览器从 4311 跨域直传一张 96×64 PNG（409 字节），原文件及海报均由常驻 Worker 验收为 ready。此为浏览器网络联调；页面的操作和视觉验收见[素材工作台](31-media-workspace.md)。
+- [PR #8](https://github.com/beyondgravitylab/scenedesk/pull/8) 已于 2026-09-10 17:52:52 UTC 合入，提交 `691a8d2`；[推送 CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34510336631)及 [PR CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34510415241) 均通过。
 
 后续 E03–E04：浏览器上传进度和中断续办、素材查询与播放、资产修订、固定引用与共享发布、候选选择／采用与实际用片分离。完整灾备 epoch 切换、陈旧任务处置及对象清理仍需恢复演练。

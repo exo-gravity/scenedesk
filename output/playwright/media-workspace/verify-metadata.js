@@ -1,0 +1,67 @@
+async (page) => {
+  page.setDefaultTimeout(10000);
+  const ok = (value,message) => { if (!value) throw new Error(message); };
+  const name = page.getByRole('textbox',{name:'素材名称',exact:true});
+  await name.waitFor();
+  const originalName = await page.getByRole('heading',{level:1}).textContent();
+  await name.fill('四秒技术测试片 · 双人核对');
+  await page.getByText('修改已保存在本标签页，尚未提交。',{exact:true}).waitFor();
+  const firstId = await page.evaluate(() => sessionStorage.getItem('scenedesk-content-tab'));
+  const popupPromise = page.waitForEvent('popup');
+  await page.evaluate(() => window.open(location.href, '_blank'));
+  const child = await popupPromise;
+  child.setDefaultTimeout(10000);
+  try {
+    await child.getByRole('button',{name:'修改名称与来源',exact:true}).click();
+    await child.getByText('修改后可保存；关闭面板会保留本地草稿。',{exact:true}).waitFor();
+    const childId = await child.evaluate(() => sessionStorage.getItem('scenedesk-content-tab'));
+    ok(childId && childId !== firstId,'Duplicated tab reused the original draft owner');
+    ok(await child.getByRole('textbox',{name:'素材名称',exact:true}).inputValue() === originalName,'Duplicated tab read another live draft');
+    await child.getByRole('textbox',{name:'素材名称',exact:true}).fill('四秒技术测试片 · 同伴整理');
+    await child.getByRole('combobox',{name:'标签',exact:true}).fill('同伴标签');
+    await child.getByRole('combobox',{name:'标签',exact:true}).press('Enter');
+    await child.getByRole('switch',{name:'记录来源与用途说明',exact:true}).check();
+    await child.getByRole('textbox',{name:'来源说明',exact:true}).fill('同伴补录：项目内的四秒技术测试文件。');
+    await child.getByRole('textbox',{name:'用途说明',exact:true}).fill('验证私有文件预览。');
+    await child.getByText('修改已保存在本标签页，尚未提交。',{exact:true}).waitFor();
+    await child.reload();
+    await child.getByRole('button',{name:'修改名称与来源',exact:true}).click();
+    await child.getByRole('button',{name:'恢复未提交内容',exact:true}).waitFor();
+    ok(await child.evaluate(() => sessionStorage.getItem('scenedesk-content-tab')) === childId,'Reload lost its own draft owner');
+    await child.getByRole('button',{name:'恢复未提交内容',exact:true}).click();
+    ok(await child.getByRole('textbox',{name:'素材名称',exact:true}).inputValue() === '四秒技术测试片 · 同伴整理','Reload did not recover the child draft');
+    await child.getByRole('button',{name:'保存名称与来源',exact:true}).click();
+    await child.getByRole('textbox',{name:'素材名称',exact:true}).waitFor({state:'hidden'});
+    await page.bringToFront();
+    const compare = page.getByText('服务器已有新版本，当前输入已保留',{exact:true});
+    if (!(await compare.isVisible())) await page.getByRole('button',{name:'保存名称与来源',exact:true}).click();
+    await compare.waitFor();
+    ok(await name.inputValue() === '四秒技术测试片 · 双人核对','Conflict discarded the local edit');
+    await compare.scrollIntoViewIfNeeded();
+    await page.screenshot({path:'output/playwright/media-workspace/03-metadata-conflict.png'});
+    await page.getByRole('button',{name:'已核对，使用当前服务器版本',exact:true}).click();
+    ok(await page.getByRole('textbox',{name:'来源说明',exact:true}).inputValue() === '同伴补录：项目内的四秒技术测试文件。','Rebase lost untouched source changes');
+    ok((await page.getByText('同伴标签',{exact:true}).count()) > 0,'Rebase dropped peer tags');
+    await page.getByRole('textbox',{name:'来源说明',exact:true}).fill('双方核对：四秒技术测试文件，原文件保持不变。');
+    await child.getByRole('button',{name:'修改名称与来源',exact:true}).click();
+    await child.getByRole('textbox',{name:'来源说明',exact:true}).fill('对照期间的第二次来源修订。');
+    await child.getByRole('textbox',{name:'用途说明',exact:true}).fill('补充验证：播放、跳转与下载。');
+    await child.getByRole('button',{name:'保存名称与来源',exact:true}).click();
+    await child.getByRole('textbox',{name:'素材名称',exact:true}).waitFor({state:'hidden'});
+    await page.bringToFront();
+    if (!(await compare.isVisible())) await page.getByRole('button',{name:'保存名称与来源',exact:true}).click();
+    await compare.waitFor();
+    ok(await page.getByRole('textbox',{name:'来源说明',exact:true}).inputValue() === '双方核对：四秒技术测试文件，原文件保持不变。','Second conflict discarded manual merge text');
+    await page.getByRole('button',{name:'已核对，使用当前服务器版本',exact:true}).click();
+    ok(await page.getByRole('textbox',{name:'用途说明',exact:true}).inputValue() === '补充验证：播放、跳转与下载。','Second rebase lost untouched peer text');
+    await page.getByRole('button',{name:'保存名称与来源',exact:true}).click();
+    await name.waitFor({state:'hidden'});
+    const saved = await page.evaluate(async () => {
+      const parts = location.hash.split('?')[0].split('/'), id = new URLSearchParams(location.hash.split('?')[1]).get('media');
+      const media = await (await fetch('/v1/tenants/' + parts[3] + '/media/' + id)).json();
+      return {id:media.id,name:media.displayName,revision:media.revision,tags:media.tags,source:media.provenance.record.sourceNote,usage:media.provenance.record.usageNote,sha256:media.sha256};
+    });
+    ok(saved.name === '四秒技术测试片 · 双人核对' && saved.tags.includes('同伴标签'),'Saved metadata lost reviewed edits');
+    return {duplicatedTabIsolated:true,reloadRecoveredOwnDraft:true,twoConflictsPreservedLocalEdits:true,untouchedPeerChangesPreserved:true,saved};
+  } finally { await child.close(); await page.bringToFront(); }
+}

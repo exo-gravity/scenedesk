@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ActionIcon,
   Badge,
@@ -32,6 +32,7 @@ import {
 import type { GenerationPhase } from "../components/workspace/cards";
 import { PromptComposer } from "../components/workspace/PromptComposer";
 import classes from "./design.module.css";
+const MediaPlayer = lazy(() => import("../components/workspace/MediaPlayer"));
 
 export function DesignPage({ navigate }: { navigate: Navigate }) {
   const [tab, setTab] = useState<string | null>("controls");
@@ -42,6 +43,7 @@ export function DesignPage({ navigate }: { navigate: Navigate }) {
   const [phase, setPhase] = useState<GenerationPhase>("queued");
   const [errorField, setErrorField] = useState("");
   const [expanded, setExpanded] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -89,13 +91,15 @@ export function DesignPage({ navigate }: { navigate: Navigate }) {
         </div>
         <Group>
           <Button onClick={() => navigate("journey")}>导航与完整流程</Button>
-          <Button onClick={() => { location.hash = "/directions/?study=shared&tone=light&state=edit"; }}>共同语言 · 明暗对照</Button>
-          <Button onClick={() => navigate("directions")}>
-            三套视觉方向
+          <Button
+            onClick={() => {
+              location.hash = "/directions/?study=shared&tone=light&state=edit";
+            }}
+          >
+            共同语言 · 明暗对照
           </Button>
-          <Button onClick={() => navigate("layouts")}>
-            场次双模式效果图
-          </Button>
+          <Button onClick={() => navigate("directions")}>三套视觉方向</Button>
+          <Button onClick={() => navigate("layouts")}>场次双模式效果图</Button>
           <Button
             onClick={() => navigate("scene")}
             rightSection={<I.ArrowUpRight size={16} />}
@@ -332,13 +336,19 @@ export function DesignPage({ navigate }: { navigate: Navigate }) {
               </Text>
             </div>
             <div className={classes.mediaDemo}>
-              <MediaViewport
-                title="4 秒媒体技术测试片，与剧目无关"
-                videoSrc="/demo/technical-preview.mp4"
-              />
+              <Suspense fallback={<Text>正在加载播放器…</Text>}>
+                <MediaPlayer
+                  title="4 秒媒体技术测试片，与剧目无关"
+                  src="/demo/technical-preview.mp4"
+                  audio={false}
+                  onError={() => setPreviewError(true)}
+                  onTime={() => {}}
+                />
+              </Suspense>
+              {previewError && <Text role="alert">测试片暂时无法读取。</Text>}
               <Text size="xs" c="dimmed">
-                4 秒技术测试片 ·
-                原生播放器示例，与剧目分镜无关；专业播放器选型仍待确认。
+                4 秒技术测试片 · Media Chrome 4.19.2 与原生视频 ·
+                与素材工作区共用播放组件。
               </Text>
             </div>
           </section>

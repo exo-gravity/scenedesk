@@ -299,6 +299,14 @@ function ProjectDetails({
       >
         进入剧本与集场镜
       </Button>
+      <Button
+        component="a"
+        href={`#/app/t/${tenantId}/p/${projectId}/media`}
+        mb="xl"
+        ml="md"
+      >
+        项目素材
+      </Button>
       {manager || lead ? (
         <ProjectSettings key={p.id} project={p} path={path} active={active} />
       ) : (
