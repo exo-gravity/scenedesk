@@ -10,10 +10,10 @@
 
 已阅读实施包 README、01–10 主要 Markdown、API 操作目录、静态检查报告、`build_contract.py`、`check_design.py` 和关键 OpenAPI 定义，结合完整产品主稿、领域词汇及两份冻结官方证据进行交叉检查。
 
-- [完整产品主稿](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/ai-drama-workbench-product-design-v1.0.md)
-- [实施文档入口](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/README.md)
-- [基础设施官方证据](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/research/2026-09-07-implementation-infra-evidence.md)
-- [模型官方证据](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/research/2026-09-07-implementation-model-evidence.md)
+- [完整产品主稿](baseline/docs/ai-drama-workbench-product-design-v1.0.md)
+- [实施文档入口](baseline/docs/implementation/README.md)
+- [基础设施官方证据](baseline/docs/research/2026-09-07-implementation-infra-evidence.md)
+- [模型官方证据](baseline/docs/research/2026-09-07-implementation-model-evidence.md)
 
 实际执行了只读契约检查：解析生成器 AST，仅在内存执行第 287 行写文件之前的构造逻辑，将生成的 document 与冻结 `openapi.json` 作对象比较，结果相同；104 个操作、122 个 Schema。冻结 OpenAPI SHA-256 为 `5640f59d07d28d8681d52466a5f940aa75056bed2ff0c9454d33b1d1924fb4dc`。没有执行会重写冻结文件的 `check_design.py`，没有运行产品、数据库、供应商或媒体管线。以下是设计反例与最小修订，不声称已复现运行故障。
 
@@ -32,7 +32,7 @@
 
 ## TECH-01 · P0 · 分笔费用确认不能等同整项费用结清
 
-**定位。** [03 数据模型 L102–108](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:102) 只有一个 reservation 金额和 held／settled／released；[04 费用规则 L80–88](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/04-state-execution-and-budget.md:80) 同时允许分笔收费；[07 Adapter L42](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/07-provider-adapter.md:42) 的 `Confirmed(entries)` 没有完整性标志。`GenerationJob` 也只有 `actualCost` 和 `reservationStatus`，见 [生成器 L102](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py:102)、OpenAPI `GenerationJob`（L11927）。
+**定位。** [03 数据模型 L102–108](baseline/docs/implementation/03-domain-data-model.md#L102) 只有一个 reservation 金额和 held／settled／released；[04 费用规则 L80–88](baseline/docs/implementation/04-state-execution-and-budget.md#L80) 同时允许分笔收费；[07 Adapter L42](baseline/docs/implementation/07-provider-adapter.md#L42) 的 `Confirmed(entries)` 没有完整性标志。`GenerationJob` 也只有 `actualCost` 和 `reservationStatus`，见 [生成器 L102](baseline/docs/implementation/build_contract.py#L102)、OpenAPI `GenerationJob`（L11927）。
 
 **失败场景。** 作业预占 8 元，第一次只取得其中 3 元的可靠费用条目。如果按“取得实际费用后结清”释放剩余 5 元，第二项作业可以消耗这 5 元；稍后原作业的另 5 元到账，预算被可预知地提前释放。若实现者反过来一直保留原 8 元再加已确认 3 元，界面和准入又会重复占用。`Confirmed` 只能证明这些条目真实，不能证明供应商不会再发来其他条目。
 
@@ -42,7 +42,7 @@
 
 ## TECH-02 · P0 · 创建最终交付必须与开启新审阅竞争同一 subject 锁
 
-**定位。** [04 L96–98、121](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/04-state-execution-and-budget.md:96) 规定 final 使用目标版本最新 approved 轮次，并规定新轮次锁 subject 分配 number；却没有规定 `createDelivery` 也持有同一 subject 锁。[06 L74–75](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/06-api-contract.md:74) 只有校验规则。[AT-26](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/08-verification-and-delivery-plan.md:44) 未明确交付创建与新轮次的交错执行。
+**定位。** [04 L96–98、121](baseline/docs/implementation/04-state-execution-and-budget.md#L96) 规定 final 使用目标版本最新 approved 轮次，并规定新轮次锁 subject 分配 number；却没有规定 `createDelivery` 也持有同一 subject 锁。[06 L74–75](baseline/docs/implementation/06-api-contract.md#L74) 只有校验规则。[AT-26](baseline/docs/implementation/08-verification-and-delivery-plan.md#L44) 未明确交付创建与新轮次的交错执行。
 
 **失败场景。** 事务 A 查到审阅 #1 是最新且 approved；事务 B 锁定 cut subject，创建并提交 open 的 #2；A 随后插入 final，使用 #1。A、B 都在各自事务内，也没有覆盖已存在的决定，但 final 插入时最新轮次已经未批准。只锁 #1 review 行不能阻止新增 #2。
 
@@ -54,7 +54,7 @@
 
 ## TECH-03 · P0 · 归一后的时间线和成片长度必须是冻结内容的一部分
 
-**定位。** [03 L37、118–124](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:37) 以微秒记录裁切与来源；[05 L81–85](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/05-architecture-and-operations.md:81) 要求任意裁切按帧归一、统一输出规格并回显；[06 L71](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/06-api-contract.md:71) 只检查视频无重叠空洞、音频可叠加。`Timeline`／`CutRevision` 没有区分请求裁切与有效裁切，也没有输出时长、音频尾部或映射规则，见 [生成器 L108–116](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py:108)。
+**定位。** [03 L37、118–124](baseline/docs/implementation/03-domain-data-model.md#L37) 以微秒记录裁切与来源；[05 L81–85](baseline/docs/implementation/05-architecture-and-operations.md#L81) 要求任意裁切按帧归一、统一输出规格并回显；[06 L71](baseline/docs/implementation/06-api-contract.md#L71) 只检查视频无重叠空洞、音频可叠加。`Timeline`／`CutRevision` 没有区分请求裁切与有效裁切，也没有输出时长、音频尾部或映射规则，见 [生成器 L108–116](baseline/docs/implementation/build_contract.py#L108)。
 
 **失败场景。** 两个片段在微秒时间线中相接，但各自裁切在渲染阶段被取到帧边界，合成后实际边界改变；SRT 和 cut_items 仍按未归一的时间线生成。多次拼接后，评论指向错误源位置。另一个合法输入是 46 秒视频配 60 秒音频：当前规则未决定输出应为 46 秒、60 秒、拒绝，还是补画面。不同实现都可能“FFmpeg 成功”，却得到不同审片文件。原始媒体仅记平均／有理 fps，也不足以定义 VFR、非零起始 PTS 的源时间映射。
 
@@ -66,7 +66,7 @@ FFmpeg 官方说明 `trim/atrim` 不自动重置时间戳，`concat` 会受各�
 
 ## TECH-04 · P1 · 生成计划尚不能完整回显“解析后实际输入”及其来源基线
 
-**定位。** [02 L38–40](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/02-interaction-spec.md:38) 与 [07 L46](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/07-provider-adapter.md:46) 要求实际角色、造型、媒体用途、文本和费用依据可核查。[03 L96–98](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:96) 只有一个 source_content_revision 及镜头／媒体关联；[生成器 L98–99](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py:98) 的响应复用 `PlanInput`，另加 resolvedPrompt、总 estimate，未规定 `input` 是原始请求还是解析后的规范输入，也未提供角色造型选择、来源根版本、费用公式／余量的结构。
+**定位。** [02 L38–40](baseline/docs/implementation/02-interaction-spec.md#L38) 与 [07 L46](baseline/docs/implementation/07-provider-adapter.md#L46) 要求实际角色、造型、媒体用途、文本和费用依据可核查。[03 L96–98](baseline/docs/implementation/03-domain-data-model.md#L96) 只有一个 source_content_revision 及镜头／媒体关联；[生成器 L98–99](baseline/docs/implementation/build_contract.py#L98) 的响应复用 `PlanInput`，另加 resolvedPrompt、总 estimate，未规定 `input` 是原始请求还是解析后的规范输入，也未提供角色造型选择、来源根版本、费用公式／余量的结构。
 
 **失败场景。** 用户请求只含镜头，后端从 Production 和 Scene 默认项补出角色与声音。前端若把 `input.references` 当原始请求，只展示局部参考；若把它当实际列表，又无法说明其来自哪个默认项和造型。计划形成后 Production.brief／defaultAssetRevisionIds 改变，`changeProduction` 使用独立 Production.revision，而内容 CAS 只规定结构变更递增；实现无法仅凭 source_content_revision 一致判定旧计划是否过期。一个总 estimate 也无法按 04 L76 展示估算余量与报价依据的区别。
 
@@ -76,7 +76,7 @@ FFmpeg 官方说明 `trim/atrim` 不自动重置时间戳，`concat` 会受各�
 
 ## TECH-05 · P1 · 作业需要固定供应商账号身份和可恢复的连接版本
 
-**定位。** [05 L64](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/05-architecture-and-operations.md:64) 明确旧任务按原账号查询并保留必要秘密版本；[03 L52、99–100](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:52) 只有当前 connection_id／credential_secret_ref，没有连接修订关系或作业账号快照；[生成器 L91–95、225](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py:91) 允许修改 credential 和 status。能力验证又明确绑定账号，见 07 L16。
+**定位。** [05 L64](baseline/docs/implementation/05-architecture-and-operations.md#L64) 明确旧任务按原账号查询并保留必要秘密版本；[03 L52、99–100](baseline/docs/implementation/03-domain-data-model.md#L52) 只有当前 connection_id／credential_secret_ref，没有连接修订关系或作业账号快照；[生成器 L91–95、225](baseline/docs/implementation/build_contract.py#L91) 允许修改 credential 和 status。能力验证又明确绑定账号，见 07 L16。
 
 **失败场景。** 管理者把连接 C 的密钥从供应商账号 A 换成账号 B。旧 job 只知道 C，恢复时取到 B 的密钥，原任务查询失败；同时 C 的旧已验证能力可能被继续展示为已启用。即使操作只是在同账号内正常轮换，数据库也没有说明如何选取当前仍有效的同账号密钥，或如何证明秘密服务中的历史版本对应哪个 job。
 
@@ -86,7 +86,7 @@ FFmpeg 官方说明 `trim/atrim` 不自动重置时间戳，`concat` 会受各�
 
 ## TECH-06 · P1 · 迟到的真实回执不能因旧 lease_token 被一并丢弃
 
-**定位。** [04 L72、113–119](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/04-state-execution-and-budget.md:72) 要求过期 Worker 不覆盖新持有者；[03 L100、132](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:100) 在 attempt 和 worker_tasks 中保存 lease_token，却没有区分“接收供应商证据”和“改变权威作业状态”的写入边界。
+**定位。** [04 L72、113–119](baseline/docs/implementation/04-state-execution-and-budget.md#L72) 要求过期 Worker 不覆盖新持有者；[03 L100、132](baseline/docs/implementation/03-domain-data-model.md#L100) 在 attempt 和 worker_tasks 中保存 lease_token，却没有区分“接收供应商证据”和“改变权威作业状态”的写入边界。
 
 **失败场景。** Worker A 提交任务后网络阻塞超过租约。恢复者 B 将作业置为 submission_unknown；A 稍后收到真实 providerJobId。若所有回写一律要求当前 lease_token，唯一可精确找回任务的回执会被拒绝保存。若为保存回执放开旧 Worker 的状态写入，又可能覆盖 B 已核查的状态或取消事实。
 
@@ -96,7 +96,7 @@ FFmpeg 官方说明 `trim/atrim` 不自动重置时间戳，`concat` 会受各�
 
 ## TECH-07 · P1 · 代理视频、缩略图和波形缺少可用的 API 入口
 
-**定位。** [03 L83](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:83) 已有 media_derivatives；[05 L77](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/05-architecture-and-operations.md:77) 要求原文件与代理分离。可是 [生成器 L85、89、220–221](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py:85) 的 `Media` 没有派生列表／状态，`AccessRequest` 只有 inline／attachment，`getMediaAccess` 无法指定原片、代理、海报或波形。
+**定位。** [03 L83](baseline/docs/implementation/03-domain-data-model.md#L83) 已有 media_derivatives；[05 L77](baseline/docs/implementation/05-architecture-and-operations.md#L77) 要求原文件与代理分离。可是 [生成器 L85、89、220–221](baseline/docs/implementation/build_contract.py#L85) 的 `Media` 没有派生列表／状态，`AccessRequest` 只有 inline／attachment，`getMediaAccess` 无法指定原片、代理、海报或波形。
 
 **失败场景。** 后端已归档原片，代理失败或仍在生成；前端只能看到原片 ready，然后申请一个语义不明的 inline URL。它既无法知道当前是否可用代理，也无法区别“原片可下载、预览恢复中”。即使首条模型输出恰好能直接播放，资产网格的缩略图和声音波形仍无契约可调用。
 
@@ -106,7 +106,7 @@ FFmpeg 官方说明 `trim/atrim` 不自动重置时间戳，`concat` 会受各�
 
 ## TECH-08 · P1 · 媒体检索与来源交接尚缺实际可保存的生产元数据
 
-**定位。** [01 PR-06](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/01-product-requirements.md:22)、[02 资产页 L21](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/02-interaction-spec.md:21) 要求成功媒体可检索并查看来源；[06 L102](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/06-api-contract.md:102) 指定 q 查询名称／标题／标签。但 [03 L81–82](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:81) 和 [Media／UploadInput L85–88](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py:85) 仅上传请求有 fileName，持久逻辑字段与 Media 响应没有名称、原名、标签、来源说明；也没有素材元数据修改接口。Manifest 只携带文件身份与校验信息。
+**定位。** [01 PR-06](baseline/docs/implementation/01-product-requirements.md#L22)、[02 资产页 L21](baseline/docs/implementation/02-interaction-spec.md#L21) 要求成功媒体可检索并查看来源；[06 L102](baseline/docs/implementation/06-api-contract.md#L102) 指定 q 查询名称／标题／标签。但 [03 L81–82](baseline/docs/implementation/03-domain-data-model.md#L81) 和 [Media／UploadInput L85–88](baseline/docs/implementation/build_contract.py#L85) 仅上传请求有 fileName，持久逻辑字段与 Media 响应没有名称、原名、标签、来源说明；也没有素材元数据修改接口。Manifest 只携带文件身份与校验信息。
 
 **失败场景。** 剪辑导入“林夏台词第 2 版.wav”和几份配乐，数周后另一位成员只能按 UUID、时间和媒体类型查找，无法按文件名检索。共享复制后私有 upload/job ID 被正确隐藏，但可向共享读者展示的来源说明也没有保存位置。真实试点要求实施团队准备合法声音／图片（10 L9），目前无法随素材交接其来源和已记录的使用依据，只能另靠聊天补充。
 
@@ -116,7 +116,7 @@ FFmpeg 官方说明 `trim/atrim` 不自动重置时间戳，`concat` 会受各�
 
 ## TECH-09 · P1 · scope=shared 的作业需要明确工作室单层预算规则
 
-**定位。** [01 L70](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/01-product-requirements.md:70) 允许管理者公共制作；[06 L29](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/06-api-contract.md:29) 要求 shared 省略 projectId；[生成器 L98、227–229](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/build_contract.py:98) 允许共享计划／执行。但是 [03 L102–103](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:102) 的 reservation 同时列 workspace_budget_id／project_budget_id，[04 L78](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/04-state-execution-and-budget.md:78) 无条件要求同时检查两个账户，未声明共享分支。
+**定位。** [01 L70](baseline/docs/implementation/01-product-requirements.md#L70) 允许管理者公共制作；[06 L29](baseline/docs/implementation/06-api-contract.md#L29) 要求 shared 省略 projectId；[生成器 L98、227–229](baseline/docs/implementation/build_contract.py#L98) 允许共享计划／执行。但是 [03 L102–103](baseline/docs/implementation/03-domain-data-model.md#L102) 的 reservation 同时列 workspace_budget_id／project_budget_id，[04 L78](baseline/docs/implementation/04-state-execution-and-budget.md#L78) 无条件要求同时检查两个账户，未声明共享分支。
 
 **失败场景。** Owner 为共享角色生成参考图，请求合法且无 projectId。Budget.reserve 无从选择项目预算：实现者可能拒绝全部共享生成、借用任意项目、创建虚假项目，或跳过本应存在的工作室预占；这些结果都与当前公开行为或消费归属冲突。
 
@@ -126,7 +126,7 @@ FFmpeg 官方说明 `trim/atrim` 不自动重置时间戳，`concat` 会受各�
 
 ## TECH-10 · P1 · 恢复规程需要定义旧 queued 的隔离集合，而不只识别“备份后创建的任务”
 
-**定位。** [05 L108](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/05-architecture-and-operations.md:108) 正确要求先关闭外部创建、核对后恢复调度；[AT-32](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/08-verification-and-delivery-plan.md:50) 尚未定义核对失败时哪些任务可放行。[03 的 attempt／outbox／worker_tasks](/Users/gandy/Documents/ChatGPT/drama_platform/docs/reviews/2026-09-07/baseline/docs/implementation/03-domain-data-model.md:99) 都与业务数据库处于同一恢复时间点；模型证据也明确不能保证所有无 ID 提交精确找回。
+**定位。** [05 L108](baseline/docs/implementation/05-architecture-and-operations.md#L108) 正确要求先关闭外部创建、核对后恢复调度；[AT-32](baseline/docs/implementation/08-verification-and-delivery-plan.md#L50) 尚未定义核对失败时哪些任务可放行。[03 的 attempt／outbox／worker_tasks](baseline/docs/implementation/03-domain-data-model.md#L99) 都与业务数据库处于同一恢复时间点；模型证据也明确不能保证所有无 ID 提交精确找回。
 
 **失败场景。** T0 备份中已有 queued 作业 J；T1 Worker 提交 J，供应商接受；T2 数据库灾难后恢复 T0。J 的 created_at 早于备份，看起来仍是正常 queued，T1 attempt 已丢失。即使运维核对了“备份后新建 job”，仍可能漏掉 J。另有 T1 才创建且已被接受的 K，恢复库中根本没有 K；若供应商账单不能精确关联，仅凭“恢复完成”不能宣称预算与提交记录已经完整。
 

@@ -458,9 +458,9 @@ AI 视频制作通常包含要求、参考、生成、挑选、修改、编排�
 | 不同职责或客户的相反情况 | 待填写 |
 | 待确认内容及可观察的任务 | 待填写 |
 
-相关研究：[市场与画布机制复核](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-07-canvas-market-review-v2.md)、[LibTV 等国内产品](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-07-canvas-china-research-v2.md)、[即梦与 Dreamina 的证据边界](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-07-canvas-jimeng-research-v2.md)、[叙事制作产品](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-07-canvas-cinematic-workbenches-v2.md)、[国际工作流产品](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-07-canvas-international-workflows-v2.md)。
+相关研究：[市场与画布机制复核](research/2026-09-07-canvas-market-review-v2.md)、[LibTV 等国内产品](research/2026-09-07-canvas-china-research-v2.md)、[即梦与 Dreamina 的证据边界](research/2026-09-07-canvas-jimeng-research-v2.md)、[叙事制作产品](research/2026-09-07-canvas-cinematic-workbenches-v2.md)、[国际工作流产品](research/2026-09-07-canvas-international-workflows-v2.md)。
 
-既有设计对照：[完整产品方案](/Users/gandy/Documents/ChatGPT/drama_platform/docs/ai-drama-workbench-product-design-v1.1.md)。本文件提供重新作出产品选择的分析框架，当前没有把任何候选组合确定为实施基线。
+既有设计对照：[完整产品方案](ai-drama-workbench-product-design-v1.1.md)。本文件提供重新作出产品选择的分析框架，当前没有把任何候选组合确定为实施基线。
 
 ## 附录 B：分组复核、代表选择与证据规则
 
@@ -523,11 +523,11 @@ AI 视频制作通常包含要求、参考、生成、挑选、修改、编排�
 8. **在时间线处理连续观看与声音。** 新画布将视频拖入时间线排序；旧版声音指南支持 TTS 或音频上传、对齐。2025-11 声音文档称初次视频生成不会自动带出剧本音频，该结论不能扩大为所有当前模型的能力限制。[D：声音指南](https://help.katalist.ai/en/articles/12743528-how-can-i-add-and-customize-a-voiceover-in-katalistai)、[D：新画布指南](https://help.katalist.ai/en/articles/16298583-how-to-build-your-storyboard-and-videos-in-story-canvas)
 9. **交付视频或可接续编辑的材料。** 新画布支持片段下载与时间线导出；另有 Premiere 导出教程，以 ZIP 中的 XML 和媒体恢复片段顺序，再由外部编辑完成后期。该教程没有证明双向回传、字幕和所有轨道都无损保留。[D：Premiere 交接](https://help.katalist.ai/en/articles/11785146-how-to-export-a-katalist-project-for-adobe-premiere-pro)
 
-![Katalist 剧本侧栏与按场景加入画布](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/katalist-script-structure.png)
+![Katalist 剧本侧栏与按场景加入画布](../output/playwright/2026-09-08-product-mechanisms/images/katalist-script-structure.png)
 
 **图 C-1｜先出现可展开的作品结构。** V：Katalist 官方教程 00:24。左侧 Script Breakdown 已按场景和镜头展示内容，场景旁有 Add to Canvas；中间此时尚未展开。值得看的是“先有待制作内容，再按需要进入制作空间”的入口安排，不是空白画布面积。[官方指南](https://help.katalist.ai/en/articles/16298583-how-to-build-your-storyboard-and-videos-in-story-canvas) · [原演示 00:24](https://www.loom.com/share/91cb1424e2084a91a335de815b289d06?t=24)
 
-![Katalist 角色地点卡与带参考的画面卡](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/katalist-script-canvas.png)
+![Katalist 角色地点卡与带参考的画面卡](../output/playwright/2026-09-08-product-mechanisms/images/katalist-script-canvas.png)
 
 **图 C-2｜内容展开后，制作依据与待制作画面一并出现。** V：同一官方教程 00:45。可见人物、地点卡，以及 Frame 1—3 中的参考标识、描述与镜头动作选项。它说明结构可以带出可操作的制作准备；自动分配参考的规则以 D 文档为依据，截图不证明后续生成质量。[官方指南](https://help.katalist.ai/en/articles/16298583-how-to-build-your-storyboard-and-videos-in-story-canvas) · [原演示 00:45](https://www.loom.com/share/91cb1424e2084a91a335de815b289d06?t=45)
 
@@ -595,7 +595,7 @@ LibTV 是这一类的重要研究对象，但其本轮可核查细节主要来�
 
 以下全部为 **F**：公开界面文案显示，复制节点保留参数与上游连接，下游需重新选择；生成中的副本不会自动继承任务。脚本断开会改变后续生成依据。某些批量分镜路径检查角色、场景和道具参考；视频接入专用剪辑入口。**U：**这没有证明所有账户已开放、所有模型适用，或复制与修改在实际运行中完全符合提示。[官网公开前端](https://www.liblib.tv/)
 
-核查键包括 `createCopyTip`、`createCopyGeneratingTip`、`disconnectEdgeMessage`、`batchStoryboardMissingRefsTooltip`、`openVideoCompose`。本轮官方飞书指南未能取得正文，未把入口标题当作操作证据。更多检索背景保留在[国内产品研究](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-07-canvas-china-research-v2.md)。
+核查键包括 `createCopyTip`、`createCopyGeneratingTip`、`disconnectEdgeMessage`、`batchStoryboardMissingRefsTooltip`、`openVideoCompose`。本轮官方飞书指南未能取得正文，未把入口标题当作操作证据。更多检索背景保留在[国内产品研究](research/2026-09-07-canvas-china-research-v2.md)。
 
 **I｜这些线索中最有价值的是“试作副本继承依据，但不直接继承后续使用”。** 对导演而言，继续探索一个近景，不应在还没看见新结果时就替换已经放进粗剪的旧近景。这里值得借鉴的是继续尝试和正式使用之间的选择权，而不只是复制快捷键。
 
@@ -612,7 +612,7 @@ LibTV 是这一类的重要研究对象，但其本轮可核查细节主要来�
 7. **将试作收敛为作品。** 选用视频进入 Playlist，排序及裁切；之后可从片段定位源节点，重做后再加入新视频。时间线使用范围与原始媒体分开。[Playlist](https://docs.tapnow.ai/zh/docs/canvas/use-playlists)
 8. **留下可继续使用的积累。** 好素材进入个人或团队库，稳定的节点组另存模板；模板应用会新增一组节点和连接，不替换已有画布。[素材与模板](https://docs.tapnow.ai/zh/docs/canvas/use-library-and-templates)
 
-![TapNow 上游图片连线与下游提示引用](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/tapnow-reference-connection.png)
+![TapNow 上游图片连线与下游提示引用](../output/playwright/2026-09-08-product-mechanisms/images/tapnow-reference-connection.png)
 
 **图 D-1｜把“连接了材料”进一步落实为“本次怎样使用”。** V：TapNow 官方连接教程动图截帧。左侧原图连接到右侧生成节点，输入区域同时显示参考缩略图及 `@` 引用。界面将素材来源和具体指令放在一起；是否使用、怎样使用仍需明确，不能把空间邻近当作输入。[官方连接教程](https://docs.tapnow.ai/zh/docs/canvas/understand-nodes-and-connections)
 
@@ -664,11 +664,11 @@ LibTV 是这一类的重要研究对象，但其本轮可核查细节主要来�
 8. **检查片段连接。** 多选视频建立 Playlist，排序、裁切、预览后可合并导出或把结果送回画布。它承担时间顺序，素材在画布中的位置不应被解释为正式剪辑顺序。[播放列表](https://docs.tapnow.ai/zh/docs/canvas/use-playlists)
 9. **交给同伴继续。** 团队画布共享节点、连接和 Agent 输出，成员可以编辑并跟随对方视口演示。视口跟随不会代替节点操作。[团队创作](https://docs.tapnow.ai/en/docs/projects/create-with-your-team)
 
-![TapNow Ask 生成确认卡](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/tapnow-ask-confirmation.png)
+![TapNow Ask 生成确认卡](../output/playwright/2026-09-08-product-mechanisms/images/tapnow-ask-confirmation.png)
 
 **图 E-1｜将 Agent 的意图变成用户能核对的行动。** V：TapNow 官方生成模式动图截帧。右侧确认卡集中展示提示、模型、比例、分辨率、数量和预计消耗，并提供确认或取消。值得借鉴的是检查点放在具体执行动作前；生成前确认不能代替生成后的质量采用。[官方生成模式说明](https://docs.tapnow.ai/en/docs/agent/choose-a-generation-mode)
 
-![TapNow 可重新打开的文字成果与对话并列](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/tapnow-agent-outputs.png)
+![TapNow 可重新打开的文字成果与对话并列](../output/playwright/2026-09-08-product-mechanisms/images/tapnow-agent-outputs.png)
 
 **图 E-2｜文字成果获得独立于聊天滚动记录的入口。** V：TapNow 官方产物管理动图截帧。中间打开 Space Travel Story 文档，可见 Add to Canvas、Discuss；右侧仍是对话。这里是文字产物被打开的状态，未显示的列表行为以文档为证。可借鉴“成果可重新打开、编辑并再次交给 Agent”的连接。[官方产物管理说明](https://docs.tapnow.ai/en/docs/agent/manage-agent-outputs)
 
@@ -795,7 +795,7 @@ Workflow 发布为 App 时，作者设置输入输出标签及显隐，保留关
 
 **I｜缓存与显式锁定也应分开。** 缓存判断此前计算是否仍适用；显式锁定表达创作者希望继续使用某个结果。我们的借鉴重点应是向用户解释将重做哪些、保留哪些，而不是默认所有依赖变化都必须触发付费调用。
 
-![Runway 节点输入输出及必填输入标记](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/runway-typed-ports.png)
+![Runway 节点输入输出及必填输入标记](../output/playwright/2026-09-08-product-mechanisms/images/runway-typed-ports.png)
 
 **图 F-1｜执行图需要明确输入输出的契约。** V：Runway 官方文档图片截图。左侧 Prompt／Image 输入带必填标识，右侧为 Video 输出，节点内有运行入口。借鉴重点是输入类型、方向与执行单位；这是端口示意，不能用来证明 FLORA 的封装、App 发布或任何产品的业务审批能力。[Runway 官方节点说明](https://help.runwayml.com/hc/en-us/articles/45763528999699-Introduction-to-Workflows)
 
@@ -871,10 +871,10 @@ Workflow 发布为 App 时，作者设置输入输出标签及显隐，保留关
 
 ### H1. 四组完整研究底稿
 
-- [G1：叙事结构、Katalist 与 LTX](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-08-narrative-mechanism-deep-dive.md)，包含文档日期、跨版本限制与来源台账。
-- [G2：创作上下文、LibTV 与 TapNow](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-08-creative-context-mechanism-deep-dive.md)，包含前端证据边界与手工制作链。
-- [G3：Agent 接手、TapNow 与 Seko](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-08-agent-mechanism-deep-dive.md)，包含任务状态、产物与来源台账。
-- [G4：工艺、FLORA／Runway／LTX](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-08-recipe-mechanism-deep-dive.md)，包含版本、运行、文档冲突及 API 依据。
+- [G1：叙事结构、Katalist 与 LTX](research/2026-09-08-narrative-mechanism-deep-dive.md)，包含文档日期、跨版本限制与来源台账。
+- [G2：创作上下文、LibTV 与 TapNow](research/2026-09-08-creative-context-mechanism-deep-dive.md)，包含前端证据边界与手工制作链。
+- [G3：Agent 接手、TapNow 与 Seko](research/2026-09-08-agent-mechanism-deep-dive.md)，包含任务状态、产物与来源台账。
+- [G4：工艺、FLORA／Runway／LTX](research/2026-09-08-recipe-mechanism-deep-dive.md)，包含版本、运行、文档冲突及 API 依据。
 
 底稿中的图片候选是采集前的研究记录；**本成稿及以下图源台账代表最终采用和视觉核验结果**。事实来源已在正文就近链接，不能把重复引用同页计算成多份独立证据。
 
@@ -891,4 +891,4 @@ Workflow 发布为 App 时，作者设置输入输出标签及显隐，保留关
 | E-2 | TapNow 文字成果 | 官方操作动图截图 | 打开文档、送画布和再讨论入口 |
 | F-1 | Runway 类型端口 | 官方文档图片截图 | 输入输出与运行契约，非封装发布界面 |
 
-原始页面、直接图源、采集日期和文件位置见[图片来源台账](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/screenshot-provenance.md)。每张均已打开检查可读性，截图只支持可见设计，相关动态规则依官方文档标注。
+原始页面、直接图源、采集日期和文件位置见[图片来源台账](../output/playwright/2026-09-08-product-mechanisms/screenshot-provenance.md)。每张均已打开检查可读性，截图只支持可见设计，相关动态规则依官方文档标注。

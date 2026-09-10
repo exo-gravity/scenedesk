@@ -151,7 +151,10 @@ for file in files:
         if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target) or target.startswith("#"):
             continue
         target = re.sub(r":\d+$", "", unquote(target.split("#", 1)[0].strip("<>")))
-        check((file.parent / target).exists(), f"Broken file link: {file.name} -> {target}")
+        check(not Path(target).is_absolute(), f"Local file link must be repository-relative: {file.name} -> {target}")
+        resolved_target = (file.parent / target).resolve()
+        check(resolved_target.is_relative_to(REPO), f"Local file link escapes repository: {file.name} -> {target}")
+        check(resolved_target.exists(), f"Broken file link: {file.name} -> {target}")
         link_count += 1
 checks.append(f"现行与历史文档（冻结副本另验哈希）的 {link_count} 个本地文件链接可解析，代码围栏成对；未对远端 URL 或 Markdown 锚点做自动可用性断言")
 

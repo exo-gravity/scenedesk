@@ -12,13 +12,13 @@
 
 优先级最高的三件事：返工入口停止直接覆盖提示词；审阅及生成草稿按对象保存；浏览旧稿、素材和助手建议不再隐式改写制作焦点或动作落点。
 
-补充核对的既有范围：第 18 文档已经规定分镜默认大预览＋底部分镜条，全场总览按需展开；画布允许无选择和未绑定镜头的节点。第 14 文档只批准“生成分镜建议／准备本次提示／按意见准备修改”三类有限 AI。本稿所说助手会话、消息与历史，是这些辅助操作的上下文呈现规则及未来对话的兼容设计，不是建议 MVP 新增通用自由聊天、任意工具调用或自主执行。[分镜、无选择与助手基线](/Users/gandy/Documents/ChatGPT/drama_platform/docs/implementation/18-canvas-workspace-contract.md:15)、[有限 AI 基线](/Users/gandy/Documents/ChatGPT/drama_platform/docs/implementation/14-scene-mvp-closure.md:27)。
+补充核对的既有范围：第 18 文档已经规定分镜默认大预览＋底部分镜条，全场总览按需展开；画布允许无选择和未绑定镜头的节点。第 14 文档只批准“生成分镜建议／准备本次提示／按意见准备修改”三类有限 AI。本稿所说助手会话、消息与历史，是这些辅助操作的上下文呈现规则及未来对话的兼容设计，不是建议 MVP 新增通用自由聊天、任意工具调用或自主执行。[分镜、无选择与助手基线](../../implementation/18-canvas-workspace-contract.md#L15)、[有限 AI 基线](../../implementation/14-scene-mvp-closure.md#L27)。
 
 ## 1. 最关键的五项问题
 
 ### 1.1 返工导航与修改内容混为一步，破坏当前草稿
 
-**已观察事实。** `beginRework` 在导航回制作前，把目标镜头的 `prompt` 整段替换为审阅意见加固定文案，而不是只定位镜头；`rework` 又是整场单一字段。后续选择其他镜头仍会显示同一返工栏。[入口与覆盖逻辑](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:63)、[场次级返工栏](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:142)。
+**已观察事实。** `beginRework` 在导航回制作前，把目标镜头的 `prompt` 整段替换为审阅意见加固定文案，而不是只定位镜头；`rework` 又是整场单一字段。后续选择其他镜头仍会显示同一返工栏。[入口与覆盖逻辑](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L63)、[场次级返工栏](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L142)。
 
 **影响判断。** 用户从 v1 进入返工，可能已在当前镜头做过第二轮改写。现在按钮“按此意见继续制作”既像导航，又承担替换内容，且没有给出替换差异。这是确定的原型行为；用户是否会因而丢失工作或误解，需要后续验证。
 
@@ -26,9 +26,9 @@
 
 ### 1.2 单一 `route.shot` 承担多种焦点，未发送文字也未按目标隔离
 
-**已观察事实。** `route.shot` 决定 `shot`，随后同时驱动制作输入、候选、剪辑分镜条、审阅镜头、参考添加和助手标题。所有 `scene` 页面上的镜头点击都会把 `route.shot` 写入 `scene.focus`，包括审阅页。[派生与焦点保存](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:30)。
+**已观察事实。** `route.shot` 决定 `shot`，随后同时驱动制作输入、候选、剪辑分镜条、审阅镜头、参考添加和助手标题。所有 `scene` 页面上的镜头点击都会把 `route.shot` 写入 `scene.focus`，包括审阅页。[派生与焦点保存](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L30)。
 
-`reviewText`、`reviewTime`、`versionNote` 是页面根部状态，没有场次／审阅版本键。切审阅版本仅更新 `rev`；添加意见时使用当前 `review` 和当前 `clip`。[草稿声明](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:26)、[提交意见](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:69)、[切版本](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:95)。
+`reviewText`、`reviewTime`、`versionNote` 是页面根部状态，没有场次／审阅版本键。切审阅版本仅更新 `rev`；添加意见时使用当前 `review` 和当前 `clip`。[草稿声明](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L26)、[提交意见](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L69)、[切版本](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L95)。
 
 **可由代码推导的场景。** 在 v1 输入未发意见，切到 v2 后继续提交，同一段文字会落到 v2 的当前片段；浏览旧稿中的 SH-01 后回制作，制作焦点也成为 SH-01。未实际运行这两个序列，不将推导记为浏览器实测。
 
@@ -36,9 +36,9 @@
 
 ### 1.3 辅助入口有标题，却没有独立的引用与动作目标
 
-**已观察事实。** 场次切换、资产、作业和助手共用一个 `drawer` 单选状态。资产动作写“引用到当前镜头”，从当前 `shot` 写入引用；助手写明读取当前镜头提示词和参考，应用建议也直接修改当前 `shot.prompt`。[容器和各项操作](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:148)、[资产添加](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:74)。助手仅是固定建议，没有持续会话、消息输入、异步返回或会话切换模型，不能据此声称会话隔离已验证。
+**已观察事实。** 场次切换、资产、作业和助手共用一个 `drawer` 单选状态。资产动作写“引用到当前镜头”，从当前 `shot` 写入引用；助手写明读取当前镜头提示词和参考，应用建议也直接修改当前 `shot.prompt`。[容器和各项操作](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L148)、[资产添加](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L74)。助手仅是固定建议，没有持续会话、消息输入、异步返回或会话切换模型，不能据此声称会话隔离已验证。
 
-主代理材料另报告了真实浏览器中的模态遮罩和命中结果；本评审没有重复该实测。单就代码与规定截图，能确认辅助功能共用单一容器、完整制作输入固定在右侧。[分镜截图](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-10-navigation-journey/03-storyboard.png)。
+主代理材料另报告了真实浏览器中的模态遮罩和命中结果；本评审没有重复该实测。单就代码与规定截图，能确认辅助功能共用单一容器、完整制作输入固定在右侧。[分镜截图](../../../output/playwright/2026-09-10-navigation-journey/03-storyboard.png)。
 
 **影响判断。** 去掉遮罩后允许用户继续选择镜头，原来借模态阻断暂时避开的目标漂移就会显现。面板标题显示“当前镜头”不足以保护已经形成的建议、输入和待执行动作。
 
@@ -46,13 +46,13 @@
 
 ### 1.4 画布的对象身份与视觉选择仍纠缠，跨模式缺少稳定的判断对象
 
-**已观察事实。** 画布由每个镜头一个 `shot-N` 节点构成；当前选中节点显示正在看的候选，其他节点显示已采用候选。当前参考节点又从选中镜头的前两项引用重新派生。选择另一个镜头会改变场上呈现的参考集合，而不是只改变选中状态。[画布节点和参考](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:179)。
+**已观察事实。** 画布由每个镜头一个 `shot-N` 节点构成；当前选中节点显示正在看的候选，其他节点显示已采用候选。当前参考节点又从选中镜头的前两项引用重新派生。选择另一个镜头会改变场上呈现的参考集合，而不是只改变选中状态。[画布节点和参考](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L179)。
 
-此外，找不到 `route.shot` 时直接使用第一镜头，画布空白处只处理平移，没有清空选择的分支。原型始终存在当前镜头，无法表达既有契约中的无选择或独立自由节点上下文。[当前镜头回落](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:31)、[画布空白处行为](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:195)。
+此外，找不到 `route.shot` 时直接使用第一镜头，画布空白处只处理平移，没有清空选择的分支。原型始终存在当前镜头，无法表达既有契约中的无选择或独立自由节点上下文。[当前镜头回落](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L31)、[画布空白处行为](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L195)。
 
-分镜主区只标记“采用”，候选主要在侧栏小缩略图中；所有候选使用同一图片是已声明的演示限制。[分镜渲染](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:143)、[画布截图](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-10-navigation-journey/05-canvas.png)。因此不能将它评为真实候选比较已可用，也不能把占位图片本身列为生产缺陷。
+分镜主区只标记“采用”，候选主要在侧栏小缩略图中；所有候选使用同一图片是已声明的演示限制。[分镜渲染](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L143)、[画布截图](../../../output/playwright/2026-09-10-navigation-journey/05-canvas.png)。因此不能将它评为真实候选比较已可用，也不能把占位图片本身列为生产缺陷。
 
-**影响判断。** 用户可能把“看 B”理解为整个场次媒体已经换成 B；选择变化同时带来参考集合和主节点尺寸变化，还会削弱对空间位置的记忆。当前合同已要求节点媒体身份固定、切模式不重建画布，后续应回到该约束。[画布契约](/Users/gandy/Documents/ChatGPT/drama_platform/docs/implementation/18-canvas-workspace-contract.md:51)。
+**影响判断。** 用户可能把“看 B”理解为整个场次媒体已经换成 B；选择变化同时带来参考集合和主节点尺寸变化，还会削弱对空间位置的记忆。当前合同已要求节点媒体身份固定、切模式不重建画布，后续应回到该约束。[画布契约](../../implementation/18-canvas-workspace-contract.md#L51)。
 
 **推荐。** 镜头是业务对象，候选媒体是可预览对象，画布节点是特定内容的呈现，三者不互相替代。主预览明确标 `SH-04 / 候选 B · 正在查看`，并在确有差异时提示采用 A、剪辑用 A。画布上的媒体节点保持身份；选中只出现工具和边界，不改掉另一节点代表的内容。全场参考保持为场次内容；当前镜头关联可突出，其余引用不因换选择消失。
 
@@ -60,7 +60,7 @@
 
 ### 1.5 层级基本正确，但位置导航、历史入口与辅助工具的节奏不一致
 
-**已观察事实。** 项目页有完整项目目录，进入场次后目录收起，顶部保留项目、集、场次。制作／剪辑和分镜／画布各占一层，语义有区别。全局资产入口名为“共享资产”，对应页面及导航总览叫“工作室资产”。审阅入口只显示最新版本；进入审阅后制作／剪辑页签消失。[场次壳与入口](/Users/gandy/Documents/ChatGPT/drama_platform/apps/web/src/pages/NavigationJourneyPrototype.tsx:120)、[场次列表截图](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-10-navigation-journey/02-project-scenes.png)、[导航总览截图](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-10-navigation-journey/09-navigation-map.png)。
+**已观察事实。** 项目页有完整项目目录，进入场次后目录收起，顶部保留项目、集、场次。制作／剪辑和分镜／画布各占一层，语义有区别。全局资产入口名为“共享资产”，对应页面及导航总览叫“工作室资产”。审阅入口只显示最新版本；进入审阅后制作／剪辑页签消失。[场次壳与入口](../../../apps/web/src/pages/NavigationJourneyPrototype.tsx#L120)、[场次列表截图](../../../output/playwright/2026-09-10-navigation-journey/02-project-scenes.png)、[导航总览截图](../../../output/playwright/2026-09-10-navigation-journey/09-navigation-map.png)。
 
 **影响判断。** 收起项目目录是合理减负，无需用常驻目录修复所有问题。更应解决名称一致、历史版本可达和返回预期：已确认 v1 仍被整集使用、最新 v2 尚待审时，只突出最新审阅可能掩盖这两个事实。当前没有真实多项目入口与大量场次，不能推断规模化可发现性已成立。
 

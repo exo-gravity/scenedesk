@@ -37,7 +37,7 @@
 | 反馈定位：Frame.io V4 | 评论可带时间码并跳回对应位置；评论完成与素材状态是不同操作。[评论](https://help.frame.io/en/articles/9105251-commenting-on-your-media)、[评论面板](https://help.frame.io/en/articles/9105278-comments-panel-overview)、[播放器状态](https://help.frame.io/en/articles/9105311-player-page-features) | 对固定场次版本留言、点击定位、回复处理结果，主创单独确认整场 | 外部审片门户、多级审批、画面批注工具 |
 | 看新旧稿：Frame.io V4 | 版本堆叠后可选择旧版，另有并排比较视图。[版本](https://help.frame.io/en/articles/9101068-versioning-in-frame-io)、[比较](https://help.frame.io/en/articles/9952618-comparison-viewer) | 版本列表与单播放器切换，新稿关联旧意见的处理说明 | 同步双屏比较、自动语义对齐或迁移评论 |
 
-LibTV 继续作为整体创作机制参考；本轮不追加未经核验的操作细节。详细比较和已检查截图见[产品内核研究 v0.3](/Users/gandy/Documents/ChatGPT/drama_platform/docs/ai-drama-product-core-decision-questions-v0.1.md)。
+LibTV 继续作为整体创作机制参考；本轮不追加未经核验的操作细节。详细比较和已检查截图见[产品内核研究 v0.3](ai-drama-product-core-decision-questions-v0.1.md)。
 
 ## 3. 一个场次，三个相互接续的工作视图
 
@@ -113,7 +113,7 @@ AI 辅助从当前对象进入，不要求首期建设全项目聊天空间、�
 
 “新视频已经生成”“制作人员提交了修改结果”“主创确认了新稿”是三个事实。首期用清楚的入口和记录连接它们，无需为每条意见建复杂审批流程；需要他人协助时才从意见建立轻任务。
 
-Frame.io 的时间评论与版本机制可供借鉴，但其公开资料没有证明成片时间码能定位原生成任务，也没有证明剪辑变化后评论会自动语义对齐。这些关系要依据我们自己的剪辑使用记录处理。详见[有界补查](/Users/gandy/Documents/ChatGPT/drama_platform/docs/research/2026-09-09-review-handoff-patterns.md)。
+Frame.io 的时间评论与版本机制可供借鉴，但其公开资料没有证明成片时间码能定位原生成任务，也没有证明剪辑变化后评论会自动语义对齐。这些关系要依据我们自己的剪辑使用记录处理。详见[有界补查](research/2026-09-09-review-handoff-patterns.md)。
 
 ## 7. MVP 采用与后置清单
 
@@ -132,7 +132,7 @@ MVP 仍保留基本的租户／项目隔离、版本冲突处理、费用与在�
 
 ## 8. 与既有设计的衔接
 
-本稿是新的讨论结论与交互细化入口。[完整方案 v1.2](/Users/gandy/Documents/ChatGPT/drama_platform/docs/ai-drama-workbench-product-design-v1.1.md) 和[既有交互规格](/Users/gandy/Documents/ChatGPT/drama_platform/docs/implementation/02-interaction-spec.md) 现已按下面的变化同步；下表保留变更缘由，详细当前规则见 [14](implementation/14-scene-mvp-closure.md)。
+本稿是新的讨论结论与交互细化入口。[完整方案 v1.2](ai-drama-workbench-product-design-v1.1.md) 和[既有交互规格](implementation/02-interaction-spec.md) 现已按下面的变化同步；下表保留变更缘由，详细当前规则见 [14](implementation/14-scene-mvp-closure.md)。
 
 | 项目 | 处理方向 | 本轮同步位置 |
 |---|---|---|
@@ -166,12 +166,12 @@ MVP 仍保留基本的租户／项目隔离、版本冲突处理、费用与在�
 
 下列复用 2026-09-08 已采集并视觉核验的官方演示截图；本轮 2026-09-09 重新核对相关文字文档。图不是我们的产品原型，也不代表本轮登录实测。
 
-![Katalist 按场景展开的制作卡片](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/katalist-script-canvas.png)
+![Katalist 按场景展开的制作卡片](../output/playwright/2026-09-08-product-mechanisms/images/katalist-script-canvas.png)
 
 **看结构与依据怎样一起出现。** Katalist 官方教程 00:45 展示人物、地点和 Frame 卡。我们借鉴按场次带出制作内容与参考的做法；MVP 以分镜卡和就地操作承载，图中的自由画布不是首期完整复制范围。[官方指南](https://help.katalist.ai/en/articles/16298583-how-to-build-your-storyboard-and-videos-in-story-canvas)
 
-![TapNow 具体生成行动的确认卡](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/images/tapnow-ask-confirmation.png)
+![TapNow 具体生成行动的确认卡](../output/playwright/2026-09-08-product-mechanisms/images/tapnow-ask-confirmation.png)
 
 **看具体行动怎样被检查。** TapNow 官方演示中的卡片集中显示生成设置与确认入口。我们把这一模式缩到当前镜头或选定批次；图中的模型、数值和价格仅是演示当时的显示。[官方说明](https://docs.tapnow.ai/en/docs/agent/choose-a-generation-mode)
 
-图源、截图类型及观察边界见[图片台账](/Users/gandy/Documents/ChatGPT/drama_platform/output/playwright/2026-09-08-product-mechanisms/screenshot-provenance.md)。审片补查仅采用 Frame.io V4 的五篇官方说明，未取得新的审片界面截图；不以旧版画面或想象图冒充本轮操作证据。
+图源、截图类型及观察边界见[图片台账](../output/playwright/2026-09-08-product-mechanisms/screenshot-provenance.md)。审片补查仅采用 Frame.io V4 的五篇官方说明，未取得新的审片界面截图；不以旧版画面或想象图冒充本轮操作证据。
