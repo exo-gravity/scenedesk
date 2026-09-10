@@ -67,10 +67,11 @@ python3 -m venv .venv
 |---|---|
 | `apps/web` | React/Vite 工作室／项目／剧本与集场镜页面、IndexedDB 本地草稿；独立设计参照 |
 | `apps/api` | Fastify 业务内核、OIDC、工作室／成员／项目／剧目、内容与历史接口 |
-| `apps/worker` | 独立 Worker 的数据库预检入口，尚不消费任务 |
+| `apps/worker` | 独立 Worker 的数据库预检入口，媒体 handler 随 E03 接入 |
 | `packages/contracts` | 由 OpenAPI 生成的 TypeScript 与 Ajv 2020-12 校验器 |
 | `packages/domain` | 精确帧／采样整数运算起点，不是完整媒体归一器 |
 | `packages/provider` | 无网络、无费用的故障模拟；不作真实供应商 Adapter |
+| `packages/queue` | [内部调度](docs/implementation/28-durable-queue.md)：事务入队、受限角色、注册 handler 及中断恢复验证 |
 | `packages/database` | 校验值不可变迁移、身份／项目表、RLS、约束与独立角色授权 |
 | `docs/implementation` | 生产行为、数据、接口、验收及工程任务的权威设计 |
 

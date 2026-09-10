@@ -33,7 +33,9 @@
     "worker:check": "node --env-file-if-exists=.env --import tsx apps/worker/src/check.ts",
     "mock:scenarios": "tsx scripts/mock-scenarios.ts",
     "check": "npm run contracts:check && npm run ui:check && npm run build && npm test",
-    "contracts:check": "node scripts/check-generated.mjs"
+    "contracts:check": "node scripts/check-generated.mjs",
+    "setup:queue": "node --env-file=.env --env-file=.env.business --import tsx scripts/setup-local-queue.ts",
+    "queue:check": "node --env-file=.env.business --env-file=.env.queue --import tsx scripts/check-queue.ts"
   },
   "devDependencies": {
     "@types/node": "22.20.1",
