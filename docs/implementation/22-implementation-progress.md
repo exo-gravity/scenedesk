@@ -10,7 +10,7 @@
 |---|---|---|
 | 仓库与 CI | 完成 | main 已关联 GitHub；修复不可移植的文档链接，提交 72e95bb 的完整 CI 通过 |
 | E01 身份、权限与内容基础 | 已合入 | [身份／项目基础](23-identity-project-foundation.md)经 [PR #1](https://github.com/beyondgravitylab/scenedesk/pull/1) 合入（dd04b77）；[内容层](24-content-structure.md)经 [PR #2](https://github.com/beyondgravitylab/scenedesk/pull/2) 合入（d92c5cc），两组远端 CI 均通过 |
-| E02 剧本、结构与提案 | 实施中 | 手工集场镜、不可变剧本／镜头历史、台词与原文引用、本地草稿恢复已实现；[CSV 提案](25-csv-proposals.md)、明确追加、固定基线复核及永久重复采纳保护已实现并在验收；正式依据与任务分派待完成 |
+| E02 剧本、结构与提案 | 实施中 | 手工集场镜、不可变剧本／镜头历史、台词与原文引用、本地草稿恢复已实现；[CSV 提案](25-csv-proposals.md)、明确追加、固定基线复核及永久重复采纳保护已通过 [PR #3](https://github.com/beyondgravitylab/scenedesk/pull/3) 合入（feb5ea4），两组 CI 通过；[创作依据与项目默认确认](26-creative-bases.md)已完成本地数据库及浏览器验收，准备提交；固定稿限定确认与任务分派待完成 |
 | T01 队列集成 | 待实施 | 同事务入队、受限角色、内部步骤及中断恢复 |
 | E03–E04 媒体与候选 | 待实施 | 不可变媒体、资产版本、采用与实际用片分离 |
 | E05A–E06 编辑与场次交付 | 待实施 | 工作稿恢复、精确归一、固定渲染、审阅返工和工作包 |

@@ -1944,6 +1944,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/creative-bases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 找回已保存但尚未确认的创作依据及历史
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["listCreativeBasisRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/creative-bases/{basisRevisionId}": {
         parameters: {
             query?: never;
@@ -4073,6 +4093,15 @@ export interface components {
             contentHash: string;
             hashVersion: string;
             snapshot: components["schemas"]["CreativeSnapshot"];
+            /** @description 同一 subject 的固定依据保存次序，供历史定位；对象 revision 仍为 1。 */
+            readonly number?: number;
+            /**
+             * Format: uuid
+             * @description 当前 subject 正式指针；确认时作为 expectedCurrentConfirmationId，无指针时省略。
+             */
+            readonly currentConfirmationId?: string;
+            /** @description 是否对应当前草稿实际使用的来源；历史快照不因此改变。 */
+            readonly isCurrentSource?: boolean;
         };
         ConfirmCreativeBasis: {
             /** Format: uuid */
@@ -4111,6 +4140,7 @@ export interface components {
             confirmedAt: string;
             /** Format: uuid */
             replacesConfirmationId?: string;
+            note?: string;
         } & unknown;
         CanvasPoint: {
             x: number;
@@ -4585,6 +4615,10 @@ export interface components {
         };
         AssistanceArtifactPage: {
             items: components["schemas"]["AssistanceArtifact"][];
+            nextCursor?: string;
+        };
+        CreativeBasisRevisionPage: {
+            items: components["schemas"]["CreativeBasisRevision"][];
             nextCursor?: string;
         };
         CreativeConfirmationPage: {
@@ -8980,6 +9014,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssistanceArtifact"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    listCreativeBasisRevisions: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                q?: string;
+                projectId?: string;
+                subjectId?: string;
+                kind?: "script" | "production" | "scene" | "shot_dialogue";
+            };
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreativeBasisRevisionPage"];
                 };
             };
             400: components["responses"]["Problem"];
