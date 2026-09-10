@@ -39,3 +39,5 @@ jobs:
       - run: npm run db:migrate
       - run: npm run test:db
       - run: npm run worker:check
+      - run: npm run test:media:prepare
+      - run: npm run test:media
