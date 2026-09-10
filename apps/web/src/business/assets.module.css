@@ -1,0 +1,102 @@
+.referenceRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-md);
+  padding-block: var(--mantine-spacing-sm);
+}
+.referenceImage {
+  width: 100px;
+  flex-shrink: 0;
+}
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+.mediaChoices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--mantine-spacing-lg);
+}
+.mediaChoice {
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+  gap: var(--mantine-spacing-sm);
+  background: transparent;
+  color: var(--ws-text);
+  border: 0;
+  padding: var(--mantine-spacing-xs);
+  cursor: pointer;
+  min-width: 0;
+}
+.mediaChoice:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
+}
+.definition {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.look {
+  border-top: 1px solid var(--ws-border);
+  padding-block: var(--mantine-spacing-lg);
+}
+.assetRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-lg);
+  padding-block: var(--mantine-spacing-lg);
+  border-top: 1px solid var(--ws-border);
+}
+.assetLink {
+  color: var(--ws-text);
+  text-decoration: none;
+  min-width: 0;
+}
+.assetLink:focus-visible {
+  outline: 2px solid var(--ws-focus);
+}
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  gap: var(--mantine-spacing-xl);
+}
+.editor {
+  padding: var(--mantine-spacing-xl);
+  border-radius: var(--ws-card-radius);
+  background: var(--ws-panel);
+}
+.detail > * {
+  min-width: 0;
+}
+@media (max-width: 1000px) {
+  .detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 500px) {
+  .referenceRow {
+    flex-wrap: wrap;
+  }
+  .referenceImage {
+    width: 64px;
+  }
+  .editor {
+    padding: var(--mantine-spacing-md);
+  }
+}
+.referenceChoice {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-radius);
+  max-width: 220px;
+}
+.referenceChoice[data-selected] {
+  border-color: var(--ws-field-border);
+  background: var(--ws-panel);
+}
+.referenceChoice:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
+}

@@ -24,6 +24,7 @@ import {
   FolderSimple,
   Users,
   Images,
+  Archive,
 } from "@phosphor-icons/react";
 import {
   api,
@@ -39,6 +40,7 @@ import { ErrorNotice, SectionHeading, Empty, tenantPath } from "./common";
 import { Projects } from "./Projects";
 import { Members } from "./Members";
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
+const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
 import {
   invitationFromFragment,
@@ -202,6 +204,16 @@ function Workspace({ hash }: { hash: string }) {
           )}
           {tenantId && (
             <Button
+              leftSection={<Archive size={18} />}
+              variant="subtle"
+              component="a"
+              href={`#/app/t/${tenantId}/assets`}
+            >
+              共享资产
+            </Button>
+          )}
+          {tenantId && (
+            <Button
               leftSection={<Users size={18} />}
               variant="subtle"
               component="a"
@@ -291,6 +303,7 @@ function Workspace({ hash }: { hash: string }) {
               projectId={segments[4] === "p" ? segments[5] : undefined}
               contentView={segments[6] === "content"}
               mediaView={segments[6] === "media"}
+              assetView={segments[6] === "assets"}
             />
           )}
         </main>
@@ -304,12 +317,14 @@ function TenantArea({
   projectId,
   contentView,
   mediaView,
+  assetView,
 }: {
   tenantId: string;
   section?: string | undefined;
   projectId?: string | undefined;
   contentView?: boolean | undefined;
   mediaView?: boolean | undefined;
+  assetView?: boolean | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -327,6 +342,12 @@ function TenantArea({
     return (
       <Suspense fallback={<Loader aria-label="正在加载素材工作区" />}>
         <MediaWorkspace tenantId={tenantId} own={own} projectId={projectId} />
+      </Suspense>
+    );
+  if (section === "assets" || (projectId && assetView))
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载资产工作区" />}>
+        <AssetWorkspace tenantId={tenantId} own={own} projectId={projectId} />
       </Suspense>
     );
   return section === "members" ? (

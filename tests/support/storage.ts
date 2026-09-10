@@ -13,7 +13,11 @@ import {
   type StoreConfiguration,
 } from "@drama/media";
 
-import { MINIO_TEST_IMAGE, MC_IMAGE } from "../../scripts/local-storage.js";
+import {
+  MINIO_TEST_IMAGE,
+  MC_IMAGE,
+  localStorageReady,
+} from "../../scripts/local-storage.js";
 export { MINIO_TEST_IMAGE, MC_IMAGE };
 const exec = promisify(execFile);
 
@@ -87,13 +91,7 @@ export async function storageFixture(t: TestContext) {
   const endpoint = `http://127.0.0.1:${ports["9000/tcp"][0].HostPort}`;
   let ready = false;
   for (let i = 0; i < 60; i++) {
-    try {
-      ready = (
-        await fetch(`${endpoint}/minio/health/ready`, {
-          signal: AbortSignal.timeout(1000),
-        })
-      ).ok;
-    } catch {}
+    ready = await localStorageReady(endpoint);
     if (ready) break;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }

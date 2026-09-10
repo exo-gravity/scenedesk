@@ -792,6 +792,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/asset-revisions/{revisionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取确切资产修订，避免加载完整历史
+         * @description 权限：scope_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getAssetRevision"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/assets/{assetId}/revisions/{revisionId}/confirm": {
         parameters: {
             query?: never;
@@ -879,7 +899,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * 读取项目已引入的固定共享版本
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["listSharedImports"];
         put?: never;
         /**
          * 引入固定共享版本
@@ -4591,6 +4615,10 @@ export interface components {
             items: components["schemas"]["UsageLocation"][];
             nextCursor?: string;
         };
+        SharedImportPage: {
+            items: components["schemas"]["SharedImport"][];
+            nextCursor?: string;
+        };
         MediaPage: {
             items: components["schemas"]["Media"][];
             nextCursor?: string;
@@ -6528,6 +6556,38 @@ export interface operations {
             503: components["responses"]["Problem"];
         };
     };
+    getAssetRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                revisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetRevision"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
     confirmAssetRevision: {
         parameters: {
             query?: never;
@@ -6666,6 +6726,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UsageLocationPage"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    listSharedImports: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                q?: string;
+                projectId?: string;
+            };
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedImportPage"];
                 };
             };
             400: components["responses"]["Problem"];

@@ -10,6 +10,7 @@ import { proposalRoutes } from "./modules/content/proposals.js";
 import { contentRoutes } from "./modules/content/routes.js";
 import { creativeRoutes } from "./modules/creative/routes.js";
 import { taskRoutes } from "./modules/tasks/routes.js";
+import { assetRoutes } from "./modules/assets/routes.js";
 import { mediaRoutes } from "./modules/media/routes.js";
 import type { MediaServices } from "./modules/media/model.js";
 import { invitationRoutes } from "./modules/identity/invitations.js";
@@ -58,6 +59,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     proposalRoutes(app, context);
     creativeRoutes(app, context);
     taskRoutes(app, context);
+    assetRoutes(app, context);
     mediaRoutes(app, {
       ...context,
       ...(business.media ? { media: business.media } : {}),

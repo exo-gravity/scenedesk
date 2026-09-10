@@ -1,0 +1,63 @@
+async (page) => {
+  page.setDefaultTimeout(12000);
+  const ok=(value,message)=>{if(!value)throw new Error(message);};
+  const errors=[]; const capture=e=>errors.push(e.message);page.on('pageerror',capture);
+  const read=()=>page.evaluate(async()=>{
+    const tenant=location.hash.split('/')[3],id=new URLSearchParams(location.hash.split('?')[1]).get('asset');
+    const asset=await (await fetch(`/v1/tenants/${tenant}/assets/${id}`)).json();
+    const fixed=asset.currentRevisionId?await(await fetch(`/v1/tenants/${tenant}/asset-revisions/${asset.currentRevisionId}`)).json():undefined;
+    return {asset,fixed};
+  });
+  try {
+    await page.getByRole('button',{name:'新建资产',exact:true}).click();
+    const dialog=page.getByRole('dialog',{name:'新建项目资产',exact:true});
+    await dialog.getByRole('textbox',{name:'资产名称',exact:true}).fill('林晚 · 固定版本复核');
+    await dialog.getByRole('textbox',{name:'检索说明',exact:true}).fill('自然光、克制表演，服装变化保留同一人物身份。');
+    await dialog.getByRole('button',{name:'创建并准备固定版本',exact:true}).click();
+    await page.getByRole('heading',{name:'林晚 · 固定版本复核',exact:true}).waitFor();
+    const before=await read();ok(!before.asset.currentRevisionId,'Creating metadata invented a fixed definition');
+    await page.getByRole('button',{name:'建立第一个固定版本',exact:true}).click();
+    await page.getByRole('textbox',{name:'固定设定说明',exact:true}).fill('林晚，旧公寓的租客。寻找旧钥匙时，动作谨慎，情绪藏在停顿里。');
+    await page.getByRole('button',{name:'添加参考素材',exact:true}).click();
+    const choose=page.getByRole('dialog',{name:'选择参考素材',exact:true});
+    await choose.getByRole('button',{name:'添加参考 门框色块 · 导入验收',exact:true}).click();
+    await page.getByRole('textbox',{name:'参考说明',exact:true}).fill('构图与环境色，仅用于人工参考。');
+    await page.getByRole('combobox',{name:'参考用途',exact:true}).click();await page.getByRole('option',{name:'构图',exact:true}).click();
+    await page.getByRole('button',{name:'添加另一种造型',exact:true}).click();
+    await page.getByRole('textbox',{name:'造型名称',exact:true}).nth(0).fill('日常服 · 米色外套');
+    await page.getByRole('button',{name:'添加参考素材',exact:true}).nth(1).click();
+    await choose.getByRole('button',{name:'添加参考 钥匙参考 · 断线恢复复核',exact:true}).click();
+    await page.getByRole('button',{name:'添加另一种造型',exact:true}).click();
+    await page.getByRole('textbox',{name:'造型名称',exact:true}).nth(1).fill('晚礼服 · 墨绿');
+    await page.getByRole('button',{name:'添加参考素材',exact:true}).nth(2).click();
+    await choose.getByRole('button',{name:'添加参考 钥匙参考 · 断线恢复',exact:true}).click();
+    await page.getByRole('button',{name:'保存为新的固定版本',exact:true}).click();
+    await page.getByRole('textbox',{name:'固定设定说明',exact:true}).waitFor({state:'hidden'});
+    const first=await read();ok(first.fixed.number===1&&first.fixed.status==='draft','First definition auto-confirmed or wrong number');
+    ok(first.fixed.definition.looks.length===2,'Parallel looks missing');
+    await page.getByRole('button',{name:'基于当前版本新建修订',exact:true}).click();
+    await page.getByRole('textbox',{name:'造型名称',exact:true}).nth(1).fill('晚礼服 · 深蓝');
+    await page.getByRole('button',{name:'保存为新的固定版本',exact:true}).click();
+    await page.getByRole('textbox',{name:'固定设定说明',exact:true}).waitFor({state:'hidden'});
+    const second=await read();ok(second.fixed.number===2,'Second definition missing');
+    await page.waitForFunction(id=>new URLSearchParams(location.hash.split('?')[1]).get('revision')===id,second.fixed.id);
+    ok(await page.getByText('发现本标签页未提交的内容',{exact:true}).count()===0,'Completed save left a recovered draft');
+    ok(second.fixed.definition.looks[0].revision===1&&second.fixed.definition.looks[1].revision===2,'Look versions advanced incorrectly');
+    ok(second.fixed.definition.looks[0].id===first.fixed.definition.looks[0].id,'Unchanged look identity moved');
+    await page.getByRole('combobox',{name:'查看身份或造型参考',exact:true}).click();await page.getByRole('option',{name:'晚礼服 · 深蓝 · 造型修订 2',exact:true}).click();
+    await page.waitForFunction(()=>Array.from(document.querySelectorAll('main img')).some(img=>img.complete&&img.naturalWidth>0));
+    await page.getByRole('heading',{level:1}).scrollIntoViewIfNeeded();
+    await page.screenshot({path:'output/playwright/asset-workspace/01-character-v2.png'});
+    await page.getByText('固定版本历史',{exact:true}).click();
+    await page.getByRole('link',{name:'查看 v1',exact:true}).click();
+    await page.getByRole('button',{name:'确认 v1 设定',exact:true}).click();
+    await page.getByRole('button',{name:'确认这份设定',exact:true}).click();
+    await page.getByRole('dialog').waitFor({state:'hidden'});
+    await page.getByText('已确认设定',{exact:true}).waitFor();
+    const after=await read();ok(after.asset.currentRevisionId===second.fixed.id,'Confirming old version changed current pointer');
+    const old=await page.evaluate(async id=>await(await fetch(`/v1/tenants/${location.hash.split('/')[3]}/asset-revisions/${id}`)).json(),first.fixed.id);
+    ok(old.definition.looks[1].label==='晚礼服 · 墨绿'&&old.status==='confirmed','Historical definition changed');
+    ok(errors.length===0,errors.join(';'));
+    return {assetId:after.asset.id,firstRevisionId:first.fixed.id,currentRevisionId:second.fixed.id,fixedLooks:second.fixed.definition.looks.map(x=>({id:x.id,label:x.label,revision:x.revision})),confirmedOldVersionRetainsCurrent:true,pageErrors:errors.length};
+  } finally {page.off('pageerror',capture);}
+}

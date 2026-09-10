@@ -247,6 +247,12 @@ export function ContentWorkspace({
             >
               项目素材
             </Button>
+            <Button
+              component="a"
+              href={`#/app/t/${tenantId}/p/${projectId}/assets`}
+            >
+              项目资产
+            </Button>
             <Button variant="default" onClick={() => setTasksOpen(true)}>
               分工与任务
             </Button>

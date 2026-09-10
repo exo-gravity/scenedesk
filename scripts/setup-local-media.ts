@@ -16,7 +16,11 @@ import {
   MediaStore,
   verifyMediaRuntime,
 } from "@drama/media";
-import { MINIO_TEST_IMAGE, MC_IMAGE } from "./local-storage.js";
+import {
+  MINIO_TEST_IMAGE,
+  MC_IMAGE,
+  localStorageReady,
+} from "./local-storage.js";
 
 if (
   process.env.APP_ENV !== "local" ||
@@ -183,13 +187,7 @@ if (existing) {
 }
 let ready = false;
 for (let i = 0; i < 60; i++) {
-  try {
-    ready = (
-      await fetch(`${endpoint}/minio/health/ready`, {
-        signal: AbortSignal.timeout(1000),
-      })
-    ).ok;
-  } catch {}
+  ready = await localStorageReady(endpoint);
   if (ready) break;
   await new Promise((resolve) => setTimeout(resolve, 250));
 }

@@ -101,6 +101,18 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT DELETE ON ${scope}.media_provenance_evidence TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${["assets", "asset_revisions", "asset_looks", "asset_revision_looks", "asset_revision_media", "asset_revision_dependencies", "shared_imports"].map((table) => `${scope}.${table}`).join(",")} TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(name,description,tags,status,current_revision_id,revision,updated_at) ON ${scope}.assets TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(status,confirmed_by,revision,updated_at) ON ${scope}.asset_revisions TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.asset_revision_usable(uuid,uuid,uuid,boolean) TO ${target}`,
+  );
   for (const signature of mediaPolicyFunctions)
     await client.query(
       `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,
