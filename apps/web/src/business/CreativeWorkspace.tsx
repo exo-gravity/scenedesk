@@ -394,6 +394,7 @@ function ConfirmForm({
   const changed =
     draft.value.expectedCurrentConfirmationId !==
     (basis.currentConfirmationId ?? null);
+  if (draft.committed) return <DraftNotice draft={draft} />;
   if (formal)
     return (
       <Alert title="这份依据已是当前正式版本" icon={<CheckCircle size={20} />}>
@@ -417,9 +418,7 @@ function ConfirmForm({
             },
           },
           {
-            onSuccess: () => {
-              void draft.clear();
-            },
+            onCommitted: () => void draft.complete(),
           },
         );
       }}

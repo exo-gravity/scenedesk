@@ -250,13 +250,11 @@ export function StructureEditor({
         version: draft.baseVersion,
       },
       {
-        onSuccess: () => {
-          void draft.clear();
-          done();
-        },
+        onCommitted: () => void draft.complete(done),
       },
     );
   }
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <form onSubmit={submit}>
       <Stack gap="lg">
@@ -779,6 +777,7 @@ export function ScriptEditor({
     command = useCommand<Schema<"ScriptRevision">>();
   const [history, setHistory] = useState<string | null>(null),
     old = scripts.find((s) => s.id === history);
+  if (draft.committed) return <DraftNotice draft={draft} />;
   const conflict = draft.baseVersion !== tree.revision;
   return (
     <Stack gap="lg">
@@ -837,10 +836,7 @@ export function ScriptEditor({
               version: draft.baseVersion,
             },
             {
-              onSuccess: () => {
-                void draft.clear();
-                done();
-              },
+              onCommitted: () => void draft.complete(done),
             },
           )
         }

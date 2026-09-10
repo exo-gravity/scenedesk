@@ -3,6 +3,7 @@ import { Alert, Button, Group, Text } from "@mantine/core";
 import { useSession } from "./api";
 
 type LocalDraft<T> = { value: T; baseVersion: number; savedAt: string };
+const receiptKey = (key: string) => `scenedesk-draft-committed:${key}`;
 let connection: Promise<IDBDatabase> | undefined;
 function database() {
   return (connection ??= new Promise((resolve, reject) => {
@@ -87,15 +88,40 @@ export function useContentDraft<T>(
     [ready, setReady] = useState(false),
     [error, setError] = useState(false),
     [saved, setSaved] = useState(false);
+  const [completion, setCompletion] = useState<"idle" | "pending" | "failed">(
+    "idle",
+  );
+  const [destination, setDestination] = useState<"server" | "local">("server");
+  const afterCompletion = useRef<(() => void) | undefined>(undefined);
+  const cleaning = useRef<Promise<void> | undefined>(undefined);
+  const latest = useRef({ initial, version });
+  latest.current = { initial, version };
   const active = useRef(true),
     queue = useRef(Promise.resolve());
   const dirty = JSON.stringify(value) !== original.current;
   useEffect(() => {
     let live = true;
+    let received = false;
     tabIdentity()
-      .then((id) => {
+      .then(async (id) => {
         const key = JSON.stringify([session.userId, path, id]);
         if (live) setKey(key);
+        const receipt = sessionStorage.getItem(receiptKey(key));
+        received = receipt === "1" || receipt === "local";
+        if (received) {
+          active.current = false;
+          if (live) {
+            setDestination(receipt === "local" ? "local" : "server");
+            setCompletion("pending");
+          }
+          await storage(key, { remove: true });
+          sessionStorage.removeItem(receiptKey(key));
+          if (live) {
+            active.current = true;
+            setCompletion("idle");
+          }
+          return undefined;
+        }
         return storage<T>(key);
       })
       .then((found) => {
@@ -107,6 +133,7 @@ export function useContentDraft<T>(
       .catch(() => {
         if (live) {
           setError(true);
+          if (received) setCompletion("failed");
           setReady(true);
         }
       });
@@ -153,14 +180,95 @@ export function useContentDraft<T>(
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty, saved, error]);
-  const clear = () => {
+  const cleanCommitted = () => {
+    if (cleaning.current) return cleaning.current;
+    setCompletion("pending");
+    const run = queue.current.then(async () => {
+      if (key) {
+        await storage(key, { remove: true });
+        sessionStorage.removeItem(receiptKey(key));
+      }
+    });
+    // Keep later storage work usable after an abort; completion has its own
+    // state and never turns a storage failure into another business submission.
+    queue.current = run.catch(() => {});
+    cleaning.current = run
+      .then(() => {
+        setRecovered(undefined);
+        setError(false);
+        setCompletion("idle");
+        const after = afterCompletion.current;
+        afterCompletion.current = undefined;
+        if (after) after();
+        else {
+          const current = latest.current;
+          original.current = JSON.stringify(current.initial);
+          setValue(current.initial);
+          setBaseVersion(current.version);
+          active.current = true;
+        }
+      })
+      .catch(() => setCompletion("failed"))
+      .finally(() => {
+        cleaning.current = undefined;
+      });
+    return cleaning.current;
+  };
+  const complete = (
+    after?: () => void,
+    destination: "server" | "local" = "server",
+  ) => {
     active.current = false;
-    if (!key) return queue.current;
-    queue.current = queue.current
-      .then(() => storage(key, { remove: true }))
-      .then(() => {})
-      .catch(() => setError(true));
-    return queue.current;
+    afterCompletion.current = after;
+    setDestination(destination);
+    // This small receipt survives refresh independently of a failing IDB delete.
+    // It contains no input or response body and is scoped to this user's tab.
+    try {
+      if (key)
+        sessionStorage.setItem(
+          receiptKey(key),
+          destination === "local" ? "local" : "1",
+        );
+    } catch {
+      // In-memory completion still prevents resubmission in this document.
+    }
+    return cleanCommitted();
+  };
+  const stage = async (next: T) => {
+    if (!key || !ready || recovered || !active.current) {
+      setError(true);
+      return false;
+    }
+    const write = queue.current.then(() =>
+      storage(key, {
+        value: { value: next, baseVersion, savedAt: new Date().toISOString() },
+      }),
+    );
+    queue.current = write.then(() => {}).catch(() => {});
+    try {
+      await write;
+      setValue(next);
+      setSaved(true);
+      setError(false);
+      return true;
+    } catch {
+      setError(true);
+      return false;
+    }
+  };
+  // Local-only editors have not committed a business command. Do not create a
+  // server receipt for a cancelled or staged proposal operation.
+  const clear = async () => {
+    active.current = false;
+    try {
+      await queue.current;
+      if (key) await storage(key, { remove: true });
+      return true;
+    } catch {
+      active.current = true;
+      setError(true);
+      return false;
+    }
   };
   return {
     value,
@@ -168,11 +276,17 @@ export function useContentDraft<T>(
     baseVersion,
     rebase: () => setBaseVersion(version),
     dirty,
-    ready,
+    ready: ready && completion === "idle",
     error,
     saved,
     recovered,
+    complete,
+    stage,
     clear,
+    committed: completion !== "idle",
+    completion,
+    destination,
+    retryCompletion: cleanCommitted,
     restore: () => {
       if (recovered) {
         setValue(recovered.value);
@@ -181,11 +295,16 @@ export function useContentDraft<T>(
       }
     },
     discard: () => {
-      setRecovered(undefined);
-      if (!key) return;
+      if (!key) {
+        setError(true);
+        return;
+      }
       queue.current = queue.current
         .then(() => storage(key, { remove: true }))
-        .then(() => {})
+        .then(() => {
+          setRecovered(undefined);
+          setError(false);
+        })
         .catch(() => setError(true));
     },
   };
@@ -195,6 +314,31 @@ export function DraftNotice({
 }: {
   draft: ReturnType<typeof useContentDraft<any>>;
 }) {
+  if (draft.committed)
+    return (
+      <Alert
+        title={
+          draft.destination === "server"
+            ? "服务器已保存"
+            : "已保留到本地提案草稿"
+        }
+      >
+        <Text>
+          {draft.destination === "local"
+            ? draft.completion === "failed"
+              ? "本项修改已保留到本地提案，尚未提交服务器。子草稿清理失败，可以重试清理。"
+              : "本项修改已保留到本地提案，正在清理子草稿…"
+            : draft.completion === "failed"
+              ? "本地草稿清理失败。内容已经保存，请只重试清理；这不会再次提交内容。"
+              : "正在清理已提交的本地草稿…"}
+        </Text>
+        {draft.completion === "failed" && (
+          <Button mt="md" onClick={() => void draft.retryCompletion()}>
+            重试清理本地草稿
+          </Button>
+        )}
+      </Alert>
+    );
   if (draft.recovered)
     return (
       <Alert title="发现本标签页未提交的内容">
@@ -202,6 +346,11 @@ export function DraftNotice({
           本地保存于 {new Date(draft.recovered.savedAt).toLocaleString()}
           。恢复后仍需核对服务器版本并提交。
         </Text>
+        {draft.error && (
+          <Text c="red">
+            本地草稿操作失败，这份草稿仍保留。可以重新恢复或放弃。
+          </Text>
+        )}
         <Group mt="md">
           <Button onClick={draft.restore}>恢复未提交内容</Button>
           <Button variant="subtle" onClick={draft.discard}>

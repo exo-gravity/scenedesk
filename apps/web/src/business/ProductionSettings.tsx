@@ -60,6 +60,7 @@ function ProductionEditor({
   const setText = (key: "title" | "brief", text: string) =>
     draft.setValue((v) => ({ ...v, input: { ...v.input, [key]: text } }));
   const tenantPath = path.split("/projects/")[0]!;
+  if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <form
       className={classes.form}
@@ -76,10 +77,7 @@ function ProductionEditor({
         command.mutate(
           { path, method: "PUT", body: input, version: draft.baseVersion },
           {
-            onSuccess: async (value) => {
-              await draft.clear();
-              saved(value);
-            },
+            onCommitted: (value) => void draft.complete(() => saved(value)),
           },
         );
       }}

@@ -1,5 +1,10 @@
 import { createContext, useContext, useRef } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type MutateOptions,
+} from "@tanstack/react-query";
 import type { components } from "@drama/contracts";
 
 export type Schema<T extends keyof components["schemas"]> =
@@ -62,16 +67,18 @@ export type Command = {
   body?: unknown;
   version?: number;
 };
+type CommittedCommand<T> = Command & { onCommitted?: (result: T) => void };
 export function useCommand<T>() {
   const session = useSession(),
     cache = useQueryClient();
   const pending = useRef<{ fingerprint: string; key: string } | undefined>(
     undefined,
   );
-  const mutation = useMutation({
+  const mutation = useMutation<T, Error, CommittedCommand<T>>({
     retry: false,
-    mutationFn: async (command: Command) => {
-      const fingerprint = JSON.stringify(command);
+    mutationFn: async (command) => {
+      const { onCommitted: _callback, ...request } = command;
+      const fingerprint = JSON.stringify(request);
       if (pending.current?.fingerprint !== fingerprint)
         pending.current = { fingerprint, key: crypto.randomUUID() };
       const result = await api<T>(command.path, {
@@ -93,8 +100,12 @@ export function useCommand<T>() {
       pending.current = undefined;
       return result;
     },
-    onSuccess: () =>
-      cache.invalidateQueries({ queryKey: ["user", session.userId] }),
+    onSuccess: (result, command) => {
+      // Mutation-owned callbacks survive observer unmounts. Persist the receipt
+      // before invalidation can replace or unmount the editor that submitted it.
+      command.onCommitted?.(result);
+      return cache.invalidateQueries({ queryKey: ["user", session.userId] });
+    },
     onError: (error) => {
       if (error instanceof ApiError && error.status === 401)
         void cache.invalidateQueries({ queryKey: ["session"] });
@@ -102,7 +113,21 @@ export function useCommand<T>() {
         void cache.invalidateQueries({ queryKey: ["user", session.userId] });
     },
   });
-  return mutation;
+  return {
+    ...mutation,
+    mutate: (
+      command: Command,
+      options?: MutateOptions<T, Error, CommittedCommand<T>> & {
+        onCommitted?: (result: T) => void;
+      },
+    ) => {
+      const { onCommitted, ...callbacks } = options ?? {};
+      mutation.mutate(
+        { ...command, ...(onCommitted ? { onCommitted } : {}) },
+        callbacks,
+      );
+    },
+  };
 }
 export async function allPages<T>(
   path: string,
