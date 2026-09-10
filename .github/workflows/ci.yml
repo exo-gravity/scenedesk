@@ -1,4 +1,4 @@
-name: S0 checks
+name: SceneDesk checks
 on:
   push:
   pull_request:

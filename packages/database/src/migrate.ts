@@ -46,7 +46,7 @@ export async function migrate(pool: Pool, directory: URL, schema = "drama") {
     for (const migration of pending) {
       await client.query("BEGIN");
       try {
-        await client.query(`SET LOCAL search_path TO "${schema}", pg_catalog`);
+        await client.query(`SET LOCAL search_path TO "${schema}", pg_catalog, pg_temp`);
         await client.query(migration.sql);
         await client.query(
           `INSERT INTO "${schema}".schema_migrations (name, checksum) VALUES ($1, $2)`,

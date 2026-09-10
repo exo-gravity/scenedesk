@@ -4,6 +4,7 @@
   font-synthesis: none;
   color-scheme: dark;
 }
+:root[data-mantine-color-scheme="light"] { color-scheme: light; }
 body {
   font-family: var(--mantine-font-family);
   font-size: var(--mantine-font-size-sm);
