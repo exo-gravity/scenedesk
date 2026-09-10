@@ -4,6 +4,7 @@ import type { Database, Transaction } from "./database.js";
 import { audit } from "./database.js";
 import { canonical, digest, Secrets } from "./crypto.js";
 import { Problem, requireThat } from "./errors.js";
+import { EditingDocumentError } from "@drama/domain";
 
 export type Input = {
   body: any;
@@ -98,6 +99,30 @@ export function installProblemHandler(app: FastifyInstance) {
     (error: Error & { code?: string; statusCode?: number }, request, reply) => {
       let problem: Problem;
       if (error instanceof Problem) problem = error;
+      else if (error instanceof EditingDocumentError)
+        problem = new Problem(
+          error.code === "WORK_DOCUMENT_TOO_LARGE" ? 413 : 422,
+          error.code,
+          error.message,
+        );
+      else if (error.code === "P0424")
+        problem = new Problem(
+          422,
+          "INVALID_WORK_REFERENCE",
+          "请核对工作稿的素材、候选、采用和对白关联；新引入的素材必须可用且属于当前范围。",
+        );
+      else if (error.code === "P0413")
+        problem = new Problem(
+          412,
+          "WORK_DRAFT_VERSION_CONFLICT",
+          "工作稿已被更新，请保留本机内容并比较。",
+        );
+      else if (error.code === "P0408")
+        problem = new Problem(
+          409,
+          "CUT_BASE_CHANGED",
+          "请比较工作稿与当前已确认编排，再明确选择基线。",
+        );
       else if (error.code === "P0412")
         problem = new Problem(
           412,
@@ -187,7 +212,9 @@ export function registerAction(
     // characters can take twelve bytes each in the JSON request.
     ...(["reviseScript", "importShotList", "editProposal"].includes(name)
       ? { bodyLimit: 6 * 1024 * 1024 }
-      : {}),
+      : name === "saveCutWorkDraft"
+        ? { bodyLimit: 25 * 1024 * 1024 }
+        : {}),
     async handler(request, reply) {
       const token = sessionCookie(request);
       const query = { ...(request.query as Record<string, unknown>) };
@@ -199,14 +226,37 @@ export function registerAction(
           query[param.name] = Number(value);
       }
       const params = request.params as Record<string, string>;
+      const pathValues: Record<string, string | number> = { ...params };
+      for (const parameter of operation.parameters.filter(
+        (p) => p.in === "path" && p.schema.type === "integer",
+      )) {
+        const value = params[parameter.name];
+        if (typeof value === "string" && /^(0|[1-9][0-9]*)$/.test(value))
+          pathValues[parameter.name] = Number(value);
+      }
       const validationInput = {
-        path: params,
+        path: pathValues,
         query,
         header: request.headers,
         ...(request.body === undefined ? {} : { body: request.body }),
       };
+      const inputValid = operation.validateInput(validationInput);
+      if (
+        !inputValid &&
+        name === "saveCutWorkDraft" &&
+        operation.validateInput.errors?.some(
+          (error) =>
+            error.keyword === "maxItems" &&
+            error.instancePath.startsWith("/body/document/"),
+        )
+      )
+        throw new Problem(
+          413,
+          "WORK_DOCUMENT_TOO_LARGE",
+          "工作稿超过容量限制，请保留本机内容并分段整理。",
+        );
       requireThat(
-        operation.validateInput(validationInput),
+        inputValid,
         422,
         "INVALID_REQUEST",
         "请求字段不符合接口要求。",

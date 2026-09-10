@@ -14,10 +14,15 @@ function takeRecord(row: Record<string, unknown>): Schema<"Take"> {
   };
 }
 function selectionRecord(row: Record<string, unknown>): Schema<"Selection"> {
-  // No cut storage exists yet. Add actual dependent cut IDs when E05 lands;
-  // this command never claims that a preference updates a timeline.
-  return { ...contentRecord<Schema<"Selection">>(row), affectedCutIds: [] };
+  return contentRecord<Schema<"Selection">>(row);
 }
+const selectionSelect = `SELECT s.*,ARRAY(
+  SELECT DISTINCT w.cut_id FROM cut_work_drafts w
+  JOIN cut_work_draft_revisions r ON r.cut_id=w.cut_id AND r.revision=w.revision
+  JOIN edit_history_media_refs used ON used.cut_id=r.cut_id AND used.body_hash=r.body_hash
+  JOIN takes t ON t.id=used.take_id JOIN cuts c ON c.id=w.cut_id
+  WHERE w.tenant_id=s.tenant_id AND w.project_id=s.project_id AND t.shot_id=s.shot_id AND c.status='active'
+  ORDER BY w.cut_id) AS affected_cut_ids FROM selections s`;
 async function getTake(tx: Transaction, id: string) {
   const result = await tx.sql.query(
     "SELECT * FROM takes WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
@@ -112,7 +117,7 @@ export function candidateRoutes(app: FastifyInstance, context: ApiContext) {
     const selection = shot.current_selection_id
       ? (
           await tx.sql.query(
-            "SELECT * FROM selections WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
+            `${selectionSelect} WHERE s.tenant_id=$1 AND s.project_id=$2 AND s.id=$3`,
             [tx.tenantId, tx.projectId, shot.current_selection_id],
           )
         ).rows[0]
@@ -134,7 +139,7 @@ export function candidateRoutes(app: FastifyInstance, context: ApiContext) {
         context.secrets,
         "listSelections",
         { ...input.query, shotId: input.params.shotId },
-        "SELECT * FROM selections WHERE tenant_id=$1 AND project_id=$2 AND shot_id=$3 AND (coalesce(reason,'') ILIKE $4 OR id::text ILIKE $4)",
+        `${selectionSelect} WHERE s.tenant_id=$1 AND s.project_id=$2 AND s.shot_id=$3 AND (coalesce(s.reason,'') ILIKE $4 OR s.id::text ILIKE $4)`,
         [
           tx.tenantId,
           tx.projectId,
@@ -168,7 +173,14 @@ export function candidateRoutes(app: FastifyInstance, context: ApiContext) {
         ],
       );
       return {
-        body: selectionRecord(result.rows[0]),
+        body: selectionRecord(
+          (
+            await tx.sql.query(
+              `${selectionSelect} WHERE s.tenant_id=$1 AND s.project_id=$2 AND s.id=$3`,
+              [tx.tenantId, tx.projectId, result.rows[0].id],
+            )
+          ).rows[0],
+        ),
         etag: Number(shot.revision) + 1,
       };
     });

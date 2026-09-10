@@ -11,6 +11,7 @@ import { contentRoutes } from "./modules/content/routes.js";
 import { creativeRoutes } from "./modules/creative/routes.js";
 import { taskRoutes } from "./modules/tasks/routes.js";
 import { candidateRoutes } from "./modules/candidates/routes.js";
+import { editingRoutes } from "./modules/editing/routes.js";
 import { assetRoutes } from "./modules/assets/routes.js";
 import { mediaRoutes } from "./modules/media/routes.js";
 import type { MediaServices } from "./modules/media/model.js";
@@ -61,6 +62,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     creativeRoutes(app, context);
     taskRoutes(app, context);
     candidateRoutes(app, context);
+    editingRoutes(app, context);
     assetRoutes(app, context);
     mediaRoutes(app, {
       ...context,

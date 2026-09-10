@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Unicode codepoint keys, integer-like keys and unchanged strings",
+    "input": {
+      "😀": "笑",
+      "\ue000": "private",
+      "2": "two",
+      "10": "ten",
+      "a": "é\n中"
+    },
+    "canonical": "{\"10\":\"ten\",\"2\":\"two\",\"a\":\"é\\n中\",\"\":\"private\",\"😀\":\"笑\"}"
+  },
+  {
+    "name": "ECMAScript number spellings at exponent boundaries",
+    "input": [
+      -0.0, 1.0, 1e-7, 1e-6, 1e20, 1e21, 1.2345678901234567, 5e-324,
+      9007199254740991
+    ],
+    "canonical": "[0,1,1e-7,0.000001,100000000000000000000,1e+21,1.2345678901234567,5e-324,9007199254740991]"
+  },
+  {
+    "name": "Array order, nested sorting, JSON escapes and no NFC conversion",
+    "input": [{ "z": false, "a": null }, "é", "é", "\b\t\n\f\r\u0000", "\\\"/"],
+    "canonical": "[{\"a\":null,\"z\":false},\"é\",\"é\",\"\\b\\t\\n\\f\\r\\u0000\",\"\\\\\\\"/\"]"
+  }
+]

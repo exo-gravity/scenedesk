@@ -22,6 +22,8 @@
 
 浏览器脚本与截图位于 [候选验收目录](../../output/playwright/candidates/README.md)。这里使用已验收的四秒技术测试片和本地身份，验证业务事实及恢复，不代表模型画面质量或真实工作室试点。
 
+本批经 [PR #13](https://github.com/beyondgravitylab/scenedesk/pull/13) 合入 main（2026-09-10 21:52:43 UTC），合并提交 `22e29ae00a43fb26272daf60691fd1f5d0b466af`。最终功能提交 `379b1a9a64bafa971debdc5715cdab76d3c3dd87` 的 [PR CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34534123787) 与 [推送 CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34534088295) 均通过，分别核实 20 项单元、79 项数据库和 25 项媒体测试；合并树与已验收功能提交一致。
+
 ## 仍待完整闭环
 
-E05 工作稿、帧／采样精确归一、实际用片、冻结与渲染，E06 固定稿审阅／返工／交付仍待实施。当前没有剪辑存储，affectedCutIds 如实为空；AT-21 的旧剪辑／审稿不被改写须在后续真实对象存在后验证。自由画布、生成／费用、整集和跨集交接继续推进。创作依据快照的类型化资产保留、共享发布依赖闭包仍需补齐，未开放物理清理。
+PR #13 合入时尚无剪辑存储，affectedCutIds 如实为空。[后续工作稿实现](36-cut-work-drafts.md)已在功能分支接入实际引用查询，并验证采用变化不修改已保存工作稿；其页面与完整恢复仍在实施。帧／采样精确归一、冻结与渲染，以及 E06 固定稿审阅／返工／交付继续推进，AT-21 的旧固定剪辑／审稿不被改写仍须由真实对象验证。自由画布、生成／费用、整集和跨集交接继续推进。创作依据快照的类型化资产保留、共享发布依赖闭包仍需补齐，未开放物理清理。
