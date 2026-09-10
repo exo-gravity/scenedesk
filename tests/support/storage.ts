@@ -18,6 +18,25 @@ export { MINIO_TEST_IMAGE, MC_IMAGE };
 const exec = promisify(execFile);
 
 export async function storageFixture(t: TestContext) {
+  let phase = "start";
+  const trace = (value: string) => {
+    phase = value;
+    t.diagnostic("[DEBUG-asset-ci] " + value);
+  };
+  const beforeExit = () => {
+    process.stderr.write(
+      "[DEBUG-asset-ci] beforeExit phase=" +
+        phase +
+        " resources=" +
+        process.getActiveResourcesInfo().join(",") +
+        "\n",
+    );
+  };
+  process.once("beforeExit", beforeExit);
+  t.after(() => {
+    process.removeListener("beforeExit", beforeExit);
+  });
+  trace("docker start");
   const name = `scenedesk-storage-test-${randomUUID()}`;
   const root = {
     accessKeyId: randomBytes(12).toString("hex"),
@@ -74,6 +93,7 @@ export async function storageFixture(t: TestContext) {
       },
     },
   );
+  trace("docker started");
   const ports = JSON.parse(
     (
       await exec("docker", [
@@ -85,6 +105,7 @@ export async function storageFixture(t: TestContext) {
     ).stdout,
   );
   const endpoint = `http://127.0.0.1:${ports["9000/tcp"][0].HostPort}`;
+  trace("readiness begin");
   let ready = false;
   for (let i = 0; i < 60; i++) {
     try {
@@ -98,6 +119,7 @@ export async function storageFixture(t: TestContext) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   if (!ready) throw new Error("Local storage fixture did not become ready");
+  trace("readiness complete");
   const config: StoreConfiguration = {
     endpoint,
     region: "us-east-1",
@@ -113,6 +135,7 @@ export async function storageFixture(t: TestContext) {
     maxAttempts: 1,
   });
   clients.push(admin);
+  trace("bucket create");
   await admin.send(new CreateBucketCommand({ Bucket: config.bucket }));
   await admin.send(
     new PutBucketVersioningCommand({
@@ -120,6 +143,7 @@ export async function storageFixture(t: TestContext) {
       VersioningConfiguration: { Status: "Enabled" },
     }),
   );
+  trace("bucket versioning complete");
   const mc = (args: string[], input = "") =>
     new Promise<void>((resolve, reject) => {
       const child = spawn(
@@ -182,6 +206,7 @@ export async function storageFixture(t: TestContext) {
       credentials.accessKeyId,
     ]);
   }
+  trace("permission setup complete");
   const api = new MediaStore({ ...config, credentials: signer });
   const processing = new MediaStore({ ...config, credentials: worker });
   clients.push(api, processing);
