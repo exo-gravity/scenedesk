@@ -9,6 +9,7 @@ import { projectRoutes } from "./modules/projects/routes.js";
 import { proposalRoutes } from "./modules/content/proposals.js";
 import { contentRoutes } from "./modules/content/routes.js";
 import { creativeRoutes } from "./modules/creative/routes.js";
+import { taskRoutes } from "./modules/tasks/routes.js";
 import { invitationRoutes } from "./modules/identity/invitations.js";
 import { oidcRoutes } from "./modules/identity/oidc.js";
 import type { Configuration } from "openid-client";
@@ -53,6 +54,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     contentRoutes(app, context);
     proposalRoutes(app, context);
     creativeRoutes(app, context);
+    taskRoutes(app, context);
     if (business.auth) {
       app.addHook("onReady", async () => {
         const client = await business.auth!.pool.connect();

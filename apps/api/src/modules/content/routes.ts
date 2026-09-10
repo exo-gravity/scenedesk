@@ -142,6 +142,18 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       id = input.params.objectId!;
     const previous = await findContent(tx, "shots", id);
     versionMatches(Number(previous.revision), input.version);
+    if (body.sceneId.toLowerCase() !== previous.scene_id) {
+      const bound = await tx.sql.query(
+        "SELECT id FROM production_tasks WHERE tenant_id=$1 AND project_id=$2 AND shot_id=$3 AND scene_id IS NOT NULL LIMIT 1",
+        [tx.tenantId, tx.projectId, id],
+      );
+      requireThat(
+        !bound.rows[0],
+        409,
+        "TASK_SCOPE_WOULD_CHANGE",
+        "此镜头有绑定原场次的任务，请负责人先调整任务范围，再移动镜头。",
+      );
+    }
     await activeParent(tx, "scenes", body.sceneId);
     const old = await tx.sql.query(
       "SELECT number,spec FROM shot_revisions WHERE tenant_id=$1 AND project_id=$2 AND id=$3",

@@ -29,7 +29,7 @@ export async function grantRuntimeAccess(
     target = sqlIdentifier(role);
   await client.query(`GRANT USAGE ON SCHEMA ${scope} TO ${target}`);
   await client.query(
-    `GRANT SELECT, INSERT ON ${["tenants", "memberships", "invitations", "projects", "project_memberships", "productions", "project_content_versions", "idempotency_records", "script_revisions", "episodes", "scenes", "shots", "shot_revisions", "shot_source_shots", "shot_source_scripts", "dialogue_lines", "analysis_proposals", "analysis_proposal_revisions", "proposal_applications", "creative_subjects", "creative_basis_revisions", "creative_confirmations", "creative_current_confirmations"].map((t) => `${scope}.${t}`).join(", ")} TO ${target}`,
+    `GRANT SELECT, INSERT ON ${["tenants", "memberships", "invitations", "projects", "project_memberships", "productions", "project_content_versions", "idempotency_records", "script_revisions", "episodes", "scenes", "shots", "shot_revisions", "shot_source_shots", "shot_source_scripts", "dialogue_lines", "analysis_proposals", "analysis_proposal_revisions", "proposal_applications", "creative_subjects", "creative_basis_revisions", "creative_confirmations", "creative_current_confirmations", "production_tasks", "production_task_revisions"].map((t) => `${scope}.${t}`).join(", ")} TO ${target}`,
   );
   for (const [table, columns] of Object.entries({
     tenants: "name, revision, updated_at",
@@ -41,6 +41,8 @@ export async function grantRuntimeAccess(
     project_content_versions: "revision, current_script_revision_id",
     analysis_proposals: "revision, status, import_fingerprint, updated_at",
     creative_current_confirmations: "confirmation_id",
+    production_tasks:
+      "title, assignee_membership_id, scene_id, shot_id, stage, status, due_at, note, revision, updated_at",
     episodes: "title, position, status, revision, updated_at",
     scenes:
       "episode_id, title, position, time_label, location_label, summary, state, default_asset_revision_ids, status, revision, updated_at",
