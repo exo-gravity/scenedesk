@@ -6,6 +6,7 @@ import { Secrets } from "./kernel/crypto.js";
 import { installProblemHandler } from "./kernel/routes.js";
 import { identityRoutes } from "./modules/identity/routes.js";
 import { projectRoutes } from "./modules/projects/routes.js";
+import { proposalRoutes } from "./modules/content/proposals.js";
 import { contentRoutes } from "./modules/content/routes.js";
 import { invitationRoutes } from "./modules/identity/invitations.js";
 import { oidcRoutes } from "./modules/identity/oidc.js";
@@ -49,6 +50,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     invitationRoutes(app, context);
     projectRoutes(app, context);
     contentRoutes(app, context);
+    proposalRoutes(app, context);
     if (business.auth) {
       app.addHook("onReady", async () => {
         const client = await business.auth!.pool.connect();

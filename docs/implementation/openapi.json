@@ -14221,6 +14221,16 @@
           },
           "target": {
             "$ref": "#/components/schemas/ProposalTarget"
+          },
+          "baseContentSnapshot": {
+            "$ref": "#/components/schemas/ContentTree",
+            "description": "固定的导入或人工复核基线，供详情比较当前内容。列表可省略；不随内容变化自动更新。",
+            "readOnly": true
+          },
+          "application": {
+            "$ref": "#/components/schemas/ProposalApplication",
+            "readOnly": true,
+            "description": "当前提案的固定采纳结果；详情及历史读取时返回，列表可省略。未选项仍保留在提案修订。"
           }
         },
         "required": [
@@ -20270,6 +20280,50 @@
           "operations",
           "target",
           "baseContentRevision"
+        ],
+        "additionalProperties": false
+      },
+      "ProposalApplication": {
+        "type": "object",
+        "properties": {
+          "proposalRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "selectedOperationIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "createdObjects": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "本次采纳的 opId 到服务端实际创建对象 id 的固定映射。"
+          },
+          "contentRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "proposalRevision",
+          "selectedOperationIds",
+          "createdObjects",
+          "contentRevision",
+          "appliedAt"
         ],
         "additionalProperties": false
       },

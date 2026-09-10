@@ -1,3 +1,9 @@
+import {
+  insertEpisode,
+  insertScene,
+  insertShot,
+  validateScene,
+} from "./commands.js";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../kernel/routes.js";
@@ -14,7 +20,6 @@ import {
   findContent,
   shotSelect,
   specChanged,
-  validateState,
   type Schema,
 } from "./model.js";
 
@@ -74,153 +79,103 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       etag: 1,
     };
   });
-  for (const updating of [false, true]) {
-    registerAction(
-      app,
-      context,
-      updating ? "updateEpisode" : "createEpisode",
-      async (tx, input) => {
-        const body = input.body as Schema<"EpisodeInput">;
-        const id = updating ? input.params.objectId! : randomUUID();
-        if (updating)
-          versionMatches(
-            Number((await findContent(tx, "episodes", id)).revision),
-            input.version,
-          );
-        else await contentVersion(tx, input.version);
-        const args = [
-          id,
-          tx.tenantId,
-          tx.projectId,
-          body.title,
-          body.position,
-          body.status,
-        ];
-        const result = await tx.sql.query(
-          updating
-            ? "UPDATE episodes SET title=$4,position=$5,status=$6,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3 RETURNING *"
-            : "INSERT INTO episodes (id,tenant_id,project_id,title,position,status) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
-          args,
-        );
-        await bumpContent(tx);
-        const saved = contentRecord<Schema<"Episode">>(result.rows[0]);
-        return { body: saved, etag: saved.revision };
-      },
-    );
-    registerAction(
-      app,
-      context,
-      updating ? "updateScene" : "createScene",
-      async (tx, input) => {
-        const body = input.body as Schema<"SceneInput">;
-        const id = updating ? input.params.objectId! : randomUUID();
-        if (updating)
-          versionMatches(
-            Number((await findContent(tx, "scenes", id)).revision),
-            input.version,
-          );
-        else await contentVersion(tx, input.version);
-        await activeParent(tx, "episodes", body.episodeId);
-        validateState(body.state);
-        requireThat(
-          !body.defaultAssetRevisionIds?.length,
-          422,
-          "ASSETS_NOT_READY",
-          "场次参考需要先建立有效资产。",
-        );
-        const args = [
-          id,
-          tx.tenantId,
-          tx.projectId,
-          body.episodeId,
-          body.title,
-          body.position,
-          body.timeLabel ?? null,
-          body.locationLabel ?? null,
-          body.summary,
-          body.state,
-          JSON.stringify(body.defaultAssetRevisionIds ?? []),
-          body.status,
-        ];
-        const result = await tx.sql.query(
-          updating
-            ? "UPDATE scenes SET episode_id=$4,title=$5,position=$6,time_label=$7,location_label=$8,summary=$9,state=$10,default_asset_revision_ids=$11,status=$12,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3 RETURNING *"
-            : "INSERT INTO scenes (id,tenant_id,project_id,episode_id,title,position,time_label,location_label,summary,state,default_asset_revision_ids,status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *",
-          args,
-        );
-        await bumpContent(tx);
-        const saved = contentRecord<Schema<"Scene">>(result.rows[0]);
-        return { body: saved, etag: saved.revision };
-      },
-    );
-    registerAction(
-      app,
-      context,
-      updating ? "updateShot" : "createShot",
-      async (tx, input) => {
-        const body = input.body as Schema<"ShotInput">;
-        const id = updating ? input.params.objectId! : randomUUID();
-        let revisionId = randomUUID();
-        let previous: Record<string, any> | undefined;
-        if (updating) {
-          const found = await findContent(tx, "shots", id);
-          versionMatches(Number(found.revision), input.version);
-          previous = found;
-        } else await contentVersion(tx, input.version);
-        await activeParent(tx, "scenes", body.sceneId);
-        if (previous) {
-          const old = await tx.sql.query(
-            "SELECT number,spec FROM shot_revisions WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
-            [tx.tenantId, tx.projectId, previous.current_revision_id],
-          );
-          revisionId = specChanged(old.rows[0].spec, body.spec)
-            ? await appendShotRevision(
-                tx,
-                id,
-                body.spec,
-                Number(old.rows[0].number) + 1,
-                revisionId,
-              )
-            : previous.current_revision_id;
-          await tx.sql.query(
-            "UPDATE shots SET scene_id=$4,label=$5,position=$6,current_revision_id=$7,status=$8,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3",
-            [
-              id,
-              tx.tenantId,
-              tx.projectId,
-              body.sceneId,
-              body.label,
-              body.position,
-              revisionId,
-              body.status,
-            ],
-          );
-        } else {
-          await tx.sql.query(
-            "INSERT INTO shots (id,tenant_id,project_id,scene_id,label,position,current_revision_id,status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-            [
-              id,
-              tx.tenantId,
-              tx.projectId,
-              body.sceneId,
-              body.label,
-              body.position,
-              revisionId,
-              body.status,
-            ],
-          );
-          await appendShotRevision(tx, id, body.spec, 1, revisionId);
-        }
-        await bumpContent(tx);
-        const result = await tx.sql.query(
-          `${shotSelect} WHERE s.tenant_id=$1 AND s.project_id=$2 AND s.id=$3`,
-          [tx.tenantId, tx.projectId, id],
-        );
-        const saved = contentRecord<Schema<"Shot">>(result.rows[0]);
-        return { body: saved, etag: saved.revision };
-      },
-    );
+  for (const [operation, insert] of [
+    ["createEpisode", insertEpisode],
+    ["createScene", insertScene],
+    ["createShot", insertShot],
+  ] as const) {
+    registerAction(app, context, operation, async (tx, input) => {
+      await contentVersion(tx, input.version);
+      // Each operation's input is validated against its matching OpenAPI schema by registerAction.
+      const saved = await insert(tx, input.body as never);
+      await bumpContent(tx);
+      return { body: saved, etag: saved.revision };
+    });
   }
+  registerAction(app, context, "updateEpisode", async (tx, input) => {
+    const body = input.body as Schema<"EpisodeInput">,
+      id = input.params.objectId!;
+    versionMatches(
+      Number((await findContent(tx, "episodes", id)).revision),
+      input.version,
+    );
+    const result = await tx.sql.query(
+      "UPDATE episodes SET title=$4,position=$5,status=$6,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3 RETURNING *",
+      [id, tx.tenantId, tx.projectId, body.title, body.position, body.status],
+    );
+    await bumpContent(tx);
+    const saved = contentRecord<Schema<"Episode">>(result.rows[0]);
+    return { body: saved, etag: saved.revision };
+  });
+  registerAction(app, context, "updateScene", async (tx, input) => {
+    const body = input.body as Schema<"SceneInput">,
+      id = input.params.objectId!;
+    versionMatches(
+      Number((await findContent(tx, "scenes", id)).revision),
+      input.version,
+    );
+    await activeParent(tx, "episodes", body.episodeId);
+    validateScene(body);
+    const result = await tx.sql.query(
+      "UPDATE scenes SET episode_id=$4,title=$5,position=$6,time_label=$7,location_label=$8,summary=$9,state=$10,default_asset_revision_ids=$11,status=$12,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3 RETURNING *",
+      [
+        id,
+        tx.tenantId,
+        tx.projectId,
+        body.episodeId,
+        body.title,
+        body.position,
+        body.timeLabel ?? null,
+        body.locationLabel ?? null,
+        body.summary,
+        body.state,
+        JSON.stringify(body.defaultAssetRevisionIds ?? []),
+        body.status,
+      ],
+    );
+    await bumpContent(tx);
+    const saved = contentRecord<Schema<"Scene">>(result.rows[0]);
+    return { body: saved, etag: saved.revision };
+  });
+  registerAction(app, context, "updateShot", async (tx, input) => {
+    const body = input.body as Schema<"ShotInput">,
+      id = input.params.objectId!;
+    const previous = await findContent(tx, "shots", id);
+    versionMatches(Number(previous.revision), input.version);
+    await activeParent(tx, "scenes", body.sceneId);
+    const old = await tx.sql.query(
+      "SELECT number,spec FROM shot_revisions WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
+      [tx.tenantId, tx.projectId, previous.current_revision_id],
+    );
+    const revisionId = specChanged(old.rows[0].spec, body.spec)
+      ? await appendShotRevision(
+          tx,
+          id,
+          body.spec,
+          Number(old.rows[0].number) + 1,
+        )
+      : previous.current_revision_id;
+    await tx.sql.query(
+      "UPDATE shots SET scene_id=$4,label=$5,position=$6,current_revision_id=$7,status=$8,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3",
+      [
+        id,
+        tx.tenantId,
+        tx.projectId,
+        body.sceneId,
+        body.label,
+        body.position,
+        revisionId,
+        body.status,
+      ],
+    );
+    await bumpContent(tx);
+    const result = await tx.sql.query(
+      `${shotSelect} WHERE s.tenant_id=$1 AND s.project_id=$2 AND s.id=$3`,
+      [tx.tenantId, tx.projectId, id],
+    );
+    const saved = contentRecord<Schema<"Shot">>(result.rows[0]);
+    return { body: saved, etag: saved.revision };
+  });
   registerAction(app, context, "listShotRevisions", async (tx, input) => {
     await findContent(tx, "shots", input.params.shotId!);
     return {

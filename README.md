@@ -6,7 +6,7 @@
 
 短剧优先，长期支持广告。首期核心场景是一位制作人员主责完成一场戏；完整 MVP 包含每场分镜／自由画布双模式，以及整集审阅交付、跨集复用和内部后期接手。
 
-当前已实现：**身份／权限／项目与手工内容结构**，包括工作室、成员邀请、所有权交接、项目与负责人、剧目设定、剧本版本、集场镜、镜头要求与原文历史、归档恢复。有 PostgreSQL 持久化、RLS、CAS、幂等和对应业务页面。[基础运行说明](docs/implementation/23-identity-project-foundation.md)与[内容实现说明](docs/implementation/24-content-structure.md)列出边界。CSV 提案、媒体、生成、编辑渲染和交付仍在后续实施中，完整 MVP 尚未完成。
+当前已实现：**身份／权限／项目、手工内容结构与 CSV 提案**，包括工作室、成员邀请、所有权交接、项目与负责人、剧目设定、剧本版本、集场镜、镜头要求与原文历史、归档恢复。有 PostgreSQL 持久化、RLS、CAS、幂等和对应业务页面。[基础运行说明](docs/implementation/23-identity-project-foundation.md)与[内容实现说明](docs/implementation/24-content-structure.md)列出边界。[CSV 提案](docs/implementation/25-csv-proposals.md)已支持导入预览、修订、差异复核和一次采纳；媒体、生成、编辑渲染和交付仍在后续实施中，完整 MVP 尚未完成。
 
 已确认的视觉原型继续保留，使用虚构内容；核心体验和专项样例仅在页面内存保留，刷新或离开会重置，不能替代业务验收。
 

@@ -306,6 +306,10 @@ for name in ["Proposal", "ImportShotList"]:
     extend(name, {"target": ref("ProposalTarget")}, ["target"])
 extend("ApplyProposal", {"proposalRevision": POS}, ["proposalRevision"])
 schema("ProposalEdit", {"operations": arr(ref("ProposalOperation"),minItems=1), "target": ref("ProposalTarget"), "baseContentRevision": POS}, ["operations","target","baseContentRevision"])
+# Additive implementation fields: fixed review baseline and permanent partial-adoption result.
+schema("ProposalApplication", {"proposalRevision": POS, "selectedOperationIds": arr(ID,minItems=1,uniqueItems=True), "createdObjects": {"type":"object","additionalProperties":ID,"description":"本次采纳的 opId 到服务端实际创建对象 id 的固定映射。"}, "contentRevision": POS, "appliedAt": TIME}, ["proposalRevision","selectedOperationIds","createdObjects","contentRevision","appliedAt"])
+extend("Proposal", {"baseContentSnapshot": {**ref("ContentTree"),"description":"固定的导入或人工复核基线，供详情比较当前内容。列表可省略；不随内容变化自动更新。","readOnly":True}, "application": {**ref("ProposalApplication"),"readOnly":True,"description":"当前提案的固定采纳结果；详情及历史读取时返回，列表可省略。未选项仍保留在提案修订。"}})
+
 for kind, input_name in [("episode","EpisodeInput"),("scene","SceneInput"),("shot","ShotInput"),("asset_suggestion","AssetInput")]:
     require_when("ProposalOperation", {"properties":{"kind":{"const":kind}},"required":["kind"]}, {"properties":{"proposed":ref(input_name)}})
 require_when("Proposal", {"properties":{"target":{"properties":{"mode":{"const":"append_to_scene"}},"required":["mode"]}},"required":["target"]}, {"properties":{"operations":{"items":{"properties":{"kind":{"const":"shot"}}}}}})

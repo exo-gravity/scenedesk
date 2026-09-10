@@ -42,12 +42,17 @@ function tabIdentity() {
     return unavailableTabId;
   }
 }
-export function useContentDraft<T>(path: string, initial: T, version: number) {
+export function useContentDraft<T>(
+  path: string,
+  initial: T,
+  version: number,
+  initialValue: T = initial,
+) {
   const session = useSession();
   const [key] = useState(() =>
     JSON.stringify([session.userId, path, tabIdentity()]),
   );
-  const [value, setValue] = useState(initial),
+  const [value, setValue] = useState(initialValue),
     [baseVersion, setBaseVersion] = useState(version);
   const original = useRef(JSON.stringify(initial));
   const [recovered, setRecovered] = useState<LocalDraft<T>>(),

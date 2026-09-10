@@ -141,7 +141,9 @@ export function registerAction(
     url: operation.path.replace(/\{([^}]+)\}/g, ":$1"),
     // The contract permits 500,000 Unicode codepoints; escaped supplementary
     // characters can take twelve bytes each in the JSON request.
-    ...(name === "reviseScript" ? { bodyLimit: 6 * 1024 * 1024 } : {}),
+    ...(["reviseScript", "importShotList", "editProposal"].includes(name)
+      ? { bodyLimit: 6 * 1024 * 1024 }
+      : {}),
     async handler(request, reply) {
       const token = sessionCookie(request);
       const query = { ...(request.query as Record<string, unknown>) };
