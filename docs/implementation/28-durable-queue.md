@@ -6,7 +6,7 @@
 
 锁定 `pg-boss 12.30.0`（MIT，Node ≥22.12.0，schema 40），使用仓库当前 Node 22／PostgreSQL 16。版本与传递依赖、下载摘要进入 package-lock。官方[版本源码](https://raw.githubusercontent.com/timgit/pg-boss/12.30.0/package.json)、[既有事务接口](https://pgboss.io/api/adapters)及[运行时迁移配置](https://pgboss.io/api/constructor)在接入时重新核对；以下权限和恢复结果来自本项目实际测试。
 
-`packages/queue` 只提供同事务 `schedule`、注册内部 handler、角色预检及迁移安装。预建 `media-probe` 队列用于接下来的媒体导入。消息只含固定 `taskKind`、业务 ID、stepRevision 和 epoch；拒绝额外 tenantId、提示词及 URL。handler 必须从真实业务根解析租户、重新检查版本／状态／代次，再提交结果，不能把信封当授权凭证。
+`packages/queue` 只提供同事务 `schedule`、注册内部 handler、角色预检及迁移安装。预建 `media-probe` 队列用于接下来的媒体导入。消息只含固定 `taskKind`、业务 ID、stepRevision 和 epoch（后两者均为正安全整数，代次与恢复协议一致）；拒绝额外 tenantId、提示词及 URL。handler 必须从真实业务根解析租户、重新检查版本／状态／代次，再提交结果，不能把信封当授权凭证。
 
 `schedule` 要求调用者传入正在使用的 `PoolClient`，pg-boss 的 `db.executeSql` 直接执行在这个连接上。业务模块先建立自己的事务和授权，业务写入与队列写入一同提交／回滚。没有增加 worker_tasks 或用于转发内部命令的 outbox。
 

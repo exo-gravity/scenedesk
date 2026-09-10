@@ -19,7 +19,7 @@ export type StepEnvelope = {
   taskKind: "media_probe";
   businessId: string;
   stepRevision: number;
-  epoch: string;
+  epoch: number;
 };
 export function parseEnvelope(input: unknown): StepEnvelope {
   if (!input || typeof input !== "object" || Array.isArray(input))
@@ -32,8 +32,8 @@ export function parseEnvelope(input: unknown): StepEnvelope {
     value.taskKind !== "media_probe" ||
     typeof value.businessId !== "string" ||
     !uuid.test(value.businessId) ||
-    typeof value.epoch !== "string" ||
-    !uuid.test(value.epoch) ||
+    !Number.isSafeInteger(value.epoch) ||
+    Number(value.epoch) < 1 ||
     !Number.isSafeInteger(value.stepRevision) ||
     Number(value.stepRevision) < 1
   )
@@ -41,7 +41,7 @@ export function parseEnvelope(input: unknown): StepEnvelope {
   return {
     taskKind: "media_probe",
     businessId: value.businessId,
-    epoch: value.epoch,
+    epoch: Number(value.epoch),
     stepRevision: Number(value.stepRevision),
   };
 }

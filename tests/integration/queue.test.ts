@@ -68,7 +68,7 @@ test("pg-boss gate: atomic enqueue, minimum roles, durable delay and crash repla
     }
     await f.admin.query(`CREATE TABLE ${scope}.queue_probe_fixture (
       id uuid PRIMARY KEY,tenant_id uuid NOT NULL,project_id uuid NOT NULL,
-      epoch uuid NOT NULL,step_revision int NOT NULL DEFAULT 1,status text NOT NULL DEFAULT 'pending',effects int NOT NULL DEFAULT 0,
+      epoch int NOT NULL CHECK(epoch>0),step_revision int NOT NULL DEFAULT 1,status text NOT NULL DEFAULT 'pending',effects int NOT NULL DEFAULT 0,
       FOREIGN KEY(tenant_id,project_id) REFERENCES ${scope}.projects(tenant_id,id));
       ALTER TABLE ${scope}.queue_probe_fixture ENABLE ROW LEVEL SECURITY;
       ALTER TABLE ${scope}.queue_probe_fixture FORCE ROW LEVEL SECURITY;
@@ -103,7 +103,7 @@ test("pg-boss gate: atomic enqueue, minimum roles, durable delay and crash repla
       taskKind: "media_probe",
       businessId: randomUUID(),
       stepRevision: 1,
-      epoch: randomUUID(),
+      epoch: 1,
     });
     const insert = (sql: import("pg").PoolClient, s: StepEnvelope) =>
       sql.query(
@@ -278,7 +278,7 @@ test("pg-boss gate: atomic enqueue, minimum roles, durable delay and crash repla
         close.push(worker.close);
         await transaction(async (sql) => {
           await resumed.schedule(sql, s);
-          await resumed.schedule(sql, { ...s, epoch: randomUUID() });
+          await resumed.schedule(sql, { ...s, epoch: 2 });
         });
         await eventually(async () =>
           (await queued(s)).every((j) => j.state === "completed"),
