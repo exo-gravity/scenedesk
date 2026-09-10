@@ -175,3 +175,5 @@ files逐项列实际README、镜头表、声音表、媒体及证据文件，不
 normalize旧版直接传timeline的请求在1.3.0被拒绝；replacement预览仍保留显式dramaBindings作为本次替换提案的一部分并复验来源，不允许它绕过工作稿版本。历史恢复通过读取旧文档、用户选择合法内容、向当前对象PUT形成新revision，不新增“回滚并执行旧任务”接口。
 
 实施补充：提案详情可返回只读 `baseContentSnapshot`（固定导入／复核基线）与 `application`（实际采纳修订、所选操作、实际创建对象和结果内容版本）；列表可省略。历史详情的内容按指定修订返回，采纳事实仍属于当前提案。写入类型不接受这些服务端字段。实现与验收见 [25 CSV 提案](25-csv-proposals.md)。
+
+实施补充：创作依据列表可按 `subjectId` 与 `kind` 查找未确认快照；只读 `number` 表示同一主体内依据次序，`isCurrentSource`／`currentConfirmationId` 表示读取时当前来源和正式指针，不改写历史快照。确认历史返回 `note`。实现及固定稿限定用途的当前边界见 [26 创作依据](26-creative-bases.md)。

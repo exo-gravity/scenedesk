@@ -59,6 +59,8 @@ export function Projects({
         key={projectId}
         tenantId={tenantId}
         projectId={projectId}
+        own={own}
+        members={members}
       />
     );
   if (projectId)

@@ -1,4 +1,5 @@
 import { ProposalWorkspace } from "./ProposalWorkspace";
+import { CreativeWorkspace } from "./CreativeWorkspace";
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
@@ -39,9 +40,13 @@ import layout from "./content.module.css";
 export function ContentWorkspace({
   tenantId,
   projectId,
+  own,
+  members,
 }: {
   tenantId: string;
   projectId: string;
+  own: Schema<"Membership">;
+  members: Schema<"Membership">[];
 }) {
   const path = projectPath(tenantId, projectId);
   const project = useResource<Schema<"Project">>(path),
@@ -53,6 +58,7 @@ export function ContentWorkspace({
   const [editing, setEditing] = useState<ContentEditing>(),
     [scriptOpen, setScriptOpen] = useState(false),
     [proposalOpen, setProposalOpen] = useState(false),
+    [creativeOpen, setCreativeOpen] = useState(false),
     [history, setHistory] = useState<Schema<"Shot">>();
   const [archive, setArchive] = useState<{
     kind: ContentEditing["kind"];
@@ -90,6 +96,21 @@ export function ContentWorkspace({
   );
   const sceneEditable =
     active && episode?.status === "active" && scene?.status === "active";
+  if (creativeOpen)
+    return (
+      <CreativeWorkspace
+        path={path}
+        project={p}
+        tree={tree}
+        members={members}
+        canConfirm={
+          own.role === "owner" ||
+          own.role === "admin" ||
+          p.leadMembershipId === own.id
+        }
+        onClose={() => setCreativeOpen(false)}
+      />
+    );
   if (proposalOpen)
     return (
       <ProposalWorkspace
@@ -200,6 +221,9 @@ export function ContentWorkspace({
         description="剧本与集场镜 · 从文字到每一镜的创作要求"
         action={
           <Group>
+            <Button variant="default" onClick={() => setCreativeOpen(true)}>
+              创作依据
+            </Button>
             <Button variant="default" onClick={() => setProposalOpen(true)}>
               CSV 与提案
             </Button>

@@ -509,6 +509,9 @@ route("get","/projects/{projectId}/assistance-artifacts","listAssistanceArtifact
 route("get","/projects/{projectId}/assistance-artifacts/{artifactId}","getAssistanceArtifact","PR-04","读取创作建议和固定来源","AssistanceArtifact")
 route("put","/projects/{projectId}/assistance-artifacts/{artifactId}","editAssistanceArtifact","PR-04","保存新的人工建议修订","AssistanceArtifact","AssistanceEdit",cas=True)
 route("get","/projects/{projectId}/assistance-artifacts/{artifactId}/revisions/{revisionNumber}","getAssistanceRevision","PR-04","读取指定创作建议修订","AssistanceArtifact")
+extend("CreativeBasisRevision", {"number": {**POS,"readOnly":True,"description":"同一 subject 的固定依据保存次序，供历史定位；对象 revision 仍为 1。"}, "currentConfirmationId": {**ID,"readOnly":True,"description":"当前 subject 正式指针；确认时作为 expectedCurrentConfirmationId，无指针时省略。"}, "isCurrentSource": {"type":"boolean","readOnly":True,"description":"是否对应当前草稿实际使用的来源；历史快照不因此改变。"}})
+extend("CreativeConfirmation", {"note": TEXT})
+route("get","/projects/{projectId}/creative-bases","listCreativeBasisRevisions","PR-05","找回已保存但尚未确认的创作依据及历史",page("CreativeBasisRevision"),listing=True)
 route("get","/projects/{projectId}/creative-bases/{basisRevisionId}","getCreativeBasisRevision","PR-05","读取稿件实际使用的不可变创作依据","CreativeBasisRevision")
 route("get","/projects/{projectId}/creative-confirmations","listCreativeConfirmations","PR-05","读取正式剧情台词与共同设定依据",page("CreativeConfirmation"),listing=True)
 route("post","/projects/{projectId}/creative-confirmations","confirmCreativeBasis","PR-05","负责人确认明确版本的创作依据","CreativeConfirmation","ConfirmCreativeBasis",permission="project_lead_or_admin")
@@ -525,6 +528,7 @@ filters = {
     "listReviews": {"status": enum("open", "approved", "changes_requested"), "cutRevisionId": ID, "takeId": ID},
     "listProposals": {"sceneId": ID, "status": enum("proposed","applied","rejected"), "sourceKind": enum("ai_analysis","csv_import")},
     "listAssistanceArtifacts": {"shotId": ID, "kind": enum("prepare_prompt","prepare_rework")},
+    "listCreativeBasisRevisions": {"subjectId": ID, "kind": enum("script","production","scene","shot_dialogue")},
     "listCreativeConfirmations": {"subjectId": ID},
     "listTasks": {"sceneId": ID, "kind": enum("general","scene_owner","assist","rework"), "assigneeMembershipId": ID, "status": enum("open", "in_progress", "blocked", "done")},
     "listCapabilities": {"connectionId": ID, "purpose": enum("video", "image", "audio", "script_analysis", "creative_assistance")},

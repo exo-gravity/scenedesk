@@ -121,6 +121,7 @@
 | PR-04 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/assistance-artifacts/{artifactId}` | `getAssistanceArtifact` | `project_member` |
 | PR-04 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/assistance-artifacts/{artifactId}` | `editAssistanceArtifact` | `project_member` |
 | PR-04 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/assistance-artifacts/{artifactId}/revisions/{revisionNumber}` | `getAssistanceRevision` | `project_member` |
+| PR-05 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/creative-bases` | `listCreativeBasisRevisions` | `project_member` |
 | PR-05 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/creative-bases/{basisRevisionId}` | `getCreativeBasisRevision` | `project_member` |
 | PR-05 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/creative-confirmations` | `listCreativeConfirmations` | `project_member` |
 | PR-05 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/creative-confirmations` | `confirmCreativeBasis` | `project_lead_or_admin` |

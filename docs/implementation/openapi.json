@@ -10464,6 +10464,131 @@
         "x-requirement": "PR-04"
       }
     },
+    "/v1/tenants/{tenantId}/projects/{projectId}/creative-bases": {
+      "get": {
+        "operationId": "listCreativeBasisRevisions",
+        "tags": [
+          "PR-05"
+        ],
+        "summary": "找回已保存但尚未确认的创作依据及历史",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 30
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "script",
+                "production",
+                "scene",
+                "shot_dialogue"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreativeBasisRevisionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-05"
+      }
+    },
     "/v1/tenants/{tenantId}/projects/{projectId}/creative-bases/{basisRevisionId}": {
       "get": {
         "operationId": "getCreativeBasisRevision",
@@ -20770,6 +20895,24 @@
           },
           "snapshot": {
             "$ref": "#/components/schemas/CreativeSnapshot"
+          },
+          "number": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "readOnly": true,
+            "description": "同一 subject 的固定依据保存次序，供历史定位；对象 revision 仍为 1。"
+          },
+          "currentConfirmationId": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true,
+            "description": "当前 subject 正式指针；确认时作为 expectedCurrentConfirmationId，无指针时省略。"
+          },
+          "isCurrentSource": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "是否对应当前草稿实际使用的来源；历史快照不因此改变。"
           }
         },
         "required": [
@@ -20934,6 +21077,10 @@
           "replacesConfirmationId": {
             "type": "string",
             "format": "uuid"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 20000
           }
         },
         "required": [
@@ -23072,6 +23219,24 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AssistanceArtifact"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "CreativeBasisRevisionPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreativeBasisRevision"
             }
           },
           "nextCursor": {
