@@ -1292,6 +1292,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/takes/{takeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取固定候选区间与来源
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getTake"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selection": {
         parameters: {
             query?: never;
@@ -1299,7 +1319,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * 读取当前采用及镜头修改版本
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getSelection"];
         /**
          * 采用候选，不自动改剪辑
          * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
@@ -1311,6 +1335,26 @@ export interface paths {
          * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
          */
         delete: operations["clearSelection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取采用与清除历史
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["listSelections"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3177,6 +3221,8 @@ export interface components {
             /** Format: uuid */
             sourceTakeId?: string;
             note?: string;
+            /** Format: uuid */
+            createdBy: string;
         };
         TakeInput: {
             /** Format: uuid */
@@ -3204,12 +3250,24 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             /** Format: uuid */
+            projectId: string;
+            /** Format: uuid */
             shotId: string;
+            number: number;
             /** Format: uuid */
             takeId?: string;
             /** Format: uuid */
             selectedBy: string;
+            reason?: string;
+            /** Format: uuid */
+            supersedesSelectionId?: string;
             affectedCutIds: string[];
+        };
+        SelectionState: {
+            /** Format: uuid */
+            shotId: string;
+            revision: number;
+            currentSelection?: components["schemas"]["Selection"];
         };
         MediaClip: {
             /** Format: uuid */
@@ -4639,6 +4697,10 @@ export interface components {
         };
         TakePage: {
             items: components["schemas"]["Take"][];
+            nextCursor?: string;
+        };
+        SelectionPage: {
+            items: components["schemas"]["Selection"][];
             nextCursor?: string;
         };
         CutPage: {
@@ -7626,6 +7688,72 @@ export interface operations {
             503: components["responses"]["Problem"];
         };
     };
+    getTake: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                takeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Take"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getSelection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                shotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelectionState"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
     selectTake: {
         parameters: {
             query?: never;
@@ -7691,6 +7819,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Selection"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    listSelections: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                q?: string;
+                projectId?: string;
+            };
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                shotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelectionPage"];
                 };
             };
             400: components["responses"]["Problem"];

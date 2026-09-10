@@ -100,10 +100,11 @@ entity("GenerationPlan", {"input": ref("PlanInput"), "capabilityRevision": POS, 
 schema("ExecutePlan", {"planId": ID}, ["planId"])
 JOB_STATES = ["queued", "dispatching", "submission_unknown", "provider_pending", "provider_running", "archiving", "archive_failed", "succeeded", "failed", "cancel_requested", "cancelled", "reconciliation_required"]
 entity("GenerationJob", {**scope_fields, "planId": ID, "status": enum(*JOB_STATES), "providerJobId": string(), "mediaIds": arr(ID), "proposalId": ID, "errorCode": string(), "reservationStatus": enum("held", "settled", "released"), "estimatedCost": ref("Money"), "actualCost": ref("Money"), "inputOutdated": BOOL}, ["scope", "planId", "status", "mediaIds", "reservationStatus", "inputOutdated"])
-entity("Take", {"projectId": ID, "shotId": ID, "shotRevisionId": ID, "mediaId": ID, "range": ref("Range"), "sourceTakeId": ID, "note": TEXT}, ["projectId", "shotId", "shotRevisionId", "mediaId", "range"])
+entity("Take", {"projectId": ID, "shotId": ID, "shotRevisionId": ID, "mediaId": ID, "range": ref("Range"), "sourceTakeId": ID, "note": TEXT, "createdBy": ID}, ["projectId", "shotId", "shotRevisionId", "mediaId", "range", "createdBy"])
 schema("TakeInput", {"shotId": ID, "shotRevisionId": ID, "mediaId": ID, "range": ref("Range"), "sourceTakeId": ID, "note": TEXT}, ["shotId", "shotRevisionId", "mediaId", "range"])
 schema("SelectionInput", {"takeId": ID, "reason": TEXT}, ["takeId"])
-entity("Selection", {"shotId": ID, "takeId": ID, "selectedBy": ID, "affectedCutIds": arr(ID)}, ["shotId", "selectedBy", "affectedCutIds"])
+entity("Selection", {"projectId": ID, "shotId": ID, "number": POS, "takeId": ID, "selectedBy": ID, "reason": TEXT, "supersedesSelectionId": ID, "affectedCutIds": arr(ID)}, ["projectId", "shotId", "number", "selectedBy", "affectedCutIds"])
+schema("SelectionState", {"shotId": ID, "revision": POS, "currentSelection": ref("Selection")}, ["shotId", "revision"])
 
 schema("MediaClip", {"id": ID, "kind": enum("video", "audio"), "mediaId": ID, "takeId": ID, "selectionId": ID, "timelineStartUs": US, "range": ref("Range"), "gainDb": {"type": "number", "minimum": -96, "maximum": 12}, "muted": BOOL, "fit": enum("contain", "cover")}, ["id", "kind", "mediaId", "timelineStartUs", "range", "gainDb", "muted"])
 schema("SubtitleClip", {"id": ID, "kind": enum("subtitle"), "timelineStartUs": US, "durationUs": POS, "text": string(minLength=1, maxLength=2000)}, ["id", "kind", "timelineStartUs", "durationUs", "text"])
@@ -471,6 +472,9 @@ route("post","/generation-jobs/{jobId}/recover-archive","recoverJobArchive","PR-
 route("post","/generation-jobs/{jobId}/reconcile","requestJobReconciliation","PR-15","触发基于原连接的状态与费用核对","GenerationJob",code=202,permission="owner_admin")
 route("get","/projects/{projectId}/takes","listTakes","PR-09","读取镜头候选",page("Take"),listing=True)
 route("post","/projects/{projectId}/takes","createTake","PR-09","将明确媒体区间关联到镜头","Take","TakeInput")
+route("get","/projects/{projectId}/takes/{takeId}","getTake","PR-09","读取固定候选区间与来源","Take")
+route("get","/projects/{projectId}/shots/{shotId}/selection","getSelection","PR-09","读取当前采用及镜头修改版本","SelectionState")
+route("get","/projects/{projectId}/shots/{shotId}/selections","listSelections","PR-09","读取采用与清除历史",page("Selection"),listing=True)
 route("put","/projects/{projectId}/shots/{shotId}/selection","selectTake","PR-09","采用候选，不自动改剪辑","Selection","SelectionInput",cas=True)
 route("delete","/projects/{projectId}/shots/{shotId}/selection","clearSelection","PR-09","清除当前采用并保留历史","Selection",cas=True)
 route("get","/projects/{projectId}/cuts","listCuts","PR-10","列出项目剪辑",page("Cut"),listing=True)

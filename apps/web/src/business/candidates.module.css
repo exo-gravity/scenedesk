@@ -1,0 +1,108 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--mantine-spacing-xl);
+  align-items: start;
+}
+.stage {
+  min-width: 0;
+  --ws-preview-height: clamp(240px, calc(100dvh - 520px), 440px);
+}
+.dock {
+  background: var(--ws-panel);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  padding: var(--mantine-spacing-md);
+  display: grid;
+  gap: var(--mantine-spacing-lg);
+  max-height: 78dvh;
+  overflow: auto;
+}
+.title {
+  margin: 0;
+  font-size: var(--mantine-font-size-lg);
+  font-weight: 600;
+}
+.composer {
+  width: 100%;
+  max-height: min(440px, 50dvh);
+  overflow: auto;
+  max-width: 720px;
+  margin: auto;
+  padding: var(--mantine-spacing-lg);
+  background: var(--ws-panel);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+}
+.fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: grid;
+  gap: var(--mantine-spacing-md);
+}
+.strip {
+  display: flex;
+  gap: var(--mantine-spacing-md);
+  overflow-x: auto;
+  padding-block: var(--mantine-spacing-md);
+  border-top: 1px solid var(--ws-border);
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--ws-canvas);
+}
+.shot {
+  flex: 0 0 200px;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  background: var(--ws-panel);
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+}
+.candidate {
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+}
+.candidate[data-selected],
+.shot[data-selected] {
+  border-color: var(--ws-accent);
+  background: var(--ws-raised);
+}
+.empty {
+  min-height: 360px;
+  background: var(--ws-panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-lg);
+  text-align: center;
+  padding: var(--mantine-spacing-xl);
+}
+.mediaChoice {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  padding-bottom: var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--ws-border);
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dock {
+    max-height: 440px;
+  }
+  .strip {
+    position: static;
+  }
+}

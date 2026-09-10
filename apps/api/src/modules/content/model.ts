@@ -31,7 +31,7 @@ export async function bumpContent(tx: Transaction) {
     [tx.tenantId, tx.projectId],
   );
 }
-export const shotSelect = `SELECT s.id,s.project_id,s.scene_id,s.label,s.position,s.status,s.revision,s.created_at,s.updated_at,s.current_revision_id AS spec_revision_id,r.spec FROM shots s JOIN shot_revisions r ON r.id=s.current_revision_id`;
+export const shotSelect = `SELECT s.id,s.project_id,s.scene_id,s.label,s.position,s.status,s.revision,s.created_at,s.updated_at,s.current_revision_id AS spec_revision_id,r.spec,sel.take_id AS current_take_id FROM shots s JOIN shot_revisions r ON r.id=s.current_revision_id LEFT JOIN selections sel ON sel.id=s.current_selection_id`;
 export async function contentTree(
   tx: Transaction,
 ): Promise<Schema<"ContentTree">> {

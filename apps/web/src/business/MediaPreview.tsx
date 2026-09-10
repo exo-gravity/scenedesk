@@ -37,10 +37,12 @@ export function MediaPreview({
   media,
   path,
   thumbnail = false,
+  range,
 }: {
   media: Schema<"Media">;
   path: string;
   thumbnail?: boolean;
+  range?: Schema<"Range"> | undefined;
 }) {
   const session = useSession(),
     [playbackError, setPlaybackError] = useState(false),
@@ -159,10 +161,11 @@ export function MediaPreview({
       ) : (
         <Suspense fallback={<Loader aria-label="正在加载播放器" />}>
           <Player
-            key={`${access.data.url}:${reloadKey}`}
+            key={`${access.data.url}:${reloadKey}:${range?.inUs}:${range?.outUs}`}
             src={access.data.url}
             title={`${media.displayName} · 代理预览`}
             audio={media.kind === "audio"}
+            range={range}
             onError={failed}
             resumeAt={time.current}
             onTime={(value) => {

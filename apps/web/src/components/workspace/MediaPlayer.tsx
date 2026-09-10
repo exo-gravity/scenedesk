@@ -21,6 +21,7 @@ export default function MediaPlayer({
   onError,
   resumeAt = 0,
   onTime,
+  range,
 }: {
   src: string;
   title: string;
@@ -28,6 +29,7 @@ export default function MediaPlayer({
   onError: () => void;
   resumeAt?: number;
   onTime: (time: number) => void;
+  range?: { inUs: number; outUs: number } | undefined;
 }) {
   const media = useRef<HTMLVideoElement | null>(null);
   useEffect(() => {
@@ -63,10 +65,47 @@ export default function MediaPlayer({
         onError={onError}
         onLoadedMetadata={(event) => {
           const el = event.currentTarget;
-          if (resumeAt > 0 && Number.isFinite(el.duration))
-            el.currentTime = Math.min(resumeAt, el.duration);
+          if (Number.isFinite(el.duration))
+            el.currentTime = Math.min(
+              Math.max(resumeAt, (range?.inUs ?? 0) / 1_000_000),
+              el.duration,
+              (range?.outUs ?? Infinity) / 1_000_000,
+            );
         }}
-        onTimeUpdate={(event) => onTime(event.currentTarget.currentTime)}
+        onPlay={(event) => {
+          const el = event.currentTarget;
+          if (
+            range &&
+            (el.currentTime < range.inUs / 1_000_000 ||
+              el.currentTime >= range.outUs / 1_000_000)
+          )
+            el.currentTime = range.inUs / 1_000_000;
+        }}
+        onSeeking={(event) => {
+          const el = event.currentTarget;
+          if (!range) return;
+          const duration = Number.isFinite(el.duration)
+            ? el.duration
+            : Infinity;
+          const bounded = Math.max(
+            Math.min(range.inUs / 1_000_000, duration),
+            Math.min(range.outUs / 1_000_000, duration, el.currentTime),
+          );
+          // Browser media clocks quantize seeks (e.g. 0.250001 becomes 0.25).
+          // Reassigning on that tiny difference causes an endless seeking loop.
+          // This proxy tolerance never changes the stored source microseconds.
+          if (Math.abs(bounded - el.currentTime) > 0.001)
+            el.currentTime = bounded;
+        }}
+        onTimeUpdate={(event) => {
+          const el = event.currentTarget;
+          if (range && el.currentTime >= range.outUs / 1_000_000) {
+            el.pause();
+            if (el.currentTime > range.outUs / 1_000_000)
+              el.currentTime = range.outUs / 1_000_000;
+          }
+          onTime(el.currentTime);
+        }}
       />
       <MediaControlBar className={classes.controls}>
         <MediaPlayButton />

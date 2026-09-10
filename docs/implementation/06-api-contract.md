@@ -72,6 +72,10 @@ ready 媒体必须指向不可变内容。上传完成后核对字节、类型�
 
 Take 是单个连续视频区间，必须处于验收时长内；(shotRevisionId,mediaId,inUs,outUs) 去重。当前 selection 是该镜头的偏好，不表示叙事已经完整覆盖。时间线可用同镜头多个 take 的不连续片段，也可继续使用非当前偏好；越过 Take 边界须显式派生新候选。沿用旧要求下的 take 时建立关联到当前要求的新 take 并保留 sourceTakeId，不自动认为旧结果满足新要求。
 
+候选为不可变事实：createdBy 由当前身份派生，sourceTakeId 必须属于同项目、同媒体，不能用新请求覆盖原说明或来源。同一去重键与相同元数据返回已有候选；同键但说明／来源不同返回 409 TAKE_ALREADY_EXISTS。旧视频归档后仍可读既有候选，新区间或采用需要 ready 视频及未归档的项目／集／场／镜。区间以安全整数微秒存储，输入十进制秒须精确转换；浏览器代理播放的时间精度不等于最终帧边界。
+
+getSelection 返回 SelectionState：revision 是镜头根当前修改版本，currentSelection 在从未作决定时缺省。selectTake 与 clearSelection 都用该 Shot.revision 做 CAS；响应 ETag 为更新后的镜头根版本，正文 Selection.revision 恒为不可变事实的 1，number 是本镜决定序号。清除返回 200 及不含 takeId 的新决定，历史通过 listSelections 读取；supersedesSelectionId 保留前次决定，selectedBy 由服务器派生。采用或清除仅推进 Shot／ContentTree 修改版本，不新增 ShotRevision，不改变创作依据。当前要求变化仍保留旧采用，并显式标识要求不一致；直接采用旧要求候选返回 409 TAKE_REQUIREMENTS_CHANGED。affectedCutIds 随实际剪辑引用返回，当前 E04 尚无剪辑存储时为空，不能据此宣布“采用不改旧稿”的完整 AT-21 已验收。
+
 MediaClip.kind=audio 且 streamSelection=embedded_audio 时可读取 video 媒体已有混合音轨，前提是探测到可用音频；default/audio 使用音频媒体，default/video 使用视频媒体。提取混合轨不等于对白声源分离。原视频保留混合轨时再叠替代对白会有双声风险，需显式静音／替换决定。
 
 DramaDialogueBindings 放在短剧层，与通用 Timeline 并列。每条用 shotRevisionId＋dialogueId 关联 clipId、实际 sourceRange 和可选声音版本；字幕条目通过 usage=subtitle 关联。要求改词／表演即使时长相同，也根据绑定列出需要复查的声音和字幕，不自动改写。非对白音频可以不关联；未知外部成片不伪造绑定。

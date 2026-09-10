@@ -106,6 +106,18 @@ export function installProblemHandler(app: FastifyInstance) {
         );
       else if (error.code === "P0002")
         problem = new Problem(404, "NOT_FOUND", "内容不存在或无访问权限。");
+      else if (error.code === "P0423")
+        problem = new Problem(
+          422,
+          "INVALID_CANDIDATE",
+          "请核对镜头、固定要求、视频及区间；新候选与采用需要可用的视频和未归档的镜头。",
+        );
+      else if (error.code === "P0409")
+        problem = new Problem(
+          409,
+          "TAKE_REQUIREMENTS_CHANGED",
+          "这个候选对应旧镜头要求。请先核对并明确沿用到当前要求，再采用。",
+        );
       else if (error.code === "P0422")
         problem = new Problem(
           422,

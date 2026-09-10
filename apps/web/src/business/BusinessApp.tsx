@@ -40,6 +40,7 @@ import { ErrorNotice, SectionHeading, Empty, tenantPath } from "./common";
 import { Projects } from "./Projects";
 import { Members } from "./Members";
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
+const CandidateWorkspace = lazy(() => import("./CandidateWorkspace"));
 const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
 import {
@@ -170,7 +171,10 @@ function Workspace({ hash }: { hash: string }) {
   if (hash.startsWith("#/invitation")) return <Invitation hash={hash} />;
   return (
     <>
-      <div className={classes.layout}>
+      <div
+        className={classes.layout}
+        data-production={segments[6] === "production" || undefined}
+      >
         <aside className={classes.sidebar} aria-label="工作室导航">
           <Select
             label="当前工作室"
@@ -304,6 +308,7 @@ function Workspace({ hash }: { hash: string }) {
               contentView={segments[6] === "content"}
               mediaView={segments[6] === "media"}
               assetView={segments[6] === "assets"}
+              productionView={segments[6] === "production"}
             />
           )}
         </main>
@@ -318,6 +323,7 @@ function TenantArea({
   contentView,
   mediaView,
   assetView,
+  productionView,
 }: {
   tenantId: string;
   section?: string | undefined;
@@ -325,6 +331,7 @@ function TenantArea({
   contentView?: boolean | undefined;
   mediaView?: boolean | undefined;
   assetView?: boolean | undefined;
+  productionView?: boolean | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -338,6 +345,12 @@ function TenantArea({
     );
   if (!own || own.status !== "active")
     return <Empty>你已没有这个工作室的访问权限。</Empty>;
+  if (projectId && productionView)
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载镜头制作" />}>
+        <CandidateWorkspace tenantId={tenantId} projectId={projectId} />
+      </Suspense>
+    );
   if (section === "media" || (projectId && mediaView))
     return (
       <Suspense fallback={<Loader aria-label="正在加载素材工作区" />}>

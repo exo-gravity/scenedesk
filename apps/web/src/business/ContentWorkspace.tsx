@@ -456,12 +456,22 @@ export function ContentWorkspace({
                     .filter(Boolean)
                     .join(" · ") || "场次梗概与镜头要求"
                 }
-                action={controls(
-                  "scene",
-                  scene,
-                  scene.episodeId,
-                  active && episode?.status === "active",
-                )}
+                action={
+                  <Group>
+                    <Button
+                      component="a"
+                      href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${scene.id}`}
+                    >
+                      进入镜头制作
+                    </Button>
+                    {controls(
+                      "scene",
+                      scene,
+                      scene.episodeId,
+                      active && episode?.status === "active",
+                    )}
+                  </Group>
+                }
               />
               <SceneResponsibility
                 path={path}
