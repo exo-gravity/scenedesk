@@ -1,0 +1,693 @@
+import {
+  editingCanonical,
+  inspectWorkDocument,
+  type WorkDocument,
+} from "@drama/domain";
+import { ApiError, type Schema } from "./api";
+import { browserContractCompiler } from "./contract-validation";
+import {
+  clearEditingLocal,
+  loadEditingLocal,
+  removeEditingLocal,
+  saveEditingLocal,
+  type EditingPartition,
+  type EditingLocalCopy,
+} from "./editing-local";
+
+type Work = Schema<"CutWorkDraft">;
+export type EditingBuffer = { value: string; valid: boolean };
+export type WorkPendingWrite = {
+  id: string;
+  version: number;
+  baseCutRevision: number;
+  document: WorkDocument;
+  documentHash: string;
+};
+export type WorkLocalValue = {
+  base: Work;
+  baseCutRevision: number;
+  document: WorkDocument;
+  buffers: Record<string, EditingBuffer>;
+  pending: WorkPendingWrite | null;
+};
+export type WorkEditorState = {
+  phase:
+    | "loading"
+    | "ready"
+    | "saving"
+    | "checking"
+    | "discarding"
+    | "conflict"
+    | "error"
+    | "forbidden";
+  local: WorkLocalValue | null;
+  remote: Work | null;
+  recovery: EditingLocalCopy<WorkLocalValue> | null;
+  recoveryBlocked: boolean;
+  error: Error | null;
+  storageError: Error | null;
+  localSaved: boolean;
+  dirty: boolean;
+  hasInvalidInput: boolean;
+};
+export type WorkTransport = {
+  read: () => Promise<Work>;
+  save: (pending: WorkPendingWrite) => Promise<Work>;
+};
+const same = (a: unknown, b: unknown) =>
+  editingCanonical(a) === editingCanonical(b);
+const inputPending = (local: WorkLocalValue) =>
+  Object.values(local.buffers).some((b) => !b.valid);
+const dirty = (local: WorkLocalValue) =>
+  local.baseCutRevision !== local.base.baseCutRevision ||
+  !same(local.document, local.base.document);
+const receiptMatches = (work: Work, pending: WorkPendingWrite) =>
+  work.revision > 0 &&
+  work.revision >= pending.version &&
+  work.baseCutRevision === pending.baseCutRevision &&
+  work.documentHash === pending.documentHash &&
+  same(work.document, pending.document);
+const unauthorized = (error: unknown) =>
+  error instanceof ApiError && [401, 403, 404].includes(error.status);
+const asError = (error: unknown) =>
+  error instanceof Error
+    ? error
+    : new Error("编辑操作未完成，请保留输入后重试。");
+async function documentHash(document: WorkDocument) {
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(editingCanonical(document)),
+  );
+  return Array.from(new Uint8Array(hash), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+/** A mounted view subscribes to this session; the session owns in-flight work.
+ * Late replies persist receipts without navigating or replacing newer input. */
+export class CutWorkController {
+  private state: WorkEditorState = {
+    phase: "loading",
+    local: null,
+    remote: null,
+    recovery: null,
+    recoveryBlocked: false,
+    error: null,
+    storageError: null,
+    localSaved: false,
+    dirty: false,
+    hasInvalidInput: false,
+  };
+  private listeners = new Set<() => void>();
+  private initialization: Promise<void> | undefined;
+  private token: string | undefined;
+  private storageQueue: Promise<void> = Promise.resolve();
+  private writing = false;
+  private paused = true;
+  private revoked = false;
+  private composing = false;
+  private editSequence = 0;
+  private firstUnsavedAt: number | null = null;
+  private timer: ReturnType<typeof setTimeout> | undefined;
+  private readSequence = 0;
+  private validate:
+    | Awaited<ReturnType<typeof browserContractCompiler>>["validateContract"]
+    | undefined;
+
+  constructor(
+    readonly partition: EditingPartition,
+    private transport: WorkTransport,
+  ) {}
+  updateTransport(transport: WorkTransport) {
+    this.transport = transport;
+  }
+  getSnapshot = () => this.state;
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+  private publish(change: Partial<WorkEditorState>) {
+    if (this.revoked && change.phase !== "forbidden") return;
+    const next = { ...this.state, ...change };
+    next.dirty = !!next.local && dirty(next.local);
+    next.hasInvalidInput = !!next.local && inputPending(next.local);
+    this.state = next;
+    for (const listener of this.listeners) listener();
+  }
+  private acceptSnapshot(work: Work) {
+    if (
+      !this.validate?.("CutWorkDraft", work).valid ||
+      work.cutId !== this.partition.objectId
+    )
+      throw new Error("读取的工作稿格式或归属不符，请保留本机内容并重新读取。");
+    return work;
+  }
+  private freshLocal(work: Work): WorkLocalValue {
+    return {
+      base: work,
+      document: work.document,
+      baseCutRevision: work.baseCutRevision,
+      buffers: {},
+      pending: null,
+    };
+  }
+  private async validRecovery(
+    copy: EditingLocalCopy<WorkLocalValue>,
+    remote: Work,
+  ) {
+    const value = copy.value;
+    this.acceptSnapshot(value.base);
+    if (
+      value.base.revision > remote.revision ||
+      !Number.isSafeInteger(value.baseCutRevision) ||
+      value.baseCutRevision < 1 ||
+      !this.validate?.("CutWorkDocument", value.document).valid ||
+      !value.buffers ||
+      Object.values(value.buffers).some(
+        (b) =>
+          !b || typeof b.value !== "string" || typeof b.valid !== "boolean",
+      )
+    )
+      throw new Error("本机副本格式不完整，不能直接恢复；原副本仍保留。");
+    if (
+      value.pending &&
+      (!Number.isSafeInteger(value.pending.version) ||
+        value.pending.version < 0 ||
+        value.pending.version !== value.base.revision ||
+        typeof value.pending.id !== "string" ||
+        !value.pending.id ||
+        !this.validate("SaveCutWorkDraft", {
+          baseCutRevision: value.pending.baseCutRevision,
+          document: value.pending.document,
+        }).valid ||
+        !/^[a-f0-9]{64}$/.test(value.pending.documentHash))
+    )
+      throw new Error("本机保存请求不完整，不能自动重送；原副本仍保留。");
+    if (
+      value.pending &&
+      (await documentHash(value.pending.document)) !==
+        value.pending.documentHash
+    )
+      throw new Error("本机保存请求的内容与指纹不一致，原副本仍保留。");
+    return value;
+  }
+  initialize() {
+    return (this.initialization ??= this.load());
+  }
+  private async load() {
+    this.publish({ phase: "loading", error: null });
+    try {
+      const [compiler, remote] = await Promise.all([
+        browserContractCompiler(),
+        this.transport.read(),
+      ]);
+      this.validate = compiler.validateContract;
+      this.acceptSnapshot(remote);
+      if (this.revoked) return;
+      this.publish({ local: this.freshLocal(remote), remote });
+      try {
+        const copy = await loadEditingLocal<WorkLocalValue>(this.partition);
+        if (this.revoked) return;
+        this.token = copy?.token;
+        if (copy) {
+          const value = await this.validRecovery(copy, remote);
+          this.publish({ recoveryBlocked: false, storageError: null });
+          if (value.pending && receiptMatches(remote, value.pending)) {
+            value.base = remote;
+            value.pending = null;
+          }
+          if (
+            !dirty(value) &&
+            !Object.keys(value.buffers).length &&
+            !value.pending
+          ) {
+            this.publish({ localSaved: true });
+            await this.persist();
+          } else
+            this.publish({ recovery: { ...copy, value }, localSaved: true });
+        } else
+          this.publish({
+            localSaved: true,
+            recoveryBlocked: false,
+            storageError: null,
+          });
+        this.publish({ phase: "ready" });
+      } catch (error) {
+        this.publish({
+          storageError: asError(error),
+          localSaved: false,
+          recoveryBlocked: true,
+          phase: "error",
+        });
+      }
+    } catch (error) {
+      if (unauthorized(error)) await this.revoke();
+      else {
+        this.initialization = undefined;
+        this.publish({ phase: "error", error: asError(error) });
+      }
+    }
+  }
+  resume() {
+    this.paused = false;
+    this.schedule();
+  }
+  pause() {
+    this.paused = true;
+    this.clearTimer();
+    void this.persist().catch(() => {});
+  }
+  setComposing(value: boolean) {
+    this.composing = value;
+    if (value) this.clearTimer();
+    else this.schedule();
+  }
+  private clearTimer() {
+    if (this.timer !== undefined) clearTimeout(this.timer);
+    this.timer = undefined;
+  }
+  private changed(local: WorkLocalValue) {
+    this.editSequence++;
+    this.publish({
+      local,
+      localSaved: false,
+      ...(this.state.phase === "error" && !local.pending
+        ? { phase: "ready", error: null }
+        : {}),
+    });
+    if (this.state.dirty) this.firstUnsavedAt ??= Date.now();
+    else this.firstUnsavedAt = null;
+    void this.persist()
+      .then(() => this.schedule())
+      .catch(() => {});
+    this.schedule();
+  }
+  edit(document: WorkDocument, buffers = this.state.local?.buffers ?? {}) {
+    if (
+      !this.state.local ||
+      this.state.recovery ||
+      this.state.recoveryBlocked ||
+      this.state.phase === "loading" ||
+      this.state.phase === "discarding" ||
+      this.revoked
+    )
+      return;
+    this.changed({ ...this.state.local, document, buffers });
+  }
+  buffer(
+    key: string,
+    value: EditingBuffer | null,
+    document = this.state.local?.document,
+  ) {
+    if (
+      !this.state.local ||
+      !document ||
+      this.state.recovery ||
+      this.state.recoveryBlocked ||
+      this.state.phase === "loading" ||
+      this.state.phase === "discarding" ||
+      this.revoked
+    )
+      return;
+    const buffers = { ...this.state.local.buffers };
+    if (value === null) delete buffers[key];
+    else buffers[key] = value;
+    this.changed({ ...this.state.local, document, buffers });
+  }
+  restore() {
+    const { recovery, remote } = this.state;
+    if (!recovery || !remote || this.revoked) return;
+    const local = recovery.value;
+    this.publish({
+      recovery: null,
+      local,
+      phase: local.pending
+        ? "checking"
+        : local.base.revision !== remote.revision
+          ? "conflict"
+          : "ready",
+      error: null,
+    });
+    if (local.pending) void this.checkPending(false);
+    else {
+      this.firstUnsavedAt = Date.now();
+      this.schedule();
+    }
+  }
+  private schedule() {
+    this.clearTimer();
+    if (
+      this.paused ||
+      this.revoked ||
+      this.composing ||
+      this.writing ||
+      this.state.recovery ||
+      this.state.recoveryBlocked ||
+      this.state.phase === "discarding" ||
+      this.state.phase !== "ready" ||
+      this.state.storageError ||
+      !this.state.local ||
+      this.state.local.pending ||
+      !this.state.dirty ||
+      this.state.hasInvalidInput
+    )
+      return;
+    this.firstUnsavedAt ??= Date.now();
+    const delay = Math.max(
+      0,
+      Math.min(800, 5000 - (Date.now() - this.firstUnsavedAt)),
+    );
+    this.timer = setTimeout(() => {
+      void this.save();
+    }, delay);
+  }
+  private persist() {
+    const operation = this.storageQueue.then(async () => {
+      if (
+        this.revoked ||
+        !this.state.local ||
+        this.state.recovery ||
+        this.state.recoveryBlocked
+      )
+        return;
+      const sequence = this.editSequence,
+        local = this.state.local;
+      if (
+        !dirty(local) &&
+        !Object.keys(local.buffers).length &&
+        !local.pending
+      ) {
+        if (this.token) await removeEditingLocal(this.partition, this.token);
+        this.token = undefined;
+      } else {
+        const copy = await saveEditingLocal(this.partition, local, this.token);
+        this.token = copy.token;
+      }
+      this.publish({
+        localSaved: sequence === this.editSequence,
+        storageError: null,
+      });
+    });
+    this.storageQueue = operation.catch((error) =>
+      this.publish({ storageError: asError(error), localSaved: false }),
+    );
+    return operation;
+  }
+  async retryLocal() {
+    if (this.state.recoveryBlocked) {
+      await this.load();
+      return;
+    }
+    try {
+      await this.persist();
+      this.schedule();
+    } catch {
+      /* persistent notice owns retry */
+    }
+  }
+  async save() {
+    this.clearTimer();
+    if (
+      this.revoked ||
+      this.writing ||
+      this.composing ||
+      this.state.recovery ||
+      this.state.recoveryBlocked ||
+      !this.state.local ||
+      this.state.phase === "loading" ||
+      this.state.phase === "conflict"
+    )
+      return;
+    if (this.state.local.pending) {
+      await this.checkPending(true);
+      return;
+    }
+    if (!this.state.dirty || this.state.hasInvalidInput) return;
+    this.writing = true;
+    try {
+      const local = this.state.local;
+      const sequence = this.editSequence;
+      if (
+        !this.validate?.("SaveCutWorkDraft", {
+          baseCutRevision: local.baseCutRevision,
+          document: local.document,
+        }).valid
+      )
+        throw new Error("仍有不能提交的编辑字段；输入已保留在本机，请先修正。");
+      inspectWorkDocument(local.document);
+      const pending: WorkPendingWrite = {
+        id: crypto.randomUUID(),
+        version: local.base.revision,
+        baseCutRevision: local.baseCutRevision,
+        document: structuredClone(local.document),
+        documentHash: await documentHash(local.document),
+      };
+      if (this.revoked) return;
+      this.publish({
+        local: { ...this.state.local!, pending },
+        phase: "saving",
+        error: null,
+      });
+      if (this.editSequence === sequence) this.firstUnsavedAt = null;
+      await this.submit(pending);
+    } catch (error) {
+      if (unauthorized(error)) await this.revoke();
+      else this.publish({ phase: "error", error: asError(error) });
+    } finally {
+      this.writing = false;
+      this.schedule();
+    }
+  }
+  private async submit(pending: WorkPendingWrite) {
+    await this.persist();
+    if (this.revoked || this.state.local?.pending?.id !== pending.id) return;
+    try {
+      const receipt = this.acceptSnapshot(await this.transport.save(pending));
+      if (!receiptMatches(receipt, pending))
+        throw new Error("服务器回执与本次保存内容不一致，请核对当前稿。");
+      await this.confirm(receipt, pending);
+    } catch (error) {
+      if (unauthorized(error)) {
+        await this.revoke();
+        return;
+      }
+      if (error instanceof ApiError && [409, 422, 413].includes(error.status)) {
+        if (this.state.local)
+          this.publish({
+            local: { ...this.state.local, pending: null },
+            phase: error.status === 409 ? "conflict" : "error",
+            error,
+          });
+        await this.persist();
+        if (error.status === 409) await this.refresh();
+      } else {
+        this.publish({ phase: "checking", error: asError(error) });
+        await this.resolvePending(pending, false);
+      }
+    }
+  }
+  private async confirm(receipt: Work, pending: WorkPendingWrite) {
+    if (this.revoked || this.state.local?.pending?.id !== pending.id) return;
+    const remote =
+      this.state.remote && this.state.remote.revision > receipt.revision
+        ? this.state.remote
+        : receipt;
+    this.publish({
+      local: { ...this.state.local, base: receipt, pending: null },
+      remote,
+      phase: remote.revision > receipt.revision ? "conflict" : "ready",
+      error: null,
+    });
+    if (this.state.dirty) this.firstUnsavedAt ??= Date.now();
+    else this.firstUnsavedAt = null;
+    // The pending request was persisted before the write. If this cleanup
+    // aborts, a fresh authorized GET can resolve that receipt after reload.
+    await this.persist().catch(() => {});
+  }
+  private async checkPending(retry: boolean) {
+    if (this.writing || this.revoked || !this.state.local?.pending) return;
+    this.writing = true;
+    this.publish({ phase: "checking", error: null });
+    try {
+      await this.resolvePending(this.state.local.pending, retry);
+    } catch (error) {
+      if (unauthorized(error)) await this.revoke();
+      else this.publish({ phase: "error", error: asError(error) });
+    } finally {
+      this.writing = false;
+      this.schedule();
+    }
+  }
+  private async resolvePending(pending: WorkPendingWrite, retry: boolean) {
+    const remote = this.acceptSnapshot(await this.transport.read());
+    if (this.revoked || this.state.local?.pending?.id !== pending.id) return;
+    if (remote.revision < (this.state.remote?.revision ?? 0))
+      throw new Error("核对回复早于已读取的工作稿，请重新读取。");
+    this.publish({ remote });
+    if (receiptMatches(remote, pending)) {
+      await this.confirm(remote, pending);
+      return;
+    }
+    if (remote.revision === pending.version) {
+      if (retry) {
+        this.publish({ phase: "saving" });
+        await this.submit(pending);
+      } else
+        this.publish({
+          phase: "error",
+          error: new Error(
+            "尚未读到这次保存的结果。可以核对后重试同一版本，期间的新输入仍保留在本机。",
+          ),
+        });
+      return;
+    }
+    if (remote.revision < pending.version)
+      throw new Error("读到的工作稿早于本机基线，请稍后重新核对。");
+    this.publish({
+      phase: "conflict",
+      local: { ...this.state.local, pending: null },
+      error: null,
+    });
+    await this.persist().catch(() => {});
+  }
+  async refresh() {
+    if (this.revoked || this.state.phase === "loading" || !this.validate)
+      return false;
+    const sequence = ++this.readSequence;
+    try {
+      const remote = this.acceptSnapshot(await this.transport.read());
+      if (
+        this.revoked ||
+        sequence !== this.readSequence ||
+        remote.revision < (this.state.remote?.revision ?? 0)
+      )
+        return !this.revoked;
+      this.publish({ remote });
+      if (
+        this.writing ||
+        this.state.local?.pending ||
+        this.state.recovery ||
+        this.state.recoveryBlocked ||
+        !this.state.local
+      )
+        return true;
+      if (!this.state.dirty && !Object.keys(this.state.local.buffers).length) {
+        this.publish({
+          local: this.freshLocal(remote),
+          phase: "ready",
+          error: null,
+        });
+        await this.persist();
+      } else if (remote.revision !== this.state.local.base.revision)
+        this.publish({ phase: "conflict" });
+      return true;
+    } catch (error) {
+      if (unauthorized(error)) await this.revoke();
+      else this.publish({ error: asError(error) });
+      return false;
+    }
+  }
+  /** The view binds this action to the exact remote revision it displayed. */
+  async merge(
+    document: WorkDocument,
+    buffers: Record<string, EditingBuffer>,
+    remoteRevision: number,
+    baseCutRevision: number,
+  ) {
+    if (
+      !this.state.local ||
+      !this.state.remote ||
+      this.revoked ||
+      this.writing ||
+      this.state.recovery ||
+      this.state.recoveryBlocked ||
+      this.state.local.pending ||
+      this.state.phase === "loading"
+    )
+      return;
+    this.editSequence++;
+    const local = { ...this.state.local, document, buffers, pending: null };
+    if (this.state.remote.revision !== remoteRevision) {
+      this.publish({
+        local,
+        phase: "conflict",
+        error: new Error(
+          "比较期间工作稿又有更新；手动合并内容已保留，请核对新版本。",
+        ),
+      });
+    } else
+      this.publish({
+        local: { ...local, base: this.state.remote, baseCutRevision },
+        phase: "ready",
+        error: null,
+      });
+    await this.persist().catch(() => {});
+    this.firstUnsavedAt = Date.now();
+    this.schedule();
+  }
+  async discardLocal() {
+    if (
+      !this.state.remote ||
+      this.revoked ||
+      this.writing ||
+      this.state.phase === "loading" ||
+      this.state.local?.pending
+    )
+      return;
+    const originalPhase = this.state.phase;
+    this.writing = true;
+    this.clearTimer();
+    this.publish({ phase: "discarding" });
+    // Delete first. A failed local discard leaves the recovery/input visible.
+    await this.storageQueue;
+    try {
+      // A failed initial read supplies no CAS token. Re-read before declaring
+      // discard complete; an unavailable/corrupt store must remain visible.
+      if (this.state.recoveryBlocked && !this.token)
+        this.token = (await loadEditingLocal(this.partition))?.token;
+      if (this.token) await removeEditingLocal(this.partition, this.token);
+      this.token = undefined;
+      this.editSequence++;
+      this.publish({
+        local: this.freshLocal(this.state.remote),
+        recovery: null,
+        recoveryBlocked: false,
+        phase: "ready",
+        localSaved: true,
+        error: null,
+        storageError: null,
+      });
+      this.firstUnsavedAt = null;
+    } catch (error) {
+      this.publish({
+        phase: originalPhase,
+        storageError: asError(error),
+        localSaved: false,
+      });
+    } finally {
+      this.writing = false;
+    }
+  }
+  async revoke() {
+    this.revoked = true;
+    this.paused = true;
+    this.clearTimer();
+    this.publish({
+      phase: "forbidden",
+      local: null,
+      remote: null,
+      recovery: null,
+      error: null,
+      storageError: null,
+    });
+    await this.storageQueue;
+    try {
+      await clearEditingLocal(this.partition.userId, {
+        projectId: this.partition.projectId,
+        objectId: this.partition.objectId,
+      });
+    } catch (error) {
+      this.publish({ phase: "forbidden", storageError: asError(error) });
+    }
+  }
+}

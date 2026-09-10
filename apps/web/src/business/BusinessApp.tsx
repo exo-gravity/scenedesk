@@ -39,8 +39,10 @@ import {
 import { ErrorNotice, SectionHeading, Empty, tenantPath } from "./common";
 import { Projects } from "./Projects";
 import { Members } from "./Members";
+import { clearUserEditing } from "./use-cut-work";
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
 const CandidateWorkspace = lazy(() => import("./CandidateWorkspace"));
+const CutWorkspace = lazy(() => import("./CutWorkspace"));
 const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
 import {
@@ -74,6 +76,10 @@ export default function BusinessApp({ hash }: { hash: string }) {
 }
 function AuthenticatedApp({ hash }: { hash: string }) {
   const shell = useRef<HTMLDivElement>(null);
+  const previousUser = useRef<string | undefined>(undefined);
+  const [editingCleanupError, setEditingCleanupError] = useState<Error | null>(
+    null,
+  );
   useEffect(() => {
     shell.current?.scrollTo({ top: 0, left: 0 });
   }, [hash]);
@@ -97,10 +103,30 @@ function AuthenticatedApp({ hash }: { hash: string }) {
       api<{ phase: string; identityMode?: string }>("/health/live"),
   });
   useEffect(() => {
+    if (session.data && !session.isError)
+      previousUser.current = session.data.userId;
+    if (
+      session.error instanceof ApiError &&
+      session.error.status === 401 &&
+      previousUser.current
+    ) {
+      const userId = previousUser.current;
+      previousUser.current = undefined;
+      void clearUserEditing(userId).catch((reason) =>
+        setEditingCleanupError(
+          reason instanceof Error
+            ? reason
+            : new Error("退出后的本机编辑恢复清理未完成。"),
+        ),
+      );
+    }
+  }, [session.data, session.error, session.isError]);
+  useEffect(() => {
     document.title = "工作室 · 幕序 SceneDesk";
   }, []);
   return (
     <div className={classes.shell} ref={shell}>
+      <ErrorNotice error={editingCleanupError} />
       <header className={classes.header}>
         <Anchor href="#/app" className={classes.brand}>
           幕序{" "}
@@ -168,12 +194,37 @@ function Workspace({ hash }: { hash: string }) {
   const segments = hash.split("?")[0]!.split("/");
   const tenantId = segments[2] === "t" ? segments[3] : undefined;
   const [createStudio, setCreateStudio] = useState(false);
+  const [logoutCommitted, setLogoutCommitted] = useState(false),
+    [cleanupError, setCleanupError] = useState<Error | null>(null);
+  const finishLogout = async () => {
+    setLogoutCommitted(true);
+    setCleanupError(null);
+    try {
+      await clearUserEditing(session.userId);
+      cache.clear();
+      location.hash = "/app";
+      location.reload();
+    } catch (reason) {
+      setCleanupError(
+        reason instanceof Error ? reason : new Error("本机恢复清理未完成。"),
+      );
+    }
+  };
+  if (logoutCommitted)
+    return (
+      <Stack>
+        <Text>已退出登录，正在清理本机编辑恢复。</Text>
+        <ErrorNotice error={cleanupError} retry={() => void finishLogout()} />
+      </Stack>
+    );
   if (hash.startsWith("#/invitation")) return <Invitation hash={hash} />;
   return (
     <>
       <div
         className={classes.layout}
-        data-production={segments[6] === "production" || undefined}
+        data-production={
+          ["production", "editing"].includes(segments[6] ?? "") || undefined
+        }
       >
         <aside className={classes.sidebar} aria-label="工作室导航">
           <Select
@@ -244,11 +295,7 @@ function Workspace({ hash }: { hash: string }) {
               logout.mutate(
                 { path: "/v1/session/logout" },
                 {
-                  onSuccess: () => {
-                    cache.clear();
-                    location.hash = "/app";
-                    location.reload();
-                  },
+                  onCommitted: () => void finishLogout(),
                 },
               )
             }
@@ -309,6 +356,7 @@ function Workspace({ hash }: { hash: string }) {
               mediaView={segments[6] === "media"}
               assetView={segments[6] === "assets"}
               productionView={segments[6] === "production"}
+              editingView={segments[6] === "editing"}
             />
           )}
         </main>
@@ -324,6 +372,7 @@ function TenantArea({
   mediaView,
   assetView,
   productionView,
+  editingView,
 }: {
   tenantId: string;
   section?: string | undefined;
@@ -332,6 +381,7 @@ function TenantArea({
   mediaView?: boolean | undefined;
   assetView?: boolean | undefined;
   productionView?: boolean | undefined;
+  editingView?: boolean | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -349,6 +399,12 @@ function TenantArea({
     return (
       <Suspense fallback={<Loader aria-label="正在加载镜头制作" />}>
         <CandidateWorkspace tenantId={tenantId} projectId={projectId} />
+      </Suspense>
+    );
+  if (projectId && editingView)
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载剪辑" />}>
+        <CutWorkspace tenantId={tenantId} projectId={projectId} />
       </Suspense>
     );
   if (section === "media" || (projectId && mediaView))
