@@ -241,6 +241,12 @@ export function ContentWorkspace({
         description="剧本与集场镜 · 从文字到每一镜的创作要求"
         action={
           <Group>
+            <Button
+              component="a"
+              href={`#/app/t/${tenantId}/p/${projectId}/media`}
+            >
+              项目素材
+            </Button>
             <Button variant="default" onClick={() => setTasksOpen(true)}>
               分工与任务
             </Button>

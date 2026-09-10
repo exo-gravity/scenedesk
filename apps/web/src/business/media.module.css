@@ -1,0 +1,125 @@
+.imports {
+  background: var(--ws-panel);
+  padding: var(--mantine-spacing-xl);
+  border-radius: var(--ws-card-radius);
+}
+.importFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--mantine-spacing-lg);
+}
+.importRow {
+  padding-block: var(--mantine-spacing-md);
+  border-top: 1px solid var(--ws-border);
+  overflow-wrap: anywhere;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--mantine-spacing-xl);
+}
+.item {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  color: var(--ws-text);
+  text-decoration: none;
+}
+.item:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 4px;
+}
+.thumbnail {
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  background: var(--ws-panel);
+  color: var(--ws-secondary);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--ws-card-radius);
+}
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.viewport {
+  width: 100%;
+  min-height: 240px;
+  background: var(--ws-panel);
+  color: var(--ws-secondary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: var(--ws-card-radius);
+}
+.viewport > img {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+}
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr);
+  align-items: start;
+  gap: var(--mantine-spacing-xl);
+}
+.detail > * {
+  min-width: 0;
+}
+.metadata {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+}
+.facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  font-size: var(--mantine-font-size-sm);
+}
+.facts dt {
+  color: var(--ws-secondary);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.comparison {
+  padding: var(--mantine-spacing-lg);
+  background: var(--ws-panel);
+  border: 1px solid var(--ws-field-border);
+  border-radius: var(--ws-card-radius);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.detailsText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .importFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--mantine-spacing-md);
+  }
+  .viewport {
+    min-height: 180px;
+  }
+}
+@media (max-width: 400px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

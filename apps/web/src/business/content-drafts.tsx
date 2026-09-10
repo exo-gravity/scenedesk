@@ -4,7 +4,6 @@ import { useSession } from "./api";
 
 type LocalDraft<T> = { value: T; baseVersion: number; savedAt: string };
 let connection: Promise<IDBDatabase> | undefined;
-const unavailableTabId = crypto.randomUUID();
 function database() {
   return (connection ??= new Promise((resolve, reject) => {
     const request = indexedDB.open("scenedesk-content-drafts", 1);
@@ -31,16 +30,47 @@ async function storage<T>(
     tx.onabort = () => reject(tx.error);
   });
 }
-function tabIdentity() {
-  try {
-    const old = sessionStorage.getItem("scenedesk-content-tab");
-    if (old) return old;
-    const id = crypto.randomUUID();
-    sessionStorage.setItem("scenedesk-content-tab", id);
-    return id;
-  } catch {
-    return unavailableTabId;
-  }
+function tabIdentity(): Promise<string> {
+  // sessionStorage is copied when a tab is duplicated. An origin-scoped browser
+  // lock proves this document owns the ID; another live document gets a fresh ID.
+  // Keep the promise on the document through development hot reloads as well.
+  const documentState = globalThis as typeof globalThis & {
+    __scenedeskDraftTab?: Promise<string>;
+  };
+  return (documentState.__scenedeskDraftTab ??= new Promise(
+    (resolve, reject) => {
+      if (!navigator.locks) {
+        reject(new Error("Independent tab draft storage is unavailable"));
+        return;
+      }
+      const hold = (id: string) => {
+        void navigator.locks
+          .request(
+            `scenedesk-content-tab:${id}`,
+            { ifAvailable: true },
+            (lock) => {
+              if (!lock) {
+                hold(crypto.randomUUID());
+                return;
+              }
+              sessionStorage.setItem("scenedesk-content-tab", id);
+              resolve(id);
+              // Released by the browser when this document ends, including reload.
+              return new Promise<void>(() => {});
+            },
+          )
+          .catch(reject);
+      };
+      try {
+        hold(
+          sessionStorage.getItem("scenedesk-content-tab") ??
+            crypto.randomUUID(),
+        );
+      } catch (error) {
+        reject(error);
+      }
+    },
+  ));
 }
 export function useContentDraft<T>(
   path: string,
@@ -49,9 +79,7 @@ export function useContentDraft<T>(
   initialValue: T = initial,
 ) {
   const session = useSession();
-  const [key] = useState(() =>
-    JSON.stringify([session.userId, path, tabIdentity()]),
-  );
+  const [key, setKey] = useState<string>();
   const [value, setValue] = useState(initialValue),
     [baseVersion, setBaseVersion] = useState(version);
   const original = useRef(JSON.stringify(initial));
@@ -64,7 +92,12 @@ export function useContentDraft<T>(
   const dirty = JSON.stringify(value) !== original.current;
   useEffect(() => {
     let live = true;
-    storage<T>(key)
+    tabIdentity()
+      .then((id) => {
+        const key = JSON.stringify([session.userId, path, id]);
+        if (live) setKey(key);
+        return storage<T>(key);
+      })
       .then((found) => {
         if (live) {
           setRecovered(found);
@@ -80,9 +113,9 @@ export function useContentDraft<T>(
     return () => {
       live = false;
     };
-  }, [key]);
+  }, [session.userId, path]);
   useEffect(() => {
-    if (!ready || recovered || !active.current) return;
+    if (!key || !ready || recovered || !active.current) return;
     setSaved(false);
     let current = true;
     queue.current = queue.current
@@ -122,6 +155,7 @@ export function useContentDraft<T>(
   }, [dirty, saved, error]);
   const clear = () => {
     active.current = false;
+    if (!key) return queue.current;
     queue.current = queue.current
       .then(() => storage(key, { remove: true }))
       .then(() => {})
@@ -148,6 +182,7 @@ export function useContentDraft<T>(
     },
     discard: () => {
       setRecovered(undefined);
+      if (!key) return;
       queue.current = queue.current
         .then(() => storage(key, { remove: true }))
         .then(() => {})
