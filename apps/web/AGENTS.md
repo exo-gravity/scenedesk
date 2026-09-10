@@ -1,5 +1,7 @@
 # Frontend implementation rules
 
+Latest user authorization (2026-09-10): implement the complete documented MVP and merge verified features into GitHub. The earlier production-engineering pause is lifted. Start with imported media and a mock provider; real-provider and user-pilot acceptance remain separate. Follow `docs/implementation/22-implementation-progress.md` for actual delivery status. The accepted visual and domain constraints below still apply; historical prototypes are not production persistence.
+
 Reuse the accepted shared visual language and current core workspace samples. The older root Mantine theme and the newer isolated study palette coexist; do not treat the older warm-accent sample as the current brand requirement or claim full migration is complete.
 
 The shared visual language in `docs/design/shared-visual-language-v0.1.md` is user-approved: media first, light framing, compact global tools with comfortable local editing, contextual tools, differentiated surfaces/shapes, and restrained color. The v0.3 core workspace, navigation relationships and continuous scene workflow were explicitly accepted on 2026-09-10; see `docs/design/approved-baseline-2026-09-10.md`. Reuse the current visual samples; do not reopen the accepted layout or assume unseen branding decisions are approved. The current task remains in design/prototype mode. The user subsequently reported no issues for now with the v0.4 specialty studies; treat them as a provisional design baseline, open to later revision. This is not production authorization.

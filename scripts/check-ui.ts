@@ -1,9 +1,11 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { tokens } from "../apps/web/src/theme/tokens.js";
+import { palettes } from "../apps/web/src/theme/shared-language-study.js";
 
 // This gate covers migrated UI only. It does not claim a full visual/accessibility audit.
 const migrated = [
+  "apps/web/src/business",
   "apps/web/src/components/workspace",
   "apps/web/src/pages/SceneProduction.tsx",
   "apps/web/src/pages/DesignPage.tsx",
@@ -81,6 +83,40 @@ const pairs: {
   background: string;
   minimum: number;
 }[] = [];
+for (const [tone, p] of Object.entries(palettes)) {
+  pairs.push(
+    {
+      name: `${tone} primary`,
+      foreground: p.text,
+      background: p.surface,
+      minimum: 4.5,
+    },
+    {
+      name: `${tone} secondary`,
+      foreground: p.secondary,
+      background: p.surface,
+      minimum: 4.5,
+    },
+    {
+      name: `${tone} action`,
+      foreground: p.onAction,
+      background: p.action,
+      minimum: 4.5,
+    },
+    {
+      name: `${tone} input border`,
+      foreground: p.field,
+      background: p.surface,
+      minimum: 3,
+    },
+    {
+      name: `${tone} focus`,
+      foreground: p.focus,
+      background: p.surface,
+      minimum: 3,
+    },
+  );
+}
 for (const [name, color] of Object.entries({
   ...tokens.text,
   ...tokens.status,

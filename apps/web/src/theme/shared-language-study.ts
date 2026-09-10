@@ -1,11 +1,11 @@
-/** Isolated visual study. These palettes are proposals, not the application theme. */
+/** Accepted shared visual language, also consumed by the production root theme. */
 import type { CSSProperties } from "react";
 
 export type StudyTone = "light" | "dark";
-const palettes = {
+export const palettes = {
   light: {
     canvas: "#F4F4F2", shell: "#FAFAF8", surface: "#FFFFFF", soft: "#EFEFED",
-    text: "#242522", secondary: "#666963", line: "#DADCD6", field: "#A4A7A0",
+    text: "#242522", secondary: "#666963", line: "#DADCD6", field: "#878B81",
     selection: "#515A51", focus: "#416AA3", action: "#303830", onAction: "#FFFFFF",
     dot: "#DDDFD9", shadow: "0 6px 24px rgb(20 24 20 / 9%)",
   },

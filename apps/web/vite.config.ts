@@ -18,6 +18,7 @@ export default defineConfig({
     port: 4311,
     strictPort: true,
     proxy: {
+      "/v1": "http://127.0.0.1:4310",
       "/health": "http://127.0.0.1:4310",
       "/design": "http://127.0.0.1:4310",
     },

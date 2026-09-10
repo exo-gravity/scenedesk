@@ -17,11 +17,12 @@ import {
 import type { CSSVariablesResolver } from "@mantine/core";
 import { tokens, semanticVariables } from "./tokens";
 import classes from "./theme.module.css";
+import { palettes } from "./shared-language-study";
 
 export const theme = createTheme({
   fontFamily: tokens.font.family,
-  primaryColor: "apricot",
-  primaryShade: 5,
+  primaryColor: "studio",
+  primaryShade: { light: 8, dark: 2 },
   autoContrast: true,
   focusRing: "auto",
   focusClassName: classes.focus!,
@@ -29,6 +30,18 @@ export const theme = createTheme({
   activeClassName: "",
   defaultRadius: "sm",
   colors: {
+    studio: [
+      "#F4F4F2",
+      "#E9EBE6",
+      "#DCE3D5",
+      "#B6C0AE",
+      "#A8AEA5",
+      "#71796D",
+      "#515A51",
+      "#3D433B",
+      "#303830",
+      "#222820",
+    ],
     dark: [
       "#EAEAEA",
       "#B8B8B8",
@@ -123,7 +136,7 @@ export const theme = createTheme({
       }),
     }),
     ActionIcon: ActionIcon.extend({
-      defaultProps: { size: "md", variant: "subtle", color: "dark.1" },
+      defaultProps: { size: "md", variant: "subtle", color: "studio" },
       classNames: { root: classes.actionIcon },
       vars: (_, props) => ({
         root: {
@@ -154,7 +167,7 @@ export const theme = createTheme({
         size: "md",
         radius: "xs",
         variant: "outline",
-        color: "dark.1",
+        color: "studio",
       },
       classNames: { root: classes.badge },
     }),
@@ -181,17 +194,41 @@ export const theme = createTheme({
   },
 });
 
+function scheme(tone: "light" | "dark") {
+  const p = palettes[tone];
+  return {
+    "--ws-canvas": p.canvas,
+    "--ws-panel": p.shell,
+    "--ws-raised": p.surface,
+    "--ws-hover": p.soft,
+    "--ws-text": p.text,
+    "--ws-secondary": p.secondary,
+    "--ws-muted": p.secondary,
+    "--ws-border": p.line,
+    "--ws-border-subtle": p.line,
+    "--ws-field-border": p.field,
+    "--ws-accent": p.action,
+    "--ws-accent-hover": p.selection,
+    "--ws-accent-soft": p.soft,
+    "--ws-on-accent": p.onAction,
+    "--ws-focus": p.focus,
+    "--ws-shadow": p.shadow,
+    "--ws-danger": tone === "light" ? "#9B332B" : tokens.status.danger,
+    "--ws-success": tone === "light" ? "#326848" : tokens.status.success,
+    "--ws-warning": tone === "light" ? "#845814" : tokens.status.warning,
+    "--mantine-color-body": p.canvas,
+    "--mantine-color-text": p.text,
+    "--mantine-color-dimmed": p.secondary,
+    "--mantine-color-default": p.surface,
+    "--mantine-color-default-hover": p.soft,
+    "--mantine-color-default-border": p.line,
+    "--mantine-color-default-color": p.text,
+    "--mantine-color-error":
+      tone === "light" ? "#9B332B" : tokens.status.danger,
+  };
+}
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
   variables: { ...semanticVariables },
-  light: {},
-  dark: {
-    "--mantine-color-body": tokens.surface.canvas,
-    "--mantine-color-text": tokens.text.primary,
-    "--mantine-color-dimmed": tokens.text.muted,
-    "--mantine-color-default": tokens.surface.raised,
-    "--mantine-color-default-hover": tokens.surface.hover,
-    "--mantine-color-default-border": tokens.border.default,
-    "--mantine-color-default-color": tokens.text.primary,
-    "--mantine-color-error": tokens.status.danger,
-  },
+  light: scheme("light"),
+  dark: scheme("dark"),
 });
