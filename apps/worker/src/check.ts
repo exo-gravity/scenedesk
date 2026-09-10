@@ -16,7 +16,8 @@ try {
     JSON.stringify({
       workerPreflight: "pass",
       processingEnabled: false,
-      reason: "Durable scheduling and media workers are S1/S2 work",
+      reason:
+        "Queue foundation has a separate queue:check; media business handlers are connected in E03",
     }),
   );
 } finally {
