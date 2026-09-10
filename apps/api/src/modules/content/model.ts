@@ -88,27 +88,19 @@ export async function activeParent(
   if (kind === "scenes") await activeParent(tx, "episodes", found.episode_id);
   return found;
 }
-export function validateState(state?: Schema<"ContinuityState">) {
-  requireThat(
-    !state?.characters?.length && !state?.props?.length,
-    422,
-    "ASSETS_NOT_READY",
-    "角色与道具状态需要先建立有效资产。可先记录空间与连续性说明。",
-  );
-}
 export async function validateShotSpec(
   tx: Transaction,
   shotId: string,
   spec: Schema<"ShotSpec">,
+  options: { existingShot?: boolean } = {},
 ) {
-  requireThat(
-    spec.references.length === 0,
-    422,
-    "ASSETS_NOT_READY",
-    "请先导入有效媒体或资产再添加参考。",
+  // Asset scope, fixed versions, looks and retained media are validated by the
+  // same database boundary. A proposal's temporary identity is never an owner,
+  // even when its caller-supplied UUID happens to match a persisted shot.
+  await tx.sql.query(
+    "SELECT validate_creative_links($1,$2,$3,coalesce((SELECT r.spec FROM shots s JOIN shot_revisions r ON r.id=s.current_revision_id WHERE s.tenant_id=$1 AND s.project_id=$2 AND s.id=$4),'{}'))",
+    [tx.tenantId, tx.projectId, spec, options.existingShot ? shotId : null],
   );
-  validateState(spec.entryState);
-  validateState(spec.exitState);
   const dialogue = spec.dialogue ?? [];
   requireThat(
     new Set(dialogue.map((d) => d.id.toLowerCase())).size === dialogue.length,
@@ -118,7 +110,8 @@ export async function validateShotSpec(
   );
   const sources = (spec.sourceShotIds ?? []).map((s) => s.toLowerCase());
   requireThat(
-    new Set(sources).size === sources.length && !sources.includes(shotId),
+    new Set(sources).size === sources.length &&
+      !(options.existingShot && sources.includes(shotId.toLowerCase())),
     422,
     "INVALID_SHOT_SOURCE",
     "来源镜头不能重复或指向自身。",
@@ -156,12 +149,6 @@ export async function validateShotSpec(
     );
   }
   for (const line of dialogue) {
-    requireThat(
-      !line.characterAssetId && !line.voiceAssetRevisionId,
-      422,
-      "ASSETS_NOT_READY",
-      "台词角色与声音必须关联有效资产。",
-    );
     if (line.sourceDialogueId) {
       const found = await tx.sql.query(
         "SELECT 1 FROM dialogue_lines d JOIN shot_revisions r ON r.id=d.shot_revision_id WHERE d.tenant_id=$1 AND d.project_id=$2 AND d.dialogue_id=$3 AND r.shot_id=ANY($4::uuid[]) LIMIT 1",
@@ -169,7 +156,7 @@ export async function validateShotSpec(
           tx.tenantId,
           tx.projectId,
           line.sourceDialogueId,
-          [shotId, ...sources],
+          [...(options.existingShot ? [shotId] : []), ...sources],
         ],
       );
       requireThat(
@@ -189,7 +176,9 @@ export async function appendShotRevision(
   number: number,
   id = randomUUID(),
 ) {
-  const { scripts, sources } = await validateShotSpec(tx, shotId, spec);
+  const { scripts, sources } = await validateShotSpec(tx, shotId, spec, {
+    existingShot: true,
+  });
   await tx.sql.query(
     "INSERT INTO shot_revisions (id,tenant_id,project_id,shot_id,number,spec,source_script_revision_id) VALUES ($1,$2,$3,$4,$5,$6,$7)",
     [
@@ -211,20 +200,6 @@ export async function appendShotRevision(
     await tx.sql.query(
       "INSERT INTO shot_source_shots (tenant_id,project_id,shot_revision_id,source_shot_id) VALUES ($1,$2,$3,$4)",
       [tx.tenantId, tx.projectId, id, source],
-    );
-  for (const line of spec.dialogue ?? [])
-    await tx.sql.query(
-      "INSERT INTO dialogue_lines (tenant_id,project_id,shot_revision_id,dialogue_id,text,performance,source_excerpt,source_dialogue_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-      [
-        tx.tenantId,
-        tx.projectId,
-        id,
-        line.id,
-        line.text,
-        line.performance ?? null,
-        line.sourceExcerpt ?? null,
-        line.sourceDialogueId ?? null,
-      ],
     );
   return id;
 }

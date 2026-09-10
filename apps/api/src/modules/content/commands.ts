@@ -1,12 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { Transaction } from "../../kernel/database.js";
-import { requireThat } from "../../kernel/errors.js";
 import {
   activeParent,
   appendShotRevision,
   contentRecord,
   shotSelect,
-  validateState,
   type Schema,
 } from "./model.js";
 
@@ -29,18 +27,8 @@ export async function insertEpisode(
   );
   return contentRecord<Schema<"Episode">>(result.rows[0]);
 }
-export function validateScene(body: Schema<"SceneInput">) {
-  validateState(body.state);
-  requireThat(
-    !body.defaultAssetRevisionIds?.length,
-    422,
-    "ASSETS_NOT_READY",
-    "场次参考需要先建立有效资产。",
-  );
-}
 export async function insertScene(tx: Transaction, body: Schema<"SceneInput">) {
   await activeParent(tx, "episodes", body.episodeId);
-  validateScene(body);
   const result = await tx.sql.query(
     "INSERT INTO scenes (id,tenant_id,project_id,episode_id,title,position,time_label,location_label,summary,state,default_asset_revision_ids,status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *",
     [
@@ -59,6 +47,16 @@ export async function insertScene(tx: Transaction, body: Schema<"SceneInput">) {
     ],
   );
   return contentRecord<Schema<"Scene">>(result.rows[0]);
+}
+export async function validateScene(
+  tx: Transaction,
+  body: Schema<"SceneInput">,
+) {
+  await tx.sql.query("SELECT validate_creative_links($1,$2,$3,'{}')", [
+    tx.tenantId,
+    tx.projectId,
+    { defaults: body.defaultAssetRevisionIds ?? [], state: body.state },
+  ]);
 }
 export async function insertShot(tx: Transaction, body: Schema<"ShotInput">) {
   await activeParent(tx, "scenes", body.sceneId);

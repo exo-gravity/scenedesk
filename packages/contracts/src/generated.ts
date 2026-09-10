@@ -2872,11 +2872,13 @@ export interface components {
         };
         UsageLocation: {
             /** @enum {string} */
-            kind: "scene" | "shot_revision" | "plan" | "cut_draft" | "cut_revision" | "asset_revision" | "cut_work_draft" | "editing_history";
+            kind: "production" | "scene" | "shot_revision" | "plan" | "cut_draft" | "cut_revision" | "asset_revision" | "cut_work_draft" | "editing_history";
             /** Format: uuid */
             objectId: string;
             /** Format: uuid */
             projectId?: string;
+            /** Format: uuid */
+            shotId?: string;
             label: string;
         };
         Media: {

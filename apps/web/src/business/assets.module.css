@@ -100,3 +100,13 @@
   outline: 2px solid var(--ws-focus);
   outline-offset: 2px;
 }
+.choiceButton {
+  height: auto;
+  min-height: var(--button-height);
+  padding-block: var(--mantine-spacing-xs);
+}
+.choiceLabel {
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}

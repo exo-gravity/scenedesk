@@ -113,6 +113,18 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.asset_revision_usable(uuid,uuid,uuid,boolean) TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT,DELETE ON ${["creative_references", "creative_asset_bindings", "project_quality_references"].map((table) => `${scope}.${table}`).join(",")} TO ${target}`,
+  );
+  for (const signature of [
+    "creative_links(jsonb)",
+    "asset_identity_usable(uuid,uuid,uuid,boolean)",
+    "validate_creative_links(uuid,uuid,jsonb,jsonb)",
+    "creative_owner_document(uuid,uuid,uuid)",
+  ])
+    await client.query(
+      `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,
+    );
   for (const signature of mediaPolicyFunctions)
     await client.query(
       `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,

@@ -1,9 +1,4 @@
-import {
-  insertEpisode,
-  insertScene,
-  insertShot,
-  validateScene,
-} from "./commands.js";
+import { insertEpisode, insertScene, insertShot } from "./commands.js";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../kernel/routes.js";
@@ -115,7 +110,6 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       input.version,
     );
     await activeParent(tx, "episodes", body.episodeId);
-    validateScene(body);
     const result = await tx.sql.query(
       "UPDATE scenes SET episode_id=$4,title=$5,position=$6,time_label=$7,location_label=$8,summary=$9,state=$10,default_asset_revision_ids=$11,status=$12,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3 RETURNING *",
       [
