@@ -1,0 +1,22 @@
+{
+  "baseline": {
+    "editedNode": "same CAP0003 text source",
+    "modifications": 8,
+    "intervalMicroseconds": 1000,
+    "totalSelfSamples": 4296,
+    "compareCodePointsSelfSamples": 1744,
+    "compareCodePointsPercent": 40.6,
+    "profileDurationMicroseconds": 7320618,
+    "sourceIdentification": "V8 call frame mapped to local production bundle compareCodePoints code"
+  },
+  "optimized": {
+    "editedNode": "same CAP0003 text source",
+    "modifications": 8,
+    "intervalMicroseconds": 1000,
+    "totalSelfSamples": 1470,
+    "compareCodePointsSelfSamples": 13,
+    "compareCodePointsPercent": 0.88,
+    "profileDurationMicroseconds": 2396299,
+    "sourceIdentification": "V8 call frame mapped to local production bundle compareCodePoints code"
+  }
+}

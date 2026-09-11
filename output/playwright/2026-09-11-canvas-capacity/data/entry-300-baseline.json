@@ -1,0 +1,147 @@
+{
+  "case": 300,
+  "phase": "baseline",
+  "kind": "20 warm full reloads; ready canvas nodes + saved status + 2 RAF; app assets cached",
+  "samples": [
+    {
+      "readyMs": 1438.5,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 27170837,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1362,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 47947847,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1355.0999999940395,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 20835304,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1058.7000000029802,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 64259159,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1031.2999999970198,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 21311095,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1343.3999999910593,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 53749765,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1042.2000000029802,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 22381002,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1068.1000000089407,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 54785723,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1361.2000000029802,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 23862083,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1007.2999999970198,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 63601339,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1368,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 72437994,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1021.2000000029802,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 35207972,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1030.800000011921,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 56264197,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1379,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 59105463,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1055.8999999910593,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 88499723,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1369.4000000059605,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 48044719,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1395.0999999940395,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 27727203,
+      "domElements": 1946
+    },
+    {
+      "readyMs": 1409.2000000029802,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 59688322,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1348.7000000029802,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 66054688,
+      "domElements": 1955
+    },
+    {
+      "readyMs": 1395,
+      "nodes": 15,
+      "edges": 59,
+      "heapUsed": 29173077,
+      "domElements": 1955
+    }
+  ]
+}
