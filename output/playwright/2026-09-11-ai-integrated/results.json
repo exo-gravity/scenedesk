@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-09-11T12:08:13.899424+00:00",
+  "baseMain": "e25a6b9ec87307fc005c11bc73346d5e48dcecad",
+  "executionMode": "test_fixture",
+  "realProviderCalls": 0,
+  "paidProviderCalls": 0,
+  "productionAcceptance": false,
+  "checks": [
+    {
+      "name": "complete_check",
+      "passed": 60,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "7d511da1c01331d0e36c4c27ccfd36257bca32bd290fefcf16f625220ea992c6"
+    },
+    {
+      "name": "database_regression",
+      "passed": 160,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "5ccec561dae4f7c0a6704689377d9b51965df6b6a52fe740145d459805e06ac3"
+    }
+  ],
+  "recovery": {
+    "verification": "Actual same-origin API and PostgreSQL; explicit fixture capability; worker intentionally not started",
+    "projectId": "ff8f70f2-8075-45de-b2bc-c54bd62e2653",
+    "sceneId": "4fae9756-c2c0-4062-8597-42c08f6e45c3",
+    "jobId": "488e7fa9-e79b-4cdf-9e18-2b3ea18b5c82",
+    "planId": "1252b441-2d2c-4c9a-bb8a-f598b636011e",
+    "planPosts": 1,
+    "executionPosts": 1,
+    "refreshAndModeOnlyRead": true,
+    "unicodeSelectionAndContextFixed": true,
+    "noAutomaticShotCreation": true,
+    "pageErrors": 0,
+    "serverErrors": 0
+  },
+  "adoption": {
+    "verification": "Actual same-origin API, restricted durable worker and PostgreSQL with explicit local fixture; no model service",
+    "jobId": "488e7fa9-e79b-4cdf-9e18-2b3ea18b5c82",
+    "proposalId": "488e7fa9-e79b-4cdf-9e18-2b3ea18b5c82",
+    "shotId": "a9f4d414-2467-43bb-a56d-4be7fe13e651",
+    "proposalRevision": 2,
+    "executionPosts": 0,
+    "editPuts": 1,
+    "applyPosts": 1,
+    "originalModelRevisionPreserved": true,
+    "noShotBeforeExplicitAdoption": true,
+    "manualIntentPersisted": true,
+    "reloadRestoresAppliedProposal": true,
+    "pageErrors": 0,
+    "serverErrors": 0
+  },
+  "viewedScreenshots": [
+    "lost-execution-receipt-1512.png",
+    "recovered-queued-1512.png",
+    "recovered-queued-1366.png",
+    "recovered-queued-390.png",
+    "actual-proposal-applied-1512.png"
+  ],
+  "homeLogout": {
+    "verification": "Actual session logout from a fresh home document without lazy scene workspace",
+    "historicalRecordsBefore": 1,
+    "historicalRecordsAfter": 0,
+    "lazySceneLoaded": false,
+    "serverSessionRevoked": true
+  }
+}
