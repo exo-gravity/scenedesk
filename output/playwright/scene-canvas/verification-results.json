@@ -180,5 +180,38 @@
     ],
     "pageErrors": 0,
     "scope": "local fixture, actual production browser/API/database; no real provider or user acceptance"
+  },
+  "continueCreation": {
+    "singleSource": true,
+    "multipleSources": true,
+    "fixedMediaAndText": true,
+    "independentDraft": true,
+    "editableReferences": true,
+    "modeAndReloadRecovery": true,
+    "staleSourceBlocked": true,
+    "atomicUndoRedo": true,
+    "generationRequests": 0,
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "containedPicker": true,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "containedPicker": true,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "containedPicker": true,
+        "horizontalOverflow": false
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "actual local production browser/API canvas, no model execution"
   }
 }

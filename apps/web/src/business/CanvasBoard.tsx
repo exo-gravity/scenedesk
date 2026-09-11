@@ -59,6 +59,7 @@ import { referencePurposes, options } from "./asset-queries";
 import { appendCanvasReference } from "./canvas-reference";
 import { ErrorNotice } from "./common";
 import classes from "./canvas.module.css";
+import { CanvasContinueCreation } from "./CanvasContinueCreation";
 
 type Preference = Schema<"SaveSceneWorkspacePreference">;
 type FlowNode = Node<
@@ -598,6 +599,12 @@ export function CanvasBoard({
           引用 · 缩放 {Math.round(preference.viewport.zoom * 100)}%
         </Text>
         <Group gap="xs">
+          <CanvasContinueCreation
+            controller={controller}
+            selected={selected}
+            readOnly={readOnly}
+            focus={focus}
+          />
           <Button
             size="xs"
             disabled={!selected.length || readOnly}
@@ -646,6 +653,9 @@ export function CanvasBoard({
             value={query}
             onChange={(e) => setQuery(e.currentTarget.value)}
           />
+          <Text size="xs" c="dimmed">
+            按住 Shift 点击可多选，再共同作为参考。
+          </Text>
           <div className={classes.nodeList}>
             {document.nodes
               .filter((n) =>
@@ -657,7 +667,15 @@ export function CanvasBoard({
                 <Button
                   key={n.id}
                   variant={selectedSet.has(n.id) ? "filled" : "subtle"}
-                  onClick={() => focus([n.id])}
+                  onClick={(event) =>
+                    focus(
+                      event.shiftKey
+                        ? selectedSet.has(n.id)
+                          ? selected.filter((id) => id !== n.id)
+                          : [...selected, n.id]
+                        : [n.id],
+                    )
+                  }
                 >
                   {n.title}
                 </Button>
