@@ -57,4 +57,6 @@ poster 与 original 有独立状态。poster 尚未就绪或失败时，已验�
 
 2026-09-12：前后端已整合，完整 check 82 项、数据库 183 项通过。持续环境已应用 0040–0046 并复用原 generation/media/scheduler 身份重授权限。升级入口补上已有媒体运行身份授权，不轮换秘密或替换身份。原描述能力未升级为可执行能力；新增显式图片 fixture 与权限 0600 的私有 manifest。
 
-合法同源生产页面的镜头与画布两个实际任务均完成受限 worker、真实文件归档和图片解码。执行 202 与画布添加 201 回执均注入真实丢失并从原身份恢复，来源删除后仍可通过服务端历史取回结果。详见[主线程实际验证](../../output/playwright/2026-09-11-image-integrated/verification.md)。首次图片授权漏请求标识的问题已修正；本机媒体回归跨休眠及清醒窗口的超时保留记录，后续 CI 未完成前不声明该片已合并。
+合法同源生产页面的镜头与画布两个实际任务均完成受限 worker、真实文件归档和图片解码。执行 202 与画布添加 201 回执均注入真实丢失并从原身份恢复，来源删除后仍可通过服务端历史取回结果。详见[主线程实际验证](../../output/playwright/2026-09-11-image-integrated/verification.md)。首次图片授权漏请求标识的问题已修正；本机媒体回归跨休眠及清醒窗口的超时保留记录；独立远端完整媒体回归已通过。
+
+[PR #21](https://github.com/exo-gravity/scenedesk/pull/21) 已于 2026-09-11 16:35:13 UTC 合入 main（`f3b7433f036261db8e36b01249fee5e242ed3886`）。精确提交 `11ea5792ff7e5fc2e21d5599051d89fe28ca3109` 的 [push CI](https://github.com/exo-gravity/scenedesk/actions/runs/34621663645) 与 [PR CI](https://github.com/exo-gravity/scenedesk/actions/runs/34621707008) 完整日志均已检查：每轮 82 单元、183 数据库、66 媒体测试通过，0 fail/cancelled/skipped。

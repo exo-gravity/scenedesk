@@ -31,4 +31,6 @@
 
 主线程仍需整合图片后端后在合法 Origin 验证实际 API、持久化、worker、对象存储与恢复。视频／音频生成、真实 provider 凭据和费用授权及真实模型质量仍未完成；本片只是原设计 AI 能力中的首个单图闭环。
 
-2026-09-12 主线程补充：[实际整合证据](../../output/playwright/2026-09-11-image-integrated/verification.md)已完成合法 Origin 的镜头与画布生成、真实原图解码、两种回执丢失恢复与删除来源后的历史取回。发现并修正新图片预览漏带媒体授权请求标识的问题，现复用 `mediaPost`；恢复直接读取原已归档任务，未重新生成。完整 check 82 项与数据库 183 项通过。上述受控分支记录继续作为局部证据保留；实际模型验收仍未完成，GitHub CI／合并状态待最终记录。
+2026-09-12 主线程补充：[实际整合证据](../../output/playwright/2026-09-11-image-integrated/verification.md)已完成合法 Origin 的镜头与画布生成、真实原图解码、两种回执丢失恢复与删除来源后的历史取回。发现并修正新图片预览漏带媒体授权请求标识的问题，现复用 `mediaPost`；恢复直接读取原已归档任务，未重新生成。完整 check 82 项与数据库 183 项通过。上述受控分支记录继续作为局部证据保留；实际模型验收仍未完成。
+
+[PR #21](https://github.com/exo-gravity/scenedesk/pull/21) 已于 2026-09-11 16:35:13 UTC 合入 main（`f3b7433f036261db8e36b01249fee5e242ed3886`）。精确提交 `11ea5792ff7e5fc2e21d5599051d89fe28ca3109` 的 [push CI](https://github.com/exo-gravity/scenedesk/actions/runs/34621663645) 与 [PR CI](https://github.com/exo-gravity/scenedesk/actions/runs/34621707008) 完整日志均已检查：每轮 82 单元、183 数据库、66 媒体测试通过，0 fail/cancelled/skipped。
