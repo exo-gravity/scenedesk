@@ -1,3 +1,5 @@
+import { GenerationJobControls } from "./GenerationJobControls";
+import { mediaPost } from "./media-imports";
 import {
   useEffect,
   useMemo,
@@ -161,6 +163,14 @@ function SceneAssistantContent({
             }),
           execute: (planId, key) =>
             post(`${tenant}/generation-jobs`, { planId }, key),
+          cancelJob: (jobId, key) =>
+            mediaPost(
+              session,
+              `${tenant}/generation-jobs/${jobId}/cancel`,
+              undefined,
+              AbortSignal.timeout(15000),
+              key,
+            ),
           getJob: (id) =>
             api(`${tenant}/generation-jobs/${id}`, {
               signal: AbortSignal.timeout(15000),
@@ -408,6 +418,16 @@ function SceneAssistantContent({
                   <ArrowsClockwise size={16} />
                 </Button>
               </Group>
+              <GenerationJobControls
+                job={job}
+                cancellation={record.cancellation}
+                active={active && state.access === "ready"}
+                busy={state.busy}
+                label="本次分镜任务"
+                requestCancellation={(target) =>
+                  controller.requestCancellation(target)
+                }
+              />
               {(job as ExecutionIdentified).executionMode ===
                 "test_fixture" && (
                 <Alert title="测试任务" mt="sm">

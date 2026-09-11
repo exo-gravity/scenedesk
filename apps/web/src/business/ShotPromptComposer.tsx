@@ -1,3 +1,4 @@
+import { GenerationJobControls } from "./GenerationJobControls";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -566,6 +567,18 @@ function PromptContent({
                       核对原任务
                     </Button>
                   </Group>
+                  {job && (
+                    <GenerationJobControls
+                      job={job}
+                      cancellation={record.cancellation}
+                      active={active && state.access === "ready"}
+                      busy={state.busy}
+                      label={rework ? "本次意见修改建议" : "本次提示建议"}
+                      requestCancellation={(target) =>
+                        controller.requestCancellation(target)
+                      }
+                    />
+                  )}
                   {(!job ||
                     ["submission_unknown", "reconciliation_required"].includes(
                       job.status,

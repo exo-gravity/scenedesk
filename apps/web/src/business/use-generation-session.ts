@@ -1,3 +1,4 @@
+import { mediaPost } from "./media-imports";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { allPages, api, ApiError, useSession, type Schema } from "./api";
 import { projectPath, tenantPath } from "./common";
@@ -119,6 +120,14 @@ export function useGenerationSession(
           }),
         execute: (planId, key) =>
           post(`${tenant}/generation-jobs`, { planId }, key),
+        cancelJob: (jobId, key) =>
+          mediaPost(
+            session,
+            `${tenant}/generation-jobs/${jobId}/cancel`,
+            undefined,
+            AbortSignal.timeout(15000),
+            key,
+          ),
         getJob: (id) =>
           api(`${tenant}/generation-jobs/${id}`, {
             signal: AbortSignal.timeout(15000),

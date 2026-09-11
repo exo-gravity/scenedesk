@@ -81,6 +81,9 @@ function fixture() {
   } as Schema<"GenerationJob">;
   const transport: AssistantTransport<ImageRequest> = {
     checkAccess: async () => {},
+    cancelJob: async () => {
+      throw Error("cancel not expected");
+    },
     createPlan: async () => {
       calls.push("plan");
       return plan;

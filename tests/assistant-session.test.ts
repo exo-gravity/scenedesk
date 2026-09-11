@@ -70,6 +70,9 @@ function fixture() {
   };
   const transport: AssistantTransport = {
     checkAccess: async () => {},
+    cancelJob: async () => {
+      throw Error("cancel not expected");
+    },
     createPlan: async (input, key) => {
       calls.push({ kind: "plan", key, input });
       return plan;

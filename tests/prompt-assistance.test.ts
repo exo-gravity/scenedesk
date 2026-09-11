@@ -69,6 +69,9 @@ function fixture(initial = draft) {
   } as Schema<"GenerationPlan">;
   const transport: AssistantTransport = {
     checkAccess: async () => {},
+    cancelJob: async () => {
+      throw Error("cancel not expected");
+    },
     createPlan: async () => plan,
     getPlan: async () => plan,
     execute: async () => {
