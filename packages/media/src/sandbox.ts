@@ -269,3 +269,35 @@ export async function verifyMediaRuntime() {
     );
   return { image: FFMPEG_IMAGE, ffmpegVersion: "9.0.1" };
 }
+
+/** Multi-architecture image manifests alone do not identify floating-point media output. */
+export async function verifyProductionRuntime() {
+  const runtime = await verifyMediaRuntime();
+  const identity = (
+    await docker(
+      [
+        "image",
+        "inspect",
+        "--format",
+        "{{.Id}} {{.Os}} {{.Architecture}}",
+        FFMPEG_IMAGE,
+      ],
+      { timeoutMs: 15_000, maxBytes: 1024 },
+    )
+  ).trim();
+  const match = /^(sha256:[a-f0-9]{64}) linux (amd64|arm64)$/.exec(identity);
+  if (!match)
+    throw new MediaFailure(
+      "MEDIA_BUILD_MISMATCH",
+      "无法确认制作运行环境的镜像与处理器架构。",
+    );
+  if (
+    process.env.DOCKER_DEFAULT_PLATFORM &&
+    process.env.DOCKER_DEFAULT_PLATFORM !== `linux/${match[2]!}`
+  )
+    throw new MediaFailure(
+      "MEDIA_BUILD_MISMATCH",
+      "指定的制作架构与已确认的本地镜像不一致。",
+    );
+  return { ...runtime, imageId: match[1]!, platform: `linux/${match[2]!}` };
+}

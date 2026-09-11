@@ -5,9 +5,10 @@ import { join } from "node:path";
 import { PassThrough, Readable } from "node:stream";
 import { FFMPEG_IMAGE, MediaFailure } from "./policy.js";
 import { fileIntegrity } from "./probe.js";
-import { runMediaProcess, verifyMediaRuntime } from "./sandbox.js";
+import { runMediaProcess, verifyProductionRuntime } from "./sandbox.js";
 import {
   PRODUCTION_LIMITS,
+  PRODUCTION_NORMALIZATION_VERSION,
   mapVideoFrames,
   readVideoTiming,
   validateProductionRate,
@@ -182,7 +183,7 @@ export async function makeVideoProduction(
       "MEDIA_PROFILE_UNSUPPORTED",
       "此目标帧率尚未通过制作 profile 验收。",
     );
-  await verifyMediaRuntime();
+  const runtime = await verifyProductionRuntime();
   const original = await fileIntegrity(sourceFile);
   const source = await readVideoTiming(sourceFile, signal);
   const mapping = mapVideoFrames(source, rate);
@@ -462,7 +463,8 @@ export async function makeVideoProduction(
     const manifest = {
       profile: VIDEO_PRODUCTION_PROFILE,
       ffmpegImage: FFMPEG_IMAGE,
-      normalizationVersion: "normalization-v1",
+      runtime,
+      normalizationVersion: PRODUCTION_NORMALIZATION_VERSION,
       sourceSha256: original.sha256,
       sourceBytes: original.bytes,
       sourceFormat: { ...source, frames: undefined },

@@ -2,6 +2,8 @@ import { Writable } from "node:stream";
 import { MEDIA_LIMITS, MediaFailure } from "./policy.js";
 import { runMediaProcess } from "./sandbox.js";
 
+export const PRODUCTION_NORMALIZATION_VERSION = "normalization-v1";
+
 export const PRODUCTION_LIMITS = Object.freeze({
   frames: 1_728_000,
   reportBytes: 256 * 1024 * 1024,
