@@ -60,3 +60,5 @@
 首个整合候选已通过 `npm run check` 82 项、部署专属类型和4项配置测试、独立真实 PostgreSQL 审计6项（一个父用例与5个场景）。数据库测试容器及其临时数据已清理；只验证关系事实，不声称生成文件解码或模型质量通过。
 
 当前 head 的镜像构建及本轮新的 API/queue/browser-contract smoke 尚待完成，GitHub 独立工作流也待主任务推送执行，不能引用首片旧镜像或未登录截图作为当前 head 通过的证据。镜像源基线、已完成与待完成结果记录在 [整合验证清单](../../deploy/smoke/evidence/integration-verification.json)；后续以独立证据提交补齐。原首片证据仍保留在 `deploy/smoke/evidence/verification.json`，不会覆盖。
+
+2026-09-12，PR 23 的首次部署工作流 `34626832293` 已通过部署类型、配置、数据库审计和三个镜像构建，但 smoke 在任何容器启动之前失败：全新 checkout 没有 `.runtime` 父目录，`prepare.ts` 创建运行目录时报 `ENOENT`。修复只为父目录添加 `recursive:true` 和 `0700` 权限；最终运行目录仍排他创建。已用没有 `.runtime` 的全新临时目录实际运行 prepare：父目录与运行目录均为 `0700`，再次运行报 `EEXIST`，已有配置字节不变。该验证不代表后续容器 smoke 已通过；首次 CI 失败记录保留。

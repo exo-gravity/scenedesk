@@ -1,11 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync, chmodSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { mediaStoragePolicy } from "@drama/media";
 const directory = resolve(process.argv[2] ?? "");
 if (!directory.includes("/.runtime/deploy-smoke-"))
   throw new Error("Use a fresh .runtime/deploy-smoke-* directory");
+mkdirSync(dirname(directory), { mode: 0o700, recursive: true });
 mkdirSync(directory, { mode: 0o700 });
 for (const sub of ["certs", "setup", "media", "browser"])
   mkdirSync(`${directory}/${sub}`, { mode: 0o755 });
