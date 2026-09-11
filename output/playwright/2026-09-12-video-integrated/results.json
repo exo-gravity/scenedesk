@@ -1,0 +1,120 @@
+{
+  "sourceHead": "891f3514001b741913bb43b598ff6ef895724190",
+  "controlledModel": "video_fixture_v1",
+  "realModelAcceptance": false,
+  "shotCreation": {
+    "planPosts": 1,
+    "executePosts": 1,
+    "lostExecute202Recovered": true,
+    "manualContinuationPreserved": true,
+    "contentTreeUnchanged": true,
+    "viewports": [
+      1512,
+      390
+    ]
+  },
+  "canvasBeforeSaveFailure": {
+    "planPosts": 1,
+    "executePosts": 1,
+    "placementPosts": 2,
+    "samePlacementKey": true,
+    "oneResultNode": true,
+    "sourcePreservedBeforeExplicitRemoval": true,
+    "actualVideoDecoded": true
+  },
+  "localFailure": {
+    "phase": "explicit_source_removal_save",
+    "observedStatuses": [
+      500,
+      500,
+      500,
+      500
+    ],
+    "operations": [
+      "capabilities",
+      "project_events",
+      "canvas_save",
+      "workspace_preference"
+    ],
+    "rootCause": "undetermined; not silently attributed to sleep or host load",
+    "outcome": "local edit retained; save/read recovery performed without new generation or placement"
+  },
+  "canvasRecovery": {
+    "actualApiDatabaseWorkerStorage": true,
+    "explicitTechnicalFixture": true,
+    "realModelAcceptance": false,
+    "planId": "2bcc2a71-a295-4105-b173-0f77356cb923",
+    "jobId": "e7775247-5571-42c7-b7e6-391d1e454e07",
+    "mediaId": "e7775247-5571-42c7-b7e6-391d1e454e07",
+    "sourceId": "667236bc-c02f-408c-9706-812be2e94aeb",
+    "resultId": "d4d4a897-d6f3-4283-8f65-eb66e647a61d",
+    "canvasWrites": 1,
+    "executionPosts": 0,
+    "resultPosts": 0,
+    "sourceRemovalRecovered": true,
+    "deletedSourceHistoryRecovered": true,
+    "offscreenPlayerReleased": true,
+    "video": {
+      "width": 256,
+      "height": 144,
+      "durationUs": 2000000,
+      "fpsNum": 24,
+      "fpsDen": 1,
+      "hasAudio": false
+    },
+    "errors": [],
+    "failures": []
+  },
+  "existingResultRecovery": {
+    "actualApiDatabaseWorkerStorage": true,
+    "explicitTechnicalFixture": true,
+    "realModelAcceptance": false,
+    "imageJobId": "2cee077e-5f19-49d4-b35e-d65b5abef5c0",
+    "imageDecoded": true,
+    "videoJobId": "f7807eec-fe1b-4243-987f-0fda188d7e26",
+    "videoPlanId": "28abdbfd-95cf-4a9a-835f-9190ed73b01d",
+    "videoMediaId": "f7807eec-fe1b-4243-987f-0fda188d7e26",
+    "videoDecoded": true,
+    "video": {
+      "width": 256,
+      "height": 144,
+      "durationUs": 2021333,
+      "fpsNum": 24,
+      "fpsDen": 1,
+      "hasAudio": true
+    },
+    "fixedAdviceRevision": 2,
+    "manualInputPreserved": true,
+    "shotUnchanged": true,
+    "creationPosts": 0,
+    "accessPosts": 3,
+    "errors": [],
+    "failures": []
+  },
+  "localIntegratedCheck": {
+    "tests": 88,
+    "passed": 88
+  },
+  "ci": [
+    {
+      "url": "https://github.com/exo-gravity/scenedesk/actions/runs/34624358375",
+      "unit": 88,
+      "database": 188,
+      "media": 73,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "completeLogsInspected": true
+    },
+    {
+      "url": "https://github.com/exo-gravity/scenedesk/actions/runs/34624401292",
+      "unit": 88,
+      "database": 188,
+      "media": 73,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "completeLogsInspected": true
+    }
+  ]
+}

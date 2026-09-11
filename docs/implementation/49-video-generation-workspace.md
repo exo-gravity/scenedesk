@@ -24,3 +24,9 @@
 共享部分抽到 MediaGenerationWorkspace / CanvasMediaGeneration / useGenerationSession，原图片入口保留兼容组合，图片的本机 namespace 不变。视频使用独立 namespace，沿用原 session/authority/epoch、当前 GET 核对、撤权销毁和断网隐藏恢复，不另建授权协议。没有修改 CanvasBoard、canvas controller、纯领域、SQL、生成器或 provider。
 
 `npm run check` 82/82 通过。生产构建受控浏览器分别完成视频及既有图片全流程，两个实际 MediaPlayer 完成解码、有声协调与卸载／重挂验证；1512 px 和 390 px 页面截图已检查。验证记录见[生产构建浏览器证据](../../output/playwright/2026-09-11-video-generation/verification.md)。整合仍需主线程在合法 Origin 使用实际视频后端、worker 和对象存储验证；受控视频文件来自本地编码的测试图案和音调，未调用付费或真实模型。视频质量、真实供应商能力和采购条件仍需原计划后续验收。
+
+## 主线程实际整合
+
+2026-09-12：镜头有声视频与画布无声视频均在现有受限 worker／私有版本存储完成归档和实际浏览器播放；执行与添加回执丢失后恢复原身份，源草稿明确删除后仍能从历史读取。原图片任务兼容验证通过。画布删除保存曾出现临时 API 500，原编辑保留，明确保存恢复和后续读取无错；根因尚未确定，不将该首次路径算作无错误通过。详见[分阶段实际证据](../../output/playwright/2026-09-12-video-integrated/verification.md)。
+
+[PR #22](https://github.com/exo-gravity/scenedesk/pull/22) 已于 2026-09-11 17:02:29 UTC 合入 main（`30f5adcf17de68bec83f7a0fc6d644b3e610488b`）。精确 `891f3514001b741913bb43b598ff6ef895724190` 的两轮完整 CI 均通过 88 单元／188 数据库／73 媒体，0 fail/cancelled/skipped，完整日志已检查。 本机整合 check 88 项通过，完整 DB／媒体回归结果来自独立 CI；没有混用本机 storageFixture 初始化失败与远端通过。真实模型和实际部署验收仍未完成。

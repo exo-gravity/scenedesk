@@ -1,8 +1,8 @@
 import {
-  resolveVisual,
-  assertVisualCurrent,
-  recordVisualOrigin,
-} from "./visual-input.js";
+  resolveMedia,
+  assertMediaCurrent,
+  recordMediaOrigin,
+} from "./media-input.js";
 import { resolvePrompt, assertPromptCurrent } from "./prompt-input.js";
 import { safeText, resolveContext } from "./input-sources.js";
 import { randomUUID } from "node:crypto";
@@ -212,8 +212,8 @@ export async function assertAnalysisCurrent(
   tx: Transaction,
   plan: Record<string, any>,
 ) {
-  if (["image", "video"].includes(plan.input.purpose))
-    return assertVisualCurrent(tx, plan);
+  if (["image", "video", "audio"].includes(plan.input.purpose))
+    return assertMediaCurrent(tx, plan);
   if (plan.input.purpose === "creative_assistance")
     return assertPromptCurrent(tx, plan);
   const input = plan.input as Schema<"PlanInput">,
@@ -271,8 +271,10 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
     )
   ).rows[0];
   requireThat(cap, 503, "MODEL_NOT_CONFIGURED", "尚未配置并验证此模型能力。");
-  const { resolved, snapshot } = ["image", "video"].includes(input.purpose)
-    ? await resolveVisual(tx, input, cap)
+  const { resolved, snapshot } = ["image", "video", "audio"].includes(
+    input.purpose,
+  )
+    ? await resolveMedia(tx, input, cap)
     : input.purpose === "creative_assistance"
       ? await resolvePrompt(tx, input)
       : await resolveAnalysis(tx, input);
@@ -332,7 +334,7 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
         source.shotRevisionId,
       ],
     );
-  if (["image", "video"].includes(input.purpose))
-    await recordVisualOrigin(tx, row.id, resolved);
+  if (["image", "video", "audio"].includes(input.purpose))
+    await recordMediaOrigin(tx, row.id, resolved);
   return planRecord(row);
 }

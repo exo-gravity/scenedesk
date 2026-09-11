@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Accordion, NativeSelect, Stack, Text } from "@mantine/core";
-import { ImageSquare, FilmStrip } from "@phosphor-icons/react";
+import { ImageSquare, FilmStrip, MusicNotes } from "@phosphor-icons/react";
 import { useList, type Schema } from "./api";
 import { ErrorNotice, projectPath } from "./common";
 import type { CanvasController } from "./canvas-controller";
@@ -33,22 +33,21 @@ export function CanvasMediaGeneration({
   );
   const images =
     entries.data?.filter((entry) =>
-      ["image", "video"].includes(entry.plan.input.purpose),
+      ["image", "video", "audio"].includes(entry.plan.input.purpose),
     ) ?? [];
   const history = images.find((entry) => entry.plan.id === historyId);
   const selected = snapshot.local?.document.nodes.find(
     (node) => node.id === selectedNodeId,
   );
-  const kind =
-    history?.plan.input.purpose === "video" ||
-    (!history && selected?.kind === "video")
-      ? "video"
-      : "image";
-  const label = kind === "image" ? "图片" : "视频",
-    Symbol = kind === "image" ? ImageSquare : FilmStrip;
+  const purpose = history?.plan.input.purpose ?? selected?.kind;
+  const kind = purpose === "audio" || purpose === "video" ? purpose : "image";
+  const label = { image: "图片", video: "视频", audio: "音频" }[kind],
+    Symbol = { image: ImageSquare, video: FilmStrip, audio: MusicNotes }[kind];
   const nodeId =
     history?.origin.nodeId ??
-    ((selected?.kind === "image" || selected?.kind === "video") &&
+    ((selected?.kind === "image" ||
+      selected?.kind === "video" ||
+      selected?.kind === "audio") &&
     selected.content.type === "draft"
       ? selected.id
       : undefined);
@@ -81,7 +80,7 @@ export function CanvasMediaGeneration({
         <Accordion.Panel>
           <Stack gap="md" className={classes.canvasBody}>
             <Text size="sm">
-              选择一个图片或视频草稿以准备生成，或找回已经保存的固定任务。
+              选择一个图片、视频或音频草稿以准备生成，或找回已经保存的固定任务。
             </Text>
             <ErrorNotice
               error={entries.error}
@@ -97,7 +96,7 @@ export function CanvasMediaGeneration({
                 { value: "", label: "选择已保存任务" },
                 ...images.map((entry, index) => ({
                   value: entry.plan.id,
-                  label: `${snapshot.local?.document.nodes.find((node) => node.id === entry.origin.nodeId)?.title ?? `已删除的${entry.plan.input.purpose === "video" ? "视频" : "图片"}草稿`} · ${index + 1} · ${entry.jobId ? "已有任务" : "固定计划"}`,
+                  label: `${snapshot.local?.document.nodes.find((node) => node.id === entry.origin.nodeId)?.title ?? `已删除的${entry.plan.input.purpose === "video" ? "视频" : entry.plan.input.purpose === "audio" ? "音频" : "图片"}草稿`} · ${index + 1} · ${entry.jobId ? "已有任务" : "固定计划"}`,
                 })),
               ]}
             />
@@ -154,7 +153,7 @@ export function CanvasMediaGeneration({
               />
             ) : (
               <Text size="sm" c="dimmed">
-                先选择图片或视频草稿。也可通过“继续创作”建立独立草稿。
+                先选择图片、视频或音频草稿。也可通过“继续创作”建立独立草稿。
               </Text>
             )}
           </Stack>

@@ -1,0 +1,4 @@
+### Error
+TimeoutError: locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByText('已添加到画布', { exact: true }) to be visible

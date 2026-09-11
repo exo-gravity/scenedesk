@@ -3,6 +3,7 @@ import { createScheduler } from "@drama/queue";
 import {
   imageOutput,
   videoOutput,
+  audioOutput,
 } from "../../api/src/modules/generation/image-output.js";
 import { Pool } from "pg";
 import { createAssistanceFixture } from "@drama/provider";
@@ -143,6 +144,42 @@ if (process.env.GENERATION_VIDEO_FIXTURE_FILE) {
       ),
   });
 }
+let audioAdapter: ReturnType<typeof createAssistanceFixture> | undefined;
+if (process.env.GENERATION_AUDIO_FIXTURE_FILE) {
+  const info = await stat(process.env.GENERATION_AUDIO_FIXTURE_FILE);
+  if (!info.isFile() || (info.mode & 0o077) !== 0 || info.size > 65536)
+    throw new Error("Audio fixture manifest must be a private bounded file");
+  const manifest = JSON.parse(
+    await readFile(process.env.GENERATION_AUDIO_FIXTURE_FILE, "utf8"),
+  );
+  if (
+    manifest.version !== 1 ||
+    manifest.executionMode !== "test_fixture" ||
+    !/^[0-9a-f-]{36}$/.test(manifest.connectionVersionId) ||
+    !/^[0-9a-f-]{36}$/.test(manifest.capabilityId)
+  )
+    throw new Error("Explicit fixed audio fixture identity is required");
+  const output = audioOutput(manifest.output);
+  audioAdapter = createAssistanceFixture(
+    manifest.connectionVersionId,
+    async (submission) =>
+      submission.input.purpose === "audio" &&
+      submission.input.capabilityId === manifest.capabilityId
+        ? { kind: "completed", correlation: submission.attemptId, output }
+        : {
+            kind: "rejected",
+            correlation: submission.attemptId,
+            code: "AUDIO_FIXTURE_IDENTITY_MISMATCH",
+          },
+  );
+  archiveScheduler ??= await createScheduler(pool, {
+    ...(process.env.QUEUE_SCHEMA ? { schema: process.env.QUEUE_SCHEMA } : {}),
+    onError: () =>
+      console.error(
+        "Generation archive queue operation failed; durable receipt remains available",
+      ),
+  });
+}
 const worker = await createAssistanceWorker({
   pool,
   schema: process.env.DATABASE_SCHEMA ?? "drama",
@@ -150,6 +187,7 @@ const worker = await createAssistanceWorker({
     adapter,
     ...(imageAdapter ? [imageAdapter] : []),
     ...(videoAdapter ? [videoAdapter] : []),
+    ...(audioAdapter ? [audioAdapter] : []),
   ],
   ...(archiveScheduler ? { scheduleArchive: archiveScheduler.schedule } : {}),
 });
@@ -189,6 +227,7 @@ console.log(
     paidProvidersEnabled: false,
     imageFixtureEnabled: !!imageAdapter,
     videoFixtureEnabled: !!videoAdapter,
+    audioFixtureEnabled: !!audioAdapter,
   }),
 );
 scan();

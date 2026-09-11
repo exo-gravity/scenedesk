@@ -1,0 +1,133 @@
+### Page
+- Page URL: http://127.0.0.1:4316/#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/1498c59a-a789-4087-8069-4c99ebcbd63f/production?scene=c31f8ac4-a0f4-4b43-983a-6e3b09c05d1d&shot=29840c60-a783-4283-9547-3f5ee5af5e7a&mode=canvas
+- Page Title: 对白关联技术验收 1789088984937 · 镜头制作 · 幕序
+- Console: 5 errors, 0 warnings
+### Snapshot
+```yaml
+- generic [ref=f14e3]:
+  - banner [ref=f14e4]:
+    - link "幕序 SceneDesk" [ref=f14e5] [cursor=pointer]:
+      - /url: "#/app"
+    - generic [ref=f14e6]:
+      - generic [ref=f14e7]: 导入素材模式
+      - generic [ref=f14e9]: 本地测试身份
+  - main [ref=f14e12]:
+    - generic [ref=f14e13]:
+      - generic [ref=f14e14]:
+        - generic [ref=f14e15]:
+          - link "场次目录" [ref=f14e16] [cursor=pointer]:
+            - /url: "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/1498c59a-a789-4087-8069-4c99ebcbd63f/content?scene=c31f8ac4-a0f4-4b43-983a-6e3b09c05d1d"
+          - generic [ref=f14e22]:
+            - paragraph [ref=f14e23]: 旧钥匙 · 我的修订 / 第一集 · 旧钥匙 / 对白关联技术验收 1789088984937
+            - paragraph [ref=f14e24]: 镜头制作
+        - generic [ref=f14e25]:
+          - button "分镜" [ref=f14e26] [cursor=pointer]
+          - button "自由画布" [pressed] [ref=f14e29] [cursor=pointer]
+          - link "素材管理" [ref=f14e32] [cursor=pointer]:
+            - /url: "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/1498c59a-a789-4087-8069-4c99ebcbd63f/media"
+      - generic [ref=f14e35]:
+        - generic [ref=f14e36]:
+          - status [ref=f14e37]: 画布 · 已保存 · 服务器版本 99
+          - generic [ref=f14e38]:
+            - button "保存画布" [ref=f14e39] [cursor=pointer]
+            - button "本场镜头与探索" [ref=f14e42] [cursor=pointer]
+            - button "素材" [ref=f14e45] [cursor=pointer]
+            - button "历史" [ref=f14e51] [cursor=pointer]
+            - button "AI 助手" [ref=f14e57] [cursor=pointer]
+        - status [ref=f14e63]:
+          - paragraph [ref=f14e64]: 编辑状态暂不可用
+          - paragraph [ref=f14e65]: 项目更新已连接
+        - generic [ref=f14e67]:
+          - generic [ref=f14e68]:
+            - generic [ref=f14e69]:
+              - generic [ref=f14e70]:
+                - button "文字" [ref=f14e71] [cursor=pointer]
+                - button "图片草稿" [ref=f14e77] [cursor=pointer]
+                - button "视频草稿" [ref=f14e83] [cursor=pointer]
+                - button "声音草稿" [ref=f14e89] [cursor=pointer]
+                - button "添加素材" [ref=f14e95] [cursor=pointer]
+              - generic [ref=f14e98]:
+                - button "撤销画布编辑" [disabled] [ref=f14e99]
+                - button "重做画布编辑" [disabled] [ref=f14e104]
+                - button "选择" [ref=f14e109] [cursor=pointer]
+                - button "缩小画布" [ref=f14e115] [cursor=pointer]:
+                  - generic [ref=f14e116]: −
+                - button "画布缩放到百分之百" [ref=f14e118] [cursor=pointer]:
+                  - generic [ref=f14e119]: 100%
+                - button "放大画布" [ref=f14e121] [cursor=pointer]:
+                  - generic [ref=f14e122]: ＋
+                - button "定位当前内容" [ref=f14e124] [cursor=pointer]
+                - button "适应内容" [ref=f14e127] [cursor=pointer]
+            - application [ref=f14e134]:
+              - group "已归档视频结果" [ref=f14e137]:
+                - article "已归档视频结果 · video" [ref=f14e138]:
+                  - generic [ref=f14e139]:
+                    - generic [ref=f14e140]: 已归档视频结果
+                    - paragraph [ref=f14e141]: 视频
+                  - generic [ref=f14e147]:
+                    - paragraph [ref=f14e148]: 受控视频结果 2
+                    - button "播放预览" [ref=f14e149] [cursor=pointer]
+                  - generic "作为参考" [ref=f14e152]
+              - link "React Flow attribution" [ref=f14e154] [cursor=pointer]:
+                - /url: https://reactflow.dev?utm_source=attribution
+                - text: React Flow
+            - generic [ref=f14e156]:
+              - paragraph [ref=f14e157]: 1 / 2,000 节点 · 0 / 5,000 引用 · 缩放 100%
+              - generic [ref=f14e158]:
+                - button "继续创作" [ref=f14e160] [cursor=pointer]
+                - button "复制" [ref=f14e166] [cursor=pointer]
+                - button "移除节点" [ref=f14e172] [cursor=pointer]
+            - group [ref=f14e179]:
+              - generic "节点列表与键盘定位" [ref=f14e180]
+            - generic [ref=f14e182]:
+              - generic [ref=f14e183]:
+                - paragraph [ref=f14e184]: 当前内容 · 已归档视频结果
+                - paragraph [ref=f14e185]: 画布节点
+              - button "镜头关联 · 0" [ref=f14e186] [cursor=pointer]
+              - generic [ref=f14e189]:
+                - generic [ref=f14e190]: 节点名称
+                - textbox "节点名称" [ref=f14e192]: 已归档视频结果
+              - generic [ref=f14e193]:
+                - generic [ref=f14e194]:
+                  - generic [ref=f14e195]: 横向位置
+                  - generic [ref=f14e196]:
+                    - textbox "横向位置" [ref=f14e197]: "444"
+                    - generic [ref=f14e199]:
+                      - button [aria-hidden] [ref=f14e200] [cursor=pointer]
+                      - button [aria-hidden] [ref=f14e203] [cursor=pointer]
+                - generic [ref=f14e206]:
+                  - generic [ref=f14e207]: 纵向位置
+                  - generic [ref=f14e208]:
+                    - textbox "纵向位置" [ref=f14e209]: "20"
+                    - generic [ref=f14e211]:
+                      - button [aria-hidden] [ref=f14e212] [cursor=pointer]
+                      - button [aria-hidden] [ref=f14e215] [cursor=pointer]
+                - generic [ref=f14e218]:
+                  - generic [ref=f14e219]: 节点宽度
+                  - generic [ref=f14e220]:
+                    - textbox "节点宽度" [ref=f14e221]: "360"
+                    - generic [ref=f14e223]:
+                      - button [aria-hidden] [ref=f14e224] [cursor=pointer]
+                      - button [aria-hidden] [ref=f14e227] [cursor=pointer]
+              - generic [ref=f14e230]:
+                - generic [ref=f14e231]: 分组
+                - combobox "分组" [ref=f14e233] [cursor=pointer]
+          - generic [ref=f14e235]:
+            - button "画布生成与结果" [expanded] [active] [ref=f14e236] [cursor=pointer]
+            - region "画布生成与结果" [ref=f14e244]:
+              - generic [ref=f14e246]:
+                - paragraph [ref=f14e247]: 选择一个图片、视频或音频草稿以准备生成，或找回已经保存的固定任务。
+                - generic [ref=f14e248]:
+                  - generic [ref=f14e249]: 画布生成任务历史
+                  - combobox "画布生成任务历史" [ref=f14e251] [cursor=pointer]:
+                    - option "选择已保存任务"
+                    - option "已删除的视频草稿 · 1 · 已有任务" [selected]
+                - alert "正在核对视频任务访问" [ref=f14e252]:
+                  - generic [ref=f14e254]:
+                    - generic [ref=f14e255]: 正在核对视频任务访问
+                    - generic [ref=f14e257]:
+                      - paragraph [ref=f14e258]: 暂时无法恢复助手内容。本机副本仍保留，请联网后重试。
+                      - button "重新核对访问权限" [ref=f14e259] [cursor=pointer]
+```
+### Events
+- New console entries: .playwright-cli/console-2026-09-11T16-45-53-737Z.log#L30-L44

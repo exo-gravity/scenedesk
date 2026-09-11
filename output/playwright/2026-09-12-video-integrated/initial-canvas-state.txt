@@ -1,0 +1,114 @@
+### Page
+- Page URL: http://127.0.0.1:4311/#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/ff8f70f2-8075-45de-b2bc-c54bd62e2653/production?scene=4fae9756-c2c0-4062-8597-42c08f6e45c3&mode=canvas
+- Page Title: 旧公寓 · AI 链路 · 镜头制作 · 幕序
+- Console: 4 errors, 0 warnings
+### Snapshot
+```yaml
+- generic [ref=f50e3]:
+  - banner [ref=f50e4]:
+    - link "幕序 SceneDesk" [ref=f50e5] [cursor=pointer]:
+      - /url: "#/app"
+    - generic [ref=f50e6]:
+      - generic [ref=f50e7]: 导入素材可用
+      - generic [ref=f50e9]: 未连接真实模型
+      - generic [ref=f50e11]: 本地测试身份
+  - main [ref=f50e14]:
+    - generic [ref=f50e15]:
+      - generic [ref=f50e16]:
+        - generic [ref=f50e17]:
+          - link "场次目录" [ref=f50e18] [cursor=pointer]:
+            - /url: "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/ff8f70f2-8075-45de-b2bc-c54bd62e2653/content?scene=4fae9756-c2c0-4062-8597-42c08f6e45c3"
+          - generic [ref=f50e24]:
+            - paragraph [ref=f50e25]: AI 实际链路技术夹具 1789127845937 / 第一集 · 技术夹具 / 旧公寓 · AI 链路
+            - paragraph [ref=f50e26]: 镜头制作
+        - generic [ref=f50e27]:
+          - button "分镜" [ref=f50e28] [cursor=pointer]
+          - button "自由画布" [pressed] [ref=f50e31] [cursor=pointer]
+          - link "素材管理" [ref=f50e34] [cursor=pointer]:
+            - /url: "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/ff8f70f2-8075-45de-b2bc-c54bd62e2653/media"
+      - alert "操作未完成" [ref=f50e37]:
+        - generic [ref=f50e42]:
+          - generic [ref=f50e43]: 操作未完成
+          - generic [ref=f50e45]:
+            - paragraph [ref=f50e46]: 操作未完成，请稍后重试。
+            - button "重新保存本页视图" [ref=f50e47] [cursor=pointer]
+      - generic [ref=f50e50]:
+        - generic [ref=f50e51]:
+          - status [ref=f50e52]: 画布 · 核对保存结果 · 服务器版本 8
+          - generic [ref=f50e53]:
+            - button "保存画布" [ref=f50e54] [cursor=pointer]
+            - button "本场镜头与探索" [ref=f50e57] [cursor=pointer]
+            - button "素材" [ref=f50e60] [cursor=pointer]
+            - button "历史" [ref=f50e66] [cursor=pointer]
+            - button "AI 助手" [ref=f50e72] [cursor=pointer]
+        - status [ref=f50e78]:
+          - paragraph [ref=f50e79]: 暂未收到其他页面活动
+          - paragraph [ref=f50e80]: 项目更新暂不可用，保留当前输入
+        - generic [ref=f50e82]:
+          - generic [ref=f50e83]:
+            - generic [ref=f50e84]:
+              - generic [ref=f50e85]:
+                - button "文字" [ref=f50e86] [cursor=pointer]
+                - button "图片草稿" [ref=f50e92] [cursor=pointer]
+                - button "视频草稿" [ref=f50e98] [cursor=pointer]
+                - button "声音草稿" [ref=f50e104] [cursor=pointer]
+                - button "添加素材" [ref=f50e110] [cursor=pointer]
+                - button "上传文件" [ref=f50e113] [cursor=pointer]
+              - generic [ref=f50e116]:
+                - button "撤销画布编辑" [ref=f50e117] [cursor=pointer]
+                - button "重做画布编辑" [disabled] [ref=f50e122]
+                - button "选择" [ref=f50e127] [cursor=pointer]
+                - button "缩小画布" [ref=f50e133] [cursor=pointer]:
+                  - generic [ref=f50e134]: −
+                - button "画布缩放到百分之百" [ref=f50e136] [cursor=pointer]:
+                  - generic [ref=f50e137]: 100%
+                - button "放大画布" [ref=f50e139] [cursor=pointer]:
+                  - generic [ref=f50e140]: ＋
+                - button "定位当前内容" [disabled] [ref=f50e142]
+                - button "适应内容" [ref=f50e145] [cursor=pointer]
+            - application [ref=f50e152]:
+              - generic [ref=f50e154] [cursor=pointer]:
+                - generic:
+                  - generic:
+                    - group "生成图片（显式技术测试）" [ref=f50e155]:
+                      - article "生成图片（显式技术测试） · image" [ref=f50e156]:
+                        - generic [ref=f50e157]:
+                          - generic [ref=f50e158]: 生成图片（显式技术测试）
+                          - paragraph [ref=f50e159]: 图片
+                        - paragraph [ref=f50e163]: 生成图片（显式技术测试）
+                        - generic "作为参考" [ref=f50e164]
+                    - group "生成视频（显式技术测试）" [ref=f50e165]:
+                      - article "生成视频（显式技术测试） · video" [ref=f50e166]:
+                        - generic [ref=f50e167]:
+                          - generic [ref=f50e168]: 生成视频（显式技术测试）
+                          - paragraph [ref=f50e169]: 视频
+                        - generic [ref=f50e175]:
+                          - paragraph [ref=f50e176]: 生成视频（显式技术测试）
+                          - button "播放预览" [ref=f50e177]
+                        - generic "作为参考" [ref=f50e180]
+              - link "React Flow attribution" [ref=f50e182] [cursor=pointer]:
+                - /url: https://reactflow.dev?utm_source=attribution
+                - text: React Flow
+            - generic [ref=f50e184]:
+              - paragraph [ref=f50e185]: 2 / 2,000 节点 · 0 / 5,000 引用 · 缩放 50%
+              - generic [ref=f50e186]:
+                - button "继续创作" [disabled] [ref=f50e188]
+                - button "复制" [disabled] [ref=f50e194]
+                - button "移除节点" [disabled] [ref=f50e200]
+            - group [ref=f50e207]:
+              - generic "节点列表与键盘定位" [ref=f50e208]
+          - generic [ref=f50e210]:
+            - button "画布生成与结果" [expanded] [ref=f50e211] [cursor=pointer]
+            - region "画布生成与结果" [ref=f50e219]:
+              - generic [ref=f50e221]:
+                - paragraph [ref=f50e222]: 选择一个图片或视频草稿以准备生成，或找回已经保存的固定任务。
+                - generic [ref=f50e223]:
+                  - generic [ref=f50e224]: 画布生成任务历史
+                  - combobox "画布生成任务历史" [ref=f50e226] [cursor=pointer]:
+                    - option "选择已保存任务" [selected]
+                    - option "已删除的图片草稿 · 1 · 已有任务"
+                    - option "已删除的视频草稿 · 2 · 已有任务"
+                - paragraph [ref=f50e227]: 先选择图片或视频草稿。也可通过“继续创作”建立独立草稿。
+```
+### Events
+- New console entries: .playwright-cli/console-2026-09-11T13-11-13-220Z.log#L275-L280

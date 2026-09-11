@@ -1,0 +1,143 @@
+{
+  "recordedAtUtc": "2026-09-11T17:43:07.742583+00:00",
+  "status": "local_unattended_container_smoke_and_remote_deployment_ci_passed",
+  "sourceBaseline": "f3b7433f036261db8e36b01249fee5e242ed3886",
+  "runtimeRevision": "a4317bc93e9b262f8897d816a3f4e613f8ee2d8f",
+  "smokeExitCode": 0,
+  "unattended": true,
+  "result": {
+    "status": "passed",
+    "staticHttps": 200,
+    "sameOriginBusinessReady": true,
+    "unauthenticatedBusinessRequest": 401,
+    "oidcHandshakeSecureRedirect": 302,
+    "creativeMediaWorkerReady": true,
+    "generatedMediaGrants": true,
+    "staleGeneratedHintState": "completed:0",
+    "prototypeBlocked": 404,
+    "publicCanvasSchema": 200,
+    "canvasSchemaMatchesBuildAndCompiles": true,
+    "postProductionWriteBlocked": 503,
+    "generationSubmissionBlocked": 503,
+    "generationSubmissionCode": "GENERATION_EXECUTOR_UNAVAILABLE",
+    "planAndArchiveRecoveryReachAuthentication": true,
+    "unsupportedQueueRejectedBeforeClaim": true,
+    "queueStateUnchanged": "created:0",
+    "runtimeMalformedHintStopsWorker": true,
+    "runtimeMalformedHintState": "retry:0",
+    "identity": "discovery_only_no_login",
+    "paidProvidersEnabled": false,
+    "productionReady": false
+  },
+  "browser": {
+    "status": "ok",
+    "originalBrowserContractCompiler": true,
+    "browserClosedAfterVerifiedDom": true,
+    "identity": "unauthenticated_discovery_only",
+    "paidProvidersEnabled": false
+  },
+  "schema": {
+    "status": "ok",
+    "publicCanvasSchemaGetAndHeadJson": true,
+    "publicCanvasSchemaMatchesBuild": true,
+    "canvasContractCompiles": true
+  },
+  "database": {
+    "migrationsApplied": 40,
+    "transport": "TLS verify-full",
+    "runtimeRoles": "separate api/auth/media/scheduler"
+  },
+  "environment": {
+    "hardware": "Apple M1 Pro",
+    "physicalCores": 8,
+    "memoryBytes": 17179869184,
+    "macOS": "26.0.1",
+    "architecture": "arm64",
+    "hostNode": "22.22.2",
+    "hostNpm": "10.9.7",
+    "sharedDevelopmentHost": true,
+    "elapsedTimeIsBenchmark": false
+  },
+  "images": {
+    "scenedesk-private-api:local": "sha256:2afec1aaadd797e9224a8570dc62479f9106c45980745e606ca2238d8dab599c",
+    "scenedesk-private-web:local": "sha256:bbe88b3e281ce42aa37ff151f8b05639e9a2c16e6388646571f590e060fceb0e",
+    "scenedesk-private-worker:local": "sha256:ae80f56254302c823f3727c8c89637335f8cc4ec172fd5a628a061d37a9d522d"
+  },
+  "checks": {
+    "rootCheckPassedAtImageBaseline": 82,
+    "deploymentTypes": "passed",
+    "deploymentConfigurationTestsPassed": 4,
+    "relationalDatabaseAuditPassed": 6,
+    "unattendedApiQueueBrowserSmoke": "passed"
+  },
+  "remoteDeploymentCi": {
+    "status": "passed",
+    "integrationRevision": "3ee2865d931b53460f9e62e0ade3acd4976545f6",
+    "baseline": "video main 30f5adcf17de68bec83f7a0fc6d644b3e610488b",
+    "runUrl": "https://github.com/exo-gravity/scenedesk/actions/runs/34628329976",
+    "scope": "deployment types/config/DB audit; three images; unattended API/queue/original browser compiler smoke",
+    "regularCiAndMerge": "recorded separately by integration task"
+  },
+  "recoveryChecks": {
+    "freshParentMode": "0700",
+    "freshRunMode": "0700",
+    "existingRunRejected": "EEXIST",
+    "existingConfigUnchanged": true,
+    "verifiedBrowserDomClosesOwnedBrowser": true,
+    "scriptLiteralAloneRejected": true,
+    "unverifiedBrowserExitRejected": true,
+    "prepareFailureReportsSafeStageAndExitCode": true
+  },
+  "historicalFailures": [
+    {
+      "runUrl": "https://github.com/exo-gravity/scenedesk/actions/runs/34626832293",
+      "phase": "prepare",
+      "code": "ENOENT",
+      "containersStarted": false,
+      "cause": "Clean checkout had no .runtime parent directory",
+      "fixedBy": "74096ec"
+    },
+    {
+      "revision": "bf5246f",
+      "outcome": "assertions_passed_with_manual_browser_shutdown_after_verified_dom",
+      "unattended": false,
+      "fixedBy": "a4317bc",
+      "usedAsUnattendedAcceptance": false
+    }
+  ],
+  "cleanup": {
+    "status": "passed",
+    "containersRemoved": true,
+    "volumesRemoved": true,
+    "networkRemoved": true,
+    "projectLabelQueriesEmpty": true,
+    "otherProjectsTouched": false
+  },
+  "generationExecutor": "unavailable",
+  "paidProvidersEnabled": false,
+  "realIdentityAcceptance": false,
+  "realProviderAcceptance": false,
+  "externalDeployment": false,
+  "productionReady": false,
+  "validationLimit": "Stale generated queue hints prove routing and grants only; they do not prove real generated files, paid model execution or authenticated end-to-end canvas use.",
+  "privateEvidencePolicy": "Only result summaries and log hashes are committed. Runtime secrets, browser profiles, private configuration and raw runtime logs are not uploaded.",
+  "sha256": {
+    "imageBuild": "4c253f27104b471ea129f2b894248bcca9020e5b4d0cb6c382e7868db1831a2e",
+    "deploymentCheck": "684a07e8f9e07bf7186ad6a736ca73162e4168569c83baafa9d4273b54e7bfa2",
+    "smokeRun": "b2ab8086c22bc6c15c77a04c3d309baa03452401047336761217c544b99baf15",
+    "provision": "8317d15b14b7376ff5b15acb1f663c975ba01bdd40d914cdbb975431ff51cb6b",
+    "mediaGrants": "4726aa23670a23da3973ac26f22bd4791a6eea8f932c2fcc45e32c977f42326b",
+    "audit": "a063439aae4dd95e53e8225af999f2f8dce595034bc7a0c915fbd0318fe87d08",
+    "apiCheck": "f6a5a1a260e18edae410fcdb9047ab14f19d9c8bed7108ae435ec6aafe27012f",
+    "workerCheck": "7c0499289525c35c9c5b98edef4f2974ec31b987c0de79653ff679088310a3ba",
+    "schema": "07a206387519585ced06041f71c380bc07d4b796ab1b2e95a947d779b2d429e8",
+    "browserResult": "85f0df6c4ca277325d85684c53efb6ba6585f6be1bc9f7fdcfcd12215b012232",
+    "browserDom": "f41ea35ab0478b12d6699cc715f36e74962737fc5c8ee0b70072d5cec84dcbae",
+    "workerStop": "8756d58dcae8817ffa250704ca9fdd3fb5b644ed78025de1d4aea1fcf8b0cb85",
+    "startupQueueRejection": "2ece88f7a6bda8507b2f87ea9855dd4c2a79016c247f15517ad38f6075dfb434",
+    "cleanup": "d28091fbc1f15826d4b9ceddd91c68f1f2357672f84cc1e941a815f1a7cb7e73",
+    "cleanupVerification": "ef55ef961e72610fd52137029ee5e6a41d2c2d76960da4b000e414e2b3282fcf",
+    "firstCiFailure": "9a7a5643ead81e2712409e422cd3ace1d763f1b109e5627be54e50d9d8e4e00f",
+    "earlierAssistedSmoke": "eabae165e632ba3009fc0e6da70b64522108a97be59ec9a6481d8eb555086d26"
+  }
+}

@@ -135,6 +135,14 @@ export async function resolveSelectedInput(
   tx: Transaction,
   input: Schema<"PlanInput">,
   target: Record<string, any>,
+  expandSources?: (
+    tx: Transaction,
+    shots: Schema<"ResolvedShotInput">[],
+    snapshots: Schema<"ContextSnapshot">[],
+  ) => Promise<{
+    references: Schema<"ResolvedReference">[];
+    snapshots: Schema<"ContextSnapshot">[];
+  }>,
 ) {
   requireThat(
     (input.shotSources?.length ?? 0) <= 100 &&
@@ -210,6 +218,25 @@ export async function resolveSelectedInput(
       snapshots.push(canvas.snapshot);
       references.push(...canvas.references);
     } else snapshots.push(await resolveContext(tx, source, true));
+  }
+  if (expandSources) {
+    const extra = await expandSources(tx, shots, snapshots);
+    references.push(...extra.references);
+    for (const snapshot of extra.snapshots) {
+      const previous = snapshots.find(
+        (s) =>
+          s.source.kind === snapshot.source.kind &&
+          s.source.objectId === snapshot.source.objectId,
+      );
+      requireThat(
+        !previous ||
+          previous.source.contentHash === snapshot.source.contentHash,
+        422,
+        "GENERATION_SOURCE_MISMATCH",
+        "固定来源快照不一致。",
+      );
+      if (!previous) snapshots.push(snapshot);
+    }
   }
   for (const override of input.referenceOverrides) {
     requireThat(

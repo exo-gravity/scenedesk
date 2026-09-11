@@ -1,0 +1,4 @@
+### Error
+TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('[aria-label="生成单段视频"]').getByRole('button', { name: '打开所选的固定视频任务', exact: true })

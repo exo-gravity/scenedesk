@@ -1,8 +1,10 @@
 import {
   imageOutput,
   videoOutput,
+  audioOutput,
   type ImageOutput,
   type VideoOutput,
+  type AudioOutput,
 } from "./image-output.js";
 import { parseEnvelope, type StepEnvelope } from "@drama/queue";
 import type { PoolClient } from "pg";
@@ -164,25 +166,30 @@ export async function createAssistanceWorker(options: {
         | Schema<"AssistanceBody">
         | ImageOutput
         | VideoOutput
+        | AudioOutput
         | null = null,
       failure: string | null = null;
     if (selected.body.kind === "completed")
       try {
         ops =
-          state.input.purpose === "video"
-            ? videoOutput(selected.body.output)
-            : state.input.purpose === "image"
-              ? imageOutput(selected.body.output)
-              : state.input.purpose === "creative_assistance"
-                ? assistanceBody(selected.body.output, state.resolvedInput)
-                : analysisOperations(selected.body.output, state);
+          state.input.purpose === "audio"
+            ? audioOutput(selected.body.output)
+            : state.input.purpose === "video"
+              ? videoOutput(selected.body.output)
+              : state.input.purpose === "image"
+                ? imageOutput(selected.body.output)
+                : state.input.purpose === "creative_assistance"
+                  ? assistanceBody(selected.body.output, state.resolvedInput)
+                  : analysisOperations(selected.body.output, state);
       } catch {
         failure =
-          state.input.purpose === "video"
-            ? "INVALID_VIDEO_OUTPUT"
-            : state.input.purpose === "image"
-              ? "INVALID_IMAGE_OUTPUT"
-              : "INVALID_ASSISTANCE_OUTPUT";
+          state.input.purpose === "audio"
+            ? "INVALID_AUDIO_OUTPUT"
+            : state.input.purpose === "video"
+              ? "INVALID_VIDEO_OUTPUT"
+              : state.input.purpose === "image"
+                ? "INVALID_IMAGE_OUTPUT"
+                : "INVALID_ASSISTANCE_OUTPUT";
       }
     const sql = await options.pool.connect();
     try {
@@ -193,7 +200,7 @@ export async function createAssistanceWorker(options: {
         ops ? JSON.stringify(ops) : null,
         failure,
       ]);
-      if (["image", "video"].includes(state.input.purpose)) {
+      if (["image", "video", "audio"].includes(state.input.purpose)) {
         const envelope = (
           await sql.query(
             `SELECT ${scope}.read_generation_archive_envelope($1) AS envelope`,
@@ -228,13 +235,13 @@ export async function createAssistanceWorker(options: {
       if (
         !adapter ||
         adapter.executionMode !== submission.executionMode ||
-        (["image", "video"].includes(submission.input.purpose) &&
+        (["image", "video", "audio"].includes(submission.input.purpose) &&
           !options.scheduleArchive)
       )
         await save(submission.attemptId, {
           kind: "rejected",
           code:
-            ["image", "video"].includes(submission.input.purpose) &&
+            ["image", "video", "audio"].includes(submission.input.purpose) &&
             !options.scheduleArchive
               ? "ARCHIVE_NOT_CONFIGURED"
               : "ADAPTER_NOT_CONFIGURED",

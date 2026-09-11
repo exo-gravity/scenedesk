@@ -1,0 +1,24 @@
+{
+  "controlledTransport": true,
+  "actualReadOnlyContext": true,
+  "notRealProviderAcceptance": true,
+  "planPosts": 2,
+  "executePosts": 2,
+  "archivePosts": 1,
+  "placementPosts": 2,
+  "canvasPuts": 1,
+  "preservedManualInput": true,
+  "originalPreviewWithoutPoster": true,
+  "canvasOriginalWithoutPoster": true,
+  "conflictingResultBlocked": true,
+  "profileExcluded": true,
+  "restoredSamePlacementKey": true,
+  "canvasDraftPreserved": true,
+  "deletedSourceHistoryRecovered": true,
+  "noExecutableModelDisabled": true,
+  "viewportWidths": [
+    1512,
+    390
+  ],
+  "pageErrors": []
+}
