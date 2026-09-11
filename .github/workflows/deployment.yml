@@ -1,0 +1,46 @@
+name: SceneDesk deployment package
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+        env:
+          POSTGRES_USER: deployment_test
+          POSTGRES_PASSWORD: isolated_ci_only
+          POSTGRES_DB: drama_deployment_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U deployment_test -d drama_deployment_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install --global npm@10.9.8
+      - run: npm ci
+      - name: Check deployment entrypoints and configuration boundaries
+        run: sh deploy/check.sh
+      - name: Verify read-only generation audit against durable database states
+        env:
+          DATABASE_URL: postgresql://deployment_test:isolated_ci_only@127.0.0.1:5432/drama_deployment_ci
+          PROVIDER_MODE: mock
+        run: node --import tsx --test --test-concurrency=1 deploy/integration/*.test.ts
+      - name: Build private API image
+        run: docker build -f deploy/Dockerfile --target api -t scenedesk-private-api:ci .
+      - name: Build static HTTPS web image
+        run: docker build -f deploy/Dockerfile --target web -t scenedesk-private-web:ci .
+      - name: Build isolated media worker image
+        run: docker build -f deploy/Dockerfile --target media-worker -t scenedesk-private-worker:ci .
+      - name: Check same-origin API, supported media queue and browser contract
+        env:
+          SCENEDESK_IMAGE_TAG: ci
+        run: bash deploy/smoke/run.sh

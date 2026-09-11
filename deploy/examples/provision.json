@@ -1,0 +1,8 @@
+{
+  "databaseUrl": "postgresql://migration_owner:REPLACE_WITH_MIGRATION_SECRET@database.example.invalid/scenedesk?sslmode=verify-full",
+  "apiRole": "scenedesk_api",
+  "authRole": "scenedesk_auth",
+  "mediaRole": "scenedesk_media",
+  "schedulerRole": "scenedesk_scheduler",
+  "authorizationOwner": "scenedesk_authorization"
+}
