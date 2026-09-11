@@ -54,7 +54,9 @@ import {
 } from "./use-cut-work";
 import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
-const CandidateWorkspace = lazy(() => import("./CandidateWorkspace"));
+const SceneProductionWorkspace = lazy(
+  () => import("./SceneProductionWorkspace"),
+);
 const CutWorkspace = lazy(() => import("./CutWorkspace"));
 const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
@@ -148,7 +150,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
       )
         return;
       suspendEditingAccess(hint);
-      if (hint.kind === "cut") {
+      if (hint.kind !== "session") {
         void refreshEditingAccess(hint);
         return;
       }
@@ -522,7 +524,7 @@ function TenantArea({
   if (projectId && productionView)
     return (
       <Suspense fallback={<Loader aria-label="正在加载镜头制作" />}>
-        <CandidateWorkspace tenantId={tenantId} projectId={projectId} />
+        <SceneProductionWorkspace tenantId={tenantId} projectId={projectId} />
       </Suspense>
     );
   if (projectId && editingView)

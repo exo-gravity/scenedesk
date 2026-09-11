@@ -11,6 +11,7 @@ import {
   type EditingLocalInspection,
 } from "./editing-local";
 import type { CutWorkController } from "./cut-work-controller";
+type RecoveryOwner = Pick<CutWorkController, "partition" | "retryLocal">;
 
 async function inactiveTab<T>(
   clientSessionId: string,
@@ -34,7 +35,7 @@ export function CutLocalRecoveryPanel({
   controller,
   close,
 }: {
-  controller: CutWorkController;
+  controller: RecoveryOwner;
   close: () => void;
 }) {
   const session = useSession(),
@@ -113,7 +114,7 @@ function LocalCopy({
 }: {
   entry: EditingLocalInspection;
   currentTab: string;
-  controller: CutWorkController;
+  controller: RecoveryOwner;
   close: () => void;
   changed: () => Promise<void>;
 }) {
@@ -134,7 +135,9 @@ function LocalCopy({
         api<Schema<"Project">>(path, { signal }),
         partition.kind === "cut_work_draft"
           ? api<Schema<"Cut">>(`${path}/cuts/${partition.objectId}`, { signal })
-          : Promise.resolve(null),
+          : api<Schema<"Canvas">>(`${path}/canvases/${partition.objectId}`, {
+              signal,
+            }).then(() => null),
       ]);
       return { project, cut };
     },
@@ -257,7 +260,7 @@ function LocalCopy({
       )}
       <Group>
         {activity.data === "current" && ownObject ? (
-          <Button onClick={close}>核对当前剪辑的本机输入</Button>
+          <Button onClick={close}>核对当前编辑的本机输入</Button>
         ) : (
           href && (
             <Button component="a" href={href}>

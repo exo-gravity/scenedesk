@@ -1,0 +1,107 @@
+{
+  "scope": "Local technical fixtures; real browser, IndexedDB, production API/DB and imported media where specified. No paid model or user/production acceptance.",
+  "pageRecovery": {
+    "cases": [
+      "actual API 412; mode switch keeps in-flight input; frozen comparison blocks stale replay; explicit replay retains peer changes",
+      "lost response after real commit resolves via GET without repeat PUT",
+      "offline request survives reload; fresh authority before disclosure; explicit retry saves original input"
+    ],
+    "canvasId": "379e96ec-f6a0-4cd2-8c85-5204065a7859",
+    "finalRevision": 17,
+    "pageErrors": 0,
+    "scope": "production build and real local API/DB with controlled network faults; local test identity; no model calls"
+  },
+  "controller": {
+    "cases": [
+      "synchronous undo state; saved refresh preserves history; grouped edits undo and redo",
+      "raw numeric input persisted and restored; invalid value cannot reach transport",
+      "canvas envelope and content hash reconcile committed unknown write",
+      "canvas CAS and stale replay retain local edit",
+      "revocation clears canvas memory and own recovery"
+    ],
+    "scope": "real browser IndexedDB and actual CanvasController with controlled transport; no real provider"
+  },
+  "sharedCutRecovery": {
+    "cases": [
+      "authorized recovery, loading gate, invalid raw input",
+      "late save, edit during request, leave and reopen",
+      "unknown reply resolved by content and version without resubmit",
+      "unknown uncommitted request retains identity and newer input",
+      "412 and second conflict preserve manual merge",
+      "post-commit IndexedDB cleanup abort and recovery without repeat PUT",
+      "pre-submit storage failure prevents transport",
+      "revocation clears memory and local copy before late response",
+      "IME suspension, 800ms debounce and 5s maximum continuous interval"
+    ],
+    "scope": "real browser, IndexedDB and production controller with controlled API transport; actual API/page validation remains separate",
+    "pageErrors": 0
+  },
+  "sharedAccess": {
+    "cases": [
+      "bounded identifiers and content-free parsed hint",
+      "suspension blocks edits and sends; authorized read preserves original input",
+      "network failure retains hidden work until successful authorization",
+      "older denial and pre-hint successful read cannot override later access check",
+      "inflight receipt remains hidden; verified revocation clears memory and local copy",
+      "CSRF failure preserves pending work for session verification and explicit retry",
+      "exact session and object scope; retired acquisition blocked; newer login recovery retained",
+      "late logout cleanup respects the newest writer session, including same partition"
+    ],
+    "caseCount": 8,
+    "scope": "real IndexedDB and controllers with controlled transport",
+    "pageErrors": 0
+  },
+  "mediaLayout": {
+    "cases": [
+      "real proxy decodes and plays; player controls do not drag node",
+      "second preview releases prior decoder",
+      "mode switch releases player and returns to thumbnails",
+      "incomplete coordinate stays exact through mode switch and authorized reload recovery"
+    ],
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 760,
+        "height": 900,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": false
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "production build, real imported technical media; narrow layout is a list, not mobile canvas acceptance"
+  },
+  "history": {
+    "baseRevision": 22,
+    "editedRevision": 23,
+    "restoredRevision": 25,
+    "undoRevision": 26,
+    "staleConfirmationBlocked": true,
+    "fullTextReviewed": true,
+    "newRevisionWithoutJob": true,
+    "historyUndoRetainsLatest": true
+  },
+  "pageAccess": {
+    "hiddenUntilAuthorized": true,
+    "falseHintPreservesContent": true,
+    "deniedReadClearsVisibleCanvas": true,
+    "scope": "real production page and BroadcastChannel with controlled GET response; backend authorization separately covered by DB tests"
+  },
+  "blankTitle": {
+    "blankNamePreservedAcrossModeAndReload": true,
+    "restoredFocusedNode": true,
+    "correctedAndSaved": true
+  }
+}

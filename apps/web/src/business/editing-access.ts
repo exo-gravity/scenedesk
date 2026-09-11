@@ -5,7 +5,12 @@ export type EditingAccessHint = {
   userId: string;
 } & (
   | { kind: "session" }
-  | { kind: "cut"; tenantId: string; projectId: string; objectId: string }
+  | {
+      kind: "cut" | "canvas";
+      tenantId: string;
+      projectId: string;
+      objectId: string;
+    }
 );
 const channelName = "scenedesk-editing-access-v1";
 const sender = crypto.randomUUID();
@@ -20,13 +25,13 @@ export function readEditingAccessHint(
   if (hint.kind === "session")
     return { kind: "session", sessionId: hint.sessionId, userId: hint.userId };
   if (
-    hint.kind === "cut" &&
+    (hint.kind === "cut" || hint.kind === "canvas") &&
     identifier(hint.tenantId) &&
     identifier(hint.projectId) &&
     identifier(hint.objectId)
   )
     return {
-      kind: "cut",
+      kind: hint.kind,
       sessionId: hint.sessionId,
       userId: hint.userId,
       tenantId: hint.tenantId,

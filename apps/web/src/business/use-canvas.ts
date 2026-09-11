@@ -2,26 +2,25 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, useSession, type Schema } from "./api";
 import { tabIdentity } from "./content-drafts";
-import {
-  type CutWorkController,
-  type WorkTransport,
-} from "./cut-work-controller";
-import { CutWorkSessionRegistry } from "./cut-work-sessions";
+import { type CanvasTransport } from "./canvas-controller";
+import { EditingSessionRegistry } from "./editing-sessions";
+import { CanvasController } from "./canvas-controller";
 import {
   registerEditingSessions,
   suspendEditingAccess,
 } from "./editing-lifecycle";
 import { notifyEditingAccess, type EditingAccessHint } from "./editing-access";
 
-const controllers = new CutWorkSessionRegistry();
+const controllers = new EditingSessionRegistry(
+  (partition, transport: CanvasTransport, sessionId) =>
+    new CanvasController(partition, transport, sessionId),
+);
 registerEditingSessions(controllers);
-export {
-  suspendEditingAccess,
-  refreshEditingAccess,
-  retireEditingSession,
-  clearUserEditing,
-} from "./editing-lifecycle";
-export function useCutWork(tenantId: string, projectId: string, cutId: string) {
+export function useCanvas(
+  tenantId: string,
+  projectId: string,
+  canvasId: string,
+) {
   const session = useSession(),
     cache = useQueryClient();
   const [attempt, setAttempt] = useState(0);
@@ -30,18 +29,18 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
     session.userId,
     tenantId,
     projectId,
-    cutId,
+    canvasId,
   ]);
   const [binding, setBinding] = useState<{
       identity: string;
-      controller: CutWorkController;
+      controller: CanvasController;
     } | null>(null),
     [error, setError] = useState<Error | null>(null);
   const controller = binding?.identity === identity ? binding.controller : null;
   useEffect(() => {
     let live = true,
       currentKey: string | undefined,
-      current: CutWorkController | undefined;
+      current: CanvasController | undefined;
     setBinding(null);
     setError(null);
     void tabIdentity()
@@ -52,10 +51,10 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
           session.userId,
           tenantId,
           projectId,
-          cutId,
+          canvasId,
           clientSessionId,
         ]);
-        const path = `/v1/tenants/${tenantId}/projects/${projectId}/cuts/${cutId}/work-draft`;
+        const path = `/v1/tenants/${tenantId}/projects/${projectId}/canvases/${canvasId}`;
         const guarded = async <T>(request: Promise<T>) => {
           try {
             return await request;
@@ -83,27 +82,27 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
                       userId: session.userId,
                     }
                   : {
-                      kind: "cut",
+                      kind: "canvas",
                       sessionId: session.id,
                       userId: session.userId,
                       tenantId,
                       projectId,
-                      objectId: cutId,
+                      objectId: canvasId,
                     },
               );
             throw error;
           }
         };
-        const transport: WorkTransport = {
+        const transport: CanvasTransport = {
           read: () =>
             guarded(
-              api<Schema<"CutWorkDraft">>(path, {
+              api<Schema<"Canvas">>(path, {
                 signal: AbortSignal.timeout(15_000),
               }),
             ),
           save: (pending) =>
             guarded(
-              api<Schema<"CutWorkDraft">>(path, {
+              api<Schema<"Canvas">>(path, {
                 method: "PUT",
                 signal: AbortSignal.timeout(15_000),
                 headers: {
@@ -112,7 +111,7 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
                   "If-Match": `"${pending.version}"`,
                 },
                 body: JSON.stringify({
-                  baseCutRevision: pending.baseCutRevision,
+                  schemaVersion: 1,
                   document: pending.document,
                 }),
               }),
@@ -124,8 +123,8 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
             userId: session.userId,
             tenantId,
             projectId,
-            objectId: cutId,
-            kind: "cut_work_draft",
+            objectId: canvasId,
+            kind: "canvas",
             clientSessionId,
           },
           transport,
@@ -173,7 +172,7 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
     session.csrfToken,
     tenantId,
     projectId,
-    cutId,
+    canvasId,
     identity,
     attempt,
   ]);
@@ -209,6 +208,23 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
       window.removeEventListener("beforeunload", warn);
     };
   }, [controller]);
+  useEffect(() => {
+    if (state?.local?.base.revision === undefined) return;
+    void cache.invalidateQueries({
+      queryKey: [
+        "user",
+        session.userId,
+        `/v1/tenants/${tenantId}/projects/${projectId}/canvases/${canvasId}/revisions`,
+      ],
+    });
+  }, [
+    state?.local?.base.revision,
+    cache,
+    session.userId,
+    tenantId,
+    projectId,
+    canvasId,
+  ]);
   useEffect(() => {
     if (state?.phase === "forbidden") {
       cache.removeQueries({ queryKey: ["user", session.userId] });
