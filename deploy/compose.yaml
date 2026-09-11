@@ -1,0 +1,93 @@
+name: scenedesk-private
+services:
+  api:
+    image: scenedesk-private-api:${SCENEDESK_IMAGE_TAG:-local}
+    build: { context: .., dockerfile: deploy/Dockerfile, target: api }
+    init: true
+    read_only: true
+    restart: "no"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    secrets:
+      - { source: api_config, target: config.json }
+    networks: [application]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4310/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 15s
+      start_period: 30s
+      retries: 3
+  operations:
+    profiles: [operations]
+    image: scenedesk-private-api:${SCENEDESK_IMAGE_TAG:-local}
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    command: [node, --import, tsx, deploy/runtime/audit.ts]
+    secrets:
+      - { source: provision_config, target: config.json }
+    networks: [application]
+  web:
+    image: scenedesk-private-web:${SCENEDESK_IMAGE_TAG:-local}
+    build: { context: .., dockerfile: deploy/Dockerfile, target: web }
+    depends_on: { api: { condition: service_healthy } }
+    read_only: true
+    restart: "no"
+    user: "101:101"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    ports: ["${SCENEDESK_BIND_ADDRESS:-127.0.0.1}:${SCENEDESK_HTTPS_PORT:-8443}:8443"]
+    secrets:
+      - { source: tls_certificate, target: tls.crt }
+      - { source: tls_private_key, target: tls.key }
+    networks: [application]
+    healthcheck:
+      test: [CMD-SHELL, "wget -q -O /dev/null --no-check-certificate https://127.0.0.1:8443/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  media-worker:
+    profiles: [media]
+    image: scenedesk-private-worker:${SCENEDESK_IMAGE_TAG:-local}
+    build: { context: .., dockerfile: deploy/Dockerfile, target: media-worker }
+    init: true
+    read_only: true
+    restart: "no"
+    stop_grace_period: 30s
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      DOCKER_HOST: unix:///run/decoder/docker.sock
+      TMPDIR: ${SCENEDESK_MEDIA_DIRECTORY:-/var/lib/scenedesk-media}
+    # Only a dedicated decoder host is supported. Socket access grants control of that host.
+    # Bind paths must be identical in the worker container and the decoder daemon host.
+    volumes:
+      - type: bind
+        source: ${SCENEDESK_DECODER_SOCKET:?set absolute dedicated decoder socket path}
+        target: /run/decoder/docker.sock
+        read_only: true
+      - type: bind
+        source: ${SCENEDESK_MEDIA_DIRECTORY:-/var/lib/scenedesk-media}
+        target: ${SCENEDESK_MEDIA_DIRECTORY:-/var/lib/scenedesk-media}
+    group_add: ["${SCENEDESK_DECODER_GID:-0}"]
+    secrets:
+      - { source: worker_config, target: config.json }
+    networks: [application]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4313/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 15s
+      start_period: 30s
+      retries: 3
+secrets:
+  provision_config: { file: "${SCENEDESK_PROVISION_CONFIG:-/dev/null}" }
+  api_config: { file: "${SCENEDESK_API_CONFIG:?set absolute path to private API JSON}" }
+  worker_config: { file: "${SCENEDESK_WORKER_CONFIG:?set absolute path to private worker JSON}" }
+  tls_certificate: { file: "${SCENEDESK_TLS_CERTIFICATE:?set certificate chain PEM path}" }
+  tls_private_key: { file: "${SCENEDESK_TLS_PRIVATE_KEY:?set private key PEM path}" }
+networks:
+  application: {}
