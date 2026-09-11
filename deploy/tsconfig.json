@@ -5,6 +5,7 @@
     "smoke/**/*.ts",
     "operator/**/*.ts",
     "tests/**/*.ts",
-    "integration/**/*.ts"
+    "integration/**/*.ts",
+    "recovery/**/*.ts"
   ]
 }
