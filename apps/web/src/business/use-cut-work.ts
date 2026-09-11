@@ -2,19 +2,16 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api, useSession, type Schema } from "./api";
 import { tabIdentity } from "./content-drafts";
-import { CutWorkController, type WorkTransport } from "./cut-work-controller";
+import {
+  type CutWorkController,
+  type WorkTransport,
+} from "./cut-work-controller";
+import { CutWorkSessionRegistry } from "./cut-work-sessions";
 import { clearEditingLocal } from "./editing-local";
 
-const controllers = new Map<string, CutWorkController>();
+const controllers = new CutWorkSessionRegistry();
 export async function clearUserEditing(userId: string) {
-  await Promise.all(
-    [...controllers]
-      .filter(([, c]) => c.partition.userId === userId)
-      .map(async ([key, controller]) => {
-        await controller.revoke();
-        controllers.delete(key);
-      }),
-  );
+  await controllers.clearUser(userId);
   await clearEditingLocal(userId);
 }
 export function useCutWork(tenantId: string, projectId: string, cutId: string) {
@@ -36,6 +33,7 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
   const controller = binding?.identity === identity ? binding.controller : null;
   useEffect(() => {
     let live = true,
+      currentKey: string | undefined,
       current: CutWorkController | undefined;
     setBinding(null);
     setError(null);
@@ -71,23 +69,24 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
               }),
             }),
         };
-        let found = controllers.get(key);
-        const reopening = !!found;
-        if (!found) {
-          found = new CutWorkController(
-            {
-              userId: session.userId,
-              tenantId,
-              projectId,
-              objectId: cutId,
-              kind: "cut_work_draft",
-              clientSessionId,
-            },
-            transport,
-          );
-          controllers.set(key, found);
-        } else found.updateTransport(transport);
+        const { controller: found, reopening } = await controllers.acquire(
+          key,
+          {
+            userId: session.userId,
+            tenantId,
+            projectId,
+            objectId: cutId,
+            kind: "cut_work_draft",
+            clientSessionId,
+          },
+          transport,
+        );
+        currentKey = key;
         current = found;
+        if (!live) {
+          await controllers.release(key, found);
+          return;
+        }
         await found.initialize();
         if (!live) return;
         if (
@@ -116,7 +115,7 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
       });
     return () => {
       live = false;
-      current?.pause();
+      if (current && currentKey) void controllers.release(currentKey, current);
     };
   }, [
     session.id,

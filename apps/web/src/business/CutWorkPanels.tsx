@@ -26,6 +26,7 @@ import {
   type WorkEditorState,
 } from "./cut-work-controller";
 import { replayWorkChanges, workChanges } from "./cut-work-reconcile";
+import type { EditingLocalInspection } from "./editing-local";
 
 export function CutRecovery({
   controller,
@@ -34,7 +35,14 @@ export function CutRecovery({
   controller: CutWorkController;
   state: WorkEditorState;
 }) {
-  const [discard, setDiscard] = useState(false);
+  const [discard, setDiscard] = useState<string | null>(null),
+    [damaged, setDamaged] = useState<EditingLocalInspection | null>(null);
+  const currentContext = discard ? controller.localDiscardContext() : null;
+  const canDiscard =
+    !state.local?.pending &&
+    !state.recoveryBlocked &&
+    state.phase !== "loading" &&
+    state.phase !== "discarding";
   return (
     <>
       {state.storageError && (
@@ -46,6 +54,39 @@ export function CutRecovery({
           <Button mt="sm" onClick={() => void controller.retryLocal()}>
             重试本机保留／清理
           </Button>
+          {state.recoveryBlocked && state.recoveryInspection && (
+            <Stack mt="sm" gap="xs">
+              <Text size="sm">
+                这份副本暂时无法恢复。可以先重试，或核对服务器工作稿后明确清理本标签页的异常副本。
+              </Text>
+              <Button onClick={() => setDamaged(state.recoveryInspection)}>
+                核对并清理异常副本
+              </Button>
+              {damaged && (
+                <>
+                  <Text size="sm">
+                    将删除当前剪辑在本标签页的这份本机恢复记录，未同步输入可能无法找回。服务器工作稿与历史仍保留。
+                  </Text>
+                  <Button
+                    loading={state.phase === "discarding"}
+                    disabled={damaged.stamp !== state.recoveryInspection.stamp}
+                    onClick={() =>
+                      void controller
+                        .discardDamagedLocal(damaged)
+                        .then((done) => {
+                          if (done) setDamaged(null);
+                        })
+                    }
+                  >
+                    确认清理这份异常副本
+                  </Button>
+                  <Button variant="subtle" onClick={() => setDamaged(null)}>
+                    继续保留异常副本
+                  </Button>
+                </>
+              )}
+            </Stack>
+          )}
         </Alert>
       )}
       {state.recovery && (
@@ -59,33 +100,66 @@ export function CutRecovery({
             <Button variant="filled" onClick={() => controller.restore()}>
               恢复并核对本机工作
             </Button>
-            <Button onClick={() => setDiscard(true)}>放弃这份本机副本</Button>
+            <Button
+              disabled={!canDiscard}
+              onClick={() => setDiscard(controller.localDiscardContext())}
+            >
+              放弃这份本机副本
+            </Button>
           </Group>
-          {discard && (
-            <Stack mt="sm" gap="xs">
-              <Text>将删除当前标签页的恢复副本，以当前服务器工作稿继续。</Text>
-              <Group>
-                <Button
-                  loading={state.phase === "discarding"}
-                  onClick={() => {
-                    void controller
-                      .discardLocal()
-                      .then(() => setDiscard(false));
-                  }}
-                >
-                  确认放弃本机副本
-                </Button>
-                <Button variant="subtle" onClick={() => setDiscard(false)}>
-                  继续保留
-                </Button>
-              </Group>
-            </Stack>
+        </Alert>
+      )}
+      {!state.recovery &&
+        !state.recoveryBlocked &&
+        (state.hasInvalidInput ||
+          state.phase === "conflict" ||
+          (state.dirty &&
+            (state.phase === "error" || !!state.storageError))) && (
+          <Alert title="本机还有未同步修改">
+            <Text size="sm">
+              输入继续保留在当前编辑会话。只有明确放弃后，才会以已读取的服务器工作稿继续。
+            </Text>
+            <Button
+              mt="sm"
+              disabled={!canDiscard}
+              onClick={() => setDiscard(controller.localDiscardContext())}
+            >
+              核对并放弃本机修改
+            </Button>
+          </Alert>
+        )}
+      {discard && (
+        <Alert title="核对要放弃的本机内容">
+          <Text size="sm">
+            将清理当前标签页的这份恢复副本，放弃当前未同步内容，以已读取的服务器工作稿继续。
+          </Text>
+          {discard !== currentContext && (
+            <Text size="sm">
+              确认期间内容或版本已变化，请保留输入并重新核对。
+            </Text>
           )}
+          <Group mt="sm">
+            <Button
+              loading={state.phase === "discarding"}
+              disabled={!canDiscard || discard !== currentContext}
+              onClick={() =>
+                void controller.discardLocal(discard).then((done) => {
+                  if (done) setDiscard(null);
+                })
+              }
+            >
+              确认放弃本机副本
+            </Button>
+            <Button variant="subtle" onClick={() => setDiscard(null)}>
+              继续保留
+            </Button>
+          </Group>
         </Alert>
       )}
     </>
   );
 }
+
 export function CutSources({
   controller,
   state,

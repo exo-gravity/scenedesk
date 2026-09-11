@@ -7,11 +7,14 @@ import { ApiError, type Schema } from "./api";
 import { browserContractCompiler } from "./contract-validation";
 import {
   clearEditingLocal,
+  inspectEditingLocal,
+  discardInspectedEditingLocal,
   loadEditingLocal,
   removeEditingLocal,
   saveEditingLocal,
   type EditingPartition,
   type EditingLocalCopy,
+  type EditingLocalInspection,
 } from "./editing-local";
 
 type Work = Schema<"CutWorkDraft">;
@@ -44,6 +47,7 @@ export type WorkEditorState = {
   remote: Work | null;
   recovery: EditingLocalCopy<WorkLocalValue> | null;
   recoveryBlocked: boolean;
+  recoveryInspection: EditingLocalInspection | null;
   error: Error | null;
   storageError: Error | null;
   localSaved: boolean;
@@ -92,6 +96,7 @@ export class CutWorkController {
     remote: null,
     recovery: null,
     recoveryBlocked: false,
+    recoveryInspection: null,
     error: null,
     storageError: null,
     localSaved: false,
@@ -156,6 +161,17 @@ export class CutWorkController {
     remote: Work,
   ) {
     const value = copy.value;
+    if (
+      !value ||
+      typeof value !== "object" ||
+      Array.isArray(value) ||
+      !value.buffers ||
+      typeof value.buffers !== "object" ||
+      Array.isArray(value.buffers) ||
+      (value.pending !== null &&
+        (typeof value.pending !== "object" || Array.isArray(value.pending)))
+    )
+      throw new Error("本机副本格式不完整，不能直接恢复；原副本仍保留。");
     this.acceptSnapshot(value.base);
     if (
       value.base.revision > remote.revision ||
@@ -211,7 +227,11 @@ export class CutWorkController {
         this.token = copy?.token;
         if (copy) {
           const value = await this.validRecovery(copy, remote);
-          this.publish({ recoveryBlocked: false, storageError: null });
+          this.publish({
+            recoveryBlocked: false,
+            recoveryInspection: null,
+            storageError: null,
+          });
           if (value.pending && receiptMatches(remote, value.pending)) {
             value.base = remote;
             value.pending = null;
@@ -229,14 +249,19 @@ export class CutWorkController {
           this.publish({
             localSaved: true,
             recoveryBlocked: false,
+            recoveryInspection: null,
             storageError: null,
           });
         this.publish({ phase: "ready" });
       } catch (error) {
+        const inspection = await inspectEditingLocal(this.partition).catch(
+          () => null,
+        );
         this.publish({
           storageError: asError(error),
           localSaved: false,
           recoveryBlocked: true,
+          recoveryInspection: inspection,
           phase: "error",
         });
       }
@@ -256,6 +281,38 @@ export class CutWorkController {
     this.paused = true;
     this.clearTimer();
     void this.persist().catch(() => {});
+  }
+  /** Release only a detached session whose latest work is already durable.
+   * This is memory eviction, never a deletion of its local recovery copy. */
+  async retireIfDurable() {
+    const safe = () =>
+      this.paused &&
+      this.listeners.size === 0 &&
+      !this.writing &&
+      (this.state.phase !== "loading" || !this.initialization) &&
+      (!this.state.local ||
+        !!this.state.recovery ||
+        this.state.recoveryBlocked ||
+        (this.state.localSaved && !this.state.storageError));
+    if (!safe()) return false;
+    await this.storageQueue;
+    if (!safe()) return false;
+    this.revoked = true;
+    this.clearTimer();
+    this.initialization = undefined;
+    this.validate = undefined;
+    this.state = {
+      ...this.state,
+      local: null,
+      remote: null,
+      recovery: null,
+      recoveryInspection: null,
+      dirty: false,
+      hasInvalidInput: false,
+      error: null,
+      storageError: null,
+    };
+    return true;
   }
   setComposing(value: boolean) {
     this.composing = value;
@@ -625,15 +682,30 @@ export class CutWorkController {
     this.firstUnsavedAt = Date.now();
     this.schedule();
   }
-  async discardLocal() {
+  localDiscardContext() {
+    const { local, recovery, remote } = this.state;
+    return editingCanonical({
+      document: local?.document ?? null,
+      buffers: local?.buffers ?? null,
+      baseRevision: local?.base.revision ?? null,
+      baseCutRevision: local?.baseCutRevision ?? null,
+      pending: local?.pending?.id ?? null,
+      recovery: recovery?.token ?? null,
+      remoteRevision: remote?.revision ?? null,
+      currentCutRevision: remote?.currentCutRevision ?? null,
+    });
+  }
+  async discardLocal(expectedContext?: string) {
     if (
       !this.state.remote ||
       this.revoked ||
       this.writing ||
       this.state.phase === "loading" ||
-      this.state.local?.pending
+      this.state.local?.pending ||
+      (expectedContext !== undefined &&
+        expectedContext !== this.localDiscardContext())
     )
-      return;
+      return false;
     const originalPhase = this.state.phase;
     this.writing = true;
     this.clearTimer();
@@ -641,29 +713,86 @@ export class CutWorkController {
     // Delete first. A failed local discard leaves the recovery/input visible.
     await this.storageQueue;
     try {
+      if (this.revoked) return false;
       // A failed initial read supplies no CAS token. Re-read before declaring
       // discard complete; an unavailable/corrupt store must remain visible.
       if (this.state.recoveryBlocked && !this.token)
         this.token = (await loadEditingLocal(this.partition))?.token;
       if (this.token) await removeEditingLocal(this.partition, this.token);
+      if (this.revoked || !this.state.remote) return false;
       this.token = undefined;
       this.editSequence++;
       this.publish({
         local: this.freshLocal(this.state.remote),
         recovery: null,
         recoveryBlocked: false,
+        recoveryInspection: null,
         phase: "ready",
         localSaved: true,
         error: null,
         storageError: null,
       });
       this.firstUnsavedAt = null;
+      return true;
     } catch (error) {
       this.publish({
         phase: originalPhase,
         storageError: asError(error),
         localSaved: false,
       });
+      return false;
+    } finally {
+      this.writing = false;
+    }
+  }
+  async discardDamagedLocal(inspection: EditingLocalInspection) {
+    if (
+      this.revoked ||
+      this.writing ||
+      !this.state.recoveryBlocked ||
+      this.state.recoveryInspection?.stamp !== inspection.stamp
+    )
+      return false;
+    this.writing = true;
+    this.clearTimer();
+    this.publish({ phase: "discarding" });
+    try {
+      const remote = this.acceptSnapshot(await this.transport.read());
+      if (this.revoked) return false;
+      await this.storageQueue;
+      await discardInspectedEditingLocal({
+        ...inspection,
+        partition: this.partition,
+      });
+      if (this.revoked) return false;
+      this.token = undefined;
+      this.editSequence++;
+      this.firstUnsavedAt = null;
+      const currentRemote =
+        this.state.remote && this.state.remote.revision > remote.revision
+          ? this.state.remote
+          : remote;
+      this.publish({
+        local: this.freshLocal(currentRemote),
+        remote: currentRemote,
+        recovery: null,
+        recoveryBlocked: false,
+        recoveryInspection: null,
+        phase: "ready",
+        localSaved: true,
+        error: null,
+        storageError: null,
+      });
+      return true;
+    } catch (error) {
+      if (unauthorized(error)) await this.revoke();
+      else
+        this.publish({
+          phase: "error",
+          storageError: asError(error),
+          localSaved: false,
+        });
+      return false;
     } finally {
       this.writing = false;
     }
@@ -677,6 +806,7 @@ export class CutWorkController {
       local: null,
       remote: null,
       recovery: null,
+      recoveryInspection: null,
       error: null,
       storageError: null,
     });

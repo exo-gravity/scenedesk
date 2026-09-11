@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import { ArrowLeft, Plus } from "@phosphor-icons/react";
 import { type WorkDocument, type WorkClip } from "@drama/domain";
-import { useCommand, useList, useResource, type Schema } from "./api";
+import { ApiError, useCommand, useList, useResource, type Schema } from "./api";
 import { DraftNotice, useContentDraft } from "./content-drafts";
 import { Empty, ErrorNotice, projectPath, tenantPath } from "./common";
 import { useCutWork } from "./use-cut-work";
@@ -35,6 +35,7 @@ import {
 import classes from "./candidates.module.css";
 import cutClasses from "./cuts.module.css";
 import { CutDialoguePanel, CutPendingEdits } from "./CutDialoguePanel";
+import { CutLocalRecoveryPanel } from "./CutLocalRecoveryPanel";
 
 export default function CutWorkspace({
   tenantId,
@@ -53,6 +54,14 @@ export default function CutWorkspace({
     `${path}/cuts?sceneId=${sceneId ?? ""}`,
     !!sceneId,
   );
+  const requested = useResource<Schema<"Cut">>(
+    `${path}/cuts/${cutId ?? ""}`,
+    !!cutId,
+  );
+  const requestedError =
+    requested.error instanceof ApiError && requested.error.status === 404
+      ? null
+      : requested.error;
   const [create, setCreate] = useState(false);
   const scene = content.data?.scenes.find((s) => s.id === sceneId),
     episode = content.data?.episodes.find((e) => e.id === scene?.episodeId);
@@ -61,20 +70,34 @@ export default function CutWorkspace({
   useEffect(() => {
     document.title = `${scene?.title ?? "场次"} · 剪辑 · 幕序`;
   }, [scene?.title]);
-  if (project.error || content.error || cuts.error)
+  if (project.error || content.error || cuts.error || requestedError)
     return (
       <ErrorNotice
-        error={project.error ?? content.error ?? cuts.error}
+        error={project.error ?? content.error ?? cuts.error ?? requestedError}
         retry={() => {
           void project.refetch();
           void content.refetch();
           void cuts.refetch();
+          if (cutId) void requested.refetch();
         }}
       />
     );
-  if (!project.data || !content.data || (sceneId && !cuts.data))
+  if (
+    !project.data ||
+    !content.data ||
+    (sceneId && !cuts.data) ||
+    (cutId && requested.isPending)
+  )
     return <Loader aria-label="正在读取场次剪辑" />;
-  const cut = cutId ? cuts.data?.find((c) => c.id === cutId) : cuts.data?.[0];
+  const cut = cutId
+    ? requested.data?.sceneId === sceneId && !requested.error
+      ? requested.data
+      : undefined
+    : cuts.data?.[0];
+  const choices =
+    cut && !cuts.data?.some((c) => c.id === cut.id)
+      ? [...(cuts.data ?? []), cut]
+      : (cuts.data ?? []);
   const active =
     project.data.status === "active" &&
     scene?.status === "active" &&
@@ -121,7 +144,7 @@ export default function CutWorkspace({
             <Select
               label="本场剪辑"
               value={cut?.id ?? null}
-              data={(cuts.data ?? []).map((c) => ({
+              data={choices.map((c) => ({
                 value: c.id,
                 label: c.name,
               }))}
@@ -266,7 +289,7 @@ function CutEditor({
     cut.id,
   );
   const [tool, setTool] = useState<
-    "source" | "history" | "issues" | "dialogue" | null
+    "source" | "history" | "issues" | "dialogue" | "local" | null
   >(() =>
     new URLSearchParams(location.hash.split("?")[1]).get("tool") === "dialogue"
       ? "dialogue"
@@ -345,6 +368,9 @@ function CutEditor({
           >
             对白与声音
           </Button>
+          <Button onClick={() => setTool(tool === "local" ? null : "local")}>
+            本机恢复管理
+          </Button>
           <Button
             onClick={() => void controller.save()}
             disabled={
@@ -407,6 +433,11 @@ function CutEditor({
               state={state}
               path={`${path}/cuts/${cut.id}`}
               disabled={blocked}
+            />
+          ) : tool === "local" ? (
+            <CutLocalRecoveryPanel
+              controller={controller}
+              close={() => setTool(null)}
             />
           ) : tool === "dialogue" ? (
             <CutDialoguePanel
