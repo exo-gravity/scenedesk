@@ -15,7 +15,7 @@ import {
 } from "@drama/queue";
 import {
   createAssistanceFixture,
-  type AssistanceReceipt,
+  type AssistanceSubmissionReceipt,
   type AssistanceSubmission,
 } from "@drama/provider";
 import type { MediaStore } from "@drama/media";
@@ -203,7 +203,7 @@ export async function imageGenerationFixture(
     },
     unknown = false,
     queueFailure = false;
-  const receipt = (submission: AssistanceSubmission): AssistanceReceipt =>
+  const receipt = (submission: AssistanceSubmission): AssistanceSubmissionReceipt =>
     unknown
       ? { kind: "unknown", correlation: submission.attemptId }
       : { kind: "completed", correlation: submission.attemptId, output };
