@@ -1,4 +1,5 @@
 import type { components } from "@drama/contracts";
+import { fixedShotSources } from "./canvas-shot-sources.js";
 import type { PromptDraft } from "./prompt-draft.js";
 type Schema<T extends keyof components["schemas"]> = components["schemas"][T];
 export type ImageCapability = Schema<"Capability"> & {
@@ -17,6 +18,7 @@ export type ImageRequest =
 export type ImageDraft = {
   capabilityId: string;
   output: Schema<"OutputOptions">;
+  shotSources?: Schema<"ShotSource">[];
   archiveRequest?:
     { key: string; jobId: string; checked?: boolean } | undefined;
   placement?:
@@ -111,6 +113,7 @@ export function canvasImageRequest(
   sceneId: string,
   nodeId: string,
   capabilities: readonly ImageCapability[],
+  shotSources: readonly Schema<"ShotSource">[] = [],
 ): ImageRequest {
   const node = canvas.document.nodes.find((node) => node.id === nodeId);
   if (!node || node.kind !== "image" || node.content.type !== "draft")
@@ -130,7 +133,7 @@ export function canvasImageRequest(
     label: node.title,
     input: {
       nodeId,
-      shotSources: [],
+      shotSources: fixedShotSources(shotSources),
       referenceOverrides: [],
       promptPolicy: "append",
     },
