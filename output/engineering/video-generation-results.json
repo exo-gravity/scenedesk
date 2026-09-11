@@ -1,0 +1,129 @@
+{
+  "recordedAt": "2026-09-11T16:45:44.920642+00:00",
+  "baseCommit": "6996dd6ce00a631e06951344650fffba9adfffee",
+  "branch": "feat/video-generation-runtime",
+  "executionMode": "test_fixture",
+  "realProviderCalls": 0,
+  "paidProviderCalls": 0,
+  "productionAcceptance": false,
+  "browserAcceptance": "pending parent integration",
+  "migrations": [
+    {
+      "file": "0060_video_fixed_sources.sql",
+      "sha256": "611a901a4f844f98abd54b639277555a3db58f9f6e3f6571eac81d581e7be09c"
+    },
+    {
+      "file": "0061_video_receipt_guards.sql",
+      "sha256": "370ca3fc1bc24ae1f397cea785e095c2a5d643b40d777bdc27829d8d567bd098"
+    },
+    {
+      "file": "0062_video_archive_receipt.sql",
+      "sha256": "9ba5644e71f874480787de40e2b7880cee4cca0d4838eada3830f111677dd64d"
+    },
+    {
+      "file": "0063_video_verified_archive.sql",
+      "sha256": "6d200eabe819a08aeab39c1ba9a0b3dd521b75f7919e444c81cf3039373c2ce5"
+    },
+    {
+      "file": "0064_video_dispatch_authority.sql",
+      "sha256": "f880bddf214e2dc071a4c289bc8ff48e6aa62c4bc83aaa0547f56a87b94ab3c5"
+    }
+  ],
+  "checks": [
+    {
+      "name": "complete_check",
+      "result": "passed",
+      "logSha256": "d34ed25d99249b1eca6a9ef7a30e740c3d8ed74014e472e7954b2e2979c307aa",
+      "tests": 53,
+      "pass": 53,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 4795.688417
+    },
+    {
+      "name": "video_and_image_database_regression",
+      "result": "passed",
+      "logSha256": "9e6299472a3bee0ce483d9f3d9d79983bbc882996ba951942e4dd4b014e0f882",
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 138796.211416
+    },
+    {
+      "name": "real_video_source_poster_proxy",
+      "result": "passed",
+      "logSha256": "2b8d9d3c33a9fe692f67001d47a7b539168adc545d3bbab64971a8697466409e",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 185905.551625
+    },
+    {
+      "name": "final_typecheck_after_minimal_media_test",
+      "result": "passed",
+      "logSha256": "6dffc077223dac921ef78ebd7b7d0312d5fdafa681c519112854e7a39a37193b"
+    }
+  ],
+  "actualTechnicalSources": [
+    {
+      "withAudio": false,
+      "resolution": "256x144",
+      "requestedDurationSeconds": 2,
+      "durationUs": 2000000,
+      "fpsNum": 24,
+      "fpsDen": 1,
+      "bytes": 51015,
+      "proxyDurationUs": 2000000,
+      "posterBytes": 7059,
+      "originalPreserved": true
+    },
+    {
+      "withAudio": true,
+      "resolution": "256x144",
+      "requestedDurationSeconds": 2,
+      "durationUs": 2021333,
+      "fpsNum": 24,
+      "fpsDen": 1,
+      "bytes": 70080,
+      "proxyDurationUs": 2026667,
+      "posterBytes": 7059,
+      "originalPreserved": true
+    }
+  ],
+  "retainedFailures": [
+    {
+      "name": "initial_typecheck",
+      "scope": "local compile before final check",
+      "reason": "Optional numeric frame fields required explicit narrowing after positive integer guard; corrected, final check passes.",
+      "logSha256": "37a0c49133c21194f04693ded459c394f657f0d5ce2c668951efe58f0c8dfbee"
+    },
+    {
+      "name": "full_video_storage_archive_attempt",
+      "result": "failed before business execution",
+      "durationMs": 80582.890125,
+      "reason": "Existing storageFixture mc admin/policy/attach reached its 30000 ms bound. Failure occurred before database business fixture or video decode. No product timeout changed, no blind rerun, no video acceptance inferred.",
+      "logSha256": "c897ce4604c079935febe266e905647ac2f78e9096c8c223d7eeaaa7cef2219b"
+    }
+  ],
+  "pendingValidation": [
+    "Complete video object-storage/Job archive/recovery and independent image media regression on isolated CI and parent continuous API/worker environment.",
+    "Complete database regression on parent integrated branch; local shared-host run was restricted to relevant video+image tests.",
+    "Real provider connection, region, account, cost authorization, transport, failure recovery and creative-quality acceptance."
+  ],
+  "documentValidation": {
+    "operations": 148,
+    "paths": 114,
+    "schemas": 222,
+    "examples": 157,
+    "localLinks": 1285,
+    "logSha256": "7b0fb922a69b542578bc9977e63c3c0ec718c8e836bcec8ab4f523bca5d2c9b3"
+  },
+  "reviewNotes": [
+    "git diff --cached --check reports only a blank line at EOF in already-applied 0063_video_verified_archive.sql. The migration bytes remain frozen rather than rewriting an applied checksum."
+  ]
+}

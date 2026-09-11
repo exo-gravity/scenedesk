@@ -57,7 +57,8 @@ export function MediaPreview({
     (item) => item.kind === preferredVariant,
   );
   const variant =
-    media.kind === "image" && derivative?.status !== "ready"
+    (media.kind === "image" || (media.kind === "video" && !thumbnail)) &&
+    derivative?.status !== "ready"
       ? "original"
       : preferredVariant;
   const enabled =
@@ -169,7 +170,7 @@ export function MediaPreview({
           <Player
             key={`${access.data.url}:${reloadKey}:${range?.inUs}:${range?.outUs}`}
             src={access.data.url}
-            title={`${media.displayName} · 代理预览`}
+            title={`${media.displayName} · ${variant === "original" ? "原片预览" : "代理预览"}`}
             audio={media.kind === "audio"}
             range={range}
             onError={failed}

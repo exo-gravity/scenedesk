@@ -44,6 +44,7 @@ export function executableImages(capabilities: readonly ImageCapability[]) {
 export function imageOutput(
   capability: ImageCapability,
   output: Schema<"OutputOptions">,
+  label = "图片",
 ): Schema<"OutputOptions"> {
   const resolution =
     output.resolution ||
@@ -51,10 +52,10 @@ export function imageOutput(
       ? capability.allowedResolutions[0]
       : undefined);
   if (!resolution || !capability.allowedResolutions?.includes(resolution))
-    throw new Error("请选择当前模型支持的图片尺寸。");
+    throw new Error(`请选择当前模型支持的${label}尺寸。`);
   const match = /^(\d+)x(\d+)$/.exec(resolution);
   if (!match || !Number(match[1]) || !Number(match[2]))
-    throw new Error("图片尺寸不可用，请重新读取模型能力。");
+    throw new Error(`${label}尺寸不可用，请重新读取模型能力。`);
   const aspectRatio = output.aspectRatio;
   if (aspectRatio) {
     const ratio = /^(\d+):(\d+)$/.exec(aspectRatio);

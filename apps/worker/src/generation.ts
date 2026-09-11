@@ -1,6 +1,9 @@
 import { readFile, stat } from "node:fs/promises";
 import { createScheduler } from "@drama/queue";
-import { imageOutput } from "../../api/src/modules/generation/image-output.js";
+import {
+  imageOutput,
+  videoOutput,
+} from "../../api/src/modules/generation/image-output.js";
 import { Pool } from "pg";
 import { createAssistanceFixture } from "@drama/provider";
 import { createAssistanceWorker } from "../../api/src/modules/generation/worker.js";
@@ -99,10 +102,55 @@ if (process.env.GENERATION_IMAGE_FIXTURE_FILE) {
       ),
   });
 }
+let videoAdapter: ReturnType<typeof createAssistanceFixture> | undefined;
+if (process.env.GENERATION_VIDEO_FIXTURE_FILE) {
+  const info = await stat(process.env.GENERATION_VIDEO_FIXTURE_FILE);
+  if (!info.isFile() || (info.mode & 0o077) !== 0 || info.size > 65536)
+    throw new Error("Video fixture manifest must be a private bounded file");
+  const manifest = JSON.parse(
+    await readFile(process.env.GENERATION_VIDEO_FIXTURE_FILE, "utf8"),
+  );
+  if (
+    manifest.version !== 1 ||
+    manifest.executionMode !== "test_fixture" ||
+    !/^[0-9a-f-]{36}$/.test(manifest.connectionVersionId) ||
+    !/^[0-9a-f-]{36}$/.test(manifest.capabilityId)
+  )
+    throw new Error("Explicit fixed video fixture identity is required");
+  const silent = videoOutput(manifest.outputs?.silent),
+    audio = videoOutput(manifest.outputs?.audio);
+  videoAdapter = createAssistanceFixture(
+    manifest.connectionVersionId,
+    async (submission) =>
+      submission.input.purpose === "video" &&
+      submission.input.capabilityId === manifest.capabilityId
+        ? {
+            kind: "completed",
+            correlation: submission.attemptId,
+            output: submission.resolvedInput.output?.withAudio ? audio : silent,
+          }
+        : {
+            kind: "rejected",
+            correlation: submission.attemptId,
+            code: "VIDEO_FIXTURE_IDENTITY_MISMATCH",
+          },
+  );
+  archiveScheduler ??= await createScheduler(pool, {
+    ...(process.env.QUEUE_SCHEMA ? { schema: process.env.QUEUE_SCHEMA } : {}),
+    onError: () =>
+      console.error(
+        "Generation archive queue operation failed; durable receipt remains available",
+      ),
+  });
+}
 const worker = await createAssistanceWorker({
   pool,
   schema: process.env.DATABASE_SCHEMA ?? "drama",
-  adapters: imageAdapter ? [adapter, imageAdapter] : [adapter],
+  adapters: [
+    adapter,
+    ...(imageAdapter ? [imageAdapter] : []),
+    ...(videoAdapter ? [videoAdapter] : []),
+  ],
   ...(archiveScheduler ? { scheduleArchive: archiveScheduler.schedule } : {}),
 });
 let closing = false,
@@ -140,6 +188,7 @@ console.log(
     executionMode: "test_fixture",
     paidProvidersEnabled: false,
     imageFixtureEnabled: !!imageAdapter,
+    videoFixtureEnabled: !!videoAdapter,
   }),
 );
 scan();

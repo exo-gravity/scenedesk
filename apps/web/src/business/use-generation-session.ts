@@ -16,10 +16,11 @@ type Entry = {
   cleanup?: (() => void) | undefined;
 };
 const entries = new Map<string, Entry>();
-export function useImageSession(
+export function useGenerationSession(
   tenantId: string,
   projectId: string,
   subject: ImageSubject,
+  kind: "image" | "video",
 ) {
   const session = useSession(),
     path = projectPath(tenantId, projectId),
@@ -29,12 +30,18 @@ export function useImageSession(
       ? `shots/${subject.shotId}`
       : `canvases/${subject.canvasId}/nodes/${subject.nodeId}`;
   const [entry] = useState(() => {
-    const key = JSON.stringify([session.id, session.userId, path, subjectPath]);
+    const key = JSON.stringify([
+      session.id,
+      session.userId,
+      path,
+      subjectPath,
+      kind,
+    ]);
     const prior = entries.get(key);
     if (prior) return prior;
     const storage = assistantStorage<ImageDraft, ImageRequest>(
       session.userId,
-      `${path}/${subjectPath}/image-generation`,
+      `${path}/${subjectPath}/${kind}-generation`,
       session.id,
     );
     const post = <T>(

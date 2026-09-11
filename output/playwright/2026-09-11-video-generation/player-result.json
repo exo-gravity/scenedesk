@@ -1,0 +1,12 @@
+{
+  "actualInstances": 2,
+  "decoded": true,
+  "playExclusive": true,
+  "mutedPlaybackPreserved": true,
+  "unmuteExclusive": true,
+  "zeroVolumePreserved": true,
+  "volumeIncreaseExclusive": true,
+  "unmountSourceReleased": true,
+  "remountCoordination": true,
+  "notRealProviderAcceptance": true
+}

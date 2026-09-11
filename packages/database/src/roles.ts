@@ -413,7 +413,7 @@ export async function hardenAuthorizationFunctions(
     `GRANT SELECT,INSERT ON ${scope}.media,${scope}.media_derivatives TO ${target}`,
   );
   await client.query(
-    `GRANT UPDATE(kind,status,immutable_key,storage_version_id,sha256,bytes,mime,width,height,has_audio,probe_metadata,issue,revision,updated_at) ON ${scope}.media TO ${target}`,
+    `GRANT UPDATE(kind,status,immutable_key,storage_version_id,sha256,bytes,mime,width,height,duration_us,fps_num,fps_den,has_audio,probe_metadata,issue,revision,updated_at) ON ${scope}.media TO ${target}`,
   );
   for (const signature of [
     ...authorizationFunctions,

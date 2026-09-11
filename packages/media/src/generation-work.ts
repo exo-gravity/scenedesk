@@ -1,3 +1,7 @@
+import {
+  validateGeneratedVisual,
+  type GeneratedVisualOptions,
+} from "./generated-output.js";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,7 +10,6 @@ import { sqlIdentifier } from "@drama/database";
 import { parseEnvelope, type StepHandler } from "@drama/queue";
 import { probeMedia } from "./probe.js";
 import {
-  MediaFailure,
   type ObjectVersion,
   type VerifiedObject,
   type ProbeResult,
@@ -27,7 +30,7 @@ type Claim = {
   projectId: string;
   token: string;
   source: Source;
-  output: { resolution: string };
+  output: GeneratedVisualOptions;
 };
 /** Same verified object storage and strict decode path as imports; never fetches provider-supplied URLs. */
 export function generatedMediaProcessor(
@@ -48,7 +51,9 @@ export function generatedMediaProcessor(
           [active.id, active.token, result, issue],
         )
       ).rows[0]?.envelope;
-      if (response) await options.schedule(sql, parseEnvelope(response));
+      if (response)
+        for (const step of Array.isArray(response) ? response : [response])
+          await options.schedule(sql, parseEnvelope(step));
       await sql.query("COMMIT");
     } catch (error) {
       await sql.query("ROLLBACK");
@@ -71,7 +76,7 @@ export function generatedMediaProcessor(
     if (!active) return;
     let directory: string | undefined;
     try {
-      directory = await mkdtemp(join(tmpdir(), "scenedesk-generated-image-"));
+      directory = await mkdtemp(join(tmpdir(), "scenedesk-generated-visual-"));
       const file = join(directory, "input");
       await options.store.download(
         active.source.object,
@@ -80,14 +85,7 @@ export function generatedMediaProcessor(
         signal,
       );
       const probe = await probeMedia(file, active.source.mime, signal);
-      if (
-        probe.kind !== "image" ||
-        `${probe.width}x${probe.height}` !== active.output.resolution
-      )
-        throw new MediaFailure(
-          "IMAGE_OUTPUT_MISMATCH",
-          "原输出不是约定尺寸的静态图片，不能作为成功结果。",
-        );
+      validateGeneratedVisual(probe, active.source.mime, active.output);
       const original = await options.store.publish(
         file,
         {
