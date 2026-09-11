@@ -6,7 +6,10 @@ import {
   audioOutput,
 } from "../../api/src/modules/generation/image-output.js";
 import { Pool } from "pg";
-import { createAssistanceFixture } from "@drama/provider";
+import {
+  createAssistanceFixture,
+  localAssistanceFixtureOutput,
+} from "@drama/provider";
 import { createAssistanceWorker } from "../../api/src/modules/generation/worker.js";
 
 // This explicit fixture runner exercises the real durable pipeline without making model calls.
@@ -45,25 +48,7 @@ const adapter = createAssistanceFixture(
   async (submission) => ({
     kind: "completed",
     correlation: submission.attemptId,
-    output:
-      submission.input.purpose === "creative_assistance"
-        ? {
-            prompt: `显式测试 fixture：${submission.resolvedInput.prompt}`,
-            referenceSuggestions: submission.resolvedInput.references.map(
-              (item) => item.reference,
-            ),
-            retain: ["保留明确选定的镜头与参考版本"],
-            change: ["由制作人员核对后再应用到创作输入"],
-            notes: "无真实模型调用。此建议仅验证固定输入、耐久执行与人工修订。",
-          }
-        : {
-            shots: [
-              {
-                label: "测试建议 01",
-                intent: `显式测试 fixture：根据选区准备镜头。${submission.resolvedInput.sourceExcerpt?.quote ?? ""}`,
-              },
-            ],
-          },
+    output: localAssistanceFixtureOutput(submission),
   }),
 );
 let imageAdapter: ReturnType<typeof createAssistanceFixture> | undefined;

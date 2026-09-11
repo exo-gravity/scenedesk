@@ -1,0 +1,19 @@
+{
+  "actualApiDatabaseWorker": true,
+  "realModelAcceptance": false,
+  "reviewId": "8074afa1-96be-42fd-960b-64b6fafea995",
+  "commentId": "100d449a-ac63-4a27-8b42-ae302c1192e7",
+  "planId": "beccace9-0436-4eb2-8773-f4f0df049573",
+  "jobId": "c6313140-4aee-419e-a1ec-701a11fb7420",
+  "artifactId": "c6313140-4aee-419e-a1ec-701a11fb7420",
+  "artifactRevision": 1,
+  "fixedCommentRevision": 2,
+  "originalSuggestion": "显式测试 fixture：把固定候选意见整理为下一次视频尝试的提示和保留／修改要求。\n固定意见 r2：候选意见修订二：保留人物造型与停顿；看向门口后再多停半拍。🌌",
+  "planPosts": 1,
+  "executePosts": 1,
+  "executionReplyDroppedAfter202": true,
+  "recoveredByGet": true,
+  "automaticReexecute": false,
+  "errors": [],
+  "serverErrors": []
+}

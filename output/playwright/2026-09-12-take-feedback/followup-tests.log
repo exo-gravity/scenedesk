@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: prepare prompt fixes shot and target capability revision without implicit scene context
+ok 1 - prepare prompt fixes shot and target capability revision without implicit scene context
+  ---
+  duration_ms: 1.826084
+  type: 'test'
+  ...
+# Subtest: explicit apply preserves manual text, fixed references and artifact revision; repeat cannot duplicate
+ok 2 - explicit apply preserves manual text, fixed references and artifact revision; repeat cannot duplicate
+  ---
+  duration_ms: 8.444
+  type: 'test'
+  ...
+# Subtest: unknown edit recovery confirms matching new revision with reordered body keys; unchanged base only permits explicit retry
+ok 3 - unknown edit recovery confirms matching new revision with reordered body keys; unchanged base only permits explicit retry
+  ---
+  duration_ms: 0.127667
+  type: 'test'
+  ...
+# Subtest: manual draft editing after a fixed plan does not change prepared model input
+ok 4 - manual draft editing after a fixed plan does not change prepared model input
+  ---
+  duration_ms: 0.661833
+  type: 'test'
+  ...
+# Subtest: confirmation against older manual input rejects before application or remote read
+ok 5 - confirmation against older manual input rejects before application or remote read
+  ---
+  duration_ms: 0.21825
+  type: 'test'
+  ...
+# Subtest: save intent is durable before request; losing response preserves exact edit for refresh
+ok 6 - save intent is durable before request; losing response preserves exact edit for refresh
+  ---
+  duration_ms: 1.17325
+  type: 'test'
+  ...
+# Subtest: late artifact result cannot repopulate draft or storage after session retirement
+ok 7 - late artifact result cannot repopulate draft or storage after session retirement
+  ---
+  duration_ms: 0.231
+  type: 'test'
+  ...
+# Subtest: new creation input retains the previous manual prompt and fixed artifact source
+ok 8 - new creation input retains the previous manual prompt and fixed artifact source
+  ---
+  duration_ms: 0.127166
+  type: 'test'
+  ...
+# Subtest: reading a concurrently changed artifact never silently rebases dirty manual edits
+ok 9 - reading a concurrently changed artifact never silently rebases dirty manual edits
+  ---
+  duration_ms: 0.189792
+  type: 'test'
+  ...
+# Subtest: an unapplied prompt can explicitly advance its fixed shot while retaining input and completed task through reload
+ok 10 - an unapplied prompt can explicitly advance its fixed shot while retaining input and completed task through reload
+  ---
+  duration_ms: 0.723
+  type: 'test'
+  ...
+# Subtest: advancing an unapplied prompt cannot abandon an unknown task
+ok 11 - advancing an unapplied prompt cannot abandon an unknown task
+  ---
+  duration_ms: 0.31475
+  type: 'test'
+  ...
+# Subtest: Take review and comment each require an explicit fixed request; response loss refresh never writes
+ok 12 - Take review and comment each require an explicit fixed request; response loss refresh never writes
+  ---
+  duration_ms: 2.73425
+  type: 'test'
+  ...
+# Subtest: expired create is read-only, same-text lists do not confirm it or release its identity
+ok 13 - expired create is read-only, same-text lists do not confirm it or release its identity
+  ---
+  duration_ms: 0.891708
+  type: 'test'
+  ...
+# Subtest: storage failure before send prevents mutation; confirmed local cleanup failure only retries cleanup
+ok 14 - storage failure before send prevents mutation; confirmed local cleanup failure only retries cleanup
+  ---
+  duration_ms: 0.438542
+  type: 'test'
+  ...
+# Subtest: malformed/proxy rejection is unknown; only full first business rejection permits editing
+ok 15 - malformed/proxy rejection is unknown; only full first business rejection permits editing
+  ---
+  duration_ms: 0.402083
+  type: 'test'
+  ...
+# Subtest: comment receipt must be by original actor; no-op changes accept original revision and preserve unrelated input
+ok 16 - comment receipt must be by original actor; no-op changes accept original revision and preserve unrelated input
+  ---
+  duration_ms: 0.675333
+  type: 'test'
+  ...
+# Subtest: comment CAS response loss reconciles via read only; conflict retains original input before explicit current-head editing
+ok 17 - comment CAS response loss reconciles via read only; conflict retains original input before explicit current-head editing
+  ---
+  duration_ms: 0.507375
+  type: 'test'
+  ...
+# Subtest: fixed opinion confirmation rejects later head/resolution; previous selection remains readable
+ok 18 - fixed opinion confirmation rejects later head/resolution; previous selection remains readable
+  ---
+  duration_ms: 0.374708
+  type: 'test'
+  ...
+# Subtest: temporary access failure hides recovery; confirmed denial clears it and late command cannot revive it
+ok 19 - temporary access failure hides recovery; confirmed denial clears it and late command cannot revive it
+  ---
+  duration_ms: 3.072458
+  type: 'test'
+  ...
+# Subtest: accepted last text drains through view close; failed initial read cannot overwrite an unread draft
+ok 20 - accepted last text drains through view close; failed initial read cannot overwrite an unread draft
+  ---
+  duration_ms: 1.9085
+  type: 'test'
+  ...
+# Subtest: rework plan and next input preserve old Take shot and opinion revision; normal draft/media scope stays distinct
+ok 21 - rework plan and next input preserve old Take shot and opinion revision; normal draft/media scope stays distinct
+  ---
+  duration_ms: 8.863458
+  type: 'test'
+  ...
+# Subtest: a slow durable write cannot extend the original 24-hour create retry window
+ok 22 - a slow durable write cannot extend the original 24-hour create retry window
+  ---
+  duration_ms: 0.270417
+  type: 'test'
+  ...
+# Subtest: altered 201 creation facts never clear the original Take opinion request
+ok 23 - altered 201 creation facts never clear the original Take opinion request
+  ---
+  duration_ms: 0.593125
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 240.77475

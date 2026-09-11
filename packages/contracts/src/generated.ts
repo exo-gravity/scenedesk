@@ -4127,6 +4127,7 @@ export interface components {
             reviewId: string;
             /** Format: uuid */
             commentId: string;
+            commentRevision?: number;
         };
         ReworkItem: {
             /** Format: uuid */

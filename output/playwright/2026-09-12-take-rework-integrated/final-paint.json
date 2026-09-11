@@ -1,0 +1,37 @@
+{
+  "readOnlyRepaint": true,
+  "results": [
+    {
+      "size": {
+        "width": 1512,
+        "height": 982
+      },
+      "shape": {
+        "height": 77.390625,
+        "scrollHeight": 77,
+        "clientHeight": 77,
+        "text": "固定候选 346e0146 · 意见 r2\n\n候选意见修订二：保留人物造型与停顿；看向门口后再多停半拍。🌌\n\n新尝试保留原候选、原意见及普通创作输入。"
+      },
+      "geometry": {
+        "viewport": 1512,
+        "document": 1512
+      }
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "shape": {
+        "height": 99.0859375,
+        "scrollHeight": 99,
+        "clientHeight": 99,
+        "text": "固定候选 346e0146 · 意见 r2\n\n候选意见修订二：保留人物造型与停顿；看向门口后再多停半拍。🌌\n\n新尝试保留原候选、原意见及普通创作输入。"
+      },
+      "geometry": {
+        "viewport": 390,
+        "document": 390
+      }
+    }
+  ]
+}

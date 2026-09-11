@@ -5,7 +5,11 @@ import { AssistantSession } from "./assistant-session";
 import { assistantStorage } from "./assistant-storage";
 import { registerAssistant } from "./assistant-lifecycle";
 import { subscribeEditingAccess } from "./editing-access";
-import type { PromptDraft } from "./prompt-draft";
+import {
+  reworkScope,
+  type PromptDraft,
+  type ReworkSource,
+} from "./prompt-draft";
 const entries = new Map<
   string,
   {
@@ -19,12 +23,14 @@ export function usePromptSession(
   tenantId: string,
   projectId: string,
   shot: Schema<"Shot">,
+  rework?: ReworkSource,
 ) {
   const session = useSession(),
     path = projectPath(tenantId, projectId),
     tenant = tenantPath(tenantId);
   const [entry] = useState(() => {
-    const key = JSON.stringify([session.id, path, shot.id]);
+    const reworkKey = reworkScope(rework);
+    const key = JSON.stringify([session.id, path, shot.id, reworkKey]);
     const prior = entries.get(key);
     if (prior) return prior;
     const post = <T>(url: string, body: unknown, key: string) =>
@@ -40,7 +46,7 @@ export function usePromptSession(
       });
     const storage = assistantStorage<PromptDraft>(
       session.userId,
-      `${path}/shots/${shot.id}/prompt`,
+      `${path}/shots/${shot.id}/prompt${reworkKey}`,
       session.id,
     );
     const created: typeof entries extends Map<string, infer Entry>
@@ -59,6 +65,17 @@ export function usePromptSession(
             `${path}/shots/${shot.id}/revisions/${shot.specRevisionId}`,
             { signal: AbortSignal.timeout(15000) },
           );
+          if (rework) {
+            const take = await api<Schema<"Take">>(
+              `${path}/takes/${rework.takeId}`,
+            );
+            if (
+              take.shotId !== shot.id ||
+              take.shotRevisionId !== shot.specRevisionId
+            )
+              throw new Error("候选的固定镜头来源不匹配。");
+            await api(`${path}/reviews/${rework.reviewId}`);
+          }
           const stored = await storage.read();
           if (stored?.draft.artifact)
             await api(
@@ -128,6 +145,7 @@ export function usePromptSession(
       if (!entry.loaded) {
         entry.loaded = true;
         void controller.load({
+          ...(rework ? { rework: structuredClone(rework) } : {}),
           source: { shotId: shot.id, shotRevisionId: shot.specRevisionId },
           label: shot.label,
           intent: shot.spec.intent,

@@ -1,0 +1,149 @@
+{
+  "controlledTransport": true,
+  "realIndexedDB": true,
+  "notRealModelAcceptance": true,
+  "writes": [
+    {
+      "kind": "review",
+      "body": {
+        "subject": {
+          "takeId": "00000098-aabb-4ccd-8eef-112233445566"
+        }
+      },
+      "key": "40365da7-fe29-4f52-a32a-cd390b1e02ef"
+    },
+    {
+      "kind": "review",
+      "body": {
+        "subject": {
+          "takeId": "00000098-aabb-4ccd-8eef-112233445566"
+        }
+      },
+      "key": "40365da7-fe29-4f52-a32a-cd390b1e02ef"
+    },
+    {
+      "kind": "comment",
+      "body": {
+        "body": "手指接触钥匙不自然，请保留钥匙位置。"
+      },
+      "key": "da559aa1-34b2-408b-b96a-fe2fc58de2c6"
+    },
+    {
+      "kind": "comment",
+      "body": {
+        "body": "手指接触钥匙不自然，请保留钥匙位置。"
+      },
+      "key": "da559aa1-34b2-408b-b96a-fe2fc58de2c6"
+    },
+    {
+      "kind": "change",
+      "body": {
+        "body": "手指要自然接触钥匙；位置和服装保持原样。"
+      },
+      "version": "\"1\""
+    },
+    {
+      "kind": "plan",
+      "body": {
+        "scope": "project",
+        "projectId": "00000091-aabb-4ccd-8eef-112233445566",
+        "connectionId": "00000105-aabb-4ccd-8eef-112233445566",
+        "capabilityId": "00000104-aabb-4ccd-8eef-112233445566",
+        "purpose": "creative_assistance",
+        "prompt": "按原意见调整手指动作。",
+        "output": {},
+        "shotSources": [
+          {
+            "shotId": "00000096-aabb-4ccd-8eef-112233445566",
+            "shotRevisionId": "00000097-aabb-4ccd-8eef-112233445566"
+          }
+        ],
+        "additionalReferences": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "contextSources": [],
+        "assistance": {
+          "kind": "prepare_rework",
+          "sourceTakeId": "00000098-aabb-4ccd-8eef-112233445566",
+          "feedback": {
+            "reviewId": "00000100-aabb-4ccd-8eef-112233445566",
+            "commentId": "00000101-aabb-4ccd-8eef-112233445566",
+            "commentRevision": 2
+          },
+          "targetCapabilityId": "00000106-aabb-4ccd-8eef-112233445566",
+          "targetCapabilityRevision": 1
+        }
+      },
+      "key": "74ab637d-ccac-4e8b-b9b7-ed4ccf7f9ce6"
+    },
+    {
+      "kind": "execute",
+      "body": {
+        "planId": "00000107-aabb-4ccd-8eef-112233445566"
+      },
+      "key": "d54169f9-189e-4e92-8b07-798abecc78fe"
+    },
+    {
+      "kind": "artifact-edit",
+      "body": {
+        "body": {
+          "prompt": "人工修改：先停顿，再让手指自然接触钥匙。",
+          "retain": [
+            "钥匙位置"
+          ],
+          "change": [
+            "手指接触动作"
+          ],
+          "referenceSuggestions": [],
+          "notes": "受控传输测试，非真实模型结果"
+        }
+      },
+      "version": "\"1\""
+    },
+    {
+      "kind": "plan",
+      "body": {
+        "scope": "project",
+        "projectId": "00000091-aabb-4ccd-8eef-112233445566",
+        "connectionId": "00000105-aabb-4ccd-8eef-112233445566",
+        "capabilityId": "00000106-aabb-4ccd-8eef-112233445566",
+        "purpose": "video",
+        "prompt": "返工手工原文：保持原位置。\n\n人工修改：先停顿，再让手指自然接触钥匙。",
+        "shotSources": [
+          {
+            "shotId": "00000096-aabb-4ccd-8eef-112233445566",
+            "shotRevisionId": "00000097-aabb-4ccd-8eef-112233445566"
+          }
+        ],
+        "output": {
+          "resolution": "256x144",
+          "durationSeconds": 2,
+          "withAudio": false
+        },
+        "additionalReferences": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "contextSources": [],
+        "assistanceSource": {
+          "artifactId": "00000108-aabb-4ccd-8eef-112233445566",
+          "revision": 2
+        }
+      },
+      "key": "fbce25e3-d8ff-485e-a51b-a9e90257fedb"
+    }
+  ],
+  "reviews": 1,
+  "comments": 1,
+  "commentRevision": 2,
+  "shotRevisionFixed": "00000097-aabb-4ccd-8eef-112233445566",
+  "artifactRevision": 2,
+  "normalInputIsolated": true,
+  "unknownRefreshZeroPosts": true,
+  "casRecoveryReadsOnly": true,
+  "viewports": [
+    1512,
+    390
+  ],
+  "accessRecovery": true,
+  "pageErrors": []
+}

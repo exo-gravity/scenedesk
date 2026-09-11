@@ -1,0 +1,18 @@
+{
+  "explicitTechnicalFixture": true,
+  "actualApi": true,
+  "tenantId": "b128e444-cd57-4087-bcfe-c403051bbd8f",
+  "projectId": "ff8f70f2-8075-45de-b2bc-c54bd62e2653",
+  "sceneId": "4fae9756-c2c0-4062-8597-42c08f6e45c3",
+  "mediaId": "f7807eec-fe1b-4243-987f-0fda188d7e26",
+  "shotId": "ba153ce6-bfa0-4560-a5a3-43def46f74a3",
+  "takeId": "346e0146-aeae-43fe-a758-037bda07489b",
+  "takeShotRevisionId": "bd8fa74c-3f39-48cd-a9ce-84ecae9a84d6",
+  "latestShotRevisionId": "8fa0f606-3b64-4cfc-ad54-dd9c473ed0c0",
+  "range": {
+    "inUs": 250000,
+    "outUs": 1250000
+  },
+  "originalTrialShotUnchanged": true,
+  "href": "http://127.0.0.1:4311/#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/ff8f70f2-8075-45de-b2bc-c54bd62e2653/production?scene=4fae9756-c2c0-4062-8597-42c08f6e45c3&shot=ba153ce6-bfa0-4560-a5a3-43def46f74a3&take=346e0146-aeae-43fe-a758-037bda07489b&mode=storyboard"
+}

@@ -18706,14 +18706,16 @@
         "properties": {
           "body": {
             "type": "string",
-            "maxLength": 20000
+            "minLength": 1,
+            "maxLength": 5000
           },
           "resolved": {
             "type": "boolean"
           }
         },
         "required": [],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "minProperties": 1
       },
       "DecisionInput": {
         "type": "object",
@@ -21233,6 +21235,11 @@
           "commentId": {
             "type": "string",
             "format": "uuid"
+          },
+          "commentRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -21784,6 +21791,13 @@
               "required": [
                 "feedback"
               ],
+              "properties": {
+                "feedback": {
+                  "required": [
+                    "commentRevision"
+                  ]
+                }
+              },
               "anyOf": [
                 {
                   "required": [

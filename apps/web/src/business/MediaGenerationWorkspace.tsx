@@ -1,3 +1,4 @@
+import { reworkScope } from "./prompt-draft";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -83,7 +84,7 @@ export function MediaGenerationWorkspace(
   const session = useSession();
   const key =
     props.source.kind === "shot"
-      ? props.source.creation.source.shotId
+      ? `${props.source.creation.source.shotId}${reworkScope(props.source.creation.rework)}`
       : `${props.source.canvas.id}:${props.source.nodeId}`;
   return (
     <GenerationWorkspace
@@ -111,7 +112,11 @@ function GenerationWorkspace({
     path = projectPath(tenantId, projectId);
   const subject =
     source.kind === "shot"
-      ? { kind: "shot" as const, shotId: source.creation.source.shotId }
+      ? {
+          kind: "shot" as const,
+          shotId: source.creation.source.shotId,
+          inputScope: reworkScope(source.creation.rework),
+        }
       : {
           kind: "canvas" as const,
           canvasId: source.canvas.id,

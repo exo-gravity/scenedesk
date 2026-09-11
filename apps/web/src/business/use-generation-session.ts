@@ -7,7 +7,7 @@ import { registerAssistant } from "./assistant-lifecycle";
 import { subscribeEditingAccess } from "./editing-access";
 import type { ImageDraft, ImageRequest } from "./image-generation";
 export type ImageSubject =
-  | { kind: "shot"; shotId: string }
+  | { kind: "shot"; shotId: string; inputScope?: string }
   | { kind: "canvas"; canvasId: string; nodeId: string; sceneId: string };
 type Entry = {
   controller: AssistantSession<ImageDraft, ImageRequest>;
@@ -27,7 +27,7 @@ export function useGenerationSession(
     tenant = tenantPath(tenantId);
   const subjectPath =
     subject.kind === "shot"
-      ? `shots/${subject.shotId}`
+      ? `shots/${subject.shotId}${subject.inputScope ?? ""}`
       : `canvases/${subject.canvasId}/nodes/${subject.nodeId}`;
   const [entry] = useState(() => {
     const key = JSON.stringify([

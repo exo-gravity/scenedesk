@@ -4,6 +4,52 @@ import { requireThat, versionMatches } from "../../kernel/errors.js";
 import { activeParent, contentTree, type Schema } from "../content/model.js";
 import { safeText, resolveContext } from "./input-sources.js";
 import { canvasDraftInput } from "./canvas-context.js";
+import { resolveTakeFeedback } from "../reviews/model.js";
+
+/** Fixed history is resolved first; current head checks never replace that history. */
+async function currentTakeFeedback(
+  tx: Transaction,
+  input: Schema<"PlanInput">,
+) {
+  const feedback = await resolveTakeFeedback(tx, input.assistance!);
+  const media = (
+    await tx.sql.query(
+      "SELECT status,kind,project_id FROM media WHERE tenant_id=$1 AND id=$2",
+      [tx.tenantId, feedback.take.mediaId],
+    )
+  ).rows[0];
+  requireThat(
+    media?.status === "ready" &&
+      media.kind === "video" &&
+      (!media.project_id || media.project_id === tx.projectId),
+    409,
+    "REWORK_SOURCE_UNAVAILABLE",
+    "原候选视频已不可用或无当前访问权限；固定意见不会改绑其他素材。",
+  );
+  requireThat(
+    input.shotSources?.length === 1 &&
+      input.shotSources[0]!.shotId.toLowerCase() === feedback.take.shotId &&
+      input.shotSources[0]!.shotRevisionId.toLowerCase() ===
+        feedback.take.shotRevisionId,
+    422,
+    "REWORK_TAKE_MISMATCH",
+    "修改建议必须明确固定该候选的原镜头及镜头版本。",
+  );
+  requireThat(
+    feedback.currentCommentRevision ===
+      feedback.feedbackSnapshot.commentRevision,
+    409,
+    "REWORK_FEEDBACK_CHANGED",
+    "意见已有新修订，请保留原输入并明确核对后重新准备。",
+  );
+  requireThat(
+    !feedback.currentResolved,
+    409,
+    "REWORK_FEEDBACK_RESOLVED",
+    "此意见已解决，请明确核对；不会自动更换意见来源。",
+  );
+  return feedback;
+}
 
 export async function validateReference(
   tx: Transaction,
@@ -87,13 +133,10 @@ export async function resolvePrompt(
   );
   const request = input.assistance;
   requireThat(
-    request.kind !== "prepare_rework",
-    503,
-    "REWORK_FEEDBACK_UNAVAILABLE",
-    "按意见准备修改需要真实审阅及评论来源；当前尚未接通，不能用自由文本替代原意见。",
-  );
-  requireThat(
-    !request.feedback && !request.sourceTakeId && !request.sourceCutRevisionId,
+    request.kind === "prepare_rework" ||
+      (!request.feedback &&
+        !request.sourceTakeId &&
+        !request.sourceCutRevisionId),
     422,
     "ASSISTANCE_SOURCE_MISMATCH",
     "提示准备不接收返工来源，请选择正确的任务类型。",
@@ -127,7 +170,17 @@ export async function resolvePrompt(
     "目标媒体能力尚未配置或已停用，不能隐式选用其他版本。",
   );
   versionMatches(Number(target.revision), request.targetCapabilityRevision);
-  return resolveSelectedInput(tx, input, target);
+  const feedback =
+    request.kind === "prepare_rework"
+      ? await currentTakeFeedback(tx, input)
+      : undefined;
+  const result = await resolveSelectedInput(tx, input, target);
+  if (feedback) {
+    result.resolved.resolverVersion = "creative-rework/1";
+    result.resolved.feedbackSnapshot = feedback.feedbackSnapshot;
+    result.resolved.dependencies.push(feedback.dependency);
+  }
+  return result;
 }
 
 /** Resolve only explicitly selected fixed shots, contexts and overrides for prompt or media plans. */
@@ -352,6 +405,16 @@ export async function assertPromptCurrent(
     "目标能力版本或启用状态已变化，请核对原计划。",
   );
   await assertSelectedCurrent(tx, resolved);
+  if (request.kind === "prepare_rework") {
+    const feedback = await currentTakeFeedback(tx, input);
+    requireThat(
+      canonical(resolved.feedbackSnapshot) ===
+        canonical(feedback.feedbackSnapshot),
+      409,
+      "REWORK_FEEDBACK_CHANGED",
+      "原计划意见快照不匹配，不能替换固定来源。",
+    );
+  }
 }
 export async function assertSelectedCurrent(
   tx: Transaction,

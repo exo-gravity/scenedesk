@@ -1,0 +1,47 @@
+{
+  "date": "2026-09-12",
+  "branch": "feat/take-rework-generation",
+  "base": "9ef870c",
+  "dependency": "c4fc372 (Take reviews and immutable comment revisions)",
+  "scope": "Take prepare_rework generation, fixed feedback provenance and first-dispatch freshness",
+  "validation": {
+    "typecheck": "PASS: npm run typecheck",
+    "generatedContract": "PASS: npm run contracts:check",
+    "promptAndFeedbackUnitTests": { "passed": 12, "failed": 0 },
+    "reworkDatabase": { "passed": 9, "failed": 0, "durationMs": 6459.055875, "countIncludesParentTest": true },
+    "adjacentDatabase": { "passed": 35, "failed": 0, "durationMs": 20130.340458, "files": ["prompt-assistance", "image-generation", "video-generation", "audio-generation"] },
+    "diffWhitespace": "PASS"
+  },
+  "provenBehavior": [
+    "Real authenticated API creates Take review/comment; fixed old shot remains valid after the shot head changes.",
+    "Feedback original Unicode/escapes, comment revision, Take subject and local time interval remain exact in plan, dependency, attempt and artifact.",
+    "creative-rework/1 API and SQL guard share rework_input_hash using the existing database creative_canonical serializer. Other resolver hashes remain unchanged. Arbitrary decimal JSONB roundtrip is a serializer-only test, not a claim that the current public assistance input accepts floating-point fields.",
+    "SQL rejects modified snapshot/body/time/subject, dependency hash, whole-input hash, revision and missing typed projection; mixed purpose/kind and cross-project references fail.",
+    "Comment edits/resolution and source media archival stop new preparation or first dispatch without automatically replacing versions or adding attempts.",
+    "Concurrent comment edit/preparation either preserves the originally selected revision or rejects it as stale.",
+    "After an unknown submission, feedback changes do not cause a new submit. Original evidence produces one immutable artifact with inputOutdated true.",
+    "Human artifact edits may leave retain/change arrays empty. Explicit media plan reuse preserves the selected artifact revision and manual prompt without resolving comments, adopting a Take or changing content.",
+    "Restricted generation worker cannot read the typed source table directly; trusted function owner receives the specific source reads required for dispatch. Runtime source projection has no UPDATE/DELETE grant.",
+    "Existing prompt and image/video/audio relational generation, receipt and archive tests remain passing."
+  ],
+  "migrationFreeze": {
+    "0090_take_rework_sources.sql": "104842e668f6a41c80444f8730db9c94eb32b527aed2935a9ad4d06ce627d0d3",
+    "0091_take_rework_dispatch.sql": "9e2494655103f4b634d58b3eca41097fe87bb433adccf51a04708093f77091c6",
+    "note": "Frozen after the first isolated database application. Later correction only added the trusted function owner's shots SELECT grant."
+  },
+  "earlierRuns": [
+    "First run: test fixture incorrectly put a fractional duration into creative_assistance.output, which must be empty; public contract correctly returned 422.",
+    "Second run: new worker freshness query lacked trusted function-owner SELECT on shots; the explicit grant was added without granting worker direct table access.",
+    "Third run: two test preconditions were invalid (a media plan with no source and a ready-to-rejected state transition). Tests now use a valid foreign-project shot and legal archival; production guards were retained."
+  ],
+  "environment": {
+    "database": "isolated disposable PostgreSQL 16.15 container; own loopback port 55462; serial files",
+    "media": "relational fixture metadata only; no decoding or model request",
+    "cleanup": "all owned test containers removed; no root service changed"
+  },
+  "limits": [
+    "Local fixture output explicitly identifies that no real model was called; real-provider quality and execution acceptance remain outstanding.",
+    "This slice did not run a browser, external deployment, paid model or full media decode suite. Parent performs combined build/browser/CI integration.",
+    "Cut reviews, formal approval/rework decisions and automatic comment resolution remain outside this first-release slice."
+  ]
+}

@@ -3,7 +3,13 @@ type Schema<T extends keyof components["schemas"]> = components["schemas"][T];
 export type IdentifiedArtifact = Schema<"AssistanceArtifact"> & {
   executionMode?: "test_fixture" | "verified_provider";
 };
+export type ReworkSource = {
+  takeId: string;
+  reviewId: string;
+  comment: Schema<"Comment">;
+};
 export type PromptDraft = {
+  rework?: ReworkSource;
   source: Schema<"ShotSource">;
   previousInputs?: {
     source: Schema<"ShotSource">;
@@ -77,7 +83,17 @@ export function promptPlan(
     promptPolicy: "append",
     contextSources: [],
     assistance: {
-      kind: "prepare_prompt",
+      kind: draft.rework ? "prepare_rework" : "prepare_prompt",
+      ...(draft.rework
+        ? {
+            sourceTakeId: draft.rework.takeId,
+            feedback: {
+              reviewId: draft.rework.reviewId,
+              commentId: draft.rework.comment.id,
+              commentRevision: draft.rework.comment.revision,
+            },
+          }
+        : {}),
       targetCapabilityId: target.id,
       targetCapabilityRevision: target.revision,
     },
@@ -88,7 +104,14 @@ export function validateArtifact(
   artifact: IdentifiedArtifact,
 ) {
   if (
-    artifact.request.kind !== "prepare_prompt" ||
+    artifact.request.kind !==
+      (draft.rework ? "prepare_rework" : "prepare_prompt") ||
+    (draft.rework &&
+      (artifact.request.sourceTakeId !== draft.rework.takeId ||
+        artifact.request.feedback?.reviewId !== draft.rework.reviewId ||
+        artifact.request.feedback?.commentId !== draft.rework.comment.id ||
+        (artifact.request.feedback as { commentRevision?: number })
+          ?.commentRevision !== draft.rework.comment.revision)) ||
     artifact.shotSources.length !== 1 ||
     artifact.shotSources[0]?.shotId !== draft.source.shotId ||
     artifact.shotSources[0]?.shotRevisionId !== draft.source.shotRevisionId
@@ -165,9 +188,12 @@ export function nextPromptInput(
   shot: Schema<"Shot">,
 ): PromptDraft {
   return {
-    source: { shotId: shot.id, shotRevisionId: shot.specRevisionId },
-    label: shot.label,
-    intent: shot.spec.intent,
+    ...(draft.rework ? { rework: structuredClone(draft.rework) } : {}),
+    source: draft.rework
+      ? structuredClone(draft.source)
+      : { shotId: shot.id, shotRevisionId: shot.specRevisionId },
+    label: draft.rework ? draft.label : shot.label,
+    intent: draft.rework ? draft.intent : shot.spec.intent,
     prompt: "",
     references: [],
     instruction: "",
@@ -186,4 +212,10 @@ export function nextPromptInput(
       },
     ],
   };
+}
+
+export function reworkScope(source?: ReworkSource) {
+  return source
+    ? `/takes/${source.takeId}/comments/${source.comment.id}/revisions/${source.comment.revision}`
+    : "";
 }
