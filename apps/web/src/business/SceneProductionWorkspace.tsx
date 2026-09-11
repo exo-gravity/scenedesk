@@ -29,6 +29,7 @@ import { projectPath, tenantPath, Empty, ErrorNotice } from "./common";
 import CandidateWorkspace from "./CandidateWorkspace";
 import { useScenePreference } from "./use-scene-preference";
 import { useCanvas } from "./use-canvas";
+import { EditingPresence } from "./EditingPresence";
 import { CanvasBoard } from "./CanvasBoard";
 import { CanvasShotConnections } from "./CanvasShotConnections";
 import { useQueryClient } from "@tanstack/react-query";
@@ -422,6 +423,16 @@ function SceneCanvasSession({
         state={state}
         retry={retry}
         selectNode={selectNode}
+      />
+      <EditingPresence
+        tenantId={tenantId}
+        projectId={projectId}
+        canvasId={canvasId}
+        enabled={!state.accessChecking && state.phase !== "loading"}
+        editing={
+          active &&
+          (state.dirty || state.hasInvalidInput || state.phase === "saving")
+        }
       />
       {state.phase === "loading" || !document ? (
         <Loader aria-label="正在读取画布" />

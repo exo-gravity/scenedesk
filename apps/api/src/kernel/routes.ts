@@ -28,7 +28,7 @@ export type ApiContext = {
   secureCookies: boolean;
 };
 
-function sessionCookie(request: FastifyRequest) {
+export function sessionCookie(request: FastifyRequest) {
   const values = (request.headers.cookie ?? "")
     .split(";")
     .map((p) => p.trim())
@@ -107,6 +107,24 @@ export function installProblemHandler(app: FastifyInstance) {
     ) => {
       let problem: Problem;
       if (error instanceof Problem) problem = error;
+      else if (error.code === "P0426")
+        problem = new Problem(
+          409,
+          "EDITING_TARGET_ARCHIVED",
+          "此内容已归档，可以查看，暂不可编辑。",
+        );
+      else if (error.code === "P0427")
+        problem = new Problem(
+          409,
+          "EDITING_CLIENT_CHANGED",
+          "此标签页已使用新会话，请刷新会话状态。",
+        );
+      else if (error.code === "P0429")
+        problem = new Problem(
+          429,
+          "EDITING_PRESENCE_LIMIT",
+          "打开的编辑页面过多，请关闭不再使用的页面后稍后重试。",
+        );
       else if (error instanceof CanvasDocumentError)
         problem = new Problem(
           error.code === "CANVAS_LIMIT_EXCEEDED" ? 413 : 422,
@@ -223,6 +241,7 @@ export function installProblemHandler(app: FastifyInstance) {
           "操作未完成，请稍后重试。",
         );
       }
+      if (problem.status === 429) reply.header("Retry-After", "30");
       void reply
         .code(problem.status)
         .header("Cache-Control", "no-store")
@@ -243,6 +262,7 @@ export function registerAction(
   options: {
     authorizeScope?: (tx: Transaction, input: Input) => Promise<void>;
     readOnly?: boolean;
+    audit?: boolean;
   } = {},
 ) {
   const operation = operationDefinition(name);
@@ -452,7 +472,7 @@ export function registerAction(
             !operation.validateOutput(answer.body)
           )
             throw new Error(`Response contract violation: ${name}`);
-          if (write)
+          if (write && options.audit !== false)
             await audit(
               tx,
               name,

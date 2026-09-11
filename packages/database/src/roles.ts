@@ -17,6 +17,13 @@ const mediaAuthorizationFunctions = [
   "resolve_media_work(uuid,text,bigint,bigint)",
   "scan_media_work(integer)",
 ] as const;
+const presenceFunctions = [
+  "lock_editing_presence_target(uuid,text,uuid,boolean)",
+  "editing_presence_member_valid(uuid,uuid,uuid,uuid)",
+  "get_editing_presence(uuid,text,uuid)",
+  "put_editing_presence(uuid,text,uuid,uuid,text,uuid)",
+  "clear_revoked_editing_presence()",
+] as const;
 const mediaPolicyFunctions = [
   "media_scope_read(uuid,uuid)",
   "media_scope_write(uuid,uuid)",
@@ -204,6 +211,15 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT SELECT,INSERT,DELETE ON ${scope}.node_shot_bindings TO ${target}`,
   );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.get_editing_presence(uuid,text,uuid),${scope}.put_editing_presence(uuid,text,uuid,uuid,text,uuid) TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.project_events,${scope}.project_event_heads TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.relay_project_events(uuid) TO ${target}`,
+  );
 }
 
 export async function grantAuthAccess(
@@ -299,10 +315,25 @@ export async function hardenAuthorizationFunctions(
     `GRANT SELECT ON ${scope}.edit_history_media_refs TO ${target}`,
   );
   await client.query(`GRANT UPDATE(updated_at) ON ${scope}.media TO ${target}`);
+  await client.query(
+    `GRANT SELECT ON ${["canvases", "scene_canvas_links", "scenes", "episodes", "cuts"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT,UPDATE,DELETE ON ${scope}.editing_presence TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,DELETE ON ${scope}.canvas_outbox TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT,UPDATE,DELETE ON ${scope}.project_event_outbox,${scope}.project_event_heads,${scope}.project_events TO ${target}`,
+  );
   for (const signature of [
     ...authorizationFunctions,
     ...mediaAuthorizationFunctions,
     ...productionFunctions,
+    ...presenceFunctions,
+    "record_project_invalidation()",
+    "relay_project_events(uuid)",
     "enforce_tenant_owner()",
     "enforce_project_lead()",
   ]) {

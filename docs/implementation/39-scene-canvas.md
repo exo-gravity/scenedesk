@@ -56,6 +56,20 @@ React Flow 12.11.6 已进入真实场次制作路由，与分镜共用场次上�
 
 新增[1512 桌面截图](../../output/playwright/scene-canvas/13-bindings-1512.png)、[1366 桌面截图](../../output/playwright/scene-canvas/13-bindings-1366.png)、[窄屏关联面板](../../output/playwright/scene-canvas/13-bindings-390.png)、[数据库验证](../../tests/integration/canvas-bindings.test.ts)、[浏览器流程](../../output/playwright/scene-canvas/verify-bindings.js)、[定位后视图恢复](../../output/playwright/scene-canvas/verify-focus-recovery.js)和[结果记录](../../output/playwright/scene-canvas/verification-results.json)。本批仍为本地技术验证；真实模型及主创场次验收尚未发生。
 
+## 编辑者提示与项目通知（2026-09-11）
+
+迁移 0019 接通既定 `getEditingPresence`／`updateEditingPresence`。目标通过实际 Canvas／Cut 外键定位；本人身份来自当前登录，服务器给出 90 秒有效期。每成员每目标最多 5 个客户端、每目标最多 500 个客户端，短事务锁串行检查容量；心跳不增加内容版本或审计记录，也不阻止其他页面写入。归档目标允许查看，编辑心跳被拒绝。退出、成员／项目权限撤销主动清理所属会话提示，读取或心跳清理该目标的过期／失效项。新登录接管同一客户端后，旧心跳不能覆盖新登录，旧会话退出不能删除新会话记录。没有全库定时清扫器，未再访问目标的过期行仍待后续维护清理。
+
+迁移 0020 接通既定项目 SSE。现有画布 outbox 与项目、内容、镜头、资产、媒体、候选、采用、人工任务、提案和旧工作稿的已提交变更生成不含正文的提示。按项目串行 relay 分配独立序列；不使用生产事务开始时的序号，且即使受限 SQL 在生产事务内调用 relay，也排除自身未提交记录。当前实现由有权连接按需拉动每批最多 200 个资源，没有额外常驻 relay 进程。离线期间 outbox 保留，首次连接发送 reset 后刷新快照；提示是失效通知，不是逐次业务操作日志。
+
+事件保留最近 24 小时且最多 10,000 条，relay 时清理；过期／超前游标返回 reset，序列使用十进制字符串。连接每 2 秒重新验证当前登录及项目授权，不持有长事务；退出或撤权发出 access_revoked 后关闭。每 API 进程限制同一用户／项目 5 条流、项目 500 条流，尚非多实例全局配额。慢连接等待排空，超过 5 秒关闭；每 15 秒发送保活注释，应用关闭主动结束连接。实现参考 [Fastify hijack](https://fastify.dev/docs/latest/Reference/Reply/) 与 [EventSource 游标规范](https://html.spec.whatwg.org/dev/server-sent-events.html)，不是 WebSocket 共同编辑。
+
+项目页面共用一条 EventSource，通知合并为当前资源重查；连接、登录变化和错误后用 GET 重新核对。画布沿用原恢复控制器，通知只触发读取，版本落后不能覆盖新状态，dirty 文档／原始输入保持并进入冲突比较。画布页每 30 秒发送 viewing／editing 心跳，活动改变串行补发；离开停止请求，根据服务器时间及本机单调时钟逐页移除过期提示；未收到后续状态时不宣称确定无人编辑。页面以短状态文字显示其他页面活动及通知连接状态；断网明确显示编辑状态暂不可用。
+
+本地完整 `npm run check` 通过契约、UI 规则、类型、构建和 45 项单元测试（含逐页到期提示）；完整数据库回归 136 项通过，无失败、取消或跳过。新增 [presence 验证](../../tests/integration/editing-presence.test.ts)覆盖真实目标、当前权限、CSRF／Origin、并发客户端限额、TTL、会话接管、退出／撤权及只读归档；[事件验证](../../tests/integration/project-events.test.ts)覆盖已提交投递、回滚、并发序列、项目隔离、游标过期、受限 SQL、防伪画布修订，以及真实 HTTP 流的重连、退出／撤权和关闭清理。0019／0020 已应用本地业务库并重新核验受限角色，后续不得改写迁移。
+
+生产浏览器连接实际本地 API／PostgreSQL，两个标签页具有不同客户端身份，可显示另一页的查看／编辑活动。另一页保存后 3,323 ms 收到实际画布事件，当前空名称缓冲完整保留并显示冲突；断网显示状态未知，重连不覆盖输入，明确放弃本机修改后才采用服务器内容。1512×982、1366×900 和 390×844 无横向溢出，截图已人工检查，页面错误为 0。首次测试等待 12 秒短于既定 30 秒心跳周期，调整观察上限为 35 秒后通过；没有修改心跳契约来迁就测试。见[双页面脚本](../../output/playwright/scene-canvas/verify-project-updates.js)、[结果](../../output/playwright/scene-canvas/verification-results.json)、[桌面](../../output/playwright/scene-canvas/14-project-updates-1512.png)、[1366](../../output/playwright/scene-canvas/14-project-updates-1366.png)和[窄屏](../../output/playwright/scene-canvas/14-project-updates-390.png)。本次为技术夹具，仍非多人长期、真实模型或实际主创验收。
+
 ## 继续接入
 
-编辑者提示、通知投递、拖入上传／继续创作／多选参考、模型能力参数与固定生成计划／结果取回仍待接通，分组与快捷键还需扩大实际场次走查。outbox 已与业务写入同事务落库，尚无通知消费者。300／2,000 节点的浏览器交互、帧时、内存和媒体容量尚未验收。AI 服务仍未配置，完整流程完成后还需要真实模型及实际场次验收，不能以本批页面宣布画布或 MVP 完成。PR #16 保持草稿，后续继续完成编辑者提示和其余原定能力。
+拖入上传／继续创作／多选参考、模型能力参数与固定生成计划／结果取回仍待接通，分组与快捷键还需扩大实际场次走查。编辑提示和通知已接入本地业务，仍需多人长时间与部署环境验证。300／2,000 节点的浏览器交互、帧时、内存和媒体容量尚未验收。AI 服务仍未配置，完整流程完成后还需要真实模型及实际场次验收，不能以本批页面宣布画布或 MVP 完成。PR #16 保持草稿，后续继续完成其余原定能力。

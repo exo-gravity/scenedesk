@@ -151,5 +151,34 @@
     "afterNarrow": "matrix(1, 0, 0, 1, 783.231, 130.876)",
     "pageErrors": 0,
     "scope": "production browser with actual canvas; view-only checks"
+  },
+  "projectUpdates": {
+    "distinctTabPresence": true,
+    "activeEditingVisible": true,
+    "actualCanvasSse": true,
+    "notificationMs": 3323,
+    "dirtyBufferPreserved": true,
+    "offlineShownAsUnknown": true,
+    "reconnectPreservedInput": true,
+    "explicitServerRecovery": true,
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": false
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "local fixture, actual production browser/API/database; no real provider or user acceptance"
   }
 }

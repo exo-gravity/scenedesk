@@ -10,6 +10,7 @@ import {
   suspendEditingAccess,
 } from "./editing-lifecycle";
 import { notifyEditingAccess, type EditingAccessHint } from "./editing-access";
+import { subscribeProjectUpdates } from "./ProjectUpdates";
 
 const controllers = new EditingSessionRegistry(
   (partition, transport: CanvasTransport, sessionId) =>
@@ -186,6 +187,15 @@ export function useCanvas(
       if (document.visibilityState === "visible") void controller.refresh();
     };
     const tick = setInterval(refresh, 15_000);
+    const unsubscribe = subscribeProjectUpdates(projectId, (hint) => {
+      if (hint.type === "access_revoked") controller.suspendAccess();
+      if (
+        hint.type !== "resource_changed" ||
+        hint.resourceKind !== "canvas" ||
+        hint.resourceId === canvasId
+      )
+        void controller.refresh();
+    });
     window.addEventListener("focus", refresh);
     window.addEventListener("online", refresh);
     document.addEventListener("visibilitychange", refresh);
@@ -202,12 +212,13 @@ export function useCanvas(
     window.addEventListener("beforeunload", warn);
     return () => {
       clearInterval(tick);
+      unsubscribe();
       window.removeEventListener("focus", refresh);
       window.removeEventListener("online", refresh);
       document.removeEventListener("visibilitychange", refresh);
       window.removeEventListener("beforeunload", warn);
     };
-  }, [controller]);
+  }, [controller, projectId, canvasId]);
   useEffect(() => {
     if (state?.local?.base.revision === undefined) return;
     void cache.invalidateQueries({

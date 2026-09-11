@@ -13,6 +13,8 @@ import { taskRoutes } from "./modules/tasks/routes.js";
 import { candidateRoutes } from "./modules/candidates/routes.js";
 import { editingRoutes } from "./modules/editing/routes.js";
 import { canvasRoutes } from "./modules/canvas/routes.js";
+import { editingPresenceRoutes } from "./modules/editing-presence/routes.js";
+import { projectEventRoutes } from "./modules/project-events/routes.js";
 import { assetRoutes } from "./modules/assets/routes.js";
 import { mediaRoutes } from "./modules/media/routes.js";
 import type { MediaServices } from "./modules/media/model.js";
@@ -65,6 +67,8 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     candidateRoutes(app, context);
     editingRoutes(app, context);
     canvasRoutes(app, context);
+    editingPresenceRoutes(app, context);
+    projectEventRoutes(app, context);
     assetRoutes(app, context);
     mediaRoutes(app, {
       ...context,

@@ -60,6 +60,7 @@ const SceneProductionWorkspace = lazy(
 const CutWorkspace = lazy(() => import("./CutWorkspace"));
 const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
+import { ProjectUpdates } from "./ProjectUpdates";
 import {
   invitationFromFragment,
   loginReturnPath,
@@ -473,17 +474,22 @@ function Workspace({ hash }: { hash: string }) {
               )}
             </>
           ) : (
-            <TenantArea
-              key={tenantId}
+            <ProjectUpdates
               tenantId={tenantId}
-              section={segments[4]}
               projectId={segments[4] === "p" ? segments[5] : undefined}
-              contentView={segments[6] === "content"}
-              mediaView={segments[6] === "media"}
-              assetView={segments[6] === "assets"}
-              productionView={segments[6] === "production"}
-              editingView={segments[6] === "editing"}
-            />
+            >
+              <TenantArea
+                key={tenantId}
+                tenantId={tenantId}
+                section={segments[4]}
+                projectId={segments[4] === "p" ? segments[5] : undefined}
+                contentView={segments[6] === "content"}
+                mediaView={segments[6] === "media"}
+                assetView={segments[6] === "assets"}
+                productionView={segments[6] === "production"}
+                editingView={segments[6] === "editing"}
+              />
+            </ProjectUpdates>
           )}
         </main>
       </div>
