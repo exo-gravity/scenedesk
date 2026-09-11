@@ -54,6 +54,8 @@ const generationFunctions = [
   "claim_generation_job(uuid,uuid)",
   "record_generation_evidence(uuid,uuid,jsonb)",
   "read_generation_evidence(uuid)",
+  "claim_generation_observation(uuid,uuid)",
+  "release_generation_observation(uuid,uuid,integer,boolean)",
   "finish_generation_job(uuid,uuid,jsonb,text)",
   "read_generation_archive_envelope(uuid)",
 ] as const;
@@ -82,7 +84,7 @@ export async function grantRuntimeAccess(
   const scope = sqlIdentifier(schema),
     target = sqlIdentifier(role);
   await client.query(
-    `GRANT EXECUTE ON FUNCTION ${scope}.generation_worker_login(),${scope}.generation_submission_allowed(uuid),${scope}.request_generation_reconciliation(uuid) TO ${target}`,
+    `GRANT EXECUTE ON FUNCTION ${scope}.generation_worker_login(),${scope}.generation_submission_allowed(uuid),${scope}.request_generation_reconciliation(uuid),${scope}.request_generation_cancel(uuid) TO ${target}`,
   );
   await client.query(
     `GRANT SELECT ON ${scope}.generation_capabilities TO ${target}`,
@@ -94,9 +96,10 @@ export async function grantRuntimeAccess(
     `GRANT UPDATE(status,revision,updated_at) ON ${scope}.generation_plans TO ${target}`,
   );
   await client.query(
-    `GRANT UPDATE(status,error_code,revision,updated_at,recovery_epoch) ON ${scope}.generation_jobs TO ${target}`,
+    `REVOKE UPDATE ON ${scope}.generation_jobs FROM ${target}; REVOKE UPDATE(status,error_code,revision,updated_at,recovery_epoch) ON ${scope}.generation_jobs FROM ${target}`,
   );
   await client.query(`GRANT INSERT ON ${scope}.generation_work TO ${target}`);
+  await client.query(`GRANT SELECT ON ${scope}.generation_provider_bindings TO ${target}`);
   await client.query(
     `GRANT SELECT,INSERT ON ${scope}.generation_canvas_origins,${scope}.generation_canvas_results TO ${target}`,
   );
@@ -428,7 +431,7 @@ export async function hardenAuthorizationFunctions(
     `GRANT UPDATE(enabled) ON ${scope}.generation_capabilities TO ${target}`,
   );
   await client.query(
-    `GRANT UPDATE(status,proposal_id,assistance_artifact_id,result_media_id,error_code,revision,updated_at) ON ${scope}.generation_jobs TO ${target}`,
+    `GRANT UPDATE(status,proposal_id,assistance_artifact_id,result_media_id,error_code,revision,updated_at,cancel_status,cancel_requested_at) ON ${scope}.generation_jobs TO ${target}`,
   );
   await client.query(
     `GRANT SELECT,INSERT,DELETE ON ${scope}.generation_work TO ${target}`,
@@ -451,11 +454,16 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT UPDATE(kind,status,immutable_key,storage_version_id,sha256,bytes,mime,width,height,duration_us,fps_num,fps_den,has_audio,probe_metadata,issue,revision,updated_at) ON ${scope}.media TO ${target}`,
   );
+  await client.query(`GRANT SELECT,INSERT ON ${scope}.generation_provider_bindings TO ${target}`);
+  await client.query(`GRANT SELECT,INSERT,UPDATE ON ${scope}.generation_observation_control TO ${target}`);
+  await client.query(`GRANT SELECT,INSERT ON ${scope}.generation_applied_observations TO ${target}`);
   for (const signature of [
     ...authorizationFunctions,
     ...generationFunctions,
     "generation_submission_allowed(uuid)",
     "request_generation_reconciliation(uuid)",
+    "request_generation_cancel(uuid)",
+    "finish_generation_output(uuid,uuid,jsonb,text)",
     "finish_script_analysis_job(uuid,uuid,jsonb,text)",
     "finish_text_assistance_job(uuid,uuid,jsonb,text)",
     "validate_media_source()",
@@ -592,6 +600,7 @@ export async function grantGenerationWorkerAccess(
     throw new Error(
       "An existing generation worker identity cannot be replaced without explicit recovery",
     );
+  await client.query(`REVOKE EXECUTE ON FUNCTION ${scope}.finish_generation_output(uuid,uuid,jsonb,text) FROM ${target}`);
   for (const signature of generationFunctions)
     await client.query(
       `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,

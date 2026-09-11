@@ -17420,6 +17420,20 @@
               "test_fixture",
               "verified_provider"
             ]
+          },
+          "cancelStatus": {
+            "type": "string",
+            "enum": [
+              "not_requested",
+              "requested",
+              "unsupported",
+              "unknown",
+              "confirmed"
+            ]
+          },
+          "cancelRequestedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [

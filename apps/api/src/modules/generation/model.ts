@@ -14,7 +14,7 @@ import type { Input } from "../../kernel/routes.js";
 import { activeParent, contentTree, type Schema } from "../content/model.js";
 
 export const zero = { currency: "CNY", amountMicros: "0" };
-export const jobSelect = `SELECT j.*,p.input,p.connection_version_id,p.execution_mode,p.cost_estimate,p.resolved_input FROM generation_jobs j JOIN generation_plans p ON p.id=j.plan_id`;
+export const jobSelect = `SELECT j.*,p.input,p.connection_version_id,p.execution_mode,p.cost_estimate,p.resolved_input,b.provider_job_id FROM generation_jobs j JOIN generation_plans p ON p.id=j.plan_id LEFT JOIN generation_provider_bindings b ON b.job_id=j.id`;
 export function planRecord(row: Record<string, any>): Schema<"GenerationPlan"> {
   return {
     id: row.id,
@@ -51,6 +51,9 @@ function jobRecord(
     projectId: row.project_id,
     planId: row.plan_id,
     status: row.status,
+    cancelStatus: row.cancel_status ?? "not_requested",
+    ...(row.cancel_requested_at ? { cancelRequestedAt: row.cancel_requested_at.toISOString() } : {}),
+    ...(row.provider_job_id ? { providerJobId: row.provider_job_id } : {}),
     mediaIds: row.result_media_id ? [row.result_media_id] : [],
     reservationStatus: terminal ? "released" : "held",
     inputOutdated,

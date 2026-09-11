@@ -193,18 +193,7 @@ export function generationRoutes(app: FastifyInstance, context: MediaContext) {
     "cancelGenerationJob",
     async (tx, input) => {
       const job = await getJob(tx, input.params.jobId!);
-      if (job.status === "queued")
-        await tx.sql.query(
-          "UPDATE generation_jobs SET status='cancelled',error_code='CANCELLED_BEFORE_DISPATCH',revision=revision+1,updated_at=now() WHERE tenant_id=$1 AND id=$2 AND status='queued'",
-          [tx.tenantId, job.id],
-        );
-      else
-        requireThat(
-          ["cancelled", "succeeded", "failed"].includes(job.status),
-          409,
-          "CANCEL_NOT_CONFIRMED",
-          "任务已经开始或提交结果未知；当前文本服务不能确认取消，请保留并核对原任务。",
-        );
+      await tx.sql.query("SELECT request_generation_cancel($1)", [job.id]);
       return { body: await serializeJob(tx, await getJob(tx, job.id)) };
     },
     { authorizeScope: generationScope("job", true) },
