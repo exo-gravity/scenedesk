@@ -8,6 +8,7 @@ export type PromptDraft = {
   previousInputs?: {
     source: Schema<"ShotSource">;
     prompt: string;
+    instruction?: string;
     references: Schema<"Reference">[];
     assistanceSource?: Schema<"ArtifactSource"> | undefined;
   }[];
@@ -179,6 +180,7 @@ export function nextPromptInput(
       {
         source: draft.source,
         prompt: draft.prompt,
+        instruction: draft.instruction,
         references: draft.references,
         assistanceSource: draft.assistanceSource,
       },

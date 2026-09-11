@@ -263,3 +263,64 @@ test("reading a concurrently changed artifact never silently rebases dirty manua
   assert.equal(dirty.artifact.revision, 2);
   assert.equal(dirty.editBody.prompt, "my dirty edit");
 });
+
+test("an unapplied prompt can explicitly advance its fixed shot while retaining input and completed task through reload", async () => {
+  const f = fixture();
+  const completed = {
+    id: "prior-job",
+    planId: "plan",
+    status: "succeeded",
+  } as Schema<"GenerationJob">;
+  f.transport.execute = async () => completed;
+  f.transport.getJob = async () => completed;
+  f.transport.findJob = async () => completed;
+  await f.controller.load(draft);
+  await f.controller.prepare(promptPlan(draft, "project", text, target));
+  await f.controller.execute();
+  const before = f.controller.getSnapshot().record!.draft;
+  assert.equal(before.assistanceSource, undefined);
+  const selectedShot = {
+    id: "shot-a",
+    specRevisionId: "fixed-new",
+    label: "A2",
+    spec: { intent: "new intent" },
+  } as Schema<"Shot">;
+  await f.controller.revise(nextPromptInput(before, selectedShot), before);
+  const restored = new AssistantSession(f.storage, f.transport);
+  await restored.load(draft);
+  const record = restored.getSnapshot().record!;
+  assert.deepEqual(record.draft.source, {
+    shotId: "shot-a",
+    shotRevisionId: "fixed-new",
+  });
+  assert.equal(record.draft.prompt, "");
+  assert.equal(record.draft.previousInputs?.[0]?.prompt, draft.prompt);
+  assert.equal(
+    record.draft.previousInputs?.[0]?.instruction,
+    draft.instruction,
+  );
+  assert.deepEqual(record.draft.previousInputs?.[0]?.source, draft.source);
+  assert.deepEqual(record.previous, [{ planId: "plan", jobId: "prior-job" }]);
+  assert.equal(record.execution, undefined);
+  assert.equal(record.planId, undefined);
+});
+
+test("advancing an unapplied prompt cannot abandon an unknown task", async () => {
+  const f = fixture();
+  await f.controller.load(draft);
+  await f.controller.prepare(promptPlan(draft, "project", text, target));
+  await f.controller.execute(); // Transport loses the result; durable intent remains.
+  const before = f.controller.getSnapshot().record!.draft;
+  await f.controller.revise(
+    nextPromptInput(before, {
+      id: "shot-a",
+      specRevisionId: "fixed-new",
+      label: "A2",
+      spec: { intent: "new intent" },
+    } as Schema<"Shot">),
+    before,
+  );
+  assert.deepEqual(f.current()?.draft.source, draft.source);
+  assert.ok(f.current()?.execution);
+  assert.deepEqual(f.current()?.previous, []);
+});

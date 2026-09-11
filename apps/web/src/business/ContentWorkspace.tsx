@@ -26,7 +26,7 @@ import {
   Plus,
   Scroll,
 } from "@phosphor-icons/react";
-import { useCommand, useList, useResource, type Schema } from "./api";
+import { ApiError, useCommand, useList, useResource, type Schema } from "./api";
 import { Empty, ErrorNotice, projectPath, SectionHeading } from "./common";
 import {
   ScriptEditor,
@@ -104,16 +104,41 @@ export function ContentWorkspace({
     entity: ContentEntity;
   }>();
   const command = useCommand<unknown>();
+  const currentAccessError = [project.error, content.error, scripts.error].find(
+    (error) =>
+      error instanceof ApiError && [401, 403, 404].includes(error.status),
+  );
+  const [deniedAccess, setDeniedAccess] = useState<Error | null>(null);
+  // Query caches retain data after refetch errors. A confirmed denial stays
+  // closed through subsequent outages until all protected reads succeed again.
+  const blockedAccess = currentAccessError ?? deniedAccess;
   useEffect(() => {
-    if (project.data) document.title = `${project.data.name} · 集场镜 · 幕序`;
-  }, [project.data?.name]);
-  if ((project.isError && !project.data) || (content.isError && !content.data))
+    if (currentAccessError) setDeniedAccess(currentAccessError);
+    else if (project.isSuccess && content.isSuccess && scripts.isSuccess)
+      setDeniedAccess(null);
+  }, [
+    currentAccessError,
+    project.isSuccess,
+    content.isSuccess,
+    scripts.isSuccess,
+  ]);
+  useEffect(() => {
+    if (blockedAccess) document.title = "内容不可访问 · 幕序";
+    else if (project.data)
+      document.title = `${project.data.name} · 集场镜 · 幕序`;
+  }, [project.data?.name, blockedAccess]);
+  if (
+    blockedAccess ||
+    (project.isError && !project.data) ||
+    (content.isError && !content.data)
+  )
     return (
       <ErrorNotice
-        error={project.error ?? content.error}
+        error={blockedAccess ?? project.error ?? content.error}
         retry={() => {
           void project.refetch();
           void content.refetch();
+          void scripts.refetch();
         }}
       />
     );

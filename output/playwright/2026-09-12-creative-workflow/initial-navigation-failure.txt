@@ -1,0 +1,4 @@
+### Error
+TimeoutError: locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByText('受控秘密场次', { exact: true }).first() to be visible
