@@ -21,3 +21,16 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.creation {
+  width: 100%;
+  max-width: 760px;
+  max-height: min(440px, 50dvh);
+  min-width: 0;
+  overflow: auto;
+  align-self: center;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  background: var(--ws-panel);
+}

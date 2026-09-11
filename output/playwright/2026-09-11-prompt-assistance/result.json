@@ -1,0 +1,21 @@
+{
+  "controlledTransport": true,
+  "actualReadOnlyContext": true,
+  "notRealModelAcceptance": true,
+  "planPosts": 1,
+  "executePosts": 1,
+  "editPosts": 1,
+  "preservedManualInput": true,
+  "saveRecovery": "GET confirmed r2; no repeat PUT",
+  "fixedArtifactRevision": 2,
+  "originalRevisionReadable": true,
+  "modeRecovery": true,
+  "viewportWidths": [
+    1512,
+    390
+  ],
+  "pageErrors": [],
+  "newInputPreservesPrevious": true,
+  "noModelDisabled": true,
+  "multilineRequirementsPreserved": true
+}

@@ -15,16 +15,16 @@ export type AssistantDraft = {
     text: string;
   }[];
 };
-export type AssistantRecord = {
+export type AssistantRecord<Draft = AssistantDraft> = {
   schemaVersion: 1;
-  draft: AssistantDraft;
+  draft: Draft;
   planRequest?: { key: string; input: Schema<"PlanInput"> };
   planId?: string;
   execution?: { key: string; planId: string; jobId?: string };
   previous: { planId: string; jobId?: string }[];
 };
-export type AssistantState = {
-  record?: AssistantRecord | undefined;
+export type AssistantState<Draft = AssistantDraft> = {
+  record?: AssistantRecord<Draft> | undefined;
   plan?: Schema<"GenerationPlan"> | undefined;
   job?: Schema<"GenerationJob"> | undefined;
   busy: boolean;
@@ -43,9 +43,9 @@ export type AssistantTransport = {
   getJob(id: string): Promise<Schema<"GenerationJob">>;
   findJob(planId: string): Promise<Schema<"GenerationJob"> | undefined>;
 };
-export type AssistantStorage = {
-  read(): Promise<AssistantRecord | undefined>;
-  write(record: AssistantRecord): Promise<void>;
+export type AssistantStorage<Draft = AssistantDraft> = {
+  read(): Promise<AssistantRecord<Draft> | undefined>;
+  write(record: AssistantRecord<Draft>): Promise<void>;
   clear(): Promise<void>;
 };
 export const jobStatusLabel: Record<Schema<"GenerationJob">["status"], string> =
@@ -112,8 +112,8 @@ export function planForDraft(
 }
 
 /** One scene's durable intent. Recovery reads never purchase a new job. */
-export class AssistantSession {
-  private state: AssistantState = {
+export class AssistantSession<Draft = AssistantDraft> {
+  private state: AssistantState<Draft> = {
     busy: false,
     draftSaved: false,
     access: "checking",
@@ -122,11 +122,11 @@ export class AssistantSession {
   private queue = Promise.resolve();
   private active = false;
   private epoch = 0;
-  private initial?: AssistantDraft;
+  private initial?: Draft;
   private retired = false;
-  private hiddenRecord?: AssistantRecord | undefined;
+  private hiddenRecord?: AssistantRecord<Draft> | undefined;
   constructor(
-    private storage: AssistantStorage,
+    private storage: AssistantStorage<Draft>,
     private transport: AssistantTransport,
   ) {}
   getSnapshot = () => this.state;
@@ -136,7 +136,7 @@ export class AssistantSession {
       this.listeners.delete(listener);
     };
   };
-  private publish(change: Partial<AssistantState>) {
+  private publish(change: Partial<AssistantState<Draft>>) {
     this.state = { ...this.state, ...change };
     this.listeners.forEach((listener) => listener());
   }
@@ -144,7 +144,7 @@ export class AssistantSession {
     if (epoch !== this.epoch || this.retired)
       throw new Error("ASSISTANT_SESSION_RETIRED");
   }
-  private async persist(record: AssistantRecord, epoch: number) {
+  private async persist(record: AssistantRecord<Draft>, epoch: number) {
     this.assertCurrent(epoch);
     const write = this.queue.then(async () => {
       this.assertCurrent(epoch);
@@ -310,17 +310,17 @@ export class AssistantSession {
       }
     }
   }
-  load(initial: AssistantDraft) {
+  load(initial: Draft) {
     this.initial = initial;
     return this.verify();
   }
-  updateDraft(draft: AssistantDraft) {
+  updateDraft(draft: Draft, preserveFixedPlan = false) {
     if (
       !this.state.record ||
       this.active ||
       this.state.access !== "ready" ||
-      this.state.record.planRequest ||
-      this.state.record.planId
+      (!preserveFixedPlan &&
+        (this.state.record.planRequest || this.state.record.planId))
     )
       return;
     const record = { ...this.state.record, draft },
@@ -348,6 +348,25 @@ export class AssistantSession {
                 : "本机保存失败，请保留当前内容。",
           });
       });
+  }
+  commitDraft(
+    expected: Draft,
+    next: Draft,
+    finish?: (prepared: Draft) => Promise<Draft>,
+  ) {
+    return this.action(async (epoch) => {
+      await this.queue;
+      this.assertCurrent(epoch);
+      const record = this.state.record;
+      if (!record || JSON.stringify(record.draft) !== JSON.stringify(expected))
+        throw new Error("输入已改变，请重新核对本次操作。");
+      await this.persist({ ...record, draft: next }, epoch);
+      if (finish) {
+        const completed = await finish(structuredClone(next));
+        this.assertCurrent(epoch);
+        await this.persist({ ...record, draft: completed }, epoch);
+      }
+    });
   }
   prepare(input: Schema<"PlanInput">) {
     return this.action(async (epoch) => {
@@ -442,10 +461,12 @@ export class AssistantSession {
       await this.recoverExecution(epoch);
     });
   }
-  revise(target?: AssistantDraft["target"]) {
+  revise(nextDraft?: Draft, expected?: Draft) {
     return this.action(async (epoch) => {
       const record = this.state.record;
       if (!record || (record.execution && !jobFinished(this.state.job))) return;
+      if (expected && JSON.stringify(record.draft) !== JSON.stringify(expected))
+        throw new Error("输入已改变，请重新核对本次操作。");
       const previous = record.planId
         ? [
             ...record.previous,
@@ -460,7 +481,7 @@ export class AssistantSession {
       await this.persist(
         {
           schemaVersion: 1,
-          draft: { ...record.draft, ...(target ? { target } : {}) },
+          draft: nextDraft ?? record.draft,
           previous,
         },
         epoch,
