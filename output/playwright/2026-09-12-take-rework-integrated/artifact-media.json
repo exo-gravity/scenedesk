@@ -1,0 +1,19 @@
+{
+  "artifactId": "c6313140-4aee-419e-a1ec-701a11fb7420",
+  "artifactRevision": 2,
+  "editPuts": 1,
+  "editReplyDroppedAfter200": true,
+  "editRecoveredByGet": true,
+  "emptyRetainAccepted": true,
+  "originalManualPreserved": true,
+  "mediaPlanId": "10292562-26ef-405f-a66c-5b9256bfec7e",
+  "mediaPlans": 1,
+  "mediaPlanStatus": "ready",
+  "mediaExecuted": false,
+  "fixedOldTakeRequirements": true,
+  "fixedArtifactRevision": 2,
+  "ordinaryInputPreserved": true,
+  "narrowViewNoOverflow": true,
+  "errors": [],
+  "serverErrors": []
+}

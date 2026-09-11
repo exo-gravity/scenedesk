@@ -2,4 +2,3 @@
 TimeoutError: locator.click: Timeout 30000ms exceeded.
 Call log:
 [2m  - waiting for locator('[aria-label="按意见准备修改"]').locator('[aria-label="生成视频"]').getByRole('combobox', { name: '视频生成模型', exact: true })[22m
-

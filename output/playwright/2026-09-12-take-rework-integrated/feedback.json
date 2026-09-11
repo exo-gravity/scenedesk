@@ -1,0 +1,18 @@
+{
+  "actualApi": true,
+  "reviewId": "8074afa1-96be-42fd-960b-64b6fafea995",
+  "commentId": "100d449a-ac63-4a27-8b42-ae302c1192e7",
+  "commentRevision": 1,
+  "commentBody": "候选意见技术验收：保留停顿和人物造型；看向门口的动作慢一些。🌌",
+  "reviewPosts": 2,
+  "commentPosts": 2,
+  "createEffects": {
+    "reviews": 1,
+    "comments": 1
+  },
+  "responseDropsAfter201": 2,
+  "reloadAutomaticPosts": 0,
+  "originalBodiesAndKeysPreserved": true,
+  "ordinaryPromptPreserved": true,
+  "errors": []
+}

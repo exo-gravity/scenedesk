@@ -55,6 +55,6 @@ node --env-file=.env --import tsx scripts/extend-local-prompt-fixture.ts <tenant
 
 前后端已在主线程整合并通过[实际生产网页与受限 worker 闭环](../../output/playwright/2026-09-11-prompt-integrated/verification.md)：真实回执丢失后仅通过 GET 恢复同一任务与人工修订，原镜头未改变，明确追加保留手工原文和固定来源。完整检查 69 单元、172 数据库通过，0034 加强后的提示专项 13 项通过；[PR #19](https://github.com/exo-gravity/scenedesk/pull/19) 已于 2026-09-11 合入 main（ff5bb6a）；精确提交 bc4cd830 的两组 CI（34599727920、34599759473）均通过 69 单元／173 数据库／61 媒体，无失败、取消或跳过。
 
-`prepare_rework` 需要真实 review、comment 和固定 CutRevision 等来源实体；当前没有对应持久化业务，合法形状的请求返回 `503 REWORK_FEEDBACK_UNAVAILABLE`。现有 Take 不足以构造原意见来源。不能用自由文本、伪造 ID 或恢复后期编辑作为首发捷径。
+后续[57 候选意见与修改建议](57-take-feedback-rework.md)已补齐真实Take review/comment及不可变评论修订，开放明确固定候选和意见版本的 `prepare_rework`。原意见来自实际持久记录；Cut来源和正式审片仍未开放，不能用自由文本或伪造ID代替。
 
-真实供应商适配、凭据与地区、实际能力验证、花费授权和真实模型效果验收仍未完成。媒体生成、输出媒体入库及完整媒体 GenerationPlan/assistanceSource 应用链待后续交付；canvas-only 的建议产物需先明确原契约是否允许，当前不放宽 shotSources 要求。商业计费运营、公开注册、团队管理及后期剪辑仍按 [38](38-first-release-scope-review.md) 后置。
+真实供应商适配、凭据与地区、实际能力验证、花费授权和真实模型效果验收仍未完成。后续[图片](44-image-generation-runtime.md)、[视频](48-video-generation-runtime.md)及[音频](50-audio-generation-runtime.md)已实现fixture执行、实际输出归档与明确的assistanceSource关系；canvas-only 的建议产物仍不放宽原shotSources要求。商业计费运营、公开注册、团队管理及后期剪辑仍按 [38](38-first-release-scope-review.md) 后置。
