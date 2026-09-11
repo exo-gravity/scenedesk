@@ -52,9 +52,9 @@ React Flow 12.11.6 已进入真实场次制作路由，与分镜共用场次上�
 
 - `npm run check` 通过契约、UI 规则、类型、生产构建与 44 项单元测试；完整数据库回归 119 项通过，无失败、取消或跳过。新增测试覆盖固定区间去重、旧说明保留、多镜头／多用途、跨项目拒绝、CAS 竞争、失败事务回滚、受限 SQL、旧要求、节点移除／恢复／复制、解除与成员撤权后的重放拒绝。数据库媒体为关系夹具，真实解码另由媒体套件及浏览器验证。
 - 生产浏览器连接真实本地 API／PostgreSQL 和已导入四秒技术视频，验证未完成 `0.` 输入跨模式／刷新原样保留，`0.250001–2.000001` 秒精确保存，实际成功后丢回包仅提交一次，解除保留候选、旧确认失效、文档撤销不恢复已解除关系、复制不继承绑定，以及已有候选放入画布后刷新恢复且复用原 Take。
-- 新节点定位调整为节点测量与布局完成后执行，并在受控节点中保留本机测量尺寸，避免改变选择后丢失尺寸使再次定位失效。尺寸仅属于视图，不写入公共文档。实现依据已安装的 React Flow 12.11.6 及[节点测量说明](https://reactflow.dev/api-reference/hooks/use-nodes-initialized)；1512×982、1366×900 实际定位均完整包含所选媒体；两种桌面及 390×844 表单滚动时均保留目标标题，无横向溢出。最终截图已人工检查。窄屏仍是列表模式，不据此声称移动制作验收。测试脚本初轮的执行环境 API 和撤销按钮名称错误已校正，未放宽业务断言。
+- 新节点定位调整为节点测量与布局完成后执行，并在受控节点中保留本机测量尺寸，避免改变选择后丢失尺寸使再次定位失效。尺寸仅属于视图，不写入公共文档。完成定位后清理该次请求，切分镜或窄屏返回时保留后续手动缩放，不重复执行旧定位。实现依据已安装的 React Flow 12.11.6 及[节点测量说明](https://reactflow.dev/api-reference/hooks/use-nodes-initialized)；1512×982、1366×900 实际定位均完整包含所选媒体；两种桌面及 390×844 表单滚动时均保留目标标题，无横向溢出。最终截图已人工检查。窄屏仍是列表模式，不据此声称移动制作验收。测试脚本初轮的执行环境 API 和撤销按钮名称错误已校正，未放宽业务断言。
 
-新增[1512 桌面截图](../../output/playwright/scene-canvas/13-bindings-1512.png)、[1366 桌面截图](../../output/playwright/scene-canvas/13-bindings-1366.png)、[窄屏关联面板](../../output/playwright/scene-canvas/13-bindings-390.png)、[数据库验证](../../tests/integration/canvas-bindings.test.ts)、[浏览器流程](../../output/playwright/scene-canvas/verify-bindings.js)和[结果记录](../../output/playwright/scene-canvas/verification-results.json)。本批仍为本地技术验证；真实模型及主创场次验收尚未发生。
+新增[1512 桌面截图](../../output/playwright/scene-canvas/13-bindings-1512.png)、[1366 桌面截图](../../output/playwright/scene-canvas/13-bindings-1366.png)、[窄屏关联面板](../../output/playwright/scene-canvas/13-bindings-390.png)、[数据库验证](../../tests/integration/canvas-bindings.test.ts)、[浏览器流程](../../output/playwright/scene-canvas/verify-bindings.js)、[定位后视图恢复](../../output/playwright/scene-canvas/verify-focus-recovery.js)和[结果记录](../../output/playwright/scene-canvas/verification-results.json)。本批仍为本地技术验证；真实模型及主创场次验收尚未发生。
 
 ## 继续接入
 

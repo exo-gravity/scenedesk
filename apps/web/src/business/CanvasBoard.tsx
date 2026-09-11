@@ -172,6 +172,7 @@ export function CanvasBoard({
   addMedia,
   nodeActions,
   focusRequest,
+  focusCompleted,
 }: {
   controller: CanvasController;
   document: CanvasDocument;
@@ -182,6 +183,7 @@ export function CanvasBoard({
   addMedia: () => void;
   nodeActions?: ReactNode;
   focusRequest?: { ids: string[]; nonce: number } | undefined;
+  focusCompleted: (nonce: number) => void;
 }) {
   const [hand, setHand] = useState(false),
     [playing, setPlaying] = useState<string | null>(null),
@@ -189,6 +191,15 @@ export function CanvasBoard({
     [query, setQuery] = useState("");
   const [localFocus, setLocalFocus] = useState(focusRequest);
   useEffect(() => setLocalFocus(focusRequest), [focusRequest]);
+  const finishFocus = useCallback(
+    (nonce: number) => {
+      setLocalFocus((current) =>
+        current?.nonce === nonce ? undefined : current,
+      );
+      focusCompleted(nonce);
+    },
+    [focusCompleted],
+  );
   // React Flow requires measured dimensions on controlled nodes. Keep them in
   // this view only; selection must not reset measurement or write layout facts.
   const [measurements, setMeasurements] = useState<
@@ -576,7 +587,7 @@ export function CanvasBoard({
               "controls.fitView.ariaLabel": "适应全部内容",
             }}
           >
-            <MeasuredCanvasFocus request={localFocus} />
+            <MeasuredCanvasFocus request={localFocus} complete={finishFocus} />
             <Background color="var(--ws-border)" gap={24} size={1} />
           </ReactFlow>
         </div>
@@ -751,8 +762,10 @@ export function CanvasBoard({
 /** Fit only after node measurement and selection-driven layout have settled. */
 function MeasuredCanvasFocus({
   request,
+  complete,
 }: {
   request: { ids: string[]; nonce: number } | undefined;
+  complete: (nonce: number) => void;
 }) {
   const initialized = useNodesInitialized(),
     { fitView } = useReactFlow();
@@ -767,7 +780,10 @@ function MeasuredCanvasFocus({
           padding: 0.3,
           maxZoom: 1,
         }).then((ok) => {
-          if (ok) handled.current = request;
+          if (ok) {
+            handled.current = request;
+            complete(request.nonce);
+          }
         });
       });
     });
@@ -775,7 +791,7 @@ function MeasuredCanvasFocus({
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
     };
-  }, [request, initialized, fitView]);
+  }, [request, initialized, fitView, complete]);
   return null;
 }
 

@@ -141,5 +141,15 @@
     ],
     "pageErrors": 0,
     "scope": "production browser and real local API/PostgreSQL with imported technical video; no real model or user acceptance"
+  },
+  "focusRecovery": {
+    "consumedShotFocusKeepsManualViewport": true,
+    "consumedToolbarFocusSurvivesNarrowView": true,
+    "before": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "afterMode": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "beforeNarrow": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "afterNarrow": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "pageErrors": 0,
+    "scope": "production browser with actual canvas; view-only checks"
   }
 }

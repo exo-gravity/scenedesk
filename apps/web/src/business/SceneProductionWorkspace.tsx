@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Button,
@@ -279,6 +279,11 @@ function SceneCanvasSession({
     ids: string[];
     nonce: number;
   }>();
+  const focusCompleted = useCallback((nonce: number) => {
+    setFocusRequest((current) =>
+      current?.nonce === nonce ? undefined : current,
+    );
+  }, []);
   useEffect(() => {
     if (state?.local?.base.revision !== undefined)
       void cache.invalidateQueries({
@@ -432,6 +437,7 @@ function SceneCanvasSession({
                 mediaPath={mediaPath}
                 readOnly={readOnly || bindingBusy}
                 focusRequest={focusRequest}
+                focusCompleted={focusCompleted}
                 nodeActions={
                   preference.selectedNodeIds.length === 1 &&
                   document.nodes.find(

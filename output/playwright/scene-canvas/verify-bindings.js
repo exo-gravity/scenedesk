@@ -385,4 +385,4 @@ async (page) => {
     scope:
       "production browser and real local API/PostgreSQL with imported technical video; no real model or user acceptance",
   };
-};
+}
