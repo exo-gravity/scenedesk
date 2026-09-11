@@ -1,0 +1,8 @@
+{
+  "sameOriginProductionBuild": true,
+  "privateEntry": true,
+  "existingContentNavigation": true,
+  "canvasUploadsAndAssistantEntryRetained": true,
+  "deferredEditingReturn": true,
+  "pageErrors": 0
+}

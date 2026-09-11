@@ -92,8 +92,8 @@ React Flow 12.11.6 已进入真实场次制作路由，与分镜共用场次上�
 
 实际完整手动恢复测试测得一次 complete 请求，固定节点与媒体一致；1512、1366、390 三种宽度无横向溢出，最终截图已查看。早期一次文件处理超时、两次恢复测试的临时 GET 500 都保留为失败记录，没有计入通过。临时诊断在 API 连接池获取处捕获无 PostgreSQL SQLSTATE 的连接失败；独立 8 次冷连接为 4–16 ms，后续完整流程无 GET 5xx，暂未把环境波动归因于 SQL 或通过放宽超时掩盖。提交前使用的完整手动恢复证据来自新的端到端执行，而不是拼接失败测试的计数。浏览器另发现无正文 POST 错带 JSON Content-Type 导致移除被拒绝，已修复共享请求封装并以新的完整导入／移除流程复验通过。
 
-见[上传数据库测试](../../tests/integration/canvas-uploads.test.ts)、[浏览器证据说明](../../output/playwright/scene-canvas/upload-evidence.md)、[结果记录](../../output/playwright/scene-canvas/verification-results.json)、[桌面恢复](../../output/playwright/scene-canvas/16-upload-recovery-1512.png)、[1366 恢复](../../output/playwright/scene-canvas/16-upload-recovery-1366.png)、[窄屏恢复](../../output/playwright/scene-canvas/16-upload-recovery-390.png)。当前上传切片尚待本次提交的远端 CI；此前 91c1f47 的 push／PR 两组 CI 均通过 48 项单元、136 项数据库与 61 项媒体测试，不能替代新增上传的 CI。
+见[上传数据库测试](../../tests/integration/canvas-uploads.test.ts)、[浏览器证据说明](../../output/playwright/scene-canvas/upload-evidence.md)、[结果记录](../../output/playwright/scene-canvas/verification-results.json)、[桌面恢复](../../output/playwright/scene-canvas/16-upload-recovery-1512.png)、[1366 恢复](../../output/playwright/scene-canvas/16-upload-recovery-1366.png)、[窄屏恢复](../../output/playwright/scene-canvas/16-upload-recovery-390.png)。上传提交 `dc5f3d0` 的 [push CI](https://github.com/exo-gravity/scenedesk/actions/runs/34594461979) 与 [PR CI](https://github.com/exo-gravity/scenedesk/actions/runs/34594464228) 均通过，实际完整日志各为 48 项单元、144 项数据库与 61 项媒体验证，零失败／取消／跳过。[PR #16](https://github.com/exo-gravity/scenedesk/pull/16) 已于 2026-09-11 合入 main，合并提交 `d261d0d`。
 
 ## 继续接入
 
-模型能力参数与固定生成计划／结果取回仍待接通，分组与快捷键还需扩大实际场次走查。编辑提示和通知已接入本地业务，仍需多人长时间与部署环境验证。300／2,000 节点的浏览器交互、帧时、内存和媒体容量尚未验收。AI 服务仍未配置，完整流程完成后还需要真实模型及实际场次验收，不能以本批页面宣布画布或 MVP 完成。PR #16 保持草稿，后续继续完成其余原定能力。
+模型能力参数与固定生成计划／结果取回仍待接通，分组与快捷键还需扩大实际场次走查。编辑提示和通知已接入本地业务，仍需多人长时间与部署环境验证。300／2,000 节点的浏览器交互、帧时、内存和媒体容量尚未验收。AI 服务仍未配置，完整流程完成后还需要真实模型及实际场次验收，不能以本批页面宣布画布或 MVP 完成。PR #16 已作为经验证的画布基础切片合入，后续分支继续完成其余原定能力；不以分批合并宣称整个 MVP 完成。
