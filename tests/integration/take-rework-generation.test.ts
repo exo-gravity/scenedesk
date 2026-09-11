@@ -465,6 +465,8 @@ test("Take feedback fixes immutable rework sources through preparation, executio
       assert.equal(calls, before + 1);
       assert.equal(recovered, 1);
       unknown = false;
+      // Move only this isolated fixture's next read past the durable backoff; never resubmit.
+      await f.admin.query(`UPDATE ${f.scope}.generation_observation_control SET next_observation_at=now() WHERE job_id=$1`, [j.id]);
       await worker.reconcile(j.id);
       await worker.reconcile(j.id);
       const result = await f.job(j.id);

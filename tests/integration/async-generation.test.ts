@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { imageGenerationFixture } from "../support/image-generation.js";
+import { grantGenerationWorkerAccess, grantRuntimeAccess, sqlIdentifier } from "@drama/database";
 import { Database } from "../../apps/api/src/kernel/database.js";
 import { localAssistanceFixtureOutput, createAssistanceFixture, type AssistanceSubmission, type AssistanceReceipt } from "@drama/provider";
 import { createAssistanceWorker } from "../../apps/api/src/modules/generation/worker.js";
@@ -188,6 +189,48 @@ test("asynchronous provider identity, observation and cancellation remain durabl
     assert.ok(state.evidence.some((e: any) => e.body.kind === "unavailable" && e.body.code === "QUERY_ADAPTER_NOT_CONFIGURED"));
     await worker.process(job.id);
     assert.equal(submits, 1);
+  });
+
+  await t.test("unsupported cancellation keeps observing the original task, and contradictory terminal evidence preserves the result", async () => {
+    const { job } = await make(), submission = (await claim(job.id))!, providerJobId = await accept(submission);
+    await cancel(job.id);
+    const lease = await observe(job.id);
+    await persist(submission, { kind: "cancel_unsupported", correlation: submission.attemptId, providerJobId });
+    const version = (await f.job(job.id)).revision;
+    await persist(submission, { kind: "cancel_unsupported", correlation: submission.attemptId, providerJobId });
+    assert.equal((await f.job(job.id)).revision, version);
+    assert.equal((await f.job(job.id)).cancelStatus, "unsupported");
+    assert.equal((await f.job(job.id)).reservationStatus, "held");
+    await release(job.id, lease.leaseToken);
+    await due(job.id);
+    assert.equal((await observe(job.id)).action, "query");
+    await persist(submission, { kind: "completed", correlation: submission.attemptId, providerJobId, output: localAssistanceFixtureOutput(submission) });
+    const finished = await f.job(job.id);
+    assert.equal(finished.status, "succeeded");
+    await persist(submission, { kind: "cancelled", correlation: submission.attemptId, providerJobId });
+    const conflict = await f.job(job.id);
+    assert.equal(conflict.status, "reconciliation_required");
+    assert.equal(conflict.assistanceArtifactId, finished.assistanceArtifactId);
+    assert.equal(await observe(job.id), null);
+  });
+
+  await t.test("grants reapplied to existing identities remove legacy bypasses, while fixed bindings reject SQL rewrites", async () => {
+    const { job } = await make(), submission = (await claim(job.id))!;
+    await accept(submission);
+    await f.admin.query(`GRANT UPDATE(status,error_code,revision,updated_at,recovery_epoch) ON ${f.scope}.generation_jobs TO ${sqlIdentifier(f.apiRole)}`);
+    await f.admin.query(`GRANT EXECUTE ON FUNCTION ${f.scope}.finish_generation_output(uuid,uuid,jsonb,text) TO ${sqlIdentifier(f.roles[0]!)}`);
+    const provision = await f.admin.connect();
+    try {
+      await grantRuntimeAccess(provision, f.schema, f.apiRole);
+      await grantGenerationWorkerAccess(provision, f.schema, f.roles[0]!);
+    } finally { provision.release(); }
+    await assert.rejects(f.generationDb.query(`SELECT ${f.scope}.finish_generation_output($1,$2,NULL,NULL)`, [job.id, randomUUID()]), /permission denied/);
+    await assert.rejects(db.transaction(f.owner.token, { tenantId: f.tenant.id, projectId: f.project.id, write: true }, tx => tx.sql.query("UPDATE generation_jobs SET status='provider_running' WHERE id=$1", [job.id])), /permission denied/);
+    await assert.rejects(f.admin.query(`UPDATE ${f.scope}.generation_provider_bindings SET provider_job_id='replacement' WHERE job_id=$1`, [job.id]), /immutable/);
+    await assert.rejects(f.generationDb.query(`SELECT ${f.scope}.record_generation_evidence($1,$2,$3)`, [submission.attemptId, randomUUID(), { kind: "accepted", correlation: randomUUID(), providerJobId: "wrong-attempt" }]), /durable attempt correlation/);
+    const lease = await observe(job.id);
+    await assert.rejects(release(job.id, lease.leaseToken, true, 301), /Bounded observation delay/);
+    assert.equal(await release(job.id, lease.leaseToken, false), true);
   });
 
   await t.test("completed asynchronous media enters existing archive transaction without manufacturing ready media", async () => {
