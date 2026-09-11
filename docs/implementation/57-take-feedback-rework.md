@@ -1,6 +1,6 @@
 # 57 候选意见与固定版本修改建议
 
-2026-09-12。本片补齐 [14 §3](14-scene-mvp-closure.md) 保留的 `prepare_rework`：从真实 Take 意见准备修改建议。基线为 `9ef870c`；后端意见持久化、生成链路和前端由三个 agent 并行实施，主任务完成整合与实际业务验收。以下记录已完成的实现与本机证据；GitHub CI和合入需以对应PR实际记录确认。
+2026-09-12。本片补齐 [14 §3](14-scene-mvp-closure.md) 保留的 `prepare_rework`：从真实 Take 意见准备修改建议。基线为 `9ef870c`；后端意见持久化、生成链路和前端由三个 agent 并行实施，主任务完成整合与实际业务验收。本片已通过 [PR #28](https://github.com/exo-gravity/scenedesk/pull/28) 合入 main（932103ff082968eac3a0b52f6632592189592e42）；以下记录实现与验证证据。
 
 ## 范围与固定来源
 
@@ -36,3 +36,5 @@
 PR #28 首个候选 `975c1ec` 的 push／PR 标准检查均通过121项单元、232项数据库测试，随后在媒体准备阶段被Docker Hub拒绝拉取固定MinIO镜像；两组部署检查的7项配置、12项数据库与HTTPS检查及三个镜像构建通过，但基础设施启动失败，未进入应用smoke。首次失败不是完整通过记录。
 
 采用MinIO上游发布的Quay源恢复测试镜像获取，仅修改两个运行常量及两个smoke镜像地址的registry前缀。固定server/client版本及完整SHA256不变；匿名manifest读取确认两个摘要相同并包含linux/amd64与linux/arm64。官方出处为[server容器文档](https://github.com/minio/minio/blob/master/docs/docker/README.md)与[client发布脚本](https://github.com/minio/mc/blob/master/docker-buildx.sh)。未更换存储实现或增加重试；最终远端结果以PR记录为准。
+
+最终候选 `a3214cbd6f0877d99a423d06650d7f8744544153` 的 push／PR 标准检查（34642558758／34642561838）各通过121单元、232数据库、78媒体；部署检查（34642558760／34642561817）各通过7配置、12数据库与HTTPS及完整容器／浏览器smoke。2026-09-11T20:17:57Z合入，merge树与候选树一致；main标准／部署检查34643471462／34643471493亦成功。

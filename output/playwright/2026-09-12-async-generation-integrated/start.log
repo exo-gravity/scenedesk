@@ -1,0 +1,58 @@
+### Result
+{"status":"passed","actualApiDatabaseWorkerHttp":true,"realModel":false,"planId":"55a34a72-8c35-4dd4-a50c-c6fb40792635","jobId":"c470ceb5-d9cb-4358-9000-9ed12eb4cfe0","providerJobId":"scenedesk-http-fixture-70adff45-4c1f-4c2d-a96c-4d49827d3d67","planPosts":1,"executePosts":1,"providerSubmitPosts":1,"fixedPrompt":"保留手工要求：先看门口，再核对桌上的钥匙。异步流程技术验收。","pendingObserved":true}
+### Ran Playwright code
+```js
+await (async (page) => {
+  const base = "/v1/tenants/2c50d284-7bec-4934-a136-96a8a76170e8";
+  let plan, job, planPosts = 0, executePosts = 0;
+  await page.setViewportSize({ width: 1512, height: 982 });
+  await page.reload();
+  const panel = page.getByRole("complementary", { name: "AI 创作助手" });
+  const toggle = page.getByRole("button", { name: "AI 助手", exact: true });
+  await toggle.waitFor();
+  if ((await toggle.getAttribute("aria-pressed")) !== "true") await toggle.click();
+  await panel.getByRole("combobox", { name: "来源剧本", exact: true }).waitFor();
+  if (!(await panel.getByRole("combobox", { name: "来源剧本", exact: true }).inputValue())) {
+    await panel.getByRole("combobox", { name: "来源剧本", exact: true }).click();
+    await page.getByRole("option", { name: "剧本第 1 版 · 当前", exact: true }).click();
+  }
+  await panel.getByRole("button", { name: "明确使用整篇", exact: true }).click();
+  await panel.getByRole("textbox", { name: "分镜要求", exact: true }).fill("保留手工要求：先看门口，再核对桌上的钥匙。异步流程技术验收。");
+  await panel.getByRole("combobox", { name: "分镜分析模型", exact: true }).click();
+  await page.getByRole("option", { name: "异步 HTTP 技术夹具（无真实模型） · structured_text · 测试", exact: true }).click();
+  await page.route(`**${base}/generation-plans`, async route => {
+    if (route.request().method() !== "POST") return route.continue();
+    planPosts++;
+    const response = await route.fetch();
+    if (response.status() !== 201) throw Error(`Plan failed ${response.status()}`);
+    plan = await response.json(); await route.fulfill({ response });
+  });
+  await page.route(`**${base}/generation-jobs`, async route => {
+    if (route.request().method() !== "POST") return route.continue();
+    executePosts++;
+    const response = await route.fetch();
+    if (response.status() !== 202) throw Error(`Execution failed ${response.status()}`);
+    job = await response.json(); await route.fulfill({ response });
+  });
+  try {
+    await panel.getByRole("button", { name: "查看分镜分析计划", exact: true }).click();
+    await panel.getByRole("button", { name: "确认执行测试计划", exact: true }).waitFor();
+    if (plan.executionMode !== "test_fixture" || plan.status !== "ready") throw Error("Not a fixed fixture plan");
+    await panel.getByRole("button", { name: "确认执行测试计划", exact: true }).click();
+    await panel.locator('[aria-label="本次分镜任务"]').getByText("排队中", { exact: true }).waitFor();
+    await page.evaluate(async () => { const r = await fetch("/__fixture/control", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "resume" }) }); if (!r.ok) throw Error("Fixture resume failed"); });
+    await panel.getByText("模型已接收这次任务，正在等待处理。可以离开页面，稍后读取进度。", { exact: true }).waitFor({ timeout: 30000 });
+    const external = await page.evaluate(async () => (await fetch("/__fixture/state")).json());
+    if (planPosts !== 1 || executePosts !== 1 || external.jobs.length !== 1 || external.workerErrors.length || external.jobs[0].jobId !== job.id) throw Error("Original provider identity missing or duplicated");
+    await page.screenshot({ path: "output/playwright/2026-09-12-async-generation-integrated/pending-1512.png", fullPage: true });
+    return { status: "passed", actualApiDatabaseWorkerHttp: true, realModel: false, planId: plan.id, jobId: job.id, providerJobId: external.jobs[0].providerJobId, planPosts, executePosts, providerSubmitPosts: external.requests.filter(r => r.operation === "submit").length, fixedPrompt: plan.resolvedInput.prompt, pendingObserved: true };
+  } finally { await page.unroute(`**${base}/generation-plans`); await page.unroute(`**${base}/generation-jobs`); }
+}
+)(page);
+```
+### Page
+- Page URL: http://127.0.0.1:4319/#/app/t/2c50d284-7bec-4934-a136-96a8a76170e8/p/c9736281-644e-455a-a420-25abf89a32e4/production?scene=b8ecf257-423d-4331-82ad-7ba85c39cfe1
+- Page Title: 异步任务验收场次 · 镜头制作 · 幕序
+- Console: 2 errors, 0 warnings
+### Events
+- New console entries: .playwright-cli/console-2026-09-11T20-44-40-394Z.log#L3-L4

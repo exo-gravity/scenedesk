@@ -1,0 +1,105 @@
+{
+  "start": {
+    "status": "passed",
+    "actualApiDatabaseWorkerHttp": true,
+    "realModel": false,
+    "planId": "55a34a72-8c35-4dd4-a50c-c6fb40792635",
+    "jobId": "c470ceb5-d9cb-4358-9000-9ed12eb4cfe0",
+    "providerJobId": "scenedesk-http-fixture-70adff45-4c1f-4c2d-a96c-4d49827d3d67",
+    "planPosts": 1,
+    "executePosts": 1,
+    "providerSubmitPosts": 1,
+    "fixedPrompt": "保留手工要求：先看门口，再核对桌上的钥匙。异步流程技术验收。",
+    "pendingObserved": true
+  },
+  "cancellation": {
+    "status": "passed",
+    "actualApiDatabaseWorkerHttp": true,
+    "realModel": false,
+    "jobId": "c470ceb5-d9cb-4358-9000-9ed12eb4cfe0",
+    "providerJobId": "scenedesk-http-fixture-70adff45-4c1f-4c2d-a96c-4d49827d3d67",
+    "proposalId": "c470ceb5-d9cb-4358-9000-9ed12eb4cfe0",
+    "proposalStatus": "proposed",
+    "proposalOperations": 1,
+    "originalShotCount": 0,
+    "cancelStatus": "requested",
+    "cancelPosts": 1,
+    "executePosts": 0,
+    "providerSubmitPosts": 1,
+    "providerCancelPosts": 1,
+    "cancellation202DroppedAfterPersistence": true,
+    "reloadReadOnly": true,
+    "pendingRunningCompletionObserved": true,
+    "errors": [],
+    "serverErrors": [],
+    "overflow": false
+  },
+  "queued": {
+    "status": "passed",
+    "jobId": "4dd0c8c6-9d80-4907-9a3d-fe5ea9e4b922",
+    "planId": "04de3e77-e68e-4ab3-808a-44e8d5fa23e6",
+    "planPosts": 1,
+    "executePosts": 1,
+    "cancelPosts": 1,
+    "queuedCancelledBeforeDispatch": true,
+    "newProviderJobs": 0,
+    "originalProviderJobs": 1,
+    "originalInputPreserved": true,
+    "nextInputEditable": true,
+    "errors": []
+  },
+  "finalLayout": {
+    "status": "passed",
+    "isolatedContentCount": 3,
+    "headingTop": 406.375,
+    "headingBottom": 451.375,
+    "topmostIsHeader": true,
+    "headerText": "AI 创作助手收起",
+    "overflow": false,
+    "actualJobs": [
+      {
+        "id": "c470ceb5-d9cb-4358-9000-9ed12eb4cfe0",
+        "planId": "55a34a72-8c35-4dd4-a50c-c6fb40792635",
+        "status": "succeeded",
+        "cancelStatus": "requested",
+        "providerJobId": "scenedesk-http-fixture-70adff45-4c1f-4c2d-a96c-4d49827d3d67",
+        "proposalId": "c470ceb5-d9cb-4358-9000-9ed12eb4cfe0"
+      },
+      {
+        "id": "4dd0c8c6-9d80-4907-9a3d-fe5ea9e4b922",
+        "planId": "04de3e77-e68e-4ab3-808a-44e8d5fa23e6",
+        "status": "cancelled",
+        "cancelStatus": "confirmed"
+      },
+      {
+        "id": "3a5e8f3e-4988-41f3-b530-3ded2d840d75",
+        "planId": "421f8148-cf20-41ae-9672-9755fc52b211",
+        "status": "cancelled",
+        "cancelStatus": "confirmed"
+      }
+    ],
+    "originalShotCount": 0,
+    "providerSubmitPosts": 1,
+    "providerCancelPosts": 1,
+    "workerErrors": []
+  },
+  "cleanup": {
+    "status": "completed",
+    "workerErrors": [],
+    "testFixtureOnly": true,
+    "paidProvidersEnabled": false
+  },
+  "checks": {
+    "repository": {
+      "passed": 131,
+      "failed": 0,
+      "skipped": 0
+    },
+    "database": {
+      "passed": 255,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalCss": "7cf995a"
+  }
+}

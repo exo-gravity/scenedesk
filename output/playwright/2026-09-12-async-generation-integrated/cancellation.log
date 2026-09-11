@@ -1,0 +1,65 @@
+### Result
+{"status":"passed","actualApiDatabaseWorkerHttp":true,"realModel":false,"jobId":"c470ceb5-d9cb-4358-9000-9ed12eb4cfe0","providerJobId":"scenedesk-http-fixture-70adff45-4c1f-4c2d-a96c-4d49827d3d67","proposalId":"c470ceb5-d9cb-4358-9000-9ed12eb4cfe0","proposalStatus":"proposed","proposalOperations":1,"originalShotCount":0,"cancelStatus":"requested","cancelPosts":1,"executePosts":0,"providerSubmitPosts":1,"providerCancelPosts":1,"cancellation202DroppedAfterPersistence":true,"reloadReadOnly":true,"pendingRunningCompletionObserved":true,"errors":[],"serverErrors":[],"overflow":false}
+### Ran Playwright code
+```js
+await (async (page) => {
+  const base = "/v1/tenants/2c50d284-7bec-4934-a136-96a8a76170e8";
+  const path = `${base}/projects/c9736281-644e-455a-a420-25abf89a32e4`;
+  const jobId = "c470ceb5-d9cb-4358-9000-9ed12eb4cfe0";
+  const providerJobId = "scenedesk-http-fixture-70adff45-4c1f-4c2d-a96c-4d49827d3d67";
+  const panel = page.getByRole("complementary", { name: "AI 创作助手" });
+  const jobPanel = panel.locator('[aria-label="本次分镜任务"]');
+  const errors = [], serverErrors = [];
+  let cancelPosts = 0, executePosts = 0, cancelResult, release;
+  const received = new Promise(resolve => { release = resolve; });
+  const onError = error => errors.push(error.message);
+  const onResponse = r => { if (r.status() >= 500 && r.url().includes("/v1/")) serverErrors.push(r.status()); };
+  const onRequest = r => { if (r.method() === "POST" && r.url().endsWith("/generation-jobs")) executePosts++; };
+  page.on("pageerror", onError); page.on("response", onResponse); page.on("request", onRequest);
+  const control = action => page.evaluate(async ({ action, providerJobId }) => { const r = await fetch("/__fixture/control", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, providerJobId }) }); if (!r.ok) throw Error("Fixture control failed"); }, { action, providerJobId });
+  await page.route(`**${base}/generation-jobs/${jobId}/cancel`, async route => {
+    cancelPosts++;
+    if (route.request().postData() || route.request().headers()["if-match"]) throw Error("Cancel must bind job, not mutable content");
+    const response = await route.fetch();
+    if (response.status() !== 202) throw Error(`Cancel failed ${response.status()}`);
+    cancelResult = await response.json(); await route.abort("failed"); release();
+  });
+  try {
+    await control("running");
+    await jobPanel.getByText("正在生成", { exact: true }).waitFor({ timeout: 30000 });
+    await page.reload();
+    await jobPanel.getByText("正在生成", { exact: true }).waitFor();
+    await jobPanel.getByRole("button", { name: "请求取消任务", exact: true }).click();
+    await page.getByRole("dialog", { name: "确认请求取消" }).waitFor();
+    await page.screenshot({ path: "output/playwright/2026-09-12-async-generation-integrated/confirm-1512.png", fullPage: true });
+    await page.getByRole("dialog", { name: "确认请求取消" }).getByRole("button", { name: "确认请求取消", exact: true }).click();
+    await received;
+    await page.reload();
+    await jobPanel.getByText("原任务结果待核对", { exact: true }).waitFor();
+    await jobPanel.getByText("取消请求已记录，尚未确认取消。原任务仍会继续核对。", { exact: true }).waitFor();
+    if (cancelResult.status !== "cancel_requested" || cancelResult.cancelStatus !== "requested") throw Error("Cancellation facts were collapsed");
+    await control("complete");
+    await jobPanel.getByRole("button", { name: "编辑并采纳分镜提案", exact: true }).waitFor({ timeout: 30000 });
+    await jobPanel.getByText("取消请求记录已保留；任务已完成，结果仍可取回。", { exact: true }).waitFor();
+    const actual = await page.evaluate(async ({ base, path, jobId }) => {
+      const job = await (await fetch(`${base}/generation-jobs/${jobId}`)).json();
+      const proposal = await (await fetch(`${path}/proposals/${job.proposalId}`)).json();
+      const content = await (await fetch(`${path}/content`)).json();
+      const external = await (await fetch("/__fixture/state")).json();
+      return { job, proposal, content, external };
+    }, { base, path, jobId });
+    const submitCount = actual.external.requests.filter(r => r.operation === "submit").length;
+    const cancelCount = actual.external.requests.filter(r => r.operation === "cancel").length;
+    if (actual.job.status !== "succeeded" || actual.job.providerJobId !== providerJobId || actual.content.shots.length !== 0 || submitCount !== 1 || cancelCount !== 1 || cancelPosts !== 1 || executePosts !== 0 || errors.length || serverErrors.length || actual.external.workerErrors.length) throw Error("Original identity, cancellation or manual adoption invariant failed");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await jobPanel.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: "output/playwright/2026-09-12-async-generation-integrated/completed-390.png", fullPage: true });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+    if (overflow) throw Error("Narrow layout overflow");
+    return { status: "passed", actualApiDatabaseWorkerHttp: true, realModel: false, jobId, providerJobId, proposalId: actual.job.proposalId, proposalStatus: actual.proposal.status, proposalOperations: actual.proposal.operations.length, originalShotCount: actual.content.shots.length, cancelStatus: actual.job.cancelStatus, cancelPosts, executePosts, providerSubmitPosts: submitCount, providerCancelPosts: cancelCount, cancellation202DroppedAfterPersistence: true, reloadReadOnly: true, pendingRunningCompletionObserved: true, errors, serverErrors, overflow };
+  } finally { await page.unroute(`**${base}/generation-jobs/${jobId}/cancel`); page.off("pageerror", onError); page.off("response", onResponse); page.off("request", onRequest); }
+}
+)(page);
+```
+### Events
+- New console entries: .playwright-cli/console-2026-09-11T20-44-40-394Z.log#L5-L9

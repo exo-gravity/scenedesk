@@ -124,9 +124,9 @@ not ok 1 - accepted and running jobs advance by GET; success after cancellation 
   failureType: 'testCodeFailure'
   error: |-
     The input did not match the regular expression /待核对/. Input:
-    
+
     '本次取消的回执仍未确定；任务已完成，结果仍可取回。'
-    
+
   code: 'ERR_ASSERTION'
   name: 'AssertionError'
   expected:

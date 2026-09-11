@@ -1,0 +1,43 @@
+### Result
+{"status":"passed","isolatedContentCount":3,"headingTop":406.375,"headingBottom":451.375,"topmostIsHeader":true,"headerText":"AI 创作助手收起","overflow":false,"actualJobs":[{"id":"c470ceb5-d9cb-4358-9000-9ed12eb4cfe0","planId":"55a34a72-8c35-4dd4-a50c-c6fb40792635","status":"succeeded","cancelStatus":"requested","providerJobId":"scenedesk-http-fixture-70adff45-4c1f-4c2d-a96c-4d49827d3d67","proposalId":"c470ceb5-d9cb-4358-9000-9ed12eb4cfe0"},{"id":"4dd0c8c6-9d80-4907-9a3d-fe5ea9e4b922","planId":"04de3e77-e68e-4ab3-808a-44e8d5fa23e6","status":"cancelled","cancelStatus":"confirmed"},{"id":"3a5e8f3e-4988-41f3-b530-3ded2d840d75","planId":"421f8148-cf20-41ae-9672-9755fc52b211","status":"cancelled","cancelStatus":"confirmed"}],"originalShotCount":0,"providerSubmitPosts":1,"providerCancelPosts":1,"workerErrors":[]}
+### Ran Playwright code
+```js
+await (async (page) => {
+  const base = "/v1/tenants/2c50d284-7bec-4934-a136-96a8a76170e8";
+  const projectId = "c9736281-644e-455a-a420-25abf89a32e4";
+  // A third paused fixture job was opened only to capture a stable confirmation frame.
+  const dialog = page.getByRole("dialog", { name: "确认请求取消" });
+  await dialog.getByRole("button", { name: "确认请求取消", exact: true }).click();
+  const panel = page.getByRole("complementary", { name: "AI 创作助手" });
+  await panel.getByText("原任务已确认取消。", { exact: true }).waitFor();
+  await page.reload();
+  await panel.getByText("原任务已确认取消。", { exact: true }).waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await panel.locator('[aria-label="本次分镜任务"]').scrollIntoViewIfNeeded();
+  const layering = await panel.evaluate(el => {
+    const header = [...el.children].find(child => getComputedStyle(child).position === "sticky");
+    if (!header) throw Error("Sticky header missing");
+    const headerRect = header.getBoundingClientRect();
+    const candidates = [...el.querySelectorAll("[class]")].filter(child => getComputedStyle(child).isolation === "isolate");
+    const sample = document.elementFromPoint(headerRect.x + headerRect.width / 2, headerRect.y + headerRect.height / 2);
+    return { isolatedContentCount: candidates.length, headingTop: headerRect.top, headingBottom: headerRect.bottom, topmostIsHeader: !!sample && header.contains(sample), headerText: header.textContent, overflow: document.documentElement.scrollWidth > innerWidth };
+  });
+  if (!layering.isolatedContentCount || !layering.topmostIsHeader || layering.overflow) throw Error("Sticky heading layer still obscured");
+  await page.screenshot({ path: "output/playwright/2026-09-12-async-generation-integrated/final-heading-390.png", animations: "disabled" });
+  const actual = await page.evaluate(async ({ base, projectId }) => {
+    const jobs = await (await fetch(`${base}/generation-jobs?scope=project&projectId=${projectId}`)).json();
+    const content = await (await fetch(`${base}/projects/${projectId}/content`)).json();
+    const external = await (await fetch("/__fixture/state")).json();
+    return { jobs: jobs.items.map(j => ({ id:j.id,planId:j.planId,status:j.status,cancelStatus:j.cancelStatus,providerJobId:j.providerJobId,proposalId:j.proposalId })), shots:content.shots.length, external };
+  }, { base, projectId });
+  if (actual.jobs.length !== 3 || actual.jobs.filter(j => j.status === "succeeded").length !== 1 || actual.jobs.filter(j => j.status === "cancelled").length !== 2 || actual.shots !== 0 || actual.external.jobs.length !== 1 || actual.external.workerErrors.length) throw Error("Unexpected final fixture state");
+  return { status:"passed", ...layering, actualJobs:actual.jobs, originalShotCount:actual.shots, providerSubmitPosts:actual.external.requests.filter(r=>r.operation==="submit").length, providerCancelPosts:actual.external.requests.filter(r=>r.operation==="cancel").length, workerErrors:actual.external.workerErrors };
+}
+)(page);
+```
+### Page
+- Page URL: http://127.0.0.1:4319/#/app/t/2c50d284-7bec-4934-a136-96a8a76170e8/p/c9736281-644e-455a-a420-25abf89a32e4/production?scene=b8ecf257-423d-4331-82ad-7ba85c39cfe1
+- Page Title: 异步任务验收场次 · 镜头制作 · 幕序
+- Console: 1 errors, 0 warnings
+### Events
+- New console entries: .playwright-cli/console-2026-09-11T20-44-40-394Z.log#L13
