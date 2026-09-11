@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import {
+  grantGenerationWorkerAccess,
   grantRuntimeAccess,
   hardenAuthorizationFunctions,
   migrate,
@@ -43,6 +44,15 @@ try {
       "drama",
       decodeURIComponent(runtime.username),
     );
+    const generation = await sql.query<{ worker_role: string }>(
+      "SELECT worker_role FROM drama.generation_runtime_identity WHERE singleton",
+    );
+    if (generation.rows[0])
+      await grantGenerationWorkerAccess(
+        sql,
+        "drama",
+        generation.rows[0].worker_role,
+      );
     await sql.query("COMMIT");
   } catch (error) {
     await sql.query("ROLLBACK");

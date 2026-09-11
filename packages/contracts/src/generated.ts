@@ -3907,6 +3907,9 @@ export interface components {
                 endUs?: number;
             };
             creativeBasisRevisionIds?: string[];
+            targetCapabilitySnapshot?: components["schemas"]["Capability"];
+            /** Format: uuid */
+            targetConnectionVersionId?: string;
         };
         EstimateLine: {
             metric: string;
@@ -4216,7 +4219,7 @@ export interface components {
         };
         ContextSourceInput: {
             /** @enum {string} */
-            kind: "production" | "scene" | "shot_revision" | "asset_revision";
+            kind: "production" | "scene" | "shot_revision" | "asset_revision" | "canvas_draft";
             /** Format: uuid */
             objectId: string;
             revision: number;
@@ -4263,6 +4266,8 @@ export interface components {
             /** Format: uuid */
             editedBy?: string;
             inputOutdated: boolean;
+            /** @enum {string} */
+            executionMode?: "test_fixture" | "verified_provider";
         };
         AssistanceEdit: {
             body: components["schemas"]["AssistanceBody"];

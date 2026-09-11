@@ -35,14 +35,25 @@ const adapter = createAssistanceFixture(
   async (submission) => ({
     kind: "completed",
     correlation: submission.attemptId,
-    output: {
-      shots: [
-        {
-          label: "测试建议 01",
-          intent: `显式测试 fixture：根据选区准备镜头。${submission.resolvedInput.sourceExcerpt?.quote ?? ""}`,
-        },
-      ],
-    },
+    output:
+      submission.input.purpose === "creative_assistance"
+        ? {
+            prompt: `显式测试 fixture：${submission.resolvedInput.prompt}`,
+            referenceSuggestions: submission.resolvedInput.references.map(
+              (item) => item.reference,
+            ),
+            retain: ["保留明确选定的镜头与参考版本"],
+            change: ["由制作人员核对后再应用到创作输入"],
+            notes: "无真实模型调用。此建议仅验证固定输入、耐久执行与人工修订。",
+          }
+        : {
+            shots: [
+              {
+                label: "测试建议 01",
+                intent: `显式测试 fixture：根据选区准备镜头。${submission.resolvedInput.sourceExcerpt?.quote ?? ""}`,
+              },
+            ],
+          },
   }),
 );
 const worker = await createAssistanceWorker({

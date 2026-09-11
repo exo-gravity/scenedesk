@@ -23,7 +23,8 @@ export type AssistanceReceipt =
 
 /** A synchronous text response has no fabricated providerJobId. Submission is never retried here.
  * prepare_prompt / prepare_rework share this boundary and return an AssistanceBody; their fixed
- * source resolution and artifact persistence must be implemented before enabling those purposes.
+ * prepare_prompt has fixed shot/artifact persistence. prepare_rework remains unavailable until
+ * real review/comment sources exist; no transport may synthesize those identities.
  */
 export interface AssistanceAdapter {
   readonly executionMode: "test_fixture" | "verified_provider";

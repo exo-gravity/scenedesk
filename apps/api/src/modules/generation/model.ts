@@ -1,3 +1,5 @@
+import { resolvePrompt, assertPromptCurrent } from "./prompt-input.js";
+import { safeText, resolveContext } from "./input-sources.js";
 import { randomUUID } from "node:crypto";
 import type { Transaction } from "../../kernel/database.js";
 import { bindResourceProject } from "../../kernel/database.js";
@@ -55,6 +57,9 @@ function jobRecord(
     executionMode: row.execution_mode,
     ...(fixture ? { finalCost: zero } : {}),
     ...(row.proposal_id ? { proposalId: row.proposal_id } : {}),
+    ...(row.assistance_artifact_id
+      ? { assistanceArtifactId: row.assistance_artifact_id }
+      : {}),
     ...(row.error_code ? { errorCode: row.error_code } : {}),
   };
 }
@@ -108,93 +113,6 @@ export function generationScope(
     await bindResourceProject(tx, id.toLowerCase(), write);
   };
 }
-function safeText(text: string, max = 20000) {
-  requireThat(
-    Array.from(text).length <= max &&
-      !Array.from(text).some(
-        (c) =>
-          c === "\0" ||
-          (c.codePointAt(0)! >= 0xd800 && c.codePointAt(0)! <= 0xdfff),
-      ),
-    422,
-    "GENERATION_CONTEXT_TOO_LARGE",
-    "所选文本过长或含无效字符，请缩小明确选区。",
-  );
-  return text;
-}
-async function context(
-  tx: Transaction,
-  source: Schema<"ContextSourceInput">,
-  checkVersion: boolean,
-) {
-  const id = source.objectId.toLowerCase();
-  let row: Record<string, any> | undefined, value: unknown;
-  if (source.kind === "scene" || source.kind === "production") {
-    const table = source.kind === "scene" ? "scenes" : "productions";
-    row = (
-      await tx.sql.query(
-        `SELECT * FROM ${table} WHERE tenant_id=$1 AND project_id=$2 AND id=$3`,
-        [tx.tenantId, tx.projectId, id],
-      )
-    ).rows[0];
-    if (row)
-      value =
-        source.kind === "scene"
-          ? { summary: row.summary, state: row.state }
-          : { brief: row.brief };
-  } else if (source.kind === "shot_revision") {
-    row = (
-      await tx.sql.query(
-        "SELECT * FROM shot_revisions WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
-        [tx.tenantId, tx.projectId, id],
-      )
-    ).rows[0];
-    if (row) {
-      const {
-        references: _references,
-        assetBindings: _bindings,
-        ...text
-      } = row.spec;
-      value = text;
-    }
-  } else {
-    row = (
-      await tx.sql.query(
-        "SELECT r.* FROM asset_revisions r WHERE r.tenant_id=$1 AND r.id=$2 AND asset_revision_usable($1,$3,r.id,false)",
-        [tx.tenantId, id, tx.projectId],
-      )
-    ).rows[0];
-    if (row) {
-      const {
-        references: _references,
-        looks: _looks,
-        ...text
-      } = row.definition;
-      value = text;
-    }
-  }
-  requireThat(
-    row,
-    404,
-    "GENERATION_CONTEXT_UNAVAILABLE",
-    "明确选择的上下文不存在或无访问权限。",
-  );
-  if (checkVersion) versionMatches(Number(row.revision), source.revision);
-  const text = safeText(canonical(value));
-  return {
-    source: {
-      kind: source.kind,
-      objectId: id,
-      revision: Number(row.revision),
-      tracking:
-        source.kind === "scene" || source.kind === "production"
-          ? "current"
-          : "fixed",
-      contentHash: digest(text),
-    },
-    text,
-  } as Schema<"ContextSnapshot">;
-}
 export async function resolveAnalysis(
   tx: Transaction,
   input: Schema<"PlanInput">,
@@ -211,6 +129,12 @@ export async function resolveAnalysis(
     422,
     "GENERATION_CONTEXT_LIMIT",
     "最多明确选择 20 项上下文。",
+  );
+  requireThat(
+    !(input.contextSources ?? []).some((s) => s.kind === "canvas_draft"),
+    422,
+    "ASSISTANCE_CONTEXT_NOT_SUPPORTED",
+    "剧本拆解仅使用明确选择的文本上下文；画布草稿用于固定镜头的提示准备。 ",
   );
   const target = input.proposalTarget;
   const scene = await activeParent(tx, "scenes", target.sceneId.toLowerCase());
@@ -251,7 +175,7 @@ export async function resolveAnalysis(
       "同一上下文只能选择一次。",
     );
     ids.add(key);
-    snapshots.push(await context(tx, source, true));
+    snapshots.push(await resolveContext(tx, source, true));
   }
   requireThat(
     quote.length + snapshots.reduce((n, s) => n + s.text.length, 0) <= 60000,
@@ -283,6 +207,8 @@ export async function assertAnalysisCurrent(
   tx: Transaction,
   plan: Record<string, any>,
 ) {
+  if (plan.input.purpose === "creative_assistance")
+    return assertPromptCurrent(tx, plan);
   const input = plan.input as Schema<"PlanInput">,
     target = input.proposalTarget!;
   requireThat(
@@ -302,7 +228,7 @@ export async function assertAnalysisCurrent(
   // Editing a different scene or reordering does not silently re-resolve or invalidate selected text.
   for (const saved of (plan.resolved_input as Schema<"ResolvedInput">)
     .contextSnapshots ?? []) {
-    const fresh = await context(
+    const fresh = await resolveContext(
       tx,
       {
         kind: saved.source.kind as Schema<"ContextSourceInput">["kind"],
@@ -338,7 +264,10 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
     )
   ).rows[0];
   requireThat(cap, 503, "MODEL_NOT_CONFIGURED", "尚未配置并验证此模型能力。");
-  const { resolved, snapshot } = await resolveAnalysis(tx, input);
+  const { resolved, snapshot } =
+    input.purpose === "creative_assistance"
+      ? await resolvePrompt(tx, input)
+      : await resolveAnalysis(tx, input);
   const reasons: string[] = [];
   if (!cap.enabled) reasons.push("MODEL_DISABLED");
   // No unverified real provider or implicit paid path can become ready.
@@ -383,5 +312,17 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
       ],
     )
   ).rows[0];
+  for (const [position, source] of (input.shotSources ?? []).entries())
+    await tx.sql.query(
+      "INSERT INTO generation_plan_shots(tenant_id,project_id,plan_id,position,shot_id,shot_revision_id) VALUES($1,$2,$3,$4,$5,$6)",
+      [
+        tx.tenantId,
+        tx.projectId,
+        row.id,
+        position,
+        source.shotId,
+        source.shotRevisionId,
+      ],
+    );
   return planRecord(row);
 }

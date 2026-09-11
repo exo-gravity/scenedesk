@@ -23,6 +23,7 @@ import { sourceSeconds } from "./candidate-time";
 import { useAssetPages } from "./asset-queries";
 import { StatusLabel } from "../components/workspace/cards";
 import classes from "./candidates.module.css";
+import { ShotPromptComposer } from "./ShotPromptComposer";
 type Take = Schema<"Take">;
 
 export default function CandidateWorkspace({
@@ -135,6 +136,14 @@ export default function CandidateWorkspace({
           takeId={takeId}
           href={`${base}/production?scene=${scene.id}&shot=${shot.id}`}
           contentHref={`${base}/content?shot=${shot.id}`}
+        />
+      )}
+      {shot && (
+        <ShotPromptComposer
+          tenantId={tenantId}
+          projectId={projectId}
+          shot={shot}
+          active={active && shot.status === "active"}
         />
       )}
       <nav className={classes.strip} aria-label="本场分镜顺序">

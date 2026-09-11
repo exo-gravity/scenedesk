@@ -3,7 +3,10 @@ import type { EditingAccessHint } from "./editing-access";
 import { registerEditingSessions } from "./editing-lifecycle";
 import { clearAssistantLocal } from "./assistant-storage";
 type Entry = {
-  controller: AssistantSession;
+  controller: Pick<
+    AssistantSession<unknown>,
+    "suspend" | "verify" | "retire" | "settle"
+  >;
   userId: string;
   sessionId: string;
   tenantId: string;

@@ -51,4 +51,4 @@ worker 不读取迁移、API 或身份登录的凭据。此本地入口不执行
 
 [生产浏览器整合证据](../../output/playwright/2026-09-11-ai-integrated/verification.md)使用同源4311、实际API/PostgreSQL和独立受限worker。明确Unicode剧本选区与场次上下文后只创建一个计划、提交一次任务；真实202回包被丢弃后，刷新和双模式通过GET找回同一queued任务。启动worker后保存原始Proposal r1，编辑保存r2再明确采纳，仅此时创建一个镜头；再次刷新保留已采纳状态和原始来源。三种宽度检查与五张最终截图已逐张检查。首页重新加载且未加载场次懒模块时，实际退出登录仍清除1条历史助手记录并撤销服务端会话。
 
-[结构化整合结果](../../output/playwright/2026-09-11-ai-integrated/results.json)记录调用数、真实业务身份与本地检查摘要。前端独立的受控传输验证保留为其自身证据；本节实际API/worker验证不使用那份受控Proposal传输。当前切片远端CI／合并待完成。
+[结构化整合结果](../../output/playwright/2026-09-11-ai-integrated/results.json)记录调用数、真实业务身份与本地检查摘要。前端独立的受控传输验证保留为其自身证据；本节实际API/worker验证不使用那份受控Proposal传输。[PR #18](https://github.com/exo-gravity/scenedesk/pull/18) 已于 2026-09-11 合入 main（c939900）；精确提交 a390d975 的 push／PR 两组 CI（34597564165、34597622556）均通过 60 单元／160 数据库／61 媒体验证，无失败、取消或跳过。

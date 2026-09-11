@@ -16,6 +16,7 @@ import {
   Stack,
   Text,
   Textarea,
+  SegmentedControl,
 } from "@mantine/core";
 import { ArrowsClockwise, FileText, Sparkle } from "@phosphor-icons/react";
 import {
@@ -40,6 +41,7 @@ import { assistantStorage } from "./assistant-storage";
 import { registerAssistant } from "./assistant-lifecycle";
 import { subscribeEditingAccess } from "./editing-access";
 import classes from "./assistant.module.css";
+import { ShotPromptComposer } from "./ShotPromptComposer";
 
 type ExecutionIdentified = {
   executionMode?: "test_fixture" | "verified_provider";
@@ -48,7 +50,65 @@ export function SceneAssistant(
   props: Parameters<typeof SceneAssistantContent>[0],
 ) {
   const session = useSession();
-  return <SceneAssistantContent key={session.id} {...props} />;
+  return <AssistantModes key={session.id} {...props} />;
+}
+function AssistantModes(props: Parameters<typeof SceneAssistantContent>[0]) {
+  const [mode, setMode] = useState("script"),
+    [shotId, setShotId] = useState<string | null>(null);
+  const content = useResource<Schema<"ContentTree">>(
+    `${projectPath(props.tenantId, props.projectId)}/content`,
+  );
+  const shots =
+    content.data?.shots.filter(
+      (s) => s.sceneId === props.sceneId && s.status === "active",
+    ) ?? [];
+  const shot = shots.find((s) => s.id === shotId);
+  return (
+    <Stack gap="md" hidden={!props.visible} className={classes.panel}>
+      <SegmentedControl
+        value={mode}
+        onChange={setMode}
+        data={[
+          { value: "script", label: "分镜建议" },
+          { value: "prompt", label: "准备提示" },
+        ]}
+      />
+      <SceneAssistantContent
+        {...props}
+        visible={props.visible && mode === "script"}
+      />
+      <Stack hidden={mode !== "prompt"} className={classes.panel}>
+        <ErrorNotice
+          error={content.error}
+          retry={() => void content.refetch()}
+        />
+        {!content.error && (
+          <>
+            <Select
+              label="选择本次提示的镜头来源"
+              placeholder="明确选择一个镜头"
+              value={shotId}
+              onChange={setShotId}
+              data={shots.map((s) => ({ value: s.id, label: s.label }))}
+            />
+            {shot ? (
+              <ShotPromptComposer
+                assistantOnly
+                tenantId={props.tenantId}
+                projectId={props.projectId}
+                shot={shot}
+                active={props.active}
+              />
+            ) : (
+              <Text size="sm" c="dimmed">
+                选择镜头后，固定其要求与参考，准备本次创作提示。仅画布内容暂不支持此入口。
+              </Text>
+            )}
+          </>
+        )}
+      </Stack>
+    </Stack>
+  );
 }
 function SceneAssistantContent({
   tenantId,
@@ -488,10 +548,13 @@ function SceneAssistantContent({
                     void controller.revise(
                       scene
                         ? {
-                            mode: "append_to_scene",
-                            sceneId: scene.id,
-                            sceneRevision: scene.revision,
-                            episodeId: scene.episodeId,
+                            ...record.draft,
+                            target: {
+                              mode: "append_to_scene",
+                              sceneId: scene.id,
+                              sceneRevision: scene.revision,
+                              episodeId: scene.episodeId,
+                            },
                           }
                         : undefined,
                     )

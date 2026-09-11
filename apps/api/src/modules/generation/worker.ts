@@ -1,3 +1,4 @@
+import { assistanceBody } from "./artifacts.js";
 import { randomUUID } from "node:crypto";
 import type { Pool } from "pg";
 import { sqlIdentifier, verifyRuntimeRole } from "@drama/database";
@@ -146,11 +147,15 @@ export async function createAssistanceWorker(options: {
     const terminal = state.evidence.filter((e) => e.body.kind !== "unknown"),
       selected = terminal[0] ?? state.evidence[0];
     if (!selected) return;
-    let ops: Schema<"ProposalOperation">[] | null = null,
+    let ops: Schema<"ProposalOperation">[] | Schema<"AssistanceBody"> | null =
+        null,
       failure: string | null = null;
     if (selected.body.kind === "completed")
       try {
-        ops = analysisOperations(selected.body.output, state);
+        ops =
+          state.input.purpose === "creative_assistance"
+            ? assistanceBody(selected.body.output, state.resolvedInput)
+            : analysisOperations(selected.body.output, state);
       } catch {
         failure = "INVALID_ASSISTANCE_OUTPUT";
       }
