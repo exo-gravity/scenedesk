@@ -1,0 +1,14 @@
+{
+  "localBusinessReady": true,
+  "completeMvp": false,
+  "localTestIdentityLabel": true,
+  "privateNavigation": true,
+  "viewport": 1512,
+  "overflow": false,
+  "pageErrors": [],
+  "mutationsRequestedByScript": 0,
+  "sourceMain": "d161c0c0380dd4249cf37417056d4888c48b0a44",
+  "transport": "actual local API and PostgreSQL",
+  "identity": "local_test",
+  "paidProviderCalls": 0
+}

@@ -4,9 +4,11 @@ This package builds a static production web image, a same-origin HTTPS gateway/A
 
 The original package procedure and credential contract are recorded in [implementation note 47](../docs/implementation/47-private-deployment-package.md). The current image-mainline integration, strict generation audit and independent CI are described in [implementation note 52](../docs/implementation/52-private-deployment-integration.md).
 
+For the first workspace owner after a trusted login, follow [the private operator bootstrap](../docs/implementation/55-private-owner-bootstrap.md). It uses the existing authenticated API, defaults to read-only preflight and requires an explicit apply. An unknown creation is never resent; selecting an existing workspace verifies current ownership without claiming it is the original request result.
+
 Enabled model capability records do not mean this deployment can execute them. The gateway returns `503 GENERATION_EXECUTOR_UNAVAILABLE` for new generation jobs, preserving plan preparation, history and original-file archive recovery. The read-only audit refuses unresolved submissions or archive states without a fixed `generation_media_outputs` record; it never disables capabilities or clears jobs to pass a check.
 
-Check the deployment entrypoints and four configuration boundaries after `npm ci`:
+Check the deployment entrypoints, configuration boundaries and private operator files after `npm ci`:
 
 ```sh
 sh deploy/check.sh

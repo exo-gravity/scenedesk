@@ -65,6 +65,8 @@ docker compose -f deploy/compose.yaml --profile media up -d --wait
 
 新数据库的首位真实 owner 和工作室仍需通过既有受权业务入口完成引导；本片未增加公共注册页面或绕过领域规则的直接数据种子。真实身份首登、邀请接入、成员撤销、首位 owner 引导都属于外部试点前待验收项；不能因 health 200 就邀请用户认为上线完成。
 
+后续 [55 首位 owner 引导](55-private-owner-bootstrap.md) 已补私有操作者命令及实际 API/受控身份验证，复用 authenticated createTenant：默认只读，显式 apply，未知发送后永不重放，并允许只读核对后明确选用现有 owner 工作室。该命令提供可执行步骤，没有完成外部真实身份验收，也没有恢复公共注册 UI。
+
 ## 4. 媒体解码与队列边界
 
 FFprobe/FFmpeg 镜像固定为 `mwader/static-ffmpeg@sha256:54e55b0cb8f672870fc38ceb2e6c411855cb3b39c505f5f3b2505ee01ed5f2b7`，须由操作者提前装到专用 daemon。已有处理器仍使用 `--pull never`、`--network none`、非 root、只读根、资源限制和单个输入文件挂载；Worker 协调器承担授权存储读写。宿主与 Worker 中 TMPDIR 必须是同一个绝对路径，且专用 daemon 能看到相同文件。导入媒体不需要 production bucket 或后期工作目录。
