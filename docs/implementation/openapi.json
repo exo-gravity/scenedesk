@@ -23194,7 +23194,7 @@
           },
           "zoom": {
             "type": "number",
-            "minimum": 0.1,
+            "minimum": 1e-05,
             "maximum": 4
           }
         },

@@ -53,7 +53,7 @@ def schemas():
     s["CanvasPlanEntryPage"] = obj({"items": array(ref("CanvasPlanEntry"), 100), "nextCursor": {"type": "string"}}, ["items"])
     s["MaterializeCanvasResults"] = obj({"jobId": ID, "mediaIds": {**array(ID, 100, 1), "uniqueItems": True}, "position": ref("CanvasPoint")}, ["jobId", "mediaIds", "position"])
     s["CanvasResultPlacement"] = obj({"canvas": ref("Canvas"), "placements": array(obj({"mediaId": ID, "nodeId": ID}, ["mediaId", "nodeId"]), 100, 1)}, ["canvas", "placements"])
-    s["CanvasViewport"] = obj({"x": COORD, "y": COORD, "zoom": {"type": "number", "minimum": 0.1, "maximum": 4}}, ["x", "y", "zoom"])
+    s["CanvasViewport"] = obj({"x": COORD, "y": COORD, "zoom": {"type": "number", "minimum": 0.00001, "maximum": 4}}, ["x", "y", "zoom"])
     preference = {"mode": enum("storyboard", "canvas"), "selectedShotId": {"anyOf": [ID, {"type": "null"}]}, "selectedNodeIds": {**array(ID, 2000), "uniqueItems": True}, "viewport": ref("CanvasViewport"), "assetPanelOpen": BOOL, "assistantOpen": BOOL}
     s["SaveSceneWorkspacePreference"] = obj(preference, list(preference))
     s["SceneWorkspacePreference"] = obj({"sceneId": ID, "revision": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, **preference}, ["sceneId", "revision", *preference])
