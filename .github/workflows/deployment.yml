@@ -1,6 +1,7 @@
 name: SceneDesk deployment package
 on:
   push:
+    branches: [main]
   pull_request:
 permissions:
   contents: read
