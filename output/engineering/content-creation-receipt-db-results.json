@@ -1,0 +1,47 @@
+{
+  "recordedAt": "2026-09-11T17:49:05.173535+00:00",
+  "baseCommit": "b728f99980c526489061f875424b40c88c498e7a",
+  "branch": "feat/content-receipt-db-tests",
+  "scope": "Tests only: episode, scene and shot creation receipts; no product, migration, runtime or service changes.",
+  "checks": [
+    {
+      "name": "creation_receipt_postgresql_regression",
+      "result": "passed",
+      "logSha256": "fd643385447c243460b555d5e1a971202898732bad3747141101c8bccd31ca4a",
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 3782.637791
+    },
+    {
+      "name": "existing_content_postgresql_regression",
+      "result": "passed",
+      "logSha256": "424ddb15fc36bf06f7531f8e7978c05cf50280bcf17e61048bd8556af0788aca",
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 3957.12625
+    },
+    {
+      "name": "typecheck",
+      "result": "passed",
+      "logSha256": "6dffc077223dac921ef78ebd7b7d0312d5fdafa681c519112854e7a39a37193b"
+    }
+  ],
+  "observedBehavior": [
+    "Each public create route returns 201 once and an identical cached object for the same body, original If-Match and original Idempotency-Key while its receipt remains valid.",
+    "After only that isolated fixture receipt is expired, the unchanged original request returns 412 VERSION_CONFLICT. Public content reads retain the exact object count, IDs, content revision and shot specification.",
+    "After project membership is removed through the public API, each route rejects its still-valid cached request with 404 NOT_FOUND. The same session and tenant membership remain usable; no cached entity ID is returned and the owner reads unchanged content."
+  ],
+  "isolation": "Existing businessFixture uses a random PostgreSQL schema with restricted API/auth roles and removes its own schema/roles at teardown. Only that fixture receipt deadline is advanced for expiry; continuous runtime data is untouched.",
+  "limitations": [
+    "This proves duplicate prevention after receipt expiry, not automatic recovery of an expired receipt or the created object ID.",
+    "Frontend IndexedDB/refresh behavior and complete CI are handled by the parent integration."
+  ],
+  "failures": [],
+  "review": "Reviewed the added test; git diff --cached --check passed. Existing behavior passed without any product change."
+}
