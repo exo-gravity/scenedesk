@@ -103,8 +103,14 @@ export function mapAudioFrames(timing: AudioTiming, zero?: AudioZero) {
       // Only an exact, explicitly shorter FINAL presentation interval can discard decoder padding.
       if (!coarse && duration > 0n) {
         const durationSamples = duration * n * r;
-        if (durationSamples % d !== 0n || durationSamples / d > BigInt(samples))
-          throw invalid();
+        if (durationSamples % d !== 0n) throw invalid();
+        if (durationSamples / d > BigInt(samples)) {
+          // Some fragmented MP4 tracks stretch a packet's declared duration across
+          // a timestamp gap. Only decoded samples contain sound; a following PTS
+          // must independently bound the gap. Never stretch samples or invent a tail.
+          const next = timing.frames[i + 1];
+          if (!next || integer(next.pts) < pts + duration) throw invalid();
+        }
         if (durationSamples / d < BigInt(samples)) {
           if (i !== timing.frames.length - 1) throw invalid();
           effective = Number(durationSamples / d);

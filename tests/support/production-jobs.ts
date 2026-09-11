@@ -8,12 +8,17 @@ import {
   makeProductionProfile,
   requestMediaProduction,
   type ProductionProfile,
+  type MediaStore,
 } from "@drama/media";
 import { Database } from "../../apps/api/src/kernel/database.js";
 import { businessFixture } from "./business.js";
 
-export async function productionJobsFixture(t: TestContext) {
+export async function productionJobsFixture(
+  t: TestContext,
+  media?: MediaStore,
+) {
   let f: Awaited<ReturnType<typeof businessFixture>> | undefined;
+  let cleanupAdmin: Pool | undefined;
   const suffix = randomBytes(5).toString("hex"),
     queueSchema = `scenedesk_queue_${suffix}`;
   const roles: string[] = [],
@@ -24,46 +29,52 @@ export async function productionJobsFixture(t: TestContext) {
   t.after(async () => {
     await producer?.close();
     for (const pool of pools) await pool.end();
-    if (f) {
+    if (cleanupAdmin) {
       if (queueInstalled)
-        await f.admin.query(
+        await cleanupAdmin.query(
           `DROP SCHEMA ${sqlIdentifier(queueSchema)} CASCADE`,
         );
       for (const role of roles) {
-        await f.admin.query(`DROP OWNED BY ${sqlIdentifier(role)}`);
-        await f.admin.query(`DROP ROLE ${sqlIdentifier(role)}`);
+        await cleanupAdmin.query(`DROP OWNED BY ${sqlIdentifier(role)}`);
+        await cleanupAdmin.query(`DROP ROLE ${sqlIdentifier(role)}`);
       }
     }
   });
-  f = await businessFixture(t);
-  for (const prefix of ["production_worker", "production_scheduler"]) {
-    const role = `${prefix}_${suffix}`,
-      secret = randomBytes(24).toString("hex");
-    await f.admin.query(
-      `CREATE ROLE ${sqlIdentifier(role)} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB PASSWORD '${secret}'`,
-    );
-    roles.push(role);
-    const url = new URL(process.env.DATABASE_URL!);
-    url.username = role;
-    url.password = secret;
-    pools.push(new Pool({ connectionString: url.href, max: 4 }));
-  }
+  f = await businessFixture(t, async (db) => {
+    cleanupAdmin = db.admin;
+    for (const prefix of ["production_worker", "production_scheduler"]) {
+      const role = `${prefix}_${suffix}`,
+        secret = randomBytes(24).toString("hex");
+      await db.admin.query(
+        `CREATE ROLE ${sqlIdentifier(role)} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB PASSWORD '${secret}'`,
+      );
+      roles.push(role);
+      const url = new URL(process.env.DATABASE_URL!);
+      url.username = role;
+      url.password = secret;
+      pools.push(new Pool({ connectionString: url.href, max: 4 }));
+    }
+    await installQueue(db.admin, queueSchema);
+    queueInstalled = true;
+    const grant = await db.admin.connect();
+    try {
+      await grantMediaWorkerAccess(grant, db.schema, roles[0]!, roles[1]!);
+      await grantQueueAccess(grant, queueSchema, db.apiRole, roles[1]!);
+      await grantQueueAccess(grant, queueSchema, roles[0]!, roles[1]!);
+    } finally {
+      grant.release();
+    }
+    producer = await createScheduler(db.runtime, {
+      schema: queueSchema,
+      onError: () => {},
+    });
+    return media
+      ? { media: { store: media, schedule: producer.schedule } }
+      : {};
+  });
   const worker = pools[0]!,
     scheduler = pools[1]!;
-  await installQueue(f.admin, queueSchema);
-  queueInstalled = true;
-  const grant = await f.admin.connect();
-  try {
-    await grantMediaWorkerAccess(grant, f.schema, roles[0]!, roles[1]!);
-    await grantQueueAccess(grant, queueSchema, f.apiRole, roles[1]!);
-  } finally {
-    grant.release();
-  }
-  producer = await createScheduler(f.runtime, {
-    schema: queueSchema,
-    onError: () => {},
-  });
-  const schedule = producer.schedule;
+  const schedule = producer!.schedule;
   const db = new Database(f.runtime, f.schema),
     jobs = new ProductionJobs(worker, f.schema);
   await jobs.verify();
@@ -136,6 +147,7 @@ export async function productionJobsFixture(t: TestContext) {
     );
   return {
     ...f,
+    requestHttp: f.request,
     worker,
     scheduler,
     jobs,

@@ -47,7 +47,8 @@ export function makeProductionProfile(
   return {
     kind,
     rendererVersion,
-    ...runtime,
+    imageId: runtime.imageId,
+    platform: runtime.platform,
     normalizationVersion: PRODUCTION_NORMALIZATION_VERSION,
     audioProfile: AUDIO_PRODUCTION_PROFILE,
     zero: kind === "video" ? "first-video-pts" : "first-audio-sample",

@@ -129,3 +129,35 @@ test("missing, duplicate, overlapping, excessive and ambiguous sample intervals 
   ])
     assert.throws(() => mapAudioFrames(source));
 });
+
+test("a following PTS bounds a declared packet gap without stretching decoded samples", () => {
+  const source = timing([], {
+    frames: [
+      { pts: "0", samples: 1024, durationPts: "4000" },
+      { pts: "4000", samples: 1024, durationPts: "1024" },
+    ],
+  });
+  const map = mapAudioFrames(source);
+  assert.equal(map.decodedSamples, 2048);
+  assert.equal(map.outputSamples, 5024);
+  assert.deepEqual(map.silence, [{ startSample: 1024, endSample: 4000 }]);
+  const atVideoZero = mapAudioFrames(source, {
+    pts: "1",
+    timeBase: { numerator: 1, denominator: 12 },
+  });
+  assert.equal(atVideoZero.outputSamples, 1024);
+  assert.equal(atVideoZero.segments[0]!.croppedLeadingSamples, 1024);
+  assert.equal(atVideoZero.segments[1]!.outputStartSample, 0);
+  assert.throws(
+    () =>
+      mapAudioFrames({
+        ...source,
+        frames: [source.frames[0]!, { ...source.frames[1]!, pts: "2000" }],
+      }),
+    { code: "MEDIA_AUDIO_TIMING_INVALID" },
+  );
+  assert.throws(
+    () => mapAudioFrames({ ...source, frames: [source.frames[0]!] }),
+    { code: "MEDIA_AUDIO_TIMING_INVALID" },
+  );
+});

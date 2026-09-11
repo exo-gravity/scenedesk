@@ -3,6 +3,7 @@ import { createReadStream, createWriteStream } from "node:fs";
 import { rm } from "node:fs/promises";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { accountMediaWrite } from "./execution.js";
 import {
   S3Client,
   GetBucketVersioningCommand,
@@ -164,8 +165,13 @@ export class MediaStore {
           return callback(
             new MediaFailure("FILE_SIZE_MISMATCH", "下载内容超出声明大小。"),
           );
-        hash.update(chunk);
-        callback(null, chunk);
+        try {
+          accountMediaWrite(chunk.length);
+          hash.update(chunk);
+          callback(null, chunk);
+        } catch (error) {
+          callback(error as Error);
+        }
       },
     });
     // Only remove files created by this call, never a pre-existing worker file.

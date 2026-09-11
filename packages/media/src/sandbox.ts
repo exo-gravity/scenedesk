@@ -5,6 +5,11 @@ import { chmod, lstat, realpath, rm } from "node:fs/promises";
 import { Readable, Transform, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { FFMPEG_IMAGE, MEDIA_LIMITS, MediaFailure } from "./policy.js";
+import {
+  accountMediaWrite,
+  currentMediaExecution,
+  type OwnedMediaContainer,
+} from "./execution.js";
 
 type Execution = {
   signal?: AbortSignal | undefined;
@@ -50,7 +55,12 @@ function docker(args: string[], options: Execution = {}): Promise<string> {
           return callback(
             new MediaFailure("MEDIA_OUTPUT_LIMIT", "媒体处理输出超过限额。"),
           );
-        callback(null, chunk);
+        try {
+          if (options.outputFile) accountMediaWrite(chunk.length);
+          callback(null, chunk);
+        } catch (error) {
+          callback(error as Error);
+        }
       },
     });
     const pending: Promise<void>[] = [];
@@ -146,8 +156,17 @@ export async function runMediaProcess(
     (!Number.isSafeInteger(options.maxInputBytes) || options.maxInputBytes! < 1)
   )
     throw new Error("Stream input requires a positive safe integer byte limit");
+  const owner = currentMediaExecution();
+  if (owner)
+    options = {
+      ...options,
+      signal: options.signal
+        ? AbortSignal.any([options.signal, owner.signal])
+        : owner.signal,
+    };
   options.signal?.throwIfAborted();
-  const name = `scenedesk-media-${randomUUID()}`;
+  let owned: OwnedMediaContainer | undefined;
+  let name: string | undefined;
   let input: string | undefined;
   if (file) {
     if (!(await lstat(file)).isFile())
@@ -161,6 +180,11 @@ export async function runMediaProcess(
     await chmod(input, 0o444);
   }
   try {
+    owned = await owner?.reserveContainer();
+    name = owned
+      ? productionContainerName(owned.id)
+      : `scenedesk-media-${randomUUID()}`;
+    options.signal?.throwIfAborted();
     await docker(
       [
         "create",
@@ -168,6 +192,14 @@ export async function runMediaProcess(
         "never",
         "--name",
         name,
+        ...(owned
+          ? [
+              "--label",
+              `scenedesk.production-resource=${owned.id}`,
+              "--label",
+              `scenedesk.production-host=${owned.hostId}`,
+            ]
+          : []),
         "--network",
         "none",
         "--read-only",
@@ -206,7 +238,7 @@ export async function runMediaProcess(
         FFMPEG_IMAGE,
         ...args,
       ],
-      { timeoutMs: 15_000 },
+      { timeoutMs: 15_000, signal: options.signal },
     );
     options.onCreated?.(name);
     options.signal?.throwIfAborted();
@@ -250,14 +282,64 @@ export async function runMediaProcess(
     }
   } finally {
     // Killing an attached Docker CLI does not kill its container. Always remove the named job.
-    await docker(["rm", "--force", name], { timeoutMs: 15_000 }).catch(() => {
+    try {
+      if (owned) {
+        await removeProductionContainer(owned.id, owned.hostId);
+        await owned.release();
+      } else if (name) {
+        await docker(["rm", "--force", name], { timeoutMs: 15_000 });
+      }
+    } catch {
       throw new MediaFailure(
         "MEDIA_SANDBOX_CLEANUP_FAILED",
         "媒体隔离任务未能清理，请检查 Worker。",
       );
-    });
-    if (input) await chmod(input, 0o600);
+    } finally {
+      if (input) await chmod(input, 0o600);
+    }
   }
+}
+
+function productionContainerName(id: string) {
+  if (
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id)
+  )
+    throw new Error("Invalid production container identity");
+  return `scenedesk-production-${id}`;
+}
+/** Absence is only established by a successful daemon listing; delete the inspected immutable ID. */
+export async function removeProductionContainer(id: string, hostId: string) {
+  const name = productionContainerName(id);
+  productionContainerName(hostId);
+  const found = (
+    await docker(
+      [
+        "ps",
+        "--all",
+        "--no-trunc",
+        "--filter",
+        `name=^/${name}$`,
+        "--format",
+        "{{.ID}}",
+      ],
+      { timeoutMs: 10_000, maxBytes: 1024 },
+    )
+  ).trim();
+  if (!found) return;
+  if (!/^[a-f0-9]{64}$/.test(found))
+    throw new Error("Container lookup is ambiguous");
+  const labels = JSON.parse(
+    await docker(["inspect", "--format", "{{json .Config.Labels}}", found], {
+      timeoutMs: 10_000,
+      maxBytes: 4096,
+    }),
+  ) as Record<string, string> | null;
+  if (
+    labels?.["scenedesk.production-resource"] !== id ||
+    labels["scenedesk.production-host"] !== hostId
+  )
+    throw new Error("Container does not belong to this production resource");
+  await docker(["rm", "--force", found], { timeoutMs: 15_000 });
 }
 
 export async function verifyMediaRuntime() {

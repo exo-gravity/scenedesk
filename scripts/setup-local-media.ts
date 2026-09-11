@@ -1,6 +1,14 @@
 import { execFile, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  readFile,
+  writeFile,
+  rename,
+  rm,
+} from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { Pool } from "pg";
 import {
@@ -14,6 +22,7 @@ import { grantQueueAccess, defaultQueueSchema } from "@drama/queue";
 import {
   mediaStoragePolicy,
   MediaStore,
+  ProductionStore,
   verifyMediaRuntime,
 } from "@drama/media";
 import {
@@ -112,6 +121,13 @@ if (
 await chmod(manifestPath, 0o600);
 const endpoint = "http://127.0.0.1:55440",
   region = "us-east-1";
+const productionBucket = manifest.bucket.replace(
+  "scenedesk-media-",
+  "scenedesk-production-",
+);
+const workDirectory = fileURLToPath(
+  new URL("../.runtime/production-worker/", import.meta.url),
+);
 async function docker(args: string[], env?: NodeJS.ProcessEnv) {
   try {
     return (
@@ -243,36 +259,54 @@ async function mc(args: string[], input = "") {
     child.stdin.end(input);
   });
 }
-async function privateConfig(name: string, contents: string) {
+async function privateConfig(
+  name: string,
+  contents: string,
+  previous?: string,
+) {
   const file = new URL(`../${name}`, import.meta.url);
   try {
     await writeFile(file, contents, { mode: 0o600, flag: "wx" });
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-    if ((await readFile(file, "utf8")) !== contents)
-      throw new Error(`Existing ${name} differs; it was not overwritten`);
+    const existing = await readFile(file, "utf8");
+    if (existing !== contents) {
+      if (existing !== previous)
+        throw new Error(`Existing ${name} differs; it was not overwritten`);
+      const temporary = new URL(
+        `${file.href}.upgrade-${randomBytes(8).toString("hex")}`,
+      );
+      try {
+        await writeFile(temporary, contents, { mode: 0o600, flag: "wx" });
+        if ((await readFile(file, "utf8")) !== previous)
+          throw new Error(`Existing ${name} changed during upgrade`);
+        await rename(temporary, file);
+      } finally {
+        await rm(temporary, { force: true });
+      }
+    }
   }
   await chmod(file, 0o600);
 }
 try {
-  try {
-    await storageAdmin.send(new HeadBucketCommand({ Bucket: manifest.bucket }));
-  } catch (error) {
-    if (
-      (error as { $metadata?: { httpStatusCode?: number } }).$metadata
-        ?.httpStatusCode !== 404
-    )
-      throw new Error("Local media bucket could not be inspected");
+  for (const bucket of [manifest.bucket, productionBucket]) {
+    try {
+      await storageAdmin.send(new HeadBucketCommand({ Bucket: bucket }));
+    } catch (error) {
+      if (
+        (error as { $metadata?: { httpStatusCode?: number } }).$metadata
+          ?.httpStatusCode !== 404
+      )
+        throw new Error("Local media bucket could not be inspected");
+      await storageAdmin.send(new CreateBucketCommand({ Bucket: bucket }));
+    }
     await storageAdmin.send(
-      new CreateBucketCommand({ Bucket: manifest.bucket }),
+      new PutBucketVersioningCommand({
+        Bucket: bucket,
+        VersioningConfiguration: { Status: "Enabled" },
+      }),
     );
   }
-  await storageAdmin.send(
-    new PutBucketVersioningCommand({
-      Bucket: manifest.bucket,
-      VersioningConfiguration: { Status: "Enabled" },
-    }),
-  );
   for (const role of ["api", "worker"] as const) {
     const identity = manifest[role],
       policyName = `scenedesk-${role}`;
@@ -286,7 +320,13 @@ try {
     ]);
     await mc(
       ["admin", "policy", "create", "local", policyName, "/dev/stdin"],
-      JSON.stringify(mediaStoragePolicy(manifest.bucket, role)),
+      JSON.stringify(
+        mediaStoragePolicy(
+          manifest.bucket,
+          role,
+          role === "worker" ? productionBucket : undefined,
+        ),
+      ),
     );
     await mc([
       "admin",
@@ -336,11 +376,15 @@ try {
   const storageConfig = (value: Credentials) =>
     `MEDIA_ACCESS_KEY_ID=${value.accessKeyId}\nMEDIA_SECRET_ACCESS_KEY=${value.secretAccessKey}\n`;
   await privateConfig(".env.media-api", shared + storageConfig(manifest.api));
+  const previousWorker =
+    shared +
+    storageConfig(manifest.worker) +
+    `MEDIA_WORKER_DATABASE_URL=${workerUrl.href}\n`;
   await privateConfig(
     ".env.media-worker",
-    shared +
-      storageConfig(manifest.worker) +
-      `MEDIA_WORKER_DATABASE_URL=${workerUrl.href}\n`,
+    previousWorker +
+      `PRODUCTION_BUCKET=${productionBucket}\nPRODUCTION_WORK_DIRECTORY=${workDirectory}\n`,
+    previousWorker,
   );
   for (const identity of [manifest.api, manifest.worker]) {
     const store = new MediaStore({
@@ -356,6 +400,18 @@ try {
       store.close();
     }
   }
+  const production = new ProductionStore({
+    endpoint,
+    region,
+    bucket: productionBucket,
+    credentials: manifest.worker,
+    local: true,
+  });
+  try {
+    await production.verify();
+  } finally {
+    production.close();
+  }
   await verifyMediaRuntime();
   console.log(
     JSON.stringify({
@@ -365,6 +421,7 @@ try {
       independentRuntimeIdentities: true,
       configurationReused: !!existing,
       productionStorage: false,
+      privateProductionArtifacts: true,
     }),
   );
 } finally {

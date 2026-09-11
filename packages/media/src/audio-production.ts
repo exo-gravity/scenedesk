@@ -4,6 +4,7 @@ import { mkdtemp, open, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { accountMediaWrite } from "./execution.js";
 import { FFMPEG_IMAGE, MediaFailure } from "./policy.js";
 import { fileIntegrity } from "./probe.js";
 import { runMediaProcess, verifyProductionRuntime } from "./sandbox.js";
@@ -277,6 +278,7 @@ export async function makeAudioProduction(
           const bytes = silence.subarray(0, Math.min(gapBytes, silence.length));
           expectedHash.update(bytes);
           emittedBytes += bytes.length;
+          accountMediaWrite(bytes.length);
           yield bytes;
           gapBytes -= bytes.length;
         }
@@ -295,6 +297,7 @@ export async function makeAudioProduction(
                 throw mismatch();
           expectedHash.update(bytes);
           emittedBytes += bytes.length;
+          accountMediaWrite(bytes.length);
           yield bytes;
         }
         position = segment.outputEndSample;
@@ -364,6 +367,7 @@ export async function makeAudioProduction(
     const json = JSON.stringify(manifest);
     if (Buffer.byteLength(json) > PRODUCTION_LIMITS.reportBytes)
       throw new MediaFailure("MEDIA_OUTPUT_LIMIT", "音频源映射超过限额。");
+    accountMediaWrite(Buffer.byteLength(json));
     await writeFile(sourceMapFile, json, { flag: "wx", mode: 0o600 });
     const sourceMap = await digest(sourceMapFile, signal);
     await rm(native);

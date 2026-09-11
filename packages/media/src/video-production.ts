@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { accountMediaWrite } from "./execution.js";
 import { join } from "node:path";
 import { PassThrough, Readable } from "node:stream";
 import { FFMPEG_IMAGE, MediaFailure } from "./policy.js";
@@ -484,7 +485,11 @@ export async function makeVideoProduction(
       },
     };
     const mapFile = join(directory, "source-map.json");
-    await writeFile(mapFile, JSON.stringify(manifest) + "\n", {
+    const json = JSON.stringify(manifest) + "\n";
+    if (Buffer.byteLength(json) > PRODUCTION_LIMITS.reportBytes)
+      throw new MediaFailure("MEDIA_OUTPUT_LIMIT", "视频源映射超过限额。");
+    accountMediaWrite(Buffer.byteLength(json));
+    await writeFile(mapFile, json, {
       flag: "wx",
       mode: 0o600,
     });

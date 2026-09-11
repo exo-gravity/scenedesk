@@ -4,6 +4,8 @@ import {
   createMediaProcessor,
   mediaStoreFromEnvironment,
   repairMediaWork,
+  createProductionProcessor,
+  productionStoreFromEnvironment,
 } from "@drama/media";
 
 if (
@@ -31,6 +33,11 @@ if (
   );
 const store = mediaStoreFromEnvironment(process.env);
 if (!store) throw new Error("Media worker storage credentials are required");
+const artifacts = productionStoreFromEnvironment(process.env);
+if (!artifacts || !process.env.PRODUCTION_WORK_DIRECTORY)
+  throw new Error(
+    "Production bucket and private work directory are required; rerun setup:media",
+  );
 const business = new Pool({
   connectionString: process.env.MEDIA_WORKER_DATABASE_URL,
   max: 4,
@@ -50,6 +57,8 @@ const queueOptions = {
 };
 let producer: Awaited<ReturnType<typeof createScheduler>> | undefined;
 let worker: Awaited<ReturnType<typeof runInternalWorker>> | undefined;
+let production:
+  Awaited<ReturnType<typeof createProductionProcessor>> | undefined;
 let timer: NodeJS.Timeout | undefined;
 let repair: Promise<void> | undefined;
 let closing = false;
@@ -57,10 +66,13 @@ async function close() {
   if (closing) return;
   closing = true;
   clearTimeout(timer);
+  production?.stop();
   await worker?.close();
   await repair;
+  await production?.close();
   await producer?.close();
   store!.close();
+  artifacts!.close();
   await business.end();
   await scheduler.end();
 }
@@ -70,7 +82,15 @@ function scan() {
     pool: scheduler,
     schema: process.env.DATABASE_SCHEMA ?? "drama",
     schedule: producer!.schedule,
+    includeProduction: true,
   })
+    .then(() => production!.cleanup())
+    .then((result) => {
+      if (result.failed)
+        console.error(
+          "Some owned production resources await the next cleanup scan",
+        );
+    })
     .then(() => undefined)
     .catch(() => {
       console.error("Media repair scan failed; retrying on the next interval");
@@ -87,10 +107,24 @@ try {
     store,
     schedule: producer.schedule,
   });
-  worker = await runInternalWorker(scheduler, processor, {
-    ...queueOptions,
-    concurrency: 2,
+  production = await createProductionProcessor({
+    pool: business,
+    schema: process.env.DATABASE_SCHEMA ?? "drama",
+    originals: store,
+    artifacts,
+    workDirectory: process.env.PRODUCTION_WORK_DIRECTORY,
   });
+  worker = await runInternalWorker(
+    scheduler,
+    (step, context) =>
+      step.taskKind === "media_production"
+        ? production!.process(step, context)
+        : processor(step, context),
+    {
+      ...queueOptions,
+      concurrency: 2,
+    },
+  );
   scan();
   for (const signal of ["SIGINT", "SIGTERM"] as const)
     process.once(signal, () => {
@@ -102,6 +136,7 @@ try {
       concurrency: 2,
       repairIntervalSeconds: 60,
       paidProvidersEnabled: false,
+      productionEnabled: true,
     }),
   );
 } catch {

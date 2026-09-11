@@ -21,6 +21,8 @@ export type StepEnvelope = {
   stepRevision: number;
   epoch: number;
 };
+// Production combines multiple bounded decodes and storage transfers; heartbeats do not extend this deadline.
+export const PRODUCTION_JOB_SECONDS = 3600;
 export function parseEnvelope(input: unknown): StepEnvelope {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Invalid internal step envelope");
@@ -99,6 +101,9 @@ export async function createScheduler(pool: Pool, options: Options) {
       return boss.send(internalQueue, data, {
         db: { executeSql: (text, values) => sql.query(text, values) },
         singletonKey: `${data.taskKind}:${data.businessId}:${data.stepRevision}:${data.epoch}`,
+        ...(data.taskKind === "media_production"
+          ? { expireInSeconds: PRODUCTION_JOB_SECONDS }
+          : {}),
         ...(startAfter ? { startAfter } : {}),
       });
     },
