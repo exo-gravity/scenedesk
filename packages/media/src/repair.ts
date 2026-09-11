@@ -7,13 +7,17 @@ export async function repairMediaWork(options: {
   pool: Pool;
   schema?: string;
   schedule(sql: PoolClient, step: StepEnvelope): Promise<unknown>;
+  includeProduction?: boolean;
 }) {
   const sql = await options.pool.connect();
   try {
     await sql.query("BEGIN");
     await sql.query("SET LOCAL statement_timeout='10s'");
     const rows = await sql.query(
-      `SELECT * FROM ${sqlIdentifier(options.schema ?? "drama")}.scan_media_work(100)`,
+      `SELECT * FROM ${sqlIdentifier(options.schema ?? "drama")}.scan_media_work(100)` +
+        (options.includeProduction
+          ? ` UNION ALL SELECT * FROM ${sqlIdentifier(options.schema ?? "drama")}.scan_media_production(100)`
+          : ""),
     );
     for (const row of rows.rows)
       await options.schedule(

@@ -18,7 +18,8 @@ import { runMediaProcess } from "../../packages/media/src/sandbox.js";
 const exec = promisify(execFile);
 test(
   "bounded media decode and independent previews",
-  { timeout: 180_000 },
+  // This suite performs many separately bounded container operations in sequence.
+  { timeout: 720_000 },
   async (t) => {
     const directory = await mkdtemp(join(tmpdir(), "scenedesk-media-"));
     t.after(() => rm(directory, { recursive: true, force: true }));

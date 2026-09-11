@@ -16,11 +16,13 @@ export {
 
 /** A scheduling hint only. The handler resolves tenant and authority from its business root. */
 export type StepEnvelope = {
-  taskKind: "media_probe" | "media_derivative";
+  taskKind: "media_probe" | "media_derivative" | "media_production";
   businessId: string;
   stepRevision: number;
   epoch: number;
 };
+// Production combines multiple bounded decodes and storage transfers; heartbeats do not extend this deadline.
+export const PRODUCTION_JOB_SECONDS = 3600;
 export function parseEnvelope(input: unknown): StepEnvelope {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Invalid internal step envelope");
@@ -30,7 +32,9 @@ export function parseEnvelope(input: unknown): StepEnvelope {
     Object.keys(value).sort().join(",") !==
       "businessId,epoch,stepRevision,taskKind" ||
     typeof value.taskKind !== "string" ||
-    !["media_probe", "media_derivative"].includes(value.taskKind) ||
+    !["media_probe", "media_derivative", "media_production"].includes(
+      value.taskKind,
+    ) ||
     typeof value.businessId !== "string" ||
     !uuid.test(value.businessId) ||
     !Number.isSafeInteger(value.epoch) ||
@@ -97,6 +101,9 @@ export async function createScheduler(pool: Pool, options: Options) {
       return boss.send(internalQueue, data, {
         db: { executeSql: (text, values) => sql.query(text, values) },
         singletonKey: `${data.taskKind}:${data.businessId}:${data.stepRevision}:${data.epoch}`,
+        ...(data.taskKind === "media_production"
+          ? { expireInSeconds: PRODUCTION_JOB_SECONDS }
+          : {}),
         ...(startAfter ? { startAfter } : {}),
       });
     },
