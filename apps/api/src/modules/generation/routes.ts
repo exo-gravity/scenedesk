@@ -57,7 +57,7 @@ export function generationRoutes(app: FastifyInstance, context: MediaContext) {
     context,
     "createGenerationPlan",
     async (tx, input) => {
-      if (input.body.purpose === "image") services(context);
+      if (["image", "video"].includes(input.body.purpose)) services(context);
       return { body: await createPlan(tx, input.body) };
     },
     { authorizeScope: generationScope("input", true) },

@@ -26,7 +26,9 @@ import { createAssistanceWorker } from "../../apps/api/src/modules/generation/wo
 export async function imageGenerationFixture(
   t: TestContext,
   store = { verify: async () => undefined } as unknown as MediaStore,
+  options: { purpose?: "image" | "video" } = {},
 ) {
+  const kind = options.purpose ?? "image";
   const queueErrors: Error[] = [];
   t.after(() => assert.deepEqual(queueErrors, []));
   const suffix = randomBytes(5).toString("hex"),
@@ -130,8 +132,11 @@ export async function imageGenerationFixture(
     connectionId = randomUUID(),
     connectionVersionId = randomUUID();
   const definition = {
-    purpose: "image",
-    mode: "image_fixture_v1",
+    purpose: kind,
+    mode: `${kind}_fixture_v1`,
+    ...(kind === "video"
+      ? { minDurationSeconds: 2, maxDurationSeconds: 2, audioOutput: true }
+      : {}),
     modelVersion: "显式文件 fixture，无真实模型",
     supportedPurposes: ["composition", "look"],
     maxReferences: 2,
@@ -155,7 +160,7 @@ export async function imageGenerationFixture(
   const input = {
     scope: "project",
     projectId: f.project.id,
-    purpose: "image",
+    purpose: kind,
     connectionId,
     capabilityId,
     shotSources: [{ shotId: shot.id, shotRevisionId: shot.specRevisionId }],
@@ -164,12 +169,16 @@ export async function imageGenerationFixture(
     referenceOverrides: [],
     prompt: "固定的技术测试图像",
     promptPolicy: "replace",
-    output: { resolution: "32x32", aspectRatio: "1:1" },
+    output: {
+      resolution: "32x32",
+      aspectRatio: "1:1",
+      ...(kind === "video" ? { durationSeconds: 2, withAudio: false } : {}),
+    },
   };
   let calls = 0,
     last: AssistanceSubmission | undefined,
     output: unknown = {
-      images: [
+      [kind === "video" ? "videos" : "images"]: [
         {
           kind: "fixture_object",
           object: {
@@ -178,7 +187,7 @@ export async function imageGenerationFixture(
             bytes: 100,
           },
           sha256: "a".repeat(64),
-          mime: "image/png",
+          mime: kind === "video" ? "video/mp4" : "image/png",
         },
       ],
     },

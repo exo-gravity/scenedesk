@@ -25,14 +25,20 @@ function keys(
     Object.keys(value).sort().join(",") === expected.sort().join(",")
   );
 }
-export function imageOutput(raw: unknown): ImageOutput {
+function visualOutput(
+  raw: unknown,
+  kind: "image" | "video",
+): ImageOutput | VideoOutput {
+  const collection = kind === "image" ? "images" : "videos";
   if (
-    !keys(raw, ["images"]) ||
-    !Array.isArray(raw.images) ||
-    raw.images.length !== 1
+    !keys(raw, [collection]) ||
+    !Array.isArray(raw[collection]) ||
+    raw[collection].length !== 1
   )
-    throw new Error("INVALID_IMAGE_OUTPUT");
-  const source = raw.images[0];
+    throw new Error(
+      kind === "video" ? "INVALID_VIDEO_OUTPUT" : "INVALID_IMAGE_OUTPUT",
+    );
+  const source = raw[collection][0];
   if (
     !keys(source, ["kind", "object", "sha256", "mime"]) ||
     source.kind !== "fixture_object" ||
@@ -48,10 +54,26 @@ export function imageOutput(raw: unknown): ImageOutput {
     /[\x00-\x1f\x7f]/.test(source.object.versionId) ||
     typeof source.object.bytes !== "number" ||
     typeof source.sha256 !== "string" ||
-    !["image/png", "image/jpeg", "image/webp"].includes(String(source.mime))
+    !(
+      kind === "image"
+        ? ["image/png", "image/jpeg", "image/webp"]
+        : ["video/mp4"]
+    ).includes(String(source.mime))
   )
-    throw new Error("INVALID_IMAGE_OUTPUT");
+    throw new Error(
+      kind === "video" ? "INVALID_VIDEO_OUTPUT" : "INVALID_IMAGE_OUTPUT",
+    );
   validateByteCount(source.object.bytes);
   validateSha256(source.sha256);
-  return raw as ImageOutput;
+  return raw as ImageOutput | VideoOutput;
+}
+
+export type VideoOutput = {
+  videos: [Omit<ImageOutput["images"][0], "mime"> & { mime: "video/mp4" }];
+};
+export function imageOutput(raw: unknown): ImageOutput {
+  return visualOutput(raw, "image") as ImageOutput;
+}
+export function videoOutput(raw: unknown): VideoOutput {
+  return visualOutput(raw, "video") as VideoOutput;
 }

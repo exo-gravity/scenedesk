@@ -29,18 +29,18 @@ export function canvasGenerationRoutes(
       (n) => n.id === input.body.nodeId.toLowerCase(),
     );
     requireThat(
-      node?.kind === "image" &&
+      (node?.kind === "image" || node?.kind === "video") &&
         node.content.type === "draft" &&
         node.content.connectionId &&
         node.content.capabilityId,
       422,
       "IMAGE_DRAFT_REQUIRED",
-      "请保存一个已选模型能力的图片草稿。",
+      "请保存一个已选模型能力的图片或视频草稿。",
     );
     const plan = await createPlan(tx, {
       scope: "project",
       projectId: tx.projectId!,
-      purpose: "image",
+      purpose: node.kind,
       connectionId: node.content.connectionId,
       capabilityId: node.content.capabilityId,
       prompt: node.content.prompt,
@@ -121,10 +121,10 @@ export function canvasGenerationRoutes(
             )
           ).rows[0];
         requireThat(
-          media?.kind === "image",
+          media && ["image", "video"].includes(media.kind),
           422,
           "CANVAS_RESULT_UNAVAILABLE",
-          "结果必须是该任务的可用图片，不能加入别处素材。",
+          "结果必须是该任务的可用图片或视频，不能加入别处素材。",
         );
         const previous = (
           await tx.sql.query(
@@ -143,7 +143,7 @@ export function canvasGenerationRoutes(
           );
           document.nodes.push({
             id: nodeId,
-            kind: "image",
+            kind: media.kind,
             title: media.display_name,
             width: 320,
             position: {
