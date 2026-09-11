@@ -1,7 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { constants } from "node:fs";
 import { mkdir, open, realpath } from "node:fs/promises";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import {
   canonicalPrivatePath,
   privateDirectory,
@@ -176,6 +176,23 @@ async function saveNew(file: string, value: unknown) {
     await directory.close();
   }
 }
+async function independentSecrets(
+  config: Configuration,
+  configPath: string,
+  bundle: string,
+) {
+  const directory = await realpath(bundle);
+  for (const path of [
+    configPath,
+    await canonicalPrivatePath(config.sealKeyFile),
+  ]) {
+    const inside = relative(directory, path);
+    requireRecovery(
+      inside.startsWith("../") || isAbsolute(inside),
+      "RECOVERY_BUNDLE_CONTAINS_CREDENTIALS",
+    );
+  }
+}
 async function manifest(
   config: Configuration,
   bundle: string,
@@ -298,6 +315,7 @@ export async function recovery(
       );
       const sealingKey = await key(config),
         bundle = await bundleDirectory(bundlePath, true);
+      await independentSecrets(config, configPath, bundle);
       const startedAt = new Date().toISOString();
       await saveNew(join(bundle, "intent.json"), {
         version: 1,
@@ -388,8 +406,9 @@ export async function recovery(
       });
       return report(payload, "backup");
     }
-    const bundle = await bundleDirectory(bundlePath, false),
-      payload = await manifest(config, bundle);
+    const bundle = await bundleDirectory(bundlePath, false);
+    await independentSecrets(config, configPath, bundle);
+    const payload = await manifest(config, bundle);
     differentTarget(config, payload);
     if (operation === "verify") return verify(config, bundle, payload);
     const stateFile = `${configPath}.restore-state.json`;
