@@ -1,6 +1,6 @@
 # 52 私有部署包与图片主线整合
 
-状态：整合验证中。基于图片主线 `f3b7433f036261db8e36b01249fee5e242ed3886` 与首片部署提交 `a09cf873ba4ebb7528f71844ec9007cebdf164e9`。当前交付是可检查的阶段部署包，不代表真实 AI、身份接入或外部部署已完成。
+状态：本地无人干预容器 smoke 与修复后的部署专项 CI 均已通过。基于图片主线 `f3b7433f036261db8e36b01249fee5e242ed3886` 与首片部署提交 `a09cf873ba4ebb7528f71844ec9007cebdf164e9`。当前交付是可检查的阶段部署包，不代表真实 AI、身份接入或外部部署已完成。
 
 ## 1. 已交付能力与生成执行边界
 
@@ -61,8 +61,12 @@ Smoke 只向 CI 输出固定阶段名与退出码，原始日志、临时配置�
 
 首个整合候选已通过 `npm run check` 82 项、部署专属类型和4项配置测试、独立真实 PostgreSQL 审计6项（一个父用例与5个场景）。数据库测试容器及其临时数据已清理；只验证关系事实，不声称生成文件解码或模型质量通过。
 
-当前 head 的镜像构建及本轮新的 API/queue/browser-contract smoke 尚待完成，GitHub 独立工作流也待主任务推送执行，不能引用首片旧镜像或未登录截图作为当前 head 通过的证据。镜像源基线、已完成与待完成结果记录在 [整合验证清单](../../deploy/smoke/evidence/integration-verification.json)；后续以独立证据提交补齐。原首片证据仍保留在 `deploy/smoke/evidence/verification.json`，不会覆盖。
+首个整合候选提交时的待验收状态保留在 [候选验证清单](../../deploy/smoke/evidence/integration-verification.json)，原首片证据仍保留在 `deploy/smoke/evidence/verification.json`。两者不会覆盖，也不会拿旧镜像或未登录截图替代新版本验证。
 
 2026-09-12，PR 23 的首次部署工作流 `34626832293` 已通过部署类型、配置、数据库审计和三个镜像构建，但 smoke 在任何容器启动之前失败：全新 checkout 没有 `.runtime` 父目录，`prepare.ts` 创建运行目录时报 `ENOENT`。修复只为父目录添加 `recursive:true` 和 `0700` 权限；最终运行目录仍排他创建。已用没有 `.runtime` 的全新临时目录实际运行 prepare：父目录与运行目录均为 `0700`，再次运行报 `EEXIST`，已有配置字节不变。该验证不代表后续容器 smoke 已通过；首次 CI 失败记录保留。
 
 本地 `bf5246f` 三镜像已构建成功，容器 smoke 的 API、真实 Chrome compiler、生成媒体权限、过期归档提示和混队列拒绝断言均通过，资源清理完成。但 Chrome 写出成功 DOM 后没有及时退出，本轮曾人工关闭该独立浏览器再继续，不能把它作为完全自动化验收。新增浏览器生命周期管理及阶段诊断后，将另行记录无人干预的完整结果；已验证“成功 DOM 后终止浏览器”“只有脚本字符串时拒绝”“异常退出时拒绝”和 prepare 失败的固定阶段/退出码输出。
+
+修复 `74096ec` 与 `a4317bc` 已由主任务整合进视频主线上的 `3ee2865d931b53460f9e62e0ade3acd4976545f6`。[PR 23 部署专项 CI 34628329976](https://github.com/exo-gravity/scenedesk/actions/runs/34628329976) 已全通过：部署类型与配置、数据库审计、三个新镜像，以及全自动 API/queue/真实 browser compiler smoke。常规完整 CI 与最终合并由主任务单独记录；部署专项通过不代表真实模型、真实登录或外部上线完成。
+
+最终本地运行使用 `a4317bc93e9b262f8897d816a3f4e613f8ee2d8f` 重新构建的三个镜像，完整自动 smoke exit 0，无人工浏览器关闭：40 条 migration、TLS/私有版本桶、生成归档授权、同源公开契约 GET/HEAD 与真实 Chrome 编译、网关限制、过期提示消费、异常提示停止和混队列拒绝均通过。结束后的项目 label 查询确认容器、卷与网络全空。硬件、镜像 digest、准确范围和日志哈希记录在[本地容器验收证据](../../deploy/smoke/evidence/integration-container-verification.json)；共享开发主机的运行时间不作为性能基准。本次证据更新只改变记录文字，不改变已验证的运行代码。
