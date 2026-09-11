@@ -1,0 +1,38 @@
+{
+  "controlledTransport": true,
+  "realBackendAcceptance": false,
+  "lostResults": [
+    {
+      "kind": "episode",
+      "attempts": 2,
+      "commits": 1,
+      "fixedRequest": true,
+      "noAutomaticReplay": true,
+      "rebaseBlocked": true
+    },
+    {
+      "kind": "scene",
+      "attempts": 2,
+      "commits": 1,
+      "fixedRequest": true,
+      "noAutomaticReplay": true,
+      "rebaseBlocked": true
+    },
+    {
+      "kind": "shot",
+      "attempts": 2,
+      "commits": 1,
+      "fixedRequest": true,
+      "noAutomaticReplay": true,
+      "rebaseBlocked": true
+    }
+  ],
+  "failedLocalStagePosts": 0,
+  "knownRejectionThenExplicitRebase": true,
+  "completionReceiptReloadWithoutReplay": true,
+  "attempts": 10,
+  "commits": 6,
+  "otherWrites": 0,
+  "reads": 18,
+  "pageErrors": []
+}

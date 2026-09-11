@@ -311,8 +311,10 @@ export function useContentDraft<T>(
 }
 export function DraftNotice({
   draft,
+  pendingCreation = false,
 }: {
   draft: ReturnType<typeof useContentDraft<any>>;
+  pendingCreation?: boolean;
 }) {
   if (draft.committed)
     return (
@@ -341,21 +343,29 @@ export function DraftNotice({
     );
   if (draft.recovered)
     return (
-      <Alert title="发现本标签页未提交的内容">
+      <Alert
+        title={
+          pendingCreation ? "发现待确认的创建请求" : "发现本标签页未提交的内容"
+        }
+      >
         <Text>
           本地保存于 {new Date(draft.recovered.savedAt).toLocaleString()}
-          。恢复后仍需核对服务器版本并提交。
+          {pendingCreation
+            ? "。原请求可能已提交成功。恢复记录后，只能明确核对同一次创建。"
+            : "。恢复后仍需核对服务器版本并提交。"}
         </Text>
         {draft.error && (
-          <Text c="red">
-            本地草稿操作失败，这份草稿仍保留。可以重新恢复或放弃。
-          </Text>
+          <Text c="red">本地草稿操作失败，这份记录仍保留，可以重新恢复。</Text>
         )}
         <Group mt="md">
-          <Button onClick={draft.restore}>恢复未提交内容</Button>
-          <Button variant="subtle" onClick={draft.discard}>
-            放弃这份本地草稿
+          <Button onClick={draft.restore}>
+            {pendingCreation ? "恢复创建记录" : "恢复未提交内容"}
           </Button>
+          {!pendingCreation && (
+            <Button variant="subtle" onClick={draft.discard}>
+              放弃这份本地草稿
+            </Button>
+          )}
         </Group>
       </Alert>
     );
@@ -369,7 +379,9 @@ export function DraftNotice({
         ? "正在检查本地草稿…"
         : draft.dirty
           ? draft.saved
-            ? "修改已保存在本标签页，尚未提交。"
+            ? pendingCreation
+              ? "原创建请求已保存在本标签页，结果以服务器核对为准。"
+              : "修改已保存在本标签页，尚未提交。"
             : "正在保存本地修改…"
           : "修改后可保存；关闭面板会保留本地草稿。"}
     </Text>

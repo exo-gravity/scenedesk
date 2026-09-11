@@ -9,7 +9,7 @@
 
 ## 待处理：创建回执未知时的重复创建
 
-**P2，尚未修复。** 在 `StructureEditor` 新建单集／场次／镜头时，服务端提交成功而 HTTP 回包丢失；随后刷新页面、恢复本标签页草稿、核对并使用最新内容版本作为基线，再次保存，可创建第二个同名对象。
+**P2，审查时尚未修复；后续集场镜修复见 [54](54-content-creation-recovery.md)。** 在 `StructureEditor` 新建单集／场次／镜头时，服务端提交成功而 HTTP 回包丢失；随后刷新页面、恢复本标签页草稿、核对并使用最新内容版本作为基线，再次保存，可创建第二个同名对象。
 
 证据链（审查基线 `878d9af`）：`apps/web/src/business/api.tsx:89` 的 `pending` 幂等身份仅在组件 ref 中，刷新会丢失；`content-drafts.tsx:5` 本机记录只有 value／baseVersion／savedAt，没有原提交 body／If-Match／Idempotency-Key。`ContentEditors.tsx:176` 会根据已包含首次创建结果的最新 siblings 重算追加 position，`:245` 发出新的 POST，`:346` 的核对动作允许重新设定基线。`apps/api/src/modules/content/routes.ts:82` 检查新基线后调用 insert；`commands.ts:20`、`:35`、`:63` 为对象生成新 UUID。原幂等记录按旧 key 仍有效，但新请求不再携带它。
 
