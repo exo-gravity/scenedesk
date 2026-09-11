@@ -263,6 +263,8 @@ export function registerAction(
     authorizeScope?: (tx: Transaction, input: Input) => Promise<void>;
     readOnly?: boolean;
     audit?: boolean;
+    /** Keep the HTTP key/hash guard but let durable domain commands resolve a current result. */
+    replayCachedResponse?: (input: Input) => boolean;
   } = {},
 ) {
   const operation = operationDefinition(name);
@@ -415,6 +417,7 @@ export function registerAction(
               ifMatch: ifMatch ?? null,
             }),
           );
+          let cacheHit = false;
           if (cached) {
             await tx.sql.query(
               "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
@@ -431,28 +434,32 @@ export function registerAction(
                 "IDEMPOTENCY_CONFLICT",
                 "同一请求标识已用于不同的内容。",
               );
-              const replay = context.secrets.open<Result>(
-                old.rows[0].response_ciphertext,
-                encryptionContext,
-              );
-              if (replay.accessTenantId) {
-                const access = await tx.sql.query(
-                  "SELECT lock_tenant($1, false) AS role",
-                  [replay.accessTenantId],
+              cacheHit = true;
+              if (options.replayCachedResponse?.(input) !== false) {
+                const replay = context.secrets.open<Result>(
+                  old.rows[0].response_ciphertext,
+                  encryptionContext,
                 );
-                requireThat(
-                  access.rows[0]?.role,
-                  403,
-                  "FORBIDDEN",
-                  "当前成员已失去该工作室的访问权限。",
-                );
+                if (replay.accessTenantId) {
+                  const access = await tx.sql.query(
+                    "SELECT lock_tenant($1, false) AS role",
+                    [replay.accessTenantId],
+                  );
+                  requireThat(
+                    access.rows[0]?.role,
+                    403,
+                    "FORBIDDEN",
+                    "当前成员已失去该工作室的访问权限。",
+                  );
+                }
+                return replay;
               }
-              return replay;
             }
-            await tx.sql.query(
-              "DELETE FROM idempotency_records WHERE actor_id=$1 AND scope_key=$2 AND operation_id=$3 AND request_path=$4 AND key=$5",
-              identity,
-            );
+            if (!cacheHit)
+              await tx.sql.query(
+                "DELETE FROM idempotency_records WHERE actor_id=$1 AND scope_key=$2 AND operation_id=$3 AND request_path=$4 AND key=$5",
+                identity,
+              );
           }
           if (businessWrite && tx.projectId && name !== "restoreProject") {
             const project = await tx.sql.query(
@@ -479,7 +486,7 @@ export function registerAction(
               answer.auditObjectId ??
                 (answer.body as { id?: string } | undefined)?.id,
             );
-          if (cached)
+          if (cached && !cacheHit)
             await tx.sql.query(
               "INSERT INTO idempotency_records (actor_id,scope_key,operation_id,request_path,key,request_hash,response_ciphertext,expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7,now()+interval '24 hours')",
               [

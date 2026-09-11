@@ -1,0 +1,19 @@
+{
+  "controlledTransport": true,
+  "realBackendAcceptance": false,
+  "draftCloseReload": true,
+  "realIndexedDbSlowWriteCloseReopen": true,
+  "duplicatedTabIdsDistinct": true,
+  "actorRenewalKeepsOriginalRequest": true,
+  "otherActorCannotReadDraft": true,
+  "initialReadFailureBlocked": true,
+  "initialWriteFailurePosts": 0,
+  "confirmedCleanupRechecksActor": true,
+  "confirmedCleanupNewPosts": 0,
+  "malformed422400201And409RemainUnknown": true,
+  "knownFirst422Editable": true,
+  "originalRequestRecoveredOnce": true,
+  "posts": 13,
+  "projects": 7,
+  "pageErrors": []
+}

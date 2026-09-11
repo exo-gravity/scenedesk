@@ -1,3 +1,4 @@
+import { canonical, digest } from "../../kernel/crypto.js";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type { components } from "@drama/contracts";
@@ -20,37 +21,89 @@ export function projectRoutes(app: FastifyInstance, context: ApiContext) {
       [tx.tenantId, searchPattern(input.query), input.query.projectId ?? null],
     ),
   }));
-  registerAction(app, context, "createProject", async (tx, input) => {
-    const body = input.body as components["schemas"]["CreateProject"];
-    const lead = await tx.sql.query(
-      "SELECT id FROM memberships WHERE tenant_id=$1 AND id=$2 AND status='active'",
-      [tx.tenantId, body.leadMembershipId],
-    );
-    requireThat(
-      lead.rows[0],
-      422,
-      "INVALID_PROJECT_LEAD",
-      "负责人必须是本工作室的有效成员。",
-    );
-    const id = randomUUID();
-    const created = await tx.sql.query(
-      "INSERT INTO projects (id,tenant_id,name,lead_membership_id,spec) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-      [id, tx.tenantId, body.name, body.leadMembershipId, body.spec],
-    );
-    await tx.sql.query(
-      "INSERT INTO project_memberships (id,tenant_id,project_id,membership_id,role) VALUES ($1,$2,$3,$4,'lead')",
-      [randomUUID(), tx.tenantId, id, body.leadMembershipId],
-    );
-    await tx.sql.query(
-      "INSERT INTO productions (id,tenant_id,project_id,title) VALUES ($1,$2,$3,$4)",
-      [randomUUID(), tx.tenantId, id, body.name],
-    );
-    await tx.sql.query(
-      "INSERT INTO project_content_versions (tenant_id,project_id) VALUES ($1,$2)",
-      [tx.tenantId, id],
-    );
-    return { body: record<Project>(created.rows[0]!), etag: 1 };
-  });
+  registerAction(
+    app,
+    context,
+    "createProject",
+    async (tx, input) => {
+      const body = input.body as components["schemas"]["CreateProject"];
+      const creationId = body.creationRequestId?.toLowerCase();
+      const requestHash = creationId
+        ? digest(
+            canonical({
+              ...body,
+              creationRequestId: creationId,
+              leadMembershipId: body.leadMembershipId.toLowerCase(),
+            }),
+          )
+        : undefined;
+      if (creationId) {
+        // Current owner/admin authority and the tenant write lock precede this lookup.
+        // Replays do not revalidate a historical lead after an authorized handover.
+        const binding = (
+          await tx.sql.query(
+            "SELECT request_hash,project_id FROM project_creation_requests WHERE tenant_id=$1 AND actor_id=$2 AND creation_request_id=$3",
+            [tx.tenantId, tx.session.userId, creationId],
+          )
+        ).rows[0];
+        if (binding) {
+          requireThat(
+            binding.request_hash === requestHash,
+            409,
+            "PROJECT_CREATION_CONFLICT",
+            "这次创建身份已用于其他输入，请保留原创建请求并核对。",
+          );
+          const current = (
+            await tx.sql.query(
+              "SELECT * FROM projects WHERE tenant_id=$1 AND id=$2",
+              [tx.tenantId, binding.project_id],
+            )
+          ).rows[0];
+          requireThat(current, 404, "NOT_FOUND", "项目不存在或无访问权限。");
+          const project = record<Project>(current);
+          return { body: project, etag: project.revision };
+        }
+      }
+      const lead = await tx.sql.query(
+        "SELECT id FROM memberships WHERE tenant_id=$1 AND id=$2 AND status='active'",
+        [tx.tenantId, body.leadMembershipId],
+      );
+      requireThat(
+        lead.rows[0],
+        422,
+        "INVALID_PROJECT_LEAD",
+        "负责人必须是本工作室的有效成员。",
+      );
+      const id = randomUUID();
+      const created = await tx.sql.query(
+        "INSERT INTO projects (id,tenant_id,name,lead_membership_id,spec) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+        [id, tx.tenantId, body.name, body.leadMembershipId, body.spec],
+      );
+      await tx.sql.query(
+        "INSERT INTO project_memberships (id,tenant_id,project_id,membership_id,role) VALUES ($1,$2,$3,$4,'lead')",
+        [randomUUID(), tx.tenantId, id, body.leadMembershipId],
+      );
+      await tx.sql.query(
+        "INSERT INTO productions (id,tenant_id,project_id,title) VALUES ($1,$2,$3,$4)",
+        [randomUUID(), tx.tenantId, id, body.name],
+      );
+      await tx.sql.query(
+        "INSERT INTO project_content_versions (tenant_id,project_id) VALUES ($1,$2)",
+        [tx.tenantId, id],
+      );
+      if (creationId)
+        await tx.sql.query(
+          "INSERT INTO project_creation_requests (tenant_id,actor_id,creation_request_id,request_hash,project_id) VALUES ($1,$2,$3,$4,$5)",
+          [tx.tenantId, tx.session.userId, creationId, requestHash, id],
+        );
+      return { body: record<Project>(created.rows[0]!), etag: 1 };
+    },
+    {
+      replayCachedResponse: (input) =>
+        !(input.body as components["schemas"]["CreateProject"])
+          .creationRequestId,
+    },
+  );
   registerAction(app, context, "getProject", async (tx) => {
     const result = await tx.sql.query(
       "SELECT * FROM projects WHERE tenant_id=$1 AND id=$2",

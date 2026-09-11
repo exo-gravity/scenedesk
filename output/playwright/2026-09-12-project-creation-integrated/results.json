@@ -1,0 +1,76 @@
+{
+  "baseProductCommit": "bf42d93",
+  "unknown": {
+    "tenantId": "b128e444-cd57-4087-bcfe-c403051bbd8f",
+    "name": "项目恢复实际验收 1789152732419",
+    "request": {
+      "body": {
+        "creationRequestId": "1aaf4121-5c74-4697-9b64-006f1f8eb996",
+        "name": "项目恢复实际验收 1789152732419",
+        "leadMembershipId": "bcc47132-0c02-491b-ab28-fde8e0ba4912",
+        "spec": {
+          "width": 1080,
+          "height": 1920,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        }
+      },
+      "key": "3c8a0d79-63d0-49cf-a874-12157b80d79b",
+      "projectId": "e679db24-535e-436c-a6d5-80d3695a8d8a"
+    },
+    "actualCreatedProjects": 1,
+    "refreshAutomaticPosts": 0,
+    "draftPreserved": true,
+    "overflow": false,
+    "narrowOverflow": false,
+    "pageErrors": []
+  },
+  "recovery": {
+    "tenantId": "b128e444-cd57-4087-bcfe-c403051bbd8f",
+    "request": {
+      "body": {
+        "creationRequestId": "1aaf4121-5c74-4697-9b64-006f1f8eb996",
+        "name": "项目恢复实际验收 1789152732419",
+        "leadMembershipId": "bcc47132-0c02-491b-ab28-fde8e0ba4912",
+        "spec": {
+          "width": 1080,
+          "height": 1920,
+          "fpsNum": 24,
+          "fpsDen": 1,
+          "language": "zh-CN"
+        }
+      },
+      "key": "3c8a0d79-63d0-49cf-a874-12157b80d79b",
+      "projectId": "e679db24-535e-436c-a6d5-80d3695a8d8a"
+    },
+    "explicitRecoveryPosts": 1,
+    "reopenedFormEmpty": true,
+    "fixtureArchived": true,
+    "originalTrialProjectRestored": true,
+    "pageErrors": []
+  },
+  "requestsIdentical": true,
+  "creationPosts": 2,
+  "projectEffects": 1,
+  "expiry": {
+    "mode": "expire",
+    "projectId": "e679db24-535e-436c-a6d5-80d3695a8d8a",
+    "bindings": 1,
+    "expiredReceipts": 1,
+    "projects": 1,
+    "members": 1,
+    "productions": 1,
+    "content_roots": 1
+  },
+  "finalDatabase": {
+    "mode": "verify",
+    "projectId": "e679db24-535e-436c-a6d5-80d3695a8d8a",
+    "bindings": 1,
+    "expiredReceipts": 0,
+    "projects": 1,
+    "members": 1,
+    "productions": 1,
+    "content_roots": 1
+  }
+}
