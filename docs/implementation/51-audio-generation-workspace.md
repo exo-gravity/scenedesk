@@ -23,3 +23,7 @@
 音频使用独立本机 namespace，复用 session/authority/epoch、当前 GET 核对、撤权清理与断网隐藏恢复。图片、视频本机路径保持不变。未修改 CanvasBoard、canvas controller、SQL、生成器或 provider。
 
 `npm run check` 86/86 通过。最终生产构建的音频完整流程、图片／视频回归与实际音视频混合播放器均通过；已检查桌面及 390 px 页面、画布节点与独立试听。验证见[音频前端证据](../../output/playwright/2026-09-12-audio-generation/verification.md)。受控浏览器与本地编码音频不等于实际 API／worker／对象存储或真实供应商验收；这些仍由主线程整合后验证，不使用付费或真实语音克隆调用。
+
+## 主线程整合验收（2026-09-12）
+
+已在实际 4311 页面接通 API、受限 worker、数据库及对象存储，镜头与画布分别固定计划、执行并归档原音频；真实 202/201 回包丢失后恢复原任务和唯一结果，手工输入保留，删除来源后历史取回通过。最终整合 check 93/93，52 个迁移升级及重复应用通过。镜头验证脚本的选择器、视口与关闭按钮等待失败和后续只读恢复均保留；没有重新提交该生成。详见[实际整合证据](../../output/playwright/2026-09-12-audio-integrated/verification.md)。最终完整远端 CI 与 PR 合并仍待核对。

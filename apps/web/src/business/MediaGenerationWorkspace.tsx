@@ -758,7 +758,7 @@ function GenerationWorkspace({
           )}
           {placement?.phase === "placed" && (
             <Alert title="已添加到画布">
-              {`结果以独立${label}节点保存，原草稿仍保留。`}
+              {`结果以独立${label}节点保存。`}
               {source.kind === "canvas" && placement.placed && (
                 <Button
                   mt="sm"

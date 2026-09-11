@@ -1,0 +1,109 @@
+{
+  "shotRecovery": {
+    "actualApiDatabaseWorkerStorage": true,
+    "explicitTechnicalFixture": true,
+    "realModelAcceptance": false,
+    "jobId": "51eb0629-4147-494c-866e-9d1e0c02250d",
+    "planId": "f710af66-be16-4d22-8a04-4047600582b3",
+    "mediaId": "51eb0629-4147-494c-866e-9d1e0c02250d",
+    "restoredSameJob": true,
+    "creationsDuringRecovery": 0,
+    "accesses": 1,
+    "adviceRevision": 2,
+    "manualInputPreserved": true,
+    "originalContentRevision": 5,
+    "audio": {
+      "durationUs": 2000000,
+      "hasAudio": true,
+      "mime": "audio/wav",
+      "derivatives": [
+        {
+          "kind": "proxy",
+          "status": "ready"
+        }
+      ]
+    },
+    "geometries": [
+      {
+        "viewport": 1512,
+        "document": 1512
+      },
+      {
+        "viewport": 390,
+        "document": 390
+      }
+    ],
+    "errors": [],
+    "failures": []
+  },
+  "canvasFlow": {
+    "actualApiDatabaseWorkerStorage": true,
+    "explicitTechnicalFixture": true,
+    "realModelAcceptance": false,
+    "planId": "8a59519b-48dc-4d72-ba2b-6d783207afb5",
+    "jobId": "4c57c8c1-998c-4087-be35-a36df7e6617a",
+    "mediaId": "4c57c8c1-998c-4087-be35-a36df7e6617a",
+    "nodeId": "81cff43c-98f0-445b-b785-fa2cd66824ad",
+    "resultId": "0b090092-29a2-4243-a0b1-a1eb22c20273",
+    "planPosts": 1,
+    "executePosts": 1,
+    "placementPosts": 2,
+    "lostExecute202Recovered": true,
+    "lostPlacement201Recovered": true,
+    "samePlacementKey": true,
+    "draftPreservedBeforeExplicitRemoval": true,
+    "deletedSourceHistoryRecovered": true,
+    "canvasResultDecoded": true,
+    "audio": {
+      "durationUs": 2000000,
+      "hasAudio": true
+    },
+    "errors": [],
+    "failures": []
+  },
+  "durableShotFacts": {
+    "plan_jobs": 1,
+    "attempts": 1,
+    "takes": 0,
+    "timing": {
+      "timeBaseDen": 48000,
+      "timeBaseNum": 1,
+      "audioChannels": 1,
+      "frameRateMode": "unknown",
+      "audioSampleRate": 48000
+    },
+    "bytes": "192044",
+    "status": "ready"
+  },
+  "localChecks": {
+    "finalCheck": {
+      "tests": 93,
+      "pass": 93,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "migrationsApplied": 7,
+    "migrationTotal": 52,
+    "repeatApplied": 0,
+    "runtimeAccessVerified": true
+  },
+  "realProviderCalls": 0,
+  "productionAcceptance": false,
+  "retainedHarnessFailures": [
+    "initial-shot-selector-failure.txt",
+    "initial-shot-preview-wait.txt",
+    "initial-shot-resize-close-race.txt",
+    "history-copy-selector-failure.txt"
+  ],
+  "fullDatabaseAndMediaCi": "pending",
+  "historyRelease": {
+    "historySamePlan": true,
+    "sourceDeleted": true,
+    "historyCopyAccurate": true,
+    "audioDecoded": true,
+    "offscreenDecoderReleased": true,
+    "businessWrites": 0,
+    "errors": []
+  }
+}

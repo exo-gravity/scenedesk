@@ -1,0 +1,4 @@
+### Error
+TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('[aria-label="本次创作输入"]').locator('[aria-label="生成单段音频"]').getByRole('button', { name: '关闭音频预览', exact: true })[22m
