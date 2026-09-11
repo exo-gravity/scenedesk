@@ -5,20 +5,21 @@ import { imageGenerationFixture } from "../support/image-generation.js";
 import { grantGenerationWorkerAccess, grantRuntimeAccess, sqlIdentifier } from "@drama/database";
 import { Database } from "../../apps/api/src/kernel/database.js";
 import { localAssistanceFixtureOutput, createAssistanceFixture, type AssistanceSubmission, type AssistanceReceipt } from "@drama/provider";
-import { createAssistanceWorker } from "../../apps/api/src/modules/generation/worker.js";
+import { createAssistanceWorker, analysisOperations } from "../../apps/api/src/modules/generation/worker.js";
 
 test("asynchronous provider identity, observation and cancellation remain durable and isolated", async (t) => {
   const f = await imageGenerationFixture(t);
   const db = new Database(f.runtime, f.schema);
-  const cap = async (maxInflight = 2, media = false) => {
+  const cap = async (maxInflight = 2, media = false, analysis = false) => {
     const capabilityId = randomUUID(), connectionId = randomUUID(), connectionVersionId = randomUUID();
-    await f.admin.query(`INSERT INTO ${f.scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'test_fixture',true,$6,100)`, [capabilityId, f.tenant.id, connectionId, connectionVersionId, media ? f.definition : { purpose: "creative_assistance", mode: "structured_text_fixture", modelVersion: "明确本地协议验证", supportedPurposes: [] }, maxInflight]);
-    return { capabilityId, connectionId, connectionVersionId, media };
+    await f.admin.query(`INSERT INTO ${f.scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'test_fixture',true,$6,100)`, [capabilityId, f.tenant.id, connectionId, connectionVersionId, media ? f.definition : { purpose: analysis ? "script_analysis" : "creative_assistance", mode: "structured_text_fixture", modelVersion: "明确本地协议验证", supportedPurposes: [] }, maxInflight]);
+    return { capabilityId, connectionId, connectionVersionId, media, analysis };
   };
   const make = async (selected?: Awaited<ReturnType<typeof cap>>) => {
     const c = selected ?? await cap();
+    const script = c.analysis ? await f.ok("POST", `${f.path}/scripts`, { text: "固定原文" }, await f.next()) : undefined;
     const plan = await f.plan({ capabilityId: c.capabilityId, connectionId: c.connectionId,
-      ...(c.media ? {} : { purpose: "creative_assistance", output: {}, assistance: { kind: "prepare_prompt", targetCapabilityId: f.input.capabilityId, targetCapabilityRevision: 1 } }) });
+      ...(c.analysis ? { purpose: "script_analysis", output: {}, shotSources: [], sourceScriptRevisionId: script.id, scriptRange: { startOffset: 0, endOffset: 4 }, proposalTarget: { mode: "append_to_scene", sceneId: f.scene.id, sceneRevision: f.scene.revision, episodeId: f.scene.episodeId } } : c.media ? {} : { purpose: "creative_assistance", output: {}, assistance: { kind: "prepare_prompt", targetCapabilityId: f.input.capabilityId, targetCapabilityRevision: 1 } }) });
     assert.equal(plan.status, "ready", JSON.stringify(plan.blockingReasons));
     return { job: await f.execute(plan.id), plan, cap: c };
   };
@@ -27,10 +28,15 @@ test("asynchronous provider identity, observation and cancellation remain durabl
   const observe = async (id: string, token = randomUUID()) => (await f.generationDb.query(`SELECT ${f.scope}.claim_generation_observation($1,$2) AS data`, [id, token])).rows[0].data;
   const release = async (id: string, token: string, failed = false, delay = 5) => (await f.generationDb.query(`SELECT ${f.scope}.release_generation_observation($1,$2,$3,$4) AS data`, [id, token, delay, failed])).rows[0].data;
   const due = (id: string) => f.admin.query(`UPDATE ${f.scope}.generation_observation_control SET next_observation_at=now(),lease_until=CASE WHEN lease_until IS NULL THEN NULL ELSE now()-interval '1 second' END WHERE job_id=$1`, [id]);
+  const store = async (s: AssistanceSubmission, receipt: AssistanceReceipt) => (await f.generationDb.query(`SELECT ${f.scope}.record_generation_evidence($1,$2,$3) AS id`, [s.attemptId, randomUUID(), receipt])).rows[0].id as string;
+  const project = async (s: AssistanceSubmission, id: string, receipt: AssistanceReceipt) => {
+    const output = receipt.kind === "completed" ? s.input.purpose === "script_analysis" ? analysisOperations(receipt.output, s) : receipt.output : null;
+    await f.generationDb.query(`SELECT ${f.scope}.finish_generation_job($1,$2,$3,NULL)`, [s.jobId, id, output ? JSON.stringify(output) : null]);
+  };
   const persist = async (s: AssistanceSubmission, receipt: AssistanceReceipt) => {
-    const id = (await f.generationDb.query(`SELECT ${f.scope}.record_generation_evidence($1,$2,$3) AS id`, [s.attemptId, randomUUID(), receipt])).rows[0].id;
-    await f.generationDb.query(`SELECT ${f.scope}.finish_generation_job($1,$2,$3,NULL)`, [s.jobId, id, receipt.kind === "completed" ? JSON.stringify(receipt.output) : null]);
-    return id as string;
+    const id = await store(s, receipt);
+    await project(s, id, receipt);
+    return id;
   };
   const accept = async (s: AssistanceSubmission, providerJobId = randomUUID()) => {
     await persist(s, { kind: "accepted", correlation: s.attemptId, providerJobId });
@@ -232,6 +238,49 @@ test("asynchronous provider identity, observation and cancellation remain durabl
     await assert.rejects(release(job.id, lease.leaseToken, true, 301), /Bounded observation delay/);
     assert.equal(await release(job.id, lease.leaseToken, false), true);
   });
+
+  for (const purpose of ["script_analysis", "creative_assistance", "image"] as const) {
+    for (const beforeProjection of [false, true]) {
+      await t.test(`${purpose}: usage-only receipts ${beforeProjection ? "saved together before projection" : "arriving after completion"} preserve one result`, async () => {
+        const { job } = await make(await cap(2, purpose === "image", purpose === "script_analysis"));
+        const submission = (await claim(job.id))!, providerJobId = await accept(submission);
+        const output = purpose === "image" ? { images: [{ kind: "fixture_object", object: { key: `originals/${randomUUID()}`, versionId: "db-usage-evidence", bytes: 100 }, sha256: "c".repeat(64), mime: "image/png" }] } : localAssistanceFixtureOutput(submission);
+        const original = { kind: "completed" as const, correlation: submission.attemptId, providerJobId, output };
+        const measured = { ...original, usage: { inputTokens: 3, outputTokens: 5 } };
+        const first = await store(submission, original);
+        let second: string;
+        if (beforeProjection) {
+          second = await store(submission, measured);
+          assert.equal((await f.job(job.id)).status, "provider_pending");
+        } else {
+          await project(submission, first, original);
+          second = await store(submission, measured);
+        }
+        await project(submission, first, original);
+        const expected = await f.job(job.id);
+        await project(submission, second, measured);
+        const done = await f.job(job.id);
+        assert.equal(done.status, purpose === "image" ? "archiving" : "succeeded");
+        assert.equal(done.revision, expected.revision);
+        const table = purpose === "image" ? "media" : purpose === "script_analysis" ? "analysis_proposals" : "assistance_artifacts";
+        const source = purpose === "image" ? "source_job_id" : purpose === "script_analysis" ? "source_generation_job_id" : "generation_job_id";
+        assert.equal((await f.admin.query(`SELECT count(*) FROM ${f.scope}.${table} WHERE ${source}=$1`, [job.id])).rows[0].count, "1");
+        const receipts = (await f.admin.query(`SELECT body FROM ${f.scope}.generation_submission_evidence WHERE attempt_id=$1 AND body->>'kind'='completed' ORDER BY created_at,id`, [submission.attemptId])).rows;
+        assert.equal(receipts.length, 2);
+        assert.deepEqual(receipts[0].body, original);
+        assert.deepEqual(receipts[1].body, measured);
+        const changed = structuredClone(output) as any;
+        if (purpose === "image") changed.images[0].sha256 = "d".repeat(64);
+        else if (purpose === "script_analysis") changed.shots[0].intent = "不同的生成结果";
+        else changed.prompt = "不同的生成结果";
+        await store(submission, { ...measured, output: changed });
+        const conflict = await f.job(job.id);
+        assert.equal(conflict.status, "reconciliation_required");
+        assert.equal(conflict.errorCode, "CONFLICTING_SUBMISSION_EVIDENCE");
+        assert.equal((await f.admin.query(`SELECT count(*) FROM ${f.scope}.${table} WHERE ${source}=$1`, [job.id])).rows[0].count, "1");
+      });
+    }
+  }
 
   await t.test("completed asynchronous media enters existing archive transaction without manufacturing ready media", async () => {
     const { job } = await make(await cap(2, true)), s = (await claim(job.id))!, id = await accept(s);
