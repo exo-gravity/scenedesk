@@ -1,5 +1,6 @@
 .panel {
   min-width: 0;
+  isolation: isolate;
 }
 .panel[hidden] {
   display: none;

@@ -1,0 +1,144 @@
+
+> drama-platform@0.0.0 ui:check
+> node --import tsx scripts/check-ui.ts
+
+{
+  "passed": true,
+  "scope": "Migrated source rules and selected opaque color pairs; browser interaction and composed media checked separately.",
+  "files": 131,
+  "contrastChecks": [
+    {
+      "name": "light primary",
+      "ratio": 15.41,
+      "minimum": 4.5
+    },
+    {
+      "name": "light secondary",
+      "ratio": 5.58,
+      "minimum": 4.5
+    },
+    {
+      "name": "light action",
+      "ratio": 12.11,
+      "minimum": 4.5
+    },
+    {
+      "name": "light input border",
+      "ratio": 3.48,
+      "minimum": 3
+    },
+    {
+      "name": "light focus",
+      "ratio": 5.5,
+      "minimum": 3
+    },
+    {
+      "name": "dark primary",
+      "ratio": 11.77,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark secondary",
+      "ratio": 6.23,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark action",
+      "ratio": 11.48,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark input border",
+      "ratio": 3.13,
+      "minimum": 3
+    },
+    {
+      "name": "dark focus",
+      "ratio": 8,
+      "minimum": 3
+    },
+    {
+      "name": "primary on raised",
+      "ratio": 12.9,
+      "minimum": 4.5
+    },
+    {
+      "name": "secondary on raised",
+      "ratio": 7.83,
+      "minimum": 4.5
+    },
+    {
+      "name": "muted on raised",
+      "ratio": 5.65,
+      "minimum": 4.5
+    },
+    {
+      "name": "success on raised",
+      "ratio": 8.74,
+      "minimum": 4.5
+    },
+    {
+      "name": "warning on raised",
+      "ratio": 8.73,
+      "minimum": 4.5
+    },
+    {
+      "name": "danger on raised",
+      "ratio": 8.19,
+      "minimum": 4.5
+    },
+    {
+      "name": "info on raised",
+      "ratio": 8.84,
+      "minimum": 4.5
+    },
+    {
+      "name": "focus on raised",
+      "ratio": 9.61,
+      "minimum": 4.5
+    },
+    {
+      "name": "filled button",
+      "ratio": 9.62,
+      "minimum": 4.5
+    },
+    {
+      "name": "input border",
+      "ratio": 3.27,
+      "minimum": 3
+    }
+  ],
+  "failures": []
+}
+
+> drama-platform@0.0.0 build
+> npm run typecheck && npm run build --workspace @drama/web
+
+
+> drama-platform@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json
+
+
+> @drama/web@0.0.0 build
+> vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 6010 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                      0.86 kB │ gzip:   0.46 kB
+dist/assets/MediaPlayer-DwTNH-SH.css                 0.37 kB │ gzip:   0.21 kB
+dist/assets/BusinessApp-D4c7y_cB.css                10.15 kB │ gzip:   2.12 kB
+dist/assets/SceneProductionWorkspace-xp-FlmF1.css   30.40 kB │ gzip:   5.59 kB
+dist/assets/index-BBzDpB5V.css                      69.26 kB │ gzip:  14.99 kB
+dist/assets/mantine-ui-C9RRYpjM.css                237.54 kB │ gzip:  34.99 kB
+dist/assets/index-CNJdRaxT.js                        8.96 kB │ gzip:   3.88 kB
+dist/assets/MediaWorkspace-D0_-Lybg.js              22.41 kB │ gzip:   7.89 kB
+dist/assets/AssetWorkspace-Br8bqpcI.js              28.13 kB │ gzip:   8.69 kB
+dist/assets/MediaPlayer-DLjLxIhM.js                191.41 kB │ gzip:  46.19 kB
+dist/assets/react-runtime-CKhiqiYO.js              192.94 kB │ gzip:  60.48 kB
+dist/assets/mantine-ui-CCKwLco6.js                 312.22 kB │ gzip:  97.47 kB
+dist/assets/BusinessApp-DAsk_vHr.js                405.82 kB │ gzip: 121.03 kB
+dist/assets/SceneProductionWorkspace-XcQ1Hjih.js   420.69 kB │ gzip: 130.22 kB
+✓ built in 11.42s

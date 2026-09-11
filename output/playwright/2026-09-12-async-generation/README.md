@@ -26,3 +26,7 @@
 整合后只读核对 0092/0093 与 observation worker，发现取消 unsupported/unknown 后 SQL 的主状态仍为 `cancel_requested`（不恢复成 provider_running），此前受控浏览器的 unsupported 设置没有覆盖此组合。最小修正把该主状态改述为“原任务结果待核对”；取消说明在 succeeded/failed/archiving/archive_failed 下展示已经发生的结果事实，不再说任务继续处理。没有改变 API、轮询、可取消判定或原输入。
 
 新增公开行为验证真实 SQL 组合：requested/unsupported/unknown 均继续 GET 且不允许再次取消，随后成功仍取回原结果、失败没有结果暗示、归档说明准确、原输入不变。`followup-check-first.log` 的类型和 UI 检查通过，新组合通过；旧成功竞态用例仍匹配旧文案“待核对”，更新为明确历史回执“仍未确定”后，`followup-tests-final.log` 取消行为 9/9 通过。未重跑完整套件或媒体。`verify-async.js` 同步使用实际 SQL 组合供根任务实际浏览器验证；本目录原截图与 `browser-complete-final.log` 保留前次生产验证事实，没有替换成未运行的新截图。
+
+## 窄屏助手吸顶标题
+
+主任务实际 `completed-390.png` 显示模式标签覆盖“AI 创作助手／收起”。根因是 SegmentedControl 标签的相对定位 z-index:2 与 dockHeading 的 sticky z-index:2 处于同一外部层叠环境，后绘制的内容可覆盖标题。只为 `.panel` 增加 `isolation:isolate`，把助手内部控件层级限制在内容内；标题仍沿原定位、背景和 z-index，不改变滚动几何或主要布局。`dock-stacking-check.log` 记录 UI、类型及生产构建通过，主任务在原真实会话补拍修正后画面。本变更不声称解决另行定位中的实际 modal 截图问题，也未改 Modal。
