@@ -4,6 +4,7 @@
 
 ```sh
 npx tsc -p deploy/tsconfig.json --noEmit
+npm run test:media:prepare
 node --import tsx --test deploy/recovery/recovery.test.ts
 ```
 

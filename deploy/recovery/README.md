@@ -58,4 +58,4 @@ sealKeyFile 是独立的 `0600` JSON：`version: 1`，`key` 为 32 个密码学�
 
 ## 验证状态
 
-本产品基础提交完成专用 `tsc -p deploy/tsconfig.json`；独立 agent 的实际 PG16/MinIO CLI 演练、历史与权限核验另交测试与结果。类型检查不等于恢复演练成功。
+专用 `tsc -p deploy/tsconfig.json`通过；[独立实际验收](smoke/README.md)最终11项通过，涵盖成对恢复、原媒体版本、历史权限、未决任务及拒绝路径。该证据使用合成PG16/MinIO，不代表生产环境验收。GitHub工作流为恢复测试配置独立并行job，并先准备PNG实际导入所需的固定媒体解码镜像。
