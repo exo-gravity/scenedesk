@@ -31,7 +31,7 @@ async function storage<T>(
     tx.onabort = () => reject(tx.error);
   });
 }
-function tabIdentity(): Promise<string> {
+export function tabIdentity(): Promise<string> {
   // sessionStorage is copied when a tab is duplicated. An origin-scoped browser
   // lock proves this document owns the ID; another live document gets a fresh ID.
   // Keep the promise on the document through development hot reloads as well.

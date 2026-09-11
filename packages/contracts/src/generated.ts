@@ -636,6 +636,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/shot-revisions/{revisionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 由已保存引用读取固定镜头要求及其真实所属镜头
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getFixedShotRevision"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/content/reorder": {
         parameters: {
             query?: never;
@@ -2923,6 +2943,8 @@ export interface components {
             projectId?: string;
             /** Format: uuid */
             shotId?: string;
+            /** Format: uuid */
+            sceneId?: string;
             label: string;
         };
         Media: {
@@ -4549,7 +4571,7 @@ export interface components {
         };
         EditingIssue: {
             /** @enum {string} */
-            code: "MAIN_VIDEO_REQUIRED" | "TIMELINE_GAP" | "TIMELINE_OVERLAP" | "SOURCE_RANGE_INVALID" | "EMPTY_CLIP" | "SUBTITLE_OUT_OF_BOUNDS" | "AUDIO_OUT_OF_BOUNDS" | "BINDING_UNRESOLVED" | "UNRESOLVED_EDIT" | "CUT_BASE_CHANGED" | "MEDIA_UNAVAILABLE";
+            code: "MAIN_VIDEO_REQUIRED" | "TIMELINE_GAP" | "TIMELINE_OVERLAP" | "SOURCE_RANGE_INVALID" | "EMPTY_CLIP" | "SUBTITLE_OUT_OF_BOUNDS" | "AUDIO_OUT_OF_BOUNDS" | "BINDING_UNRESOLVED" | "UNRESOLVED_EDIT" | "CUT_BASE_CHANGED" | "MEDIA_UNAVAILABLE" | "DUPLICATE_DIALOGUE_SOURCES";
             clipIds: string[];
             message: string;
         };
@@ -6167,6 +6189,39 @@ export interface operations {
                 tenantId: string;
                 projectId: string;
                 shotId: string;
+                revisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShotRevision"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getFixedShotRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
                 revisionId: string;
             };
             cookie?: never;

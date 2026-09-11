@@ -1,4 +1,11 @@
-import { lazy, Suspense, useEffect, useState, useRef } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import {
   Anchor,
   Badge,
@@ -39,8 +46,16 @@ import {
 import { ErrorNotice, SectionHeading, Empty, tenantPath } from "./common";
 import { Projects } from "./Projects";
 import { Members } from "./Members";
+import {
+  clearUserEditing,
+  suspendEditingAccess,
+  refreshEditingAccess,
+  retireEditingSession,
+} from "./use-cut-work";
+import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
 const CandidateWorkspace = lazy(() => import("./CandidateWorkspace"));
+const CutWorkspace = lazy(() => import("./CutWorkspace"));
 const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
 import {
@@ -74,6 +89,34 @@ export default function BusinessApp({ hash }: { hash: string }) {
 }
 function AuthenticatedApp({ hash }: { hash: string }) {
   const shell = useRef<HTMLDivElement>(null);
+  const previousSession = useRef<{ id: string; userId: string } | undefined>(
+    undefined,
+  );
+  const cache = useQueryClient();
+  const [checkingSession, setCheckingSession] = useState(false);
+  const [editingCleanupError, setEditingCleanupError] = useState<Error | null>(
+    null,
+  );
+  const cleanupRetry = useRef<(() => Promise<void>) | null>(null);
+  const runEditingCleanup = useCallback(
+    async (operation: () => Promise<void>) => {
+      try {
+        await operation();
+        if (cleanupRetry.current === operation) {
+          cleanupRetry.current = null;
+          setEditingCleanupError(null);
+        }
+      } catch (reason) {
+        cleanupRetry.current = operation;
+        setEditingCleanupError(
+          reason instanceof Error
+            ? reason
+            : new Error("本机编辑恢复清理未完成。"),
+        );
+      }
+    },
+    [],
+  );
   useEffect(() => {
     shell.current?.scrollTo({ top: 0, left: 0 });
   }, [hash]);
@@ -91,16 +134,113 @@ function AuthenticatedApp({ hash }: { hash: string }) {
     queryFn: ({ signal }) => api<Session>("/v1/session", { signal }),
     staleTime: 0,
   });
+  const currentSession = useRef(session);
+  currentSession.current = session;
+  useEffect(() => {
+    let live = true,
+      generation = 0;
+    const unsubscribe = subscribeEditingAccess((hint) => {
+      const current = currentSession.current.data;
+      if (
+        !current ||
+        current.userId !== hint.userId ||
+        current.id !== hint.sessionId
+      )
+        return;
+      suspendEditingAccess(hint);
+      if (hint.kind === "cut") {
+        void refreshEditingAccess(hint);
+        return;
+      }
+      const ticket = ++generation;
+      setCheckingSession(true);
+      void (async () => {
+        try {
+          const result = await currentSession.current.refetch();
+          if (!live || ticket !== generation || result.isError || !result.data)
+            return;
+          if (
+            result.data.id === hint.sessionId &&
+            result.data.userId === hint.userId
+          )
+            await refreshEditingAccess(hint);
+          else await retireEditingSession(hint);
+        } catch (reason) {
+          if (live && ticket === generation)
+            setEditingCleanupError(
+              reason instanceof Error
+                ? reason
+                : new Error("会话核对暂未完成。"),
+            );
+        } finally {
+          if (live && ticket === generation) setCheckingSession(false);
+        }
+      })();
+    });
+    return () => {
+      live = false;
+      unsubscribe();
+    };
+  }, []);
   const health = useQuery({
     queryKey: ["health"],
     queryFn: () =>
       api<{ phase: string; identityMode?: string }>("/health/live"),
   });
   useEffect(() => {
+    const prior = previousSession.current;
+    if (session.data && !session.isError) {
+      previousSession.current = {
+        id: session.data.id,
+        userId: session.data.userId,
+      };
+      if (prior && prior.id !== session.data.id) {
+        const cleanup = () =>
+          prior.userId === session.data.userId
+            ? retireEditingSession({
+                kind: "session",
+                sessionId: prior.id,
+                userId: prior.userId,
+              })
+            : clearUserEditing(prior.userId, prior.id);
+        cache.removeQueries({ queryKey: ["user", prior.userId] });
+        cache.removeQueries({ queryKey: ["media-access", prior.userId] });
+        void runEditingCleanup(cleanup);
+      }
+    }
+    if (
+      session.error instanceof ApiError &&
+      session.error.status === 401 &&
+      prior
+    ) {
+      previousSession.current = undefined;
+      notifyEditingAccess({
+        kind: "session",
+        sessionId: prior.id,
+        userId: prior.userId,
+      });
+      cache.removeQueries({ queryKey: ["user", prior.userId] });
+      cache.removeQueries({ queryKey: ["media-access", prior.userId] });
+      void runEditingCleanup(() => clearUserEditing(prior.userId, prior.id));
+    }
+  }, [session.data, session.error, session.isError, cache, runEditingCleanup]);
+  useEffect(() => {
     document.title = "工作室 · 幕序 SceneDesk";
   }, []);
   return (
     <div className={classes.shell} ref={shell}>
+      <ErrorNotice
+        error={editingCleanupError}
+        retryLabel="重试清理本机恢复"
+        {...(cleanupRetry.current
+          ? {
+              retry: () => {
+                const operation = cleanupRetry.current;
+                if (operation) void runEditingCleanup(operation);
+              },
+            }
+          : {})}
+      />
       <header className={classes.header}>
         <Anchor href="#/app" className={classes.brand}>
           幕序{" "}
@@ -115,7 +255,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
           )}
         </Group>
       </header>
-      {session.isPending ? (
+      {session.isPending || checkingSession ? (
         <div className={classes.welcome}>
           <Loader aria-label="正在读取会话" />
         </div>
@@ -154,7 +294,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
         </div>
       ) : (
         <SessionContext.Provider value={session.data}>
-          <Workspace hash={hash} />
+          <Workspace key={session.data.id} hash={hash} />
         </SessionContext.Provider>
       )}
     </div>
@@ -168,12 +308,47 @@ function Workspace({ hash }: { hash: string }) {
   const segments = hash.split("?")[0]!.split("/");
   const tenantId = segments[2] === "t" ? segments[3] : undefined;
   const [createStudio, setCreateStudio] = useState(false);
+  const [logoutCommitted, setLogoutCommitted] = useState(false),
+    [cleanupError, setCleanupError] = useState<Error | null>(null);
+  const finishLogout = async () => {
+    if (!logoutCommitted)
+      notifyEditingAccess({
+        kind: "session",
+        sessionId: session.id,
+        userId: session.userId,
+      });
+    setLogoutCommitted(true);
+    setCleanupError(null);
+    try {
+      await clearUserEditing(session.userId, session.id);
+      cache.clear();
+      location.hash = "/app";
+      location.reload();
+    } catch (reason) {
+      setCleanupError(
+        reason instanceof Error ? reason : new Error("本机恢复清理未完成。"),
+      );
+    }
+  };
+  if (logoutCommitted)
+    return (
+      <Stack>
+        <Text>已退出登录，正在清理本机编辑恢复。</Text>
+        <ErrorNotice
+          error={cleanupError}
+          retry={() => void finishLogout()}
+          retryLabel="重试清理本机恢复"
+        />
+      </Stack>
+    );
   if (hash.startsWith("#/invitation")) return <Invitation hash={hash} />;
   return (
     <>
       <div
         className={classes.layout}
-        data-production={segments[6] === "production" || undefined}
+        data-production={
+          ["production", "editing"].includes(segments[6] ?? "") || undefined
+        }
       >
         <aside className={classes.sidebar} aria-label="工作室导航">
           <Select
@@ -244,11 +419,7 @@ function Workspace({ hash }: { hash: string }) {
               logout.mutate(
                 { path: "/v1/session/logout" },
                 {
-                  onSuccess: () => {
-                    cache.clear();
-                    location.hash = "/app";
-                    location.reload();
-                  },
+                  onCommitted: () => void finishLogout(),
                 },
               )
             }
@@ -309,6 +480,7 @@ function Workspace({ hash }: { hash: string }) {
               mediaView={segments[6] === "media"}
               assetView={segments[6] === "assets"}
               productionView={segments[6] === "production"}
+              editingView={segments[6] === "editing"}
             />
           )}
         </main>
@@ -324,6 +496,7 @@ function TenantArea({
   mediaView,
   assetView,
   productionView,
+  editingView,
 }: {
   tenantId: string;
   section?: string | undefined;
@@ -332,6 +505,7 @@ function TenantArea({
   mediaView?: boolean | undefined;
   assetView?: boolean | undefined;
   productionView?: boolean | undefined;
+  editingView?: boolean | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -349,6 +523,12 @@ function TenantArea({
     return (
       <Suspense fallback={<Loader aria-label="正在加载镜头制作" />}>
         <CandidateWorkspace tenantId={tenantId} projectId={projectId} />
+      </Suspense>
+    );
+  if (projectId && editingView)
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载剪辑" />}>
+        <CutWorkspace tenantId={tenantId} projectId={projectId} />
       </Suspense>
     );
   if (section === "media" || (projectId && mediaView))

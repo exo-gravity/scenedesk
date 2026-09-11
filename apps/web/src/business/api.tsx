@@ -1,6 +1,7 @@
 import { createContext, useContext, useRef } from "react";
 import {
   useMutation,
+  useInfiniteQuery,
   useQuery,
   useQueryClient,
   type MutateOptions,
@@ -59,6 +60,20 @@ export function useResource<T>(path: string, enabled = true) {
     queryKey: ["user", session.userId, path],
     queryFn: ({ signal }) => api<T>(path, { signal }),
     enabled,
+  });
+}
+export function usePages<T>(path: string, enabled = true) {
+  const session = useSession();
+  return useInfiniteQuery({
+    queryKey: ["user", session.userId, path, "pages"],
+    initialPageParam: "",
+    enabled,
+    queryFn: ({ signal, pageParam }) =>
+      api<Page<T>>(
+        `${path}${path.includes("?") ? "&" : "?"}limit=30${pageParam ? "&cursor=" + encodeURIComponent(pageParam) : ""}`,
+        { signal },
+      ),
+    getNextPageParam: (last) => last.nextCursor,
   });
 }
 export type Command = {

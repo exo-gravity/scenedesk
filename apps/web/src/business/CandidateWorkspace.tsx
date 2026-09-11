@@ -92,6 +92,9 @@ export default function CandidateWorkspace({
           </div>
         </Group>
         <Group>
+          <Button component="a" href={`${base}/editing?scene=${sceneId ?? ""}`}>
+            场次剪辑
+          </Button>
           <Button
             onClick={() =>
               void cache.invalidateQueries({

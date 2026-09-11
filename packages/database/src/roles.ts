@@ -135,6 +135,21 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.candidate_shot_active(uuid,uuid,uuid) TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${["cuts", "edit_history_bodies", "cut_work_drafts", "cut_work_draft_revisions", "edit_history_media_refs", "edit_history_dialogue_refs", "cut_spec_media_refs", "edit_history_spec_media_refs"].map((table) => `${scope}.${table}`).join(",")} TO ${target}`,
+  );
+  // Column privilege permits the object's row lock; the Cut trigger rejects
+  // mutations until the normalized-result transition is implemented.
+  await client.query(`GRANT UPDATE(updated_at) ON ${scope}.cuts TO ${target}`);
+  await client.query(
+    `GRANT UPDATE(revision) ON ${scope}.cut_work_drafts TO ${target}`,
+  );
+  await client.query(
+    `GRANT DELETE ON ${scope}.cut_work_draft_revisions,${scope}.edit_history_bodies TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.work_media_items(jsonb) TO ${target}`,
+  );
 }
 
 export async function grantAuthAccess(

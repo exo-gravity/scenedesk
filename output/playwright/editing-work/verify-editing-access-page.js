@@ -1,0 +1,97 @@
+async page => {
+  const context=await page.context().browser().newContext({viewport:{width:1366,height:900}});
+  const a=await context.newPage(),b=await context.newPage(),errors=[];
+  for(const tab of [a,b]){tab.setDefaultTimeout(15000);tab.on('pageerror',e=>errors.push(e.message));}
+  const tenant='b128e444-cd57-4087-bcfe-c403051bbd8f',project='1498c59a-a789-4087-8069-4c99ebcbd63f',scene='56d6d043-dce7-4151-8718-be664965b7ba';
+  const path=`/v1/tenants/${tenant}/projects/${project}`,base=`http://127.0.0.1:4311/#/app/t/${tenant}/p/${project}`;
+  const ok=(v,m)=>{if(!v)throw new Error(m);},until=async(fn,m)=>{const start=Date.now();while(!await fn()){if(Date.now()-start>15000)throw new Error(m);await a.waitForTimeout(50);}};
+  const request=(tab,method,url,body,version)=>tab.evaluate(async({method,url,body,version})=>{const s=await(await fetch('/v1/session')).json();const r=await fetch(url,{method,headers:{'content-type':'application/json','x-csrf-token':s.csrfToken,'idempotency-key':crypto.randomUUID(),...(version===undefined?{}:{'if-match':`"${version}"`})},...(body?{body:JSON.stringify(body)}:{})});if(!r.ok)throw new Error(`technical API ${method} ${r.status}`);return r.status===204?null:r.json();},{method,url,body,version});
+  const read=(tab,url)=>request(tab,'GET',url);
+  const sessionInfo=tab=>tab.evaluate(async()=>{const r=await fetch('/v1/session');if(!r.ok)return{status:r.status};const s=await r.json();return{id:s.id,userId:s.userId,email:s.email};});
+  const login=async tab=>{await tab.goto('http://127.0.0.1:4311/#/app');await tab.getByRole('link',{name:'登录并继续',exact:true}).click();await tab.getByText('fixture@example.test',{exact:true}).waitFor();return sessionInfo(tab);};
+  const emit=(tab,hint)=>tab.evaluate(hint=>{const channel=new BroadcastChannel('scenedesk-editing-access-v1');channel.postMessage({sender:'technical-verification',hint});channel.close();},hint);
+  const rows=tab=>tab.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('scenedesk-editing-recovery',1);r.onsuccess=()=>{const db=r.result;if(!db.objectStoreNames.contains('metadata')){db.close();resolve([]);return;}const tx=db.transaction('metadata','readonly'),q=tx.objectStore('metadata').getAll();tx.oncomplete=()=>{db.close();resolve(q.result.map(x=>({userId:x.userId,objectId:x.objectId,clientSessionId:x.clientSessionId,token:x.token})));};tx.onabort=()=>{db.close();reject(tx.error);};};}));
+  let release;
+  try {
+    const s=await login(a);ok(s.email==='fixture@example.test','expected explicit local fixture identity');
+    ok((await read(a,'/health/live')).identityMode==='local_test','requires local identity emulator');
+    const outer=await sessionInfo(page);ok(outer.id!==s.id,'test context reused the original session');
+    const cut=await request(a,'POST',`${path}/cuts`,{sceneId:scene,name:`跨标签页权限技术验收 ${Date.now()}`});
+    const workPath=`${path}/cuts/${cut.id}/work-draft`,route=`${base}/editing?scene=${scene}&cut=${cut.id}`;
+    const template=(await read(a,`${path}/cuts/0f0c05b3-d322-45a8-b6f0-843cd81abfc3/work-draft`)).document;
+    await request(a,'PUT',workPath,{baseCutRevision:1,document:template},0);
+    await a.goto(route);await a.getByRole('button',{name:'片段设置',exact:true}).click();await a.getByRole('textbox',{name:'放置起点（秒）',exact:true}).fill('1.');
+    const aTab=await a.evaluate(()=>sessionStorage.getItem('scenedesk-content-tab'));
+    // Browser duplication copies sessionStorage. Its live lock must force a new ID.
+    await b.addInitScript(id=>sessionStorage.setItem('scenedesk-content-tab',id),aTab);
+    await b.goto(route);await b.getByRole('button',{name:'片段设置',exact:true}).click();await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).fill('2.');
+    const bTab=await b.evaluate(()=>sessionStorage.getItem('scenedesk-content-tab'));
+    ok(aTab!==bTab,'duplicated tab reused live recovery identity');
+    await until(async()=> (await rows(b)).filter(x=>x.objectId===cut.id).length===2,'independent tab copies not retained');
+    let csrfRequests=0;
+    const csrf=async r=>{if(r.request().method()==='PUT'&&++csrfRequests===1)await r.continue({headers:{...r.request().headers(),'x-csrf-token':'technical-invalid-csrf'}});else await r.continue();};
+    await b.route(`**${workPath}`,csrf);await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).fill('0.250001');
+    await b.getByText('正在重新核对编辑权限',{exact:true}).waitFor();
+    ok((await read(a,workPath)).revision===1&&(await rows(b)).filter(x=>x.objectId===cut.id).length===2,'CSRF failure wrote content or erased input');
+    await b.getByRole('button',{name:'重新核对编辑权限',exact:true}).click();
+    await b.getByRole('button',{name:'保存工作稿',exact:true}).click();
+    await until(async()=> (await read(a,workPath)).revision===2,'explicit save after CSRF check did not complete');
+    ok(csrfRequests===2,'CSRF check silently retried or duplicated save');await b.unroute(`**${workPath}`,csrf);
+    await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).fill('2.');
+    const hint={kind:'cut',sessionId:s.id,userId:s.userId,tenantId:tenant,projectId:project,objectId:cut.id};
+    let gets=0,puts=0;
+    b.on('request',r=>{if(r.url().endsWith(workPath)&&r.method()==='PUT')puts++;});
+    const hold=new Promise(resolve=>{release=resolve;});
+    let held=0,finished=0;
+    const intercept=async r=>{if(r.request().method()==='GET'){gets++;held++;await hold;}try{await r.continue();}catch(error){if(!r.request().failure())throw error;}finally{finished++;}};
+    await b.route(`**${workPath}`,intercept);await emit(a,hint);
+    await b.getByText('正在重新核对编辑权限',{exact:true}).waitFor();
+    ok(!await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).isVisible(),'content stayed visible during access verification');
+    await until(async()=>gets>0,'hint did not cause a fresh authorized read');
+    await b.screenshot({path:'output/playwright/editing-work/10-cross-tab-access-check.png'});
+    release();await until(async()=>finished>=held,'held access requests did not finish');await b.unroute(`**${workPath}`,intercept);
+    await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).waitFor();
+    ok(await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).inputValue()==='2.'&&puts===0,'false hint changed raw input or submitted work');
+    const offline=async r=>r.request().method()==='GET'?r.abort('failed'):r.continue();
+    await b.route(`**${workPath}`,offline);await emit(a,hint);
+    await b.getByText('连接中断。请保留当前内容，恢复连接后重试。',{exact:true}).waitFor();
+    ok(!await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).isVisible()&&(await rows(b)).filter(x=>x.objectId===cut.id).length===2,'offline check exposed or cleared work');
+    await b.unroute(`**${workPath}`,offline);await b.getByRole('button',{name:'重新核对编辑权限',exact:true}).click();
+    await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).waitFor();ok(await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).inputValue()==='2.','retry lost raw input');
+    // The API denial is controlled here; server membership enforcement is covered by DB integration tests.
+    const denied=async r=>r.request().method()==='GET'?r.fulfill({status:403,contentType:'application/json',body:JSON.stringify({code:'FORBIDDEN',message:'技术验收：对象访问已撤销'})}):r.continue();
+    await a.route(`**${workPath}`,denied);await b.route(`**${workPath}`,denied);
+    await a.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await a.getByText('访问权限已失效',{exact:true}).waitFor();await b.getByText('访问权限已失效',{exact:true}).waitFor();
+    await until(async()=>!(await rows(b)).some(x=>x.objectId===cut.id),'verified denial did not clear matching local copies');
+    ok(puts===0,'denied peer submitted work');await a.unroute(`**${workPath}`,denied);await b.unroute(`**${workPath}`,denied);
+    const logoutCut=await request(a,'POST',`${path}/cuts`,{sceneId:scene,name:`退出同步技术验收 ${Date.now()}`});
+    const logoutPath=`${path}/cuts/${logoutCut.id}/work-draft`,logoutRoute=`${base}/editing?scene=${scene}&cut=${logoutCut.id}`;
+    await request(a,'PUT',logoutPath,{baseCutRevision:1,document:template},0);
+    await b.goto(logoutRoute);await b.getByRole('button',{name:'片段设置',exact:true}).click();await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).fill('3.');
+    await until(async()=> (await rows(b)).some(x=>x.objectId===logoutCut.id),'logout fixture input not retained');
+    let logouts=0;a.on('request',r=>{if(r.url().endsWith('/v1/session/logout')&&r.method()==='POST')logouts++;});
+    await a.goto('http://127.0.0.1:4311/#/app');
+    for(const tab of [a,b])await tab.evaluate(()=>{window.__editingTestDelete=IDBObjectStore.prototype.delete;IDBObjectStore.prototype.delete=function(...args){const result=window.__editingTestDelete.apply(this,args);if(this.name==='metadata')this.transaction.abort();return result;};});
+    await a.getByRole('button',{name:'退出登录',exact:true}).click();
+    await b.getByRole('link',{name:'登录并继续',exact:true}).waitFor();
+    await a.getByRole('button',{name:'重试清理本机恢复',exact:true}).waitFor();await b.getByRole('button',{name:'重试清理本机恢复',exact:true}).waitFor();
+    ok((await rows(b)).some(x=>x.objectId===logoutCut.id),'aborted cleanup silently removed recovery');
+    for(const tab of [a,b])await tab.evaluate(()=>{IDBObjectStore.prototype.delete=window.__editingTestDelete;delete window.__editingTestDelete;});
+    await b.getByRole('button',{name:'重试清理本机恢复',exact:true}).click();
+    await until(async()=>!(await rows(b)).some(x=>x.userId===s.userId),'logout did not clear this user recovery');
+    await a.getByRole('button',{name:'重试清理本机恢复',exact:true}).click();await a.getByRole('link',{name:'登录并继续',exact:true}).waitFor();
+    ok(logouts===1&&(await sessionInfo(page)).id===outer.id,'logout repeated or affected independent session');
+    ok((await read(page,logoutPath)).revision===1,'logout submitted previously uncommitted input');
+    await b.screenshot({path:'output/playwright/editing-work/11-peer-logout.png'});
+    const next=await login(b);ok(next.id!==s.id,'new login reused retired session');
+    await b.goto(logoutRoute);await b.getByRole('button',{name:'片段设置',exact:true}).click();await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).fill('4.');
+    await until(async()=> (await rows(b)).some(x=>x.objectId===logoutCut.id),'new-session input missing');
+    await emit(a,{kind:'session',sessionId:s.id,userId:s.userId});await a.waitForTimeout(300);
+    ok(await b.getByRole('textbox',{name:'放置起点（秒）',exact:true}).inputValue()==='4.'&&(await rows(b)).some(x=>x.objectId===logoutCut.id),'delayed old-session hint cleared new login');
+    await b.goto('http://127.0.0.1:4311/#/app');await b.getByRole('button',{name:'退出登录',exact:true}).click();await b.getByRole('link',{name:'登录并继续',exact:true}).waitFor();
+    ok(errors.length===0,errors.join('; '));
+    return{productionBuild:true,isolatedLogin:true,cutId:cut.id,logoutCutId:logoutCut.id,duplicatedTabIndependent:true,actualCsrfRejectionPreservesWork:true,explicitCsrfRetryRequests:csrfRequests,falseHintPreservesInput:true,offlineRetainsHiddenInput:true,peerDeniedAfterAuthorizedProbe:true,denialTransport:'controlled object 403; CSRF, normal reads, login and logout use real API',actualLogoutRequests:logouts,peerLogoutClearsLocal:true,cleanupAbortRetriesWithoutLogout:true,lateOldSessionHintIgnored:true,originalSessionUnaffected:true,pageErrors:errors.length};
+  } catch(error) {throw new Error(JSON.stringify({message:error.message,pageA:await a.locator('body').innerText().catch(()=>''),pageB:await b.locator('body').innerText().catch(()=>''),pageErrors:errors}));}
+  finally {release?.();await context.close().catch(()=>{});}
+}

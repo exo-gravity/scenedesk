@@ -212,6 +212,22 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       etag: 1,
     };
   });
+  registerAction(app, context, "getFixedShotRevision", async (tx, input) => {
+    const result = await tx.sql.query(
+      "SELECT * FROM shot_revisions WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
+      [tx.tenantId, tx.projectId, input.params.revisionId],
+    );
+    requireThat(
+      result.rows[0],
+      404,
+      "NOT_FOUND",
+      "镜头要求版本不存在或无访问权限。",
+    );
+    return {
+      body: contentRecord<Schema<"ShotRevision">>(result.rows[0]),
+      etag: 1,
+    };
+  });
   registerAction(app, context, "reorderContent", async (tx, input) => {
     await contentVersion(tx, input.version);
     const body = input.body as Schema<"Reorder">;

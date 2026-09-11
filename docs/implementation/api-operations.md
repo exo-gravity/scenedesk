@@ -42,6 +42,7 @@
 | PR-03 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{objectId}` | `updateShot` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/revisions` | `listShotRevisions` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/revisions/{revisionId}` | `getShotRevision` | `project_member` |
+| PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/shot-revisions/{revisionId}` | `getFixedShotRevision` | `project_member` |
 | PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/content/reorder` | `reorderContent` | `project_member` |
 | PR-04 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/proposals` | `listProposals` | `project_member` |
 | PR-04 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/proposals/{proposalId}` | `getProposal` | `project_member` |

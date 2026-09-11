@@ -5,7 +5,8 @@
   "name": "@drama/contracts",
   "exports": {
     ".": "./src/index.ts",
-    "./validation": "./src/validation.ts"
+    "./validation": "./src/validation.ts",
+    "./compiler": "./src/compiler.ts"
   },
   "dependencies": {
     "ajv": "8.20.0",

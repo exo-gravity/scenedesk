@@ -103,3 +103,5 @@ python docs/implementation/check_design.py
 当前实际资产引用与失败恢复的实现证据见[场镜资产引用](33-creative-asset-bindings.md)；工程执行与合入要求见仓库[工程约定](../../AGENTS.md)。
 
 编辑器明确提交后的清理与恢复、提案草稿转移以及失效定位行为见[编辑器提交后恢复](34-editor-completion-recovery.md)。
+
+当前正在实现[共享剪辑工作稿](36-cut-work-drafts.md)：后端持久化、独立 CAS、有限历史及片段／对白／声音／字幕页面已通过阶段测试；完整恢复、后台维护及精确归一仍在接入。

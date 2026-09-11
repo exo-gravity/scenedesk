@@ -1,0 +1,77 @@
+async (page) => {
+  page.setDefaultTimeout(15000);
+  const tenant = 'b128e444-cd57-4087-bcfe-c403051bbd8f', project = '1498c59a-a789-4087-8069-4c99ebcbd63f', scene = 'd106e167-dc0b-40c3-abe1-0a77e83355c9';
+  const path = `/v1/tenants/${tenant}/projects/${project}`;
+  const base = `http://127.0.0.1:4311/#/app/t/${tenant}/p/${project}/editing?scene=${scene}`;
+  const ok = (v, m) => { if (!v) throw new Error(m); };
+  await page.goto(base); await page.reload();
+  await page.setViewportSize({ width: 1366, height: 900 });
+  const errors = [], puts = [];
+  const onError = e => errors.push(e.message), onRequest = r => { if (r.method() === 'PUT' && r.url().endsWith('/work-draft')) puts.push(r.url()); };
+  page.on('pageerror', onError); page.on('request', onRequest);
+  const read = url => page.evaluate(async url => { const response = await fetch(url); if (!response.ok) throw new Error(`Read ${response.status}`); return response.json(); }, url);
+  const until = async (check, message) => {
+    const started = Date.now();
+    while (!await check()) { if (Date.now() - started > 15000) throw new Error(message); await page.waitForTimeout(100); }
+  };
+  try {
+    await page.getByRole('button', { name: '新建剪辑', exact: true }).click();
+    const name = `工作稿页面技术验收 ${Date.now()}`;
+    await page.getByRole('textbox', { name: '剪辑名称', exact: true }).fill(name);
+    await page.getByRole('button', { name: '建立空白剪辑', exact: true }).click();
+    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: '加入片段', exact: true }).waitFor();
+    const cutId = await page.evaluate(() => new URLSearchParams(location.hash.split('?')[1]).get('cut'));
+    ok(cutId, 'created cut route missing');
+    const workPath = `${path}/cuts/${cutId}/work-draft`;
+    ok((await read(workPath)).revision === 0, 'read created a fake work revision');
+    await page.getByRole('button', { name: '加入片段', exact: true }).click();
+    await page.getByRole('combobox', { name: '来源类型', exact: true }).click();
+    await page.getByRole('option', { name: '视频素材', exact: true }).click();
+    await page.getByRole('combobox', { name: '已验收素材', exact: true }).click();
+    await page.getByRole('option', { name: '四秒技术测试片 · 双人核对', exact: true }).click();
+    await page.getByRole('button', { name: '明确加入工作稿', exact: true }).click();
+    await page.getByRole('button', { name: '片段设置', exact: true }).click();
+    await until(async () => (await read(workPath)).revision === 1, 'video did not auto save');
+    let work = await read(workPath);
+    const clip = work.document.timeline.tracks.find(t => t.kind === 'video').items[0];
+    ok(clip.range.inUs === 0 && clip.range.outUs === 4000000 && !clip.takeId, 'source clip silently became adoption or wrong interval');
+    await page.getByRole('textbox', { name: '源起点（秒）', exact: true }).fill('0.250001');
+    await page.getByRole('textbox', { name: '源终点（秒）', exact: true }).fill('2.000001');
+    await page.getByRole('checkbox', { name: '静音视频原声（整条混合音轨）', exact: true }).check();
+    await until(async () => { const w = await read(workPath); return w.document.timeline.tracks[0].items[0].range.outUs === 2000001 && w.document.timeline.tracks[0].items[0].muted; }, 'source edit did not persist exactly');
+    const beforeInvalid = (await read(workPath)).revision;
+    await page.getByRole('textbox', { name: '放置起点（秒）', exact: true }).fill('1.');
+    await page.getByText('输入尚未完成 · 暂停自动保存', { exact: true }).waitFor();
+    await page.waitForTimeout(1000);
+    ok((await read(workPath)).revision === beforeInvalid, 'invalid raw input submitted');
+    await page.reload();
+    await page.getByRole('button', { name: '恢复并核对本机工作', exact: true }).click();
+    ok(await page.getByRole('textbox', { name: '放置起点（秒）', exact: true }).inputValue() === '1.', 'refresh lost raw invalid input');
+    await page.getByRole('textbox', { name: '放置起点（秒）', exact: true }).fill('0');
+    await page.getByRole('button', { name: '加入片段', exact: true }).click();
+    await page.getByRole('button', { name: '添加空白字幕条目', exact: true }).click();
+    await page.getByRole('button', { name: '片段设置', exact: true }).click();
+    await page.getByRole('textbox', { name: '字幕文字', exact: true }).fill('门锁的声音很轻。');
+    await page.getByRole('textbox', { name: '字幕时长（秒）', exact: true }).fill('1.000001');
+    await until(async () => (await read(workPath)).document.timeline.tracks.some(t => t.kind === 'subtitle' && t.items[0]?.text === '门锁的声音很轻。' && t.items[0].durationUs === 1000001), 'subtitle did not save');
+    await page.getByRole('button', { name: '恢复历史', exact: true }).click();
+    await page.getByRole('combobox', { name: '保留版本', exact: true }).click();
+    await page.getByRole('option').filter({ hasText: /^r1 ·/ }).click();
+    await page.getByText('r1 · 1 条轨道 · 1 个片段', { exact: true }).waitFor();
+    work = await read(workPath);
+    ok(work.revision >= 3 && (await read(`${path}/cuts/${cutId}`)).revision === 1, 'work saves mutated confirmed cut');
+    await page.getByRole('navigation', { name: '剪辑轨道与片段' }).getByRole('link').first().click();
+    const player = page.locator('video').first();
+    await player.waitFor();
+    await until(async () => player.evaluate(v => v.readyState >= 2), 'source proxy did not decode');
+    await page.getByRole('button', { name: '恢复历史', exact: true }).click();
+    await page.screenshot({ path: 'output/playwright/editing-work/01-cut-workspace.png' });
+    await page.setViewportSize({ width: 320, height: 740 });
+    ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'narrow viewport overflow');
+    await page.screenshot({ path: 'output/playwright/editing-work/02-cut-workspace-320.png' });
+    await page.setViewportSize({ width: 1366, height: 900 });
+    ok(errors.length === 0, errors.join('; '));
+    return { productionBuild: true, cutId, workRevision: work.revision, cutRevision: 1, sourceRange: clip.range, exactInputRecovered: true, subtitleSaved: true, historyRead: true, actualProxyDecoded: true, puts: puts.length, pageErrors: errors.length };
+  } finally { page.off('pageerror', onError); page.off('request', onRequest); }
+}
