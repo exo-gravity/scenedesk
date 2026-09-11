@@ -4,6 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { Readable } from "node:stream";
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -123,6 +124,22 @@ test("private versioned media storage", { timeout: 360_000 }, async (t) => {
   await t.test(
     "signing principal cannot overwrite accepted originals or read staging",
     async () => {
+      for (const version of [undefined, "null"]) {
+        await assert.rejects(
+          async () => {
+            const response = await fixture.workerClient.send(
+              new GetObjectCommand({
+                Bucket: config.bucket,
+                Key: fixed.key,
+                ...(version ? { VersionId: version } : {}),
+              }),
+              { abortSignal: t.signal },
+            );
+            (response.Body as Readable | undefined)?.destroy();
+          },
+          { name: "AccessDenied" },
+        );
+      }
       await assert.rejects(
         api.publish(
           file,

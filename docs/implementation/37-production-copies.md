@@ -36,6 +36,18 @@ stdin 必须声明字节上限。异常输入、输出阻塞、超限、取消�
 
 输出 PCM 按映射组装，复查有限值、单声道左右逐字节一致、实际字节数和摘要；源文件前后摘要必须不变。每个临时文件上限 8 GiB、连续段最多 128、源样本与相对零点的末端均不超过两小时。当前使用受控本地临时文件，生产任务的总体磁盘配额、租约及宿主崩溃清理仍须在持久 Worker 接入时落实。
 
+## 内部工件存储
+
+`ProductionStore` 使用独立、启用版本管理的私有 bucket，键为调用方预先保留的 `productions/{artifactId}`。身份固定工件类型、实际字节数及完整 SHA-256；视频和音频工件上限 8 GiB，映射上限 256 MiB，显式空 PCM 可以是 0 字节。原片导入继续保持 256 MiB 上限，公开媒体签名仍不接受制作工件键。
+
+小工件使用带完整 SHA-256 和不存在前提的 PUT；大工件以 64 MiB 分段。每个分段核对实际文件内容、服务端分段 SHA-256 和 ETag，并通过调用方 journal 记录上传身份、分段及完成阶段。未知创建结果从预留的精确键发现，已传分段只有摘要和大小均匹配才复用。发起 multipart 不盲目重试；已提交但完成回执丢失时查找固定对象版本。多个对象版本、删除标记或截断的发现结果均明确失败，不猜测应采用哪个结果。
+
+multipart SHA-256 是组合校验，不能当作完整文件摘要。上传或恢复后均以显式 VersionId 完整流式读取对象，独立验证类型、元数据、实际字节数及完整 SHA-256；校验成功后才记录 verified。下载失败删除本次新建的文件，保留调用方原有文件。相关语义见 [S3 分段校验](https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity-upload.html) 和 [条件写入](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html)。
+
+只有已校验或已退出的工件才能清理其精确键下的 multipart；清理前重新检查归属，保留调用方 tombstone 以便后续再扫迟到的创建。传输有取消信号及 20 分钟总时限，分段内存有界，不将整个大文件载入内存。当前 journal 是必须由持久任务实现的接口，测试以故障注入适配器验证存储行为；数据库 journal、租约、宿主崩溃恢复及实际 Worker 调度尚未接通，不能把这些存储测试当作持久任务验收。
+
+API 身份没有内部 bucket 权限。Worker 的 multipart 枚举权限只在独立内部 bucket 生效；原片 bucket 不授予该枚举权限，对象版本枚举限于 `productions/`。实际测试发现固定 MinIO 版本把 GetObjectVersion 隐式匹配为 GetObject，且缺失版本参数在权限上下文中表现为空字符串。权限因此显式排除缺失、空串及 `null` 版本；原片和预览的固定读取权限也采用此限制，staging 的受控快照读取保持独立。依据见固定版本的 [动作匹配代码](https://github.com/minio/pkg/blob/v3.1.3/policy/actionset.go)、[请求条件代码](https://github.com/minio/minio/blob/7ced9663e6a791fef9dc6be798ff24cda9c730ac/cmd/bucket-policy.go)；使用小写条件键兼容该服务，AWS 的[条件键名不区分大小写](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition.html)。本地兼容服务的验证不替代生产存储部署验收。
+
 ## 验证与接入状态
 
 新增单元用例检查半开区间、NTSC 片尾、合法长帧、超过 Number 安全整数的正负 PTS、缺失或异常时间戳及不合法帧率。真实容器测试使用每帧亮度编码原帧序号的信号，独立读取输出像素，覆盖 VFR／非零 PTS、全部五种目标帧率、重复执行工件摘要、10 位样本、色彩与像素比例。流测试覆盖背压、输入超限、输入不结束、容器结束后宿主输出阻塞、上游异常与容器清理；另验证已经建立制作目录后的取消不留下半份工件。
@@ -44,6 +56,8 @@ stdin 必须声明字节上限。异常输入、输出阻塞、超限、取消�
 
 视频最终提交 `04eeb99` 的 [PR CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34556188376) 与 [push CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34556185475) 均通过 34 项单元、91 项数据库和 37 项媒体检查；最终本地受影响的 21 项探测、存储与流检查全部通过。该证据替代上一段中“最终测试调度修订继续复核”的待确认状态，不将之前的本地完整运行失败改记为成功。
 
-音频第一轮实际容器测试 8 项通过，覆盖毫秒时钟、单声道重复摘要、真实视频零点、正负与分数偏移、间隙、左右声道、已知 997 Hz 波形、AAC 已知尾部、多声道拒绝、非有限值、建立目录后取消和采样率变化拒绝。随后加入实际运行架构记录、读文件块边界处理、最短音频滤波上下文与 Opus 起止裁剪验证，完整复核仍在进行，不能把第一轮证据当成修订版已经通过。
+音频最终提交 `c60c50f` 的 [PR CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34563868328) 与 [push CI](https://github.com/beyondgravitylab/scenedesk/actions/runs/34563865631) 均通过 38 项单元、91 项数据库和 48 项媒体检查，没有失败或取消。实际媒体覆盖毫秒时钟、单声道重复摘要、视频零点、正负及分数偏移、间隙、左右声道、997 Hz 波形、AAC 已知尾部、Opus 起止裁剪、四种采样率的单样本输入、PCM WAV、多声道及非有限值拒绝和取消清理。192 kHz 最短输入曾暴露边界上下文端点问题，已按上文的完整采样周期对齐规则修复，再通过完整复核。
 
-下一步接通内部工件存储、持久去重、受限任务角色、来源依赖、归一结果、双版本确认和固定渲染。去重须包含实际目标帧率／源零点规则及构建身份，常量 recipe 名称只代表参数家族。现有 `publish`／导入文件限额不能直接当作制作工件存储协议；接入时需独立验证大工件、不可变对象版本与崩溃恢复。当前函数仅返回 Worker 本地工件，不创建假 productionCopyId，不增加公开媒体 access variant，也不把队列成功当作业务成功。
+内部工件存储与原片存储的本地真实服务回归共 17 项全部通过，没有失败或取消，耗时约 115 秒；覆盖未知创建、分段回执中断、固定版本恢复、权限、取消清理、伪造元数据下的内容损坏和实际 256 MiB＋1 字节文件。首次权限验证及中间修订失败保留为诊断证据；最终版本修复了上述 MinIO 动作匹配与空版本条件问题。`npm run check` 通过构建及 38 项单元检查。存储修订的 GitHub CI 仍须单独验证，不能沿用 `c60c50f` 的结论。
+
+下一步接通数据库 journal、持久去重、受限任务角色、来源依赖、归一结果、双版本确认和固定渲染。去重须包含实际目标帧率／源零点规则及构建身份，常量 recipe 名称只代表参数家族。当前制作函数返回 Worker 本地工件，内部存储协议尚未进入业务任务；不创建假 productionCopyId，不增加公开媒体 access variant，也不把队列成功当作业务成功。

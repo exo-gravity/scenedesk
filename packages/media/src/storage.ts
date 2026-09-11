@@ -22,18 +22,11 @@ import {
   type ObjectVersion,
   type VerifiedObject,
 } from "./policy.js";
-
-export type StoreConfiguration = {
-  endpoint?: string;
-  region: string;
-  bucket: string;
-  credentials: {
-    accessKeyId: string;
-    secretAccessKey: string;
-    sessionToken?: string;
-  };
-  local?: boolean;
-};
+import {
+  privateStorageClient,
+  type StoreConfiguration,
+} from "./storage-client.js";
+export type { StoreConfiguration } from "./storage-client.js";
 
 function objectKey(
   key: string,
@@ -62,36 +55,8 @@ export class MediaStore {
   private readonly client: S3Client;
   readonly bucket: string;
   constructor(config: StoreConfiguration) {
-    if (config.endpoint) {
-      const url = new URL(config.endpoint);
-      const loopback = ["127.0.0.1", "localhost", "[::1]"].includes(
-        url.hostname,
-      );
-      if (
-        url.username ||
-        url.password ||
-        url.search ||
-        url.hash ||
-        url.pathname !== "/" ||
-        (url.protocol !== "https:" &&
-          !(config.local && loopback && url.protocol === "http:"))
-      )
-        throw new Error(
-          "Object storage requires an HTTPS origin, or explicit loopback development",
-        );
-    }
-    if (!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(config.bucket))
-      throw new Error("Invalid private bucket name");
     this.bucket = config.bucket;
-    this.client = new S3Client({
-      region: config.region,
-      credentials: config.credentials,
-      ...(config.endpoint
-        ? { endpoint: config.endpoint, forcePathStyle: true }
-        : {}),
-      maxAttempts: 2,
-      requestHandler: { connectionTimeout: 5_000, requestTimeout: 60_000 },
-    });
+    this.client = privateStorageClient(config);
   }
   close() {
     this.client.destroy();

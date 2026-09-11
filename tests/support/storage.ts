@@ -9,6 +9,7 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   MediaStore,
+  ProductionStore,
   mediaStoragePolicy,
   type StoreConfiguration,
 } from "@drama/media";
@@ -118,6 +119,14 @@ export async function storageFixture(t: TestContext) {
       VersioningConfiguration: { Status: "Enabled" },
     }),
   );
+  const productionBucket = `production-${randomBytes(6).toString("hex")}`;
+  await admin.send(new CreateBucketCommand({ Bucket: productionBucket }));
+  await admin.send(
+    new PutBucketVersioningCommand({
+      Bucket: productionBucket,
+      VersioningConfiguration: { Status: "Enabled" },
+    }),
+  );
   const mc = (args: string[], input = "") =>
     new Promise<void>((resolve, reject) => {
       const child = spawn(
@@ -176,7 +185,7 @@ export async function storageFixture(t: TestContext) {
     ]);
     await mc(
       ["admin", "policy", "create", "fixture", role, "/dev/stdin"],
-      JSON.stringify(mediaStoragePolicy(config.bucket, role)),
+      JSON.stringify(mediaStoragePolicy(config.bucket, role, productionBucket)),
     );
     await mc([
       "admin",
@@ -190,6 +199,32 @@ export async function storageFixture(t: TestContext) {
   }
   const api = new MediaStore({ ...config, credentials: signer });
   const processing = new MediaStore({ ...config, credentials: worker });
-  clients.push(api, processing);
-  return { api, processing, admin, config };
+  const production = new ProductionStore({
+    ...config,
+    bucket: productionBucket,
+    credentials: worker,
+  });
+  const productionApi = new ProductionStore({
+    ...config,
+    bucket: productionBucket,
+    credentials: signer,
+  });
+  const workerClient = new S3Client({
+    endpoint,
+    region: config.region,
+    forcePathStyle: true,
+    credentials: worker,
+    maxAttempts: 2,
+  });
+  clients.push(api, processing, production, productionApi, workerClient);
+  return {
+    api,
+    processing,
+    production,
+    productionApi,
+    workerClient,
+    productionBucket,
+    admin,
+    config,
+  };
 }
