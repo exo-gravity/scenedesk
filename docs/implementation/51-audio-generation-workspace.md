@@ -1,0 +1,25 @@
+# 51 单音频生成前端切片
+
+2026-09-12。基于视频前端 `17f1b8f`，独立分支 `feat/audio-generation-workspace`。沿用原 GenerationPlan／GenerationJob、固定来源、未知结果恢复和画布呈现接口。音频结果与候选、正式对白、采用、剪辑及资产当前版本是独立事实。
+
+## 输入与声音依据
+
+分镜“本次创作输入”增加单音频生成，复用人工提示、固定 shotRevisionId、明确参考和 assistanceSource 历史；图片、视频、音频任务分别保存，切换不会改变或重发任务。画布选择真实 audio draft，保存完成后准备固定计划；没有镜头来源的环境声合法，不伪造对白 ID。画布的已有写入仍须保存／核对完成，prepare 与 materialize 不绕过原 CAS。
+
+仅实际启用、验证可执行的音频能力可选。受控测试使用独立 `audio_fixture_v1 / test_fixture` 身份，不开放图片／视频 fixture 或目标描述模型。`durationSeconds` 为能力范围内正整数，可选 `seed`；不提交画面尺寸、画幅或 `withAudio`。已有错误参数会阻断核对，不静默删掉后执行。未配置能力时保留手工输入并明确不可执行。
+
+对白与声音来源只读取固定计划的 `resolvedInput.shots[].spec.dialogue` 、用途为 voice 的实际 resolved references，以及 asset_revision 的 contextSnapshots 固定说明。可展开核对固定文字、表演要求、单句声音版本及声音参考媒体／资产修订，不用当前导航和最新资产指针替换旧输入。没有新建自由 voiceId 或 dialogueId 请求字段；声音媒体的可用性、来源权限、继承和能力映射仍由服务器校验。生成完成不会自动绑定对白，不以测试音调或模型自述证明台词／音色正确。
+
+## 结果、试听与恢复
+
+音频成功结果须为实际 GenerationJob 的可用 Media。用户明确点击才读取授权并挂载音频播放器；优先 ready proxy，没有可用代理时可试听可用原音频。访问沿用 mediaPost 的会话、CSRF 与幂等键，授权 URL 和音频字节不进入本机任务记录。
+
+音频和视频共用 GeneratedTimedMediaResult 的关闭、离开视口、隐藏标签页与卸载释放逻辑，以及原 MediaPlayer 的有声协调。独立音频结果使用紧凑控制区，不伪造波形或静音音轨。解码错误保留重新读取和原文件取回入口，不冒充试听成功。已归档原音频不因派生物失败改成模型失败。
+
+未知提交和刷新只读取原任务；明确恢复沿用原身份，归档恢复不重新调用模型。`reconciliation_required` 保留原任务但不展示为确定结果／不开放放置。添加画布必须明确确认固定位置，同一请求恢复只恢复独立音频节点，原草稿保留；来源删除后仍能从历史找回结果。没有自动 Take、采用或对白绑定。
+
+## 整合与证据
+
+音频使用独立本机 namespace，复用 session/authority/epoch、当前 GET 核对、撤权清理与断网隐藏恢复。图片、视频本机路径保持不变。未修改 CanvasBoard、canvas controller、SQL、生成器或 provider。
+
+`npm run check` 86/86 通过。最终生产构建的音频完整流程、图片／视频回归与实际音视频混合播放器均通过；已检查桌面及 390 px 页面、画布节点与独立试听。验证见[音频前端证据](../../output/playwright/2026-09-12-audio-generation/verification.md)。受控浏览器与本地编码音频不等于实际 API／worker／对象存储或真实供应商验收；这些仍由主线程整合后验证，不使用付费或真实语音克隆调用。

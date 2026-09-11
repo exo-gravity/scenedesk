@@ -20,7 +20,7 @@ export function useGenerationSession(
   tenantId: string,
   projectId: string,
   subject: ImageSubject,
-  kind: "image" | "video",
+  kind: "image" | "video" | "audio",
 ) {
   const session = useSession(),
     path = projectPath(tenantId, projectId),

@@ -57,10 +57,14 @@ export function MediaPreview({
     (item) => item.kind === preferredVariant,
   );
   const variant =
-    (media.kind === "image" || (media.kind === "video" && !thumbnail)) &&
+    (media.kind === "image" ||
+      (["video", "audio"].includes(media.kind) && !thumbnail)) &&
     derivative?.status !== "ready"
       ? "original"
       : preferredVariant;
+  const previewClass = thumbnail
+    ? classes.thumbnail
+    : `${classes.viewport}${media.kind === "audio" ? ` ${classes.audioViewport}` : ""}`;
   const enabled =
     ["ready", "archived"].includes(media.status) &&
     (variant === "original" || derivative?.status === "ready") &&
@@ -103,7 +107,7 @@ export function MediaPreview({
   }
   if (!enabled)
     return (
-      <div className={thumbnail ? classes.thumbnail : classes.viewport}>
+      <div className={previewClass}>
         <Stack align="center" gap="xs">
           <MediaSymbol kind={media.kind} />
           {!thumbnail && (
@@ -124,7 +128,7 @@ export function MediaPreview({
     );
   if (access.isError || playbackError)
     return (
-      <div className={thumbnail ? classes.thumbnail : classes.viewport}>
+      <div className={previewClass}>
         <Stack align="center" gap="xs">
           <MediaSymbol kind={media.kind} />
           {!thumbnail && (
@@ -151,12 +155,12 @@ export function MediaPreview({
     );
   if (!access.data)
     return (
-      <div className={thumbnail ? classes.thumbnail : classes.viewport}>
+      <div className={previewClass}>
         <Loader aria-label="正在读取预览" size="sm" />
       </div>
     );
   return (
-    <div className={thumbnail ? classes.thumbnail : classes.viewport}>
+    <div className={previewClass}>
       {media.kind === "image" || variant === "poster" ? (
         <img
           key={reloadKey}
@@ -170,7 +174,7 @@ export function MediaPreview({
           <Player
             key={`${access.data.url}:${reloadKey}:${range?.inUs}:${range?.outUs}`}
             src={access.data.url}
-            title={`${media.displayName} · ${variant === "original" ? "原片预览" : "代理预览"}`}
+            title={`${media.displayName} · ${variant === "original" ? (media.kind === "audio" ? "原音频预览" : "原片预览") : "代理预览"}`}
             audio={media.kind === "audio"}
             range={range}
             onError={failed}

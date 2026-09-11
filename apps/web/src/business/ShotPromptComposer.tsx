@@ -32,6 +32,7 @@ import {
 } from "./prompt-draft";
 import { usePromptSession } from "./use-prompt-session";
 import classes from "./assistant.module.css";
+import { AudioGenerationWorkspace } from "./AudioGenerationWorkspace";
 import { VideoGenerationWorkspace } from "./VideoGenerationWorkspace";
 import { ImageGenerationWorkspace } from "./ImageGenerationWorkspace";
 type Execution = { executionMode?: "test_fixture" | "verified_provider" };
@@ -276,6 +277,19 @@ function PromptContent({
             </Accordion.Control>
             <Accordion.Panel>
               <VideoGenerationWorkspace
+                tenantId={tenantId}
+                projectId={projectId}
+                source={{ kind: "shot", creation: draft }}
+                active={active}
+              />
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value="audio">
+            <Accordion.Control icon={<Sparkle size={16} />}>
+              生成音频
+            </Accordion.Control>
+            <Accordion.Panel>
+              <AudioGenerationWorkspace
                 tenantId={tenantId}
                 projectId={projectId}
                 source={{ kind: "shot", creation: draft }}

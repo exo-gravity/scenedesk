@@ -12,7 +12,12 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { ArrowsClockwise, ImageSquare, FilmStrip } from "@phosphor-icons/react";
+import {
+  ArrowsClockwise,
+  ImageSquare,
+  FilmStrip,
+  MusicNotes,
+} from "@phosphor-icons/react";
 import {
   api,
   ApiError,
@@ -29,7 +34,6 @@ import {
   shotImageRequest,
   canvasImageRequest,
   type ImageCapability,
-  type ImageDraft,
 } from "./image-generation";
 import { useGenerationSession } from "./use-generation-session";
 import { GeneratedMediaResult } from "./GeneratedMediaResult";
@@ -38,6 +42,12 @@ import {
   shotVideoRequest,
   canvasVideoRequest,
 } from "./video-generation";
+import {
+  executableAudios,
+  shotAudioRequest,
+  canvasAudioRequest,
+} from "./audio-generation";
+import { AudioPlanSources } from "./AudioPlanSources";
 import classes from "./image-generation.module.css";
 export type MediaInputSource =
   | { kind: "shot"; creation: PromptDraft }
@@ -68,7 +78,7 @@ export type MediaGenerationProps = {
   historyPlanId?: string | undefined;
 };
 export function MediaGenerationWorkspace(
-  props: MediaGenerationProps & { kind: "image" | "video" },
+  props: MediaGenerationProps & { kind: "image" | "video" | "audio" },
 ) {
   const session = useSession();
   const key =
@@ -89,11 +99,13 @@ function GenerationWorkspace({
   source,
   active,
   historyPlanId,
-}: MediaGenerationProps & { kind: "image" | "video" }) {
-  const label = kind === "image" ? "图片" : "视频",
-    single = kind === "image" ? "单张图片" : "单段视频",
-    next = kind === "image" ? "下一张图片" : "下一段视频",
-    Symbol = kind === "image" ? ImageSquare : FilmStrip;
+}: MediaGenerationProps & { kind: "image" | "video" | "audio" }) {
+  const label = { image: "图片", video: "视频", audio: "音频" }[kind],
+    single = { image: "单张图片", video: "单段视频", audio: "单段音频" }[kind],
+    next = { image: "下一张图片", video: "下一段视频", audio: "下一段音频" }[
+      kind
+    ],
+    Symbol = { image: ImageSquare, video: FilmStrip, audio: MusicNotes }[kind];
   const session = useSession(),
     tenant = tenantPath(tenantId),
     path = projectPath(tenantId, projectId);
@@ -115,9 +127,11 @@ function GenerationWorkspace({
   const capabilities = useList<ImageCapability>(
       `${tenant}/capabilities?purpose=${kind}`,
     ),
-    models = (kind === "image" ? executableImages : executableVideos)(
-      capabilities.data ?? [],
-    );
+    models = {
+      image: executableImages,
+      video: executableVideos,
+      audio: executableAudios,
+    }[kind](capabilities.data ?? []);
   const [error, setError] = useState<string>();
   const { record, plan, job } = state,
     draft = record?.draft;
@@ -170,22 +184,20 @@ function GenerationWorkspace({
     void controller.prepareFrom(draft, async () => {
       if (source.kind === "shot") {
         if (!capability) throw Error(`请选择可执行${label}模型。`);
-        return (kind === "image" ? shotImageRequest : shotVideoRequest)(
-          source.creation,
-          projectId,
-          capability,
-          output,
-        );
+        return {
+          image: shotImageRequest,
+          video: shotVideoRequest,
+          audio: shotAudioRequest,
+        }[kind](source.creation, projectId, capability, output);
       }
       const canvas = await source.save();
       if (canvas.id !== source.canvas.id)
         throw Error("画布目标已改变，请重新核对。");
-      return (kind === "image" ? canvasImageRequest : canvasVideoRequest)(
-        canvas,
-        source.sceneId,
-        source.nodeId,
-        models,
-      );
+      return {
+        image: canvasImageRequest,
+        video: canvasVideoRequest,
+        audio: canvasAudioRequest,
+      }[kind](canvas, source.sceneId, source.nodeId, models);
     });
   };
   const post = <T,>(
@@ -389,10 +401,10 @@ function GenerationWorkspace({
         onChange={(id) => {
           const cap = models.find((c) => c.id === id);
           change(id ?? "", {
-            ...(cap?.allowedResolutions?.length === 1
+            ...(kind !== "audio" && cap?.allowedResolutions?.length === 1
               ? { resolution: cap.allowedResolutions[0]! }
               : {}),
-            ...(kind === "video" &&
+            ...(kind !== "image" &&
             cap?.minDurationSeconds !== undefined &&
             cap.minDurationSeconds === cap.maxDurationSeconds
               ? { durationSeconds: cap.minDurationSeconds }
@@ -400,44 +412,46 @@ function GenerationWorkspace({
           });
         }}
       />
-      <Group grow align="start">
-        <Select
-          label={`${label}尺寸`}
-          value={output.resolution ?? null}
-          disabled={disabled || frozen || !capability}
-          data={capability?.allowedResolutions ?? []}
-          onChange={(resolution) => {
-            const {
-              aspectRatio: _aspect,
-              resolution: _resolution,
-              ...rest
-            } = output;
-            change(capabilityId ?? "", {
-              ...rest,
-              ...(resolution ? { resolution } : {}),
-            });
-          }}
-        />
-        <Select
-          label="画幅"
-          placeholder={`按${label}尺寸`}
-          clearable
-          value={output.aspectRatio ?? null}
-          disabled={disabled || frozen || !capability}
-          data={capability?.allowedAspectRatios ?? []}
-          onChange={(aspectRatio) => {
-            const { aspectRatio: _old, ...rest } = output;
-            change(capabilityId ?? "", {
-              ...rest,
-              ...(aspectRatio ? { aspectRatio } : {}),
-            });
-          }}
-        />
-      </Group>
-      {kind === "video" && (
+      {kind !== "audio" && (
+        <Group grow align="start">
+          <Select
+            label={`${label}尺寸`}
+            value={output.resolution ?? null}
+            disabled={disabled || frozen || !capability}
+            data={capability?.allowedResolutions ?? []}
+            onChange={(resolution) => {
+              const {
+                aspectRatio: _aspect,
+                resolution: _resolution,
+                ...rest
+              } = output;
+              change(capabilityId ?? "", {
+                ...rest,
+                ...(resolution ? { resolution } : {}),
+              });
+            }}
+          />
+          <Select
+            label="画幅"
+            placeholder={`按${label}尺寸`}
+            clearable
+            value={output.aspectRatio ?? null}
+            disabled={disabled || frozen || !capability}
+            data={capability?.allowedAspectRatios ?? []}
+            onChange={(aspectRatio) => {
+              const { aspectRatio: _old, ...rest } = output;
+              change(capabilityId ?? "", {
+                ...rest,
+                ...(aspectRatio ? { aspectRatio } : {}),
+              });
+            }}
+          />
+        </Group>
+      )}
+      {kind !== "image" && (
         <Stack gap="sm">
           <NumberInput
-            label="视频时长（秒）"
+            label={`${label}时长（秒）`}
             allowDecimal={false}
             min={capability?.minDurationSeconds ?? 1}
             max={capability?.maxDurationSeconds ?? Number.MAX_SAFE_INTEGER}
@@ -453,25 +467,26 @@ function GenerationWorkspace({
               });
             }}
           />
-          {capability?.audioOutput === true ? (
-            <Checkbox
-              label="同时生成声音"
-              checked={output.withAudio === true}
-              disabled={disabled || frozen}
-              onChange={(event) =>
-                change(capabilityId ?? "", {
-                  ...output,
-                  withAudio: event.currentTarget.checked,
-                })
-              }
-            />
-          ) : (
-            <Text size="xs" c="dimmed">
-              {capability?.audioOutput === false
-                ? "当前模型生成无声视频。"
-                : "声音生成能力尚未确认。"}
-            </Text>
-          )}
+          {kind === "video" &&
+            (capability?.audioOutput === true ? (
+              <Checkbox
+                label="同时生成声音"
+                checked={output.withAudio === true}
+                disabled={disabled || frozen}
+                onChange={(event) =>
+                  change(capabilityId ?? "", {
+                    ...output,
+                    withAudio: event.currentTarget.checked,
+                  })
+                }
+              />
+            ) : (
+              <Text size="xs" c="dimmed">
+                {capability?.audioOutput === false
+                  ? "当前模型生成无声视频。"
+                  : "声音生成能力尚未确认。"}
+              </Text>
+            ))}
         </Stack>
       )}
       <NumberInput
@@ -537,16 +552,27 @@ function GenerationWorkspace({
             模型：
             {resolved?.capabilitySnapshot?.modelVersion ??
               capability?.modelVersion}{" "}
-            · {resolved?.output?.resolution ?? plan.input.output.resolution}
+            {kind !== "audio" && (
+              <>
+                {" "}
+                · {resolved?.output?.resolution ?? plan.input.output.resolution}
+              </>
+            )}
           </Text>
-          {kind === "video" && (
+          {kind !== "image" && (
             <Text size="sm">
               {resolved?.output?.durationSeconds ??
                 plan.input.output.durationSeconds}{" "}
-              秒 ·{" "}
-              {(resolved?.output ?? plan.input.output).withAudio
-                ? "生成声音"
-                : "无声视频"}
+              秒
+              {kind === "video" && (
+                <>
+                  {" "}
+                  ·{" "}
+                  {(resolved?.output ?? plan.input.output).withAudio
+                    ? "生成声音"
+                    : "无声视频"}
+                </>
+              )}
             </Text>
           )}
           <Text size="sm" className={classes.prose}>
@@ -559,6 +585,9 @@ function GenerationWorkspace({
               : ""}
             。有效至 {new Date(plan.expiresAt).toLocaleString()}。
           </Text>
+          {kind === "audio" && resolved && (
+            <AudioPlanSources resolved={resolved} />
+          )}
           {plan.blockingReasons.map((reason) => (
             <Text size="sm" c="red" key={reason}>
               {reason}
@@ -804,9 +833,9 @@ function PastMedia({
   tenantId: string;
   projectId: string;
   jobId: string;
-  kind: "image" | "video";
+  kind: "image" | "video" | "audio";
 }) {
-  const label = kind === "image" ? "图片" : "视频";
+  const label = { image: "图片", video: "视频", audio: "音频" }[kind];
   const job = useResource<Schema<"GenerationJob">>(
     `${tenantPath(tenantId)}/generation-jobs/${jobId}`,
   );

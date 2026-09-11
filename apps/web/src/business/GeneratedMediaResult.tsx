@@ -1,4 +1,5 @@
 import { GeneratedImageResult } from "./GeneratedImageResult";
+import { GeneratedAudioResult } from "./GeneratedAudioResult";
 import { GeneratedVideoResult } from "./GeneratedVideoResult";
 export type GeneratedMediaResultProps = {
   tenantId: string;
@@ -9,9 +10,11 @@ export type GeneratedMediaResultProps = {
 export function GeneratedMediaResult({
   kind,
   ...props
-}: GeneratedMediaResultProps & { kind: "image" | "video" }) {
+}: GeneratedMediaResultProps & { kind: "image" | "video" | "audio" }) {
   return kind === "image" ? (
     <GeneratedImageResult {...props} />
+  ) : kind === "audio" ? (
+    <GeneratedAudioResult {...props} />
   ) : (
     <GeneratedVideoResult {...props} />
   );

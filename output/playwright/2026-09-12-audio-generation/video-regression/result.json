@@ -1,0 +1,31 @@
+{
+  "controlledTransport": true,
+  "actualReadOnlyContext": true,
+  "notRealProviderAcceptance": true,
+  "accessRecoveries": 0,
+  "readFailures": [],
+  "planPosts": 2,
+  "executePosts": 2,
+  "archivePosts": 1,
+  "placementPosts": 2,
+  "canvasPuts": 1,
+  "prepareDisabledDuringSave": true,
+  "preservedManualInput": true,
+  "originalVideoDecoded": true,
+  "explicitPlaybackOnly": true,
+  "canvasDecoderDeferred": true,
+  "canvasOriginalVideoDecoded": true,
+  "offscreenPreviewReleased": true,
+  "mediaAccessRequestIdentity": true,
+  "conflictingResultBlocked": true,
+  "profileExcluded": true,
+  "restoredSamePlacementKey": true,
+  "canvasDraftPreserved": true,
+  "deletedSourceHistoryRecovered": true,
+  "noExecutableModelDisabled": true,
+  "viewportWidths": [
+    1512,
+    390
+  ],
+  "pageErrors": []
+}
