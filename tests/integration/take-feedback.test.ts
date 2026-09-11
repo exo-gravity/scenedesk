@@ -498,15 +498,20 @@ test("Take feedback preserves real fixed opinions, current authority and immutab
     "membership removal precedes cached receipts, history resolution and comment updates",
     async () => {
       const memberReviewKey = randomUUID();
-      const createConflict = await f.request(
+      const thirdTake = await f.ok("POST", `${f.path}/takes`, {
+        ...takeInput,
+        range: { inUs: 500000, outUs: 1500000 },
+      });
+      const reviewBody = { subject: { takeId: thirdTake.id } };
+      const memberReview = await f.request(
         "POST",
         path,
-        { subject: { takeId: take.id } },
+        reviewBody,
         undefined,
         memberReviewKey,
         memberUser,
       );
-      assert.equal(createConflict.statusCode, 409);
+      assert.equal(memberReview.statusCode, 201, memberReview.body);
       const projectMembers = await f.ok("GET", `${f.path}/members`);
       const pm = projectMembers.items.find(
         (x: any) => x.membershipId === member.id,
@@ -517,6 +522,16 @@ test("Take feedback preserves real fixed opinions, current authority and immutab
         undefined,
         pm.revision,
       );
+      const reviewReplay = await f.request(
+        "POST",
+        path,
+        reviewBody,
+        undefined,
+        memberReviewKey,
+        memberUser,
+      );
+      assert.equal(reviewReplay.statusCode, 404, reviewReplay.body);
+      assert.equal(reviewReplay.json().id, undefined);
       const replay = await f.request(
         "POST",
         `${path}/${review.id}/comments`,
@@ -581,6 +596,86 @@ test("Take feedback preserves real fixed opinions, current authority and immutab
         (await f.request("POST", otherPath, { subject: { takeId: take.id } }))
           .statusCode,
         404,
+      );
+    },
+  );
+  await t.test(
+    "history insertion failure rolls back the visible comment and its revision",
+    async () => {
+      const before = await f.ok("GET", `${path}/${review.id}/comments`);
+      await f.admin.query(
+        `CREATE FUNCTION ${f.schema}.reject_feedback_history_test() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'history failure fixture' USING ERRCODE='23514'; END $$`,
+      );
+      await f.admin.query(
+        `CREATE TRIGGER reject_feedback_history_test BEFORE INSERT ON ${f.schema}.review_comment_revisions FOR EACH ROW EXECUTE FUNCTION ${f.schema}.reject_feedback_history_test()`,
+      );
+      try {
+        const failed = await f.request(
+          "PATCH",
+          `${path}/${review.id}/comments/${comment.id}`,
+          { resolved: true },
+          comment.revision,
+        );
+        assert.equal(failed.statusCode, 409, failed.body);
+        assert.deepEqual(
+          await f.ok("GET", `${path}/${review.id}/comments`),
+          before,
+        );
+      } finally {
+        await f.admin.query(
+          `DROP TRIGGER reject_feedback_history_test ON ${f.schema}.review_comment_revisions`,
+        );
+        await f.admin.query(
+          `DROP FUNCTION ${f.schema}.reject_feedback_history_test()`,
+        );
+      }
+      const history = (
+        await f.admin.query(
+          `SELECT count(*)::int AS n FROM ${f.schema}.review_comment_revisions WHERE comment_id=$1`,
+          [comment.id],
+        )
+      ).rows[0];
+      assert.equal(history.n, comment.revision);
+    },
+  );
+  await t.test(
+    "archived source media preserves existing feedback but cannot open a new review",
+    async () => {
+      const unreviewed = await f.ok("POST", `${f.path}/takes`, {
+        ...takeInput,
+        range: { inUs: 1000000, outUs: 2000000 },
+      });
+      // This relation-only fixture has no storage service; set up the existing
+      // media archive state through the restricted runtime transaction.
+      await transaction((tx) =>
+        tx.sql.query(
+          "UPDATE media SET status='archived',revision=revision+1 WHERE id=$1",
+          [mediaId],
+        ),
+      );
+      const unavailable = await f.request("POST", path, {
+        subject: { takeId: unreviewed.id },
+      });
+      assert.equal(unavailable.statusCode, 422, unavailable.body);
+      assert.equal(unavailable.json().code, "REVIEW_MEDIA_UNAVAILABLE");
+      assert.equal(
+        (await f.request("GET", `${path}/${review.id}/comments`)).statusCode,
+        200,
+      );
+      await assert.rejects(
+        transaction((tx) =>
+          tx.sql.query(
+            "INSERT INTO reviews(id,tenant_id,project_id,take_id,number,opened_by) VALUES($1,$2,$3,$4,1,$5)",
+            [
+              randomUUID(),
+              f.tenant.id,
+              f.project.id,
+              unreviewed.id,
+              f.owner.userId,
+            ],
+          ),
+        ),
+        /authorized ready/,
       );
     },
   );

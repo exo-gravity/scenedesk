@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-09-11T19:29:36.508237+00:00",
+  "recordedAt": "2026-09-11T19:32:51.901682+00:00",
   "baseCommit": "9ef870c4270fe2418472c3b010fd164cf80e349a",
   "branch": "feat/take-feedback-backend",
   "scope": "Existing Take review and comment APIs, immutable comment history and exact feedback resolver. No Cut decision, approval, closure or generation executor is added in this commit.",
@@ -12,13 +12,13 @@
     {
       "name": "take_feedback_postgresql",
       "result": "passed",
-      "logSha256": "9a32e931d03d758e2dc36114fb889baec8f0e362d95a37520f3819213292d152",
-      "tests": 9,
-      "pass": 9,
+      "logSha256": "8600fb0a6fd08c5bb81087839bd5db817152c2942e13eefc5c5ab1aaf8df9634",
+      "tests": 11,
+      "pass": 11,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0,
-      "durationMs": 3848.9895
+      "durationMs": 3718.666541
     },
     {
       "name": "contract_tests",
@@ -61,7 +61,10 @@
     "Concurrent CAS edits produce one succeeding revision and one 412 conflict. Authors edit text; currently authorized project members resolve or reopen, each change appending immutable history.",
     "Fixed feedback reads the requested original comment revision without silently using its current text; current head and resolved state are returned separately for generation freshness checks.",
     "Runtime grants, forced RLS, guarded root mutation and a hardened NOLOGIN history trigger prevent direct SQL identity/author/time/history forgery.",
-    "Revoked members cannot replay cached comments, read history sources or mutate text; archived project feedback remains readable but cannot be edited. Standard API audit remains attributable."
+    "Revoked members cannot replay cached comments, read history sources or mutate text; archived project feedback remains readable but cannot be edited. Standard API audit remains attributable.",
+    "Both successfully cached Review and Comment creation responses are denied after current project membership removal.",
+    "Injected history insertion failure rolls back the visible comment body/status and revision; no incomplete revision is committed.",
+    "New Review creation on archived media is rejected through both the public API and restricted direct SQL; existing feedback remains readable."
   ],
   "limitations": [
     "CreateReview and createComment use the existing finite 24-hour HTTP receipt; comments have no permanent creation identity. Unknown clients must stop POST replay at expiry and preserve the original text for manual verification. Identical text does not prove creation success.",
@@ -69,5 +72,10 @@
     "Generation plan freshness, prepare_rework fixture execution and artifact handling are delivered by the parallel generation slice. Its existing prompt integration negative case must be updated for the required commentRevision.",
     "No full-suite, browser, media decoding or real provider acceptance is claimed; parent performs integrated checks and actual browser verification."
   ],
-  "isolation": "Relational video rows exist only in isolated test schemas; existing media decoding acceptance is separate. No continuous runtime data or local services were changed."
+  "isolation": "Relational video rows exist only in isolated test schemas; existing media decoding acceptance is separate. No continuous runtime data or local services were changed.",
+  "testFixtureCorrection": {
+    "observed": "The added media archive setup initially tried a public media read in a relation-only fixture without a storage service, receiving expected 503 MEDIA_NOT_CONFIGURED.",
+    "correction": "Use the existing restricted media archive SQL transition only as fixture setup; Review behavior stays exercised through real APIs and SQL guards. No product change or relaxed timeout.",
+    "initialLogSha256": "b3d7358702082609360ac805982916d26c968c5e3f8ff4080afc8b04f41f0e5b"
+  }
 }
