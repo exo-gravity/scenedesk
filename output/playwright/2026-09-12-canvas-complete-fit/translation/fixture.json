@@ -1,0 +1,40 @@
+{
+  "schema": "identity_a8d31e703ebe",
+  "projectId": "7d7795b0-6fd9-4487-b448-ac4edc311e02",
+  "tenantId": "8d98d311-abe3-4c93-a6fb-91100b39bdc1",
+  "path": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+  "repeatMigration": {
+    "applied": [],
+    "total": 62
+  },
+  "cases": [
+    {
+      "count": 2,
+      "sceneId": "ea48c238-dd50-4192-a368-6eb38d140fd7",
+      "canvasId": "87e56205-b14e-4156-93e0-9af75d61c0a3",
+      "documentHash": "416b33f6d6f23231b707e3cb4c88a493c4c1eb0be8ff65ab5344cdb3bb12ef86",
+      "revision": 2,
+      "nodes": [
+        {
+          "id": "e1833156-d274-49bb-9b1d-73daddea4f3c",
+          "title": "左上合法边界",
+          "position": {
+            "x": -1000000,
+            "y": -1000000
+          },
+          "width": 320
+        },
+        {
+          "id": "f3deacdb-9834-4904-9782-cbc7a02f7f6c",
+          "title": "右下合法边界",
+          "position": {
+            "x": 1000000,
+            "y": 1000000
+          },
+          "width": 320
+        }
+      ],
+      "url": "http://127.0.0.1:4316/#/app/t/8d98d311-abe3-4c93-a6fb-91100b39bdc1/p/7d7795b0-6fd9-4487-b448-ac4edc311e02/production?scene=ea48c238-dd50-4192-a368-6eb38d140fd7&mode=canvas"
+    }
+  ]
+}

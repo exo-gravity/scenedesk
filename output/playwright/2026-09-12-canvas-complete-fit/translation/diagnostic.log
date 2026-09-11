@@ -1,0 +1,9 @@
+### Result
+{"transform":"translate(1.00055e+06px, 1.00011e+06px) scale(1)","flow":{"x":41,"y":283.6953125,"width":1423,"height":307,"top":283.6953125,"right":1464,"bottom":590.6953125,"left":41},"nodes":[{"title":"左上合法边界\n\n文字\n\n本地技术验证的画布原文；全览不改变内容。","rect":{"x":592.5,"y":393.1953125,"width":320,"height":88.4921875,"top":393.1953125,"right":912.5,"bottom":481.6875,"left":592.5}}],"scrollY":0,"innerHeight":982,"text":"幕序 SceneDesk\n导入素材可用\n未连接真实模型\n本地测试身份\n场次目录\n\n旧钥匙 / 屏幕变换技术验证 / 合法远距双节点\n\n镜头制作\n\n分镜\n自由画布\n素材管理\n\n画布 · 已保存 · 服务器版本 2\n\n保存画布\n本场镜头与探索\n素材\n历史\nAI 助手\n\n暂未收到其他页面活动\n\n项目更新已连接\n\n文字\n图片草稿\n视频草稿\n声音草稿\n添加素材\n上传文件\n选择\n−\n100%\n＋\n定位当前内容\n适应内容\n左上合法边界\n\n文字\n\n本地技术验证的画布原文；全览不改变内容。\nReact Flow\n\n2 / 2,000 节点 · 0 / 5,000 引用 · 缩放 100%\n\n继续创作\n复制\n移除节点\n节点列表与键盘定位\n查找节点\n\n按住 Shift 点击可多选，再共同作为参考。\n\n左上合法边界\n右下合法边界\n\n当前内容 · 左上合法边界\n\n画布节点\n\n节点名称\n文字内容\n横向位置\n纵向位置\n节点宽度\n分组\n画布生成与结果"}
+### Ran Playwright code
+```js
+await (async (page) => { return await page.evaluate(()=>({transform:document.querySelector(".react-flow__viewport")?.style.transform,flow:document.querySelector(".react-flow")?.getBoundingClientRect().toJSON(),nodes:[...document.querySelectorAll(".react-flow__node")].map(n=>({title:n.innerText,rect:n.getBoundingClientRect().toJSON()})),scrollY,innerHeight,text:document.body.innerText.slice(-700)})); })(page);
+```
+### Page
+- Page URL: http://127.0.0.1:4316/#/app/t/8d98d311-abe3-4c93-a6fb-91100b39bdc1/p/7d7795b0-6fd9-4487-b448-ac4edc311e02/production?scene=ea48c238-dd50-4192-a368-6eb38d140fd7&mode=canvas
+- Page Title: 合法远距双节点 · 镜头制作 · 幕序

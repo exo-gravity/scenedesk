@@ -1,0 +1,1846 @@
+[
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": 1000551.5,
+        "y": 1000109.5,
+        "zoom": 1
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "e1833156-d274-49bb-9b1d-73daddea4f3c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": 4000071.499999999,
+        "y": 3999977.4999999995,
+        "zoom": 4
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "e1833156-d274-49bb-9b1d-73daddea4f3c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": -999448.5,
+        "y": -999937,
+        "zoom": 1
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "f3deacdb-9834-4904-9782-cbc7a02f7f6c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": -3999928.4999999995,
+        "y": -4000208.499999999,
+        "zoom": 4
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "f3deacdb-9834-4904-9782-cbc7a02f7f6c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": 711.4794418605117,
+        "y": 153.48837180235188,
+        "zoom": 0.00012848837180235188
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "f3deacdb-9834-4904-9782-cbc7a02f7f6c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": 1000551.5,
+        "y": 1000109.5,
+        "zoom": 1
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "e1833156-d274-49bb-9b1d-73daddea4f3c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": 4000071.499999999,
+        "y": 3999977.4999999995,
+        "zoom": 4
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "e1833156-d274-49bb-9b1d-73daddea4f3c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": -999448.5,
+        "y": -999937,
+        "zoom": 1
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "f3deacdb-9834-4904-9782-cbc7a02f7f6c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": -3999928.4999999995,
+        "y": -4000208.499999999,
+        "zoom": 4
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "f3deacdb-9834-4904-9782-cbc7a02f7f6c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/members?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/session",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/capabilities?purpose=script_analysis&limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scripts?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/generation-plans?limit=100",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/editing-presence",
+    "status": 200,
+    "body": {
+      "target": {
+        "kind": "canvas",
+        "objectId": "87e56205-b14e-4156-93e0-9af75d61c0a3"
+      },
+      "clientSessionId": "a9b1c776-7b1c-426f-860d-06ab5b0e7709",
+      "activity": "viewing"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/canvas",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/content",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/scenes/ea48c238-dd50-4192-a368-6eb38d140fd7/workspace-preference",
+    "status": 200,
+    "body": {
+      "mode": "canvas",
+      "viewport": {
+        "x": 711.4794418605117,
+        "y": 153.48837180235188,
+        "zoom": 0.00012848837180235188
+      },
+      "assistantOpen": false,
+      "assetPanelOpen": false,
+      "selectedShotId": null,
+      "selectedNodeIds": [
+        "f3deacdb-9834-4904-9782-cbc7a02f7f6c"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "url": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02/canvases/87e56205-b14e-4156-93e0-9af75d61c0a3/uploads",
+    "status": 200
+  }
+]

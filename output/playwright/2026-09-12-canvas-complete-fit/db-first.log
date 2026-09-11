@@ -1,0 +1,99 @@
+TAP version 13
+# Subtest: complete canvas overviews persist through current authority and independent preference CAS
+not ok 1 - complete canvas overviews persist through current authority and independent preference CAS
+  ---
+  duration_ms: 19213.713417
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-frontend/tests/integration/canvas-viewport.test.ts:1:180'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"sceneId":"d8c3e27a-2786-43b0-975f-05701506662d","canvas":{"id":"ee41db17-74eb-43d0-9f3b-a18e27f0a9f2","projectId":"8268ecdc-3db2-40ae-9422-1427a3cb1eb6","revision":1,"schemaVersion":1,"document":{"edges":[],"nodes":[],"groups":[]},"documentHash":"e35b461450d728fa2b6dbc4da31ff19e1304e17b64f028c1f7f9d23a53a1fdaf","updatedAt":"2026-09-11T21:52:44.664Z"},"bindings":[]}
+    
+    200 !== 201
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 201
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    Object.ok (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-frontend/tests/support/business.ts:72:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-frontend/tests/integration/canvas-viewport.test.ts:28:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: scene canvas persistence preserves identity, history and private preference boundaries
+    # Subtest: reads are write-free; concurrent explicit entry creates exactly one canvas
+    ok 1 - reads are write-free; concurrent explicit entry creates exactly one canvas
+      ---
+      duration_ms: 262.006709
+      type: 'test'
+      ...
+    # Subtest: one racing save wins; replay preserves revision and immutable recovery points
+    ok 2 - one racing save wins; replay preserves revision and immutable recovery points
+      ---
+      duration_ms: 178.274625
+      type: 'test'
+      ...
+    # Subtest: drafts, graph references and Unicode round-trip; malformed or executable fields fail atomically
+    ok 3 - drafts, graph references and Unicode round-trip; malformed or executable fields fail atomically
+      ---
+      duration_ms: 339.94775
+      type: 'test'
+      ...
+    # Subtest: media identity survives deletion; archived media can only remain in its current slot
+    ok 4 - media identity survives deletion; archived media can only remain in its current slot
+      ---
+      duration_ms: 327.25075
+      type: 'test'
+      ...
+    # Subtest: fixed revisions require actual media membership and cross-project references fail
+    ok 5 - fixed revisions require actual media membership and cross-project references fail
+      ---
+      duration_ms: 106.758542
+      type: 'test'
+      ...
+    # Subtest: preferences use independent zero-based CAS and remain private across members
+    ok 6 - preferences use independent zero-based CAS and remain private across members
+      ---
+      duration_ms: 224.847959
+      type: 'test'
+      ...
+    # Subtest: database guards reject forged roots, projections and node identities
+    ok 7 - database guards reject forged roots, projections and node identities
+      ---
+      duration_ms: 156.703458
+      type: 'test'
+      ...
+    # Subtest: recent history is bounded and expired bodies are pruned under the canvas lock
+    ok 8 - recent history is bounded and expired bodies are pruned under the canvas lock
+      ---
+      duration_ms: 39003.683
+      type: 'test'
+      ...
+    # Subtest: document capacity round-trips through the real API without relaxing authorization
+    ok 9 - document capacity round-trips through the real API without relaxing authorization
+      ---
+      duration_ms: 7813.808041
+      type: 'test'
+      ...
+    1..9
+ok 2 - scene canvas persistence preserves identity, history and private preference boundaries
+  ---
+  duration_ms: 53277.259125
+  type: 'test'
+  ...
+# 103 API saves and history pruning: 39003 ms (local fixture, not browser performance acceptance)
+# 300 nodes/500 edges save/read: 349 ms; API fixture only
+# 2000 nodes/5000 edges save/read: 1843 ms; API fixture only
+# 2000 authorized media nodes save/read: 5606 ms; no browser decoder acceptance
+1..2
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 74415.50025
