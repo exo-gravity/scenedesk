@@ -1,0 +1,93 @@
+{
+  "status": "passed",
+  "fixture": "synthetic_local_PG16_MinIO",
+  "generationExecutorStarted": false,
+  "originalProviderCalls": 0,
+  "helperTimeoutRemovedStartedContainer": true,
+  "helperCreatedNoAnonymousVolume": true,
+  "backup": {
+    "exitCode": 0,
+    "status": "ok",
+    "operation": "backup",
+    "scope": "isolated_synthetic_restore_only",
+    "generationExecution": "disabled",
+    "tables": 113,
+    "fixedObjects": 3,
+    "storageVersions": 6,
+    "generation": [
+      {
+        "status": "queued",
+        "count": 1
+      },
+      {
+        "status": "submission_unknown",
+        "count": 1
+      }
+    ],
+    "modelRestartSafe": false
+  },
+  "forgedPairRejected": "RECOVERY_BUNDLE_SEAL_MISMATCH",
+  "enclosedSealKeyRejected": "RECOVERY_BUNDLE_CONTAINS_CREDENTIALS",
+  "missingPairRejected": "RECOVERY_OPERATION_FAILED",
+  "sourceAsTargetRejected": "RECOVERY_SAME_SOURCE_TARGET",
+  "nonemptyTargetUntouched": true,
+  "restore": {
+    "exitCode": 0,
+    "status": "ok",
+    "operation": "restore",
+    "scope": "isolated_synthetic_restore_only",
+    "generationExecution": "disabled",
+    "tables": 113,
+    "fixedObjects": 3,
+    "storageVersions": 6,
+    "generation": [
+      {
+        "status": "queued",
+        "count": 1
+      },
+      {
+        "status": "submission_unknown",
+        "count": 1
+      }
+    ],
+    "modelRestartSafe": false
+  },
+  "verify": {
+    "exitCode": 0,
+    "status": "ok",
+    "operation": "verify",
+    "scope": "isolated_synthetic_restore_only",
+    "generationExecution": "disabled",
+    "tables": 113,
+    "fixedObjects": 3,
+    "storageVersions": 6,
+    "generation": [
+      {
+        "status": "queued",
+        "count": 1
+      },
+      {
+        "status": "submission_unknown",
+        "count": 1
+      }
+    ],
+    "modelRestartSafe": false
+  },
+  "repeatedRestoreIsReadOnly": true,
+  "business": {
+    "publicReadbacks": 7,
+    "exactOriginalVersion": true,
+    "originalBytes": 99,
+    "originalSha256": "42f974d90c239196a365e5d34d5329afa1de89162bfe17112de1518253f71e2e",
+    "hiddenHistoricalVersionAndDeleteMarker": true,
+    "historicalCanvas": true,
+    "historicalShot": true,
+    "originalUnknownAttempt": true,
+    "queuedWithoutAttempt": true,
+    "privateAuthorityPreserved": true,
+    "runtimeDirectRewriteRejected": true,
+    "generationExecutorStarted": false
+  },
+  "missingOriginalVersionRejected": "RECOVERY_FIXED_OBJECT_MISMATCH",
+  "namedFixtureResourcesRemoved": true
+}
