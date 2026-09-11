@@ -217,6 +217,9 @@ function helper(
     "--network",
     "none",
     "--read-only",
+    // Mask the image's declared PostgreSQL volume; this helper never runs PG.
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,noexec,nosuid,size=65536",
     "--user",
     "0",
     "--cap-drop",
@@ -270,7 +273,7 @@ export async function runHelper(
         "RECOVERY_HELPER_ID_INVALID",
       );
       labels(found.Config?.Labels, config);
-      await docker(["container", "rm", "--force", found.Id], {
+      await docker(["container", "rm", "--force", "--volumes", found.Id], {
         timeout: 40_000,
       });
     } catch {
