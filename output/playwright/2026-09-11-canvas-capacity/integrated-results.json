@@ -1,0 +1,77 @@
+{
+  "recordedAt": "2026-09-11T12:42:17.352550+00:00",
+  "sourceCommit": "597587c",
+  "checks": [
+    {
+      "name": "complete_check",
+      "tests": 70,
+      "pass": 70,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "3bc3f81271e18813aea6377ce8785acd1cffa8139503613e2a79f20d6c7c3bf2"
+    },
+    {
+      "name": "database_full",
+      "tests": 173,
+      "pass": 173,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "d4a249e4d02352a01d37569c6321176a2b0475985f8e7bf5b346111a01036fd8"
+    }
+  ],
+  "browser": {
+    "sameOriginActualApi": true,
+    "productionBuild": true,
+    "originOverrides": false,
+    "newPerformanceMeasurements": false,
+    "cases": [
+      {
+        "nodeCount": 300,
+        "edgeCount": 500,
+        "canvasId": "925cddb9-b75c-4de2-8f5d-a8fc0c4586f2",
+        "revision": 5,
+        "collapsedControlsAbsent": true,
+        "keyboardAndSearchRecovery": true,
+        "narrow": {
+          "width": 390,
+          "pageWidth": 390,
+          "flowCount": 0
+        },
+        "playing": {
+          "readyState": 4,
+          "paused": false,
+          "currentTime": 0.009977
+        },
+        "playersAfterMode": 0
+      },
+      {
+        "nodeCount": 2000,
+        "edgeCount": 5000,
+        "canvasId": "6808cdea-5818-4fc3-b3d6-703a4098ba4e",
+        "revision": 18,
+        "collapsedControlsAbsent": true,
+        "keyboardAndSearchRecovery": true,
+        "narrow": {
+          "width": 390,
+          "pageWidth": 390,
+          "flowCount": 0
+        },
+        "playing": {
+          "readyState": 4,
+          "paused": false,
+          "currentTime": 0.009052
+        },
+        "playersAfterMode": 0
+      }
+    ],
+    "pageErrors": [],
+    "apiFailures": []
+  },
+  "viewedScreenshots": [
+    "integrated-300.png",
+    "integrated-2000.png"
+  ],
+  "productionAcceptance": false
+}

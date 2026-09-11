@@ -7,6 +7,7 @@
 - [统计汇总](data/summary.json)：300 / 2000 各自的基线与优化后 P50、P95、最大值及样本数。
 - [CPU 自采样对照](data/cpu-profile-summary.json)：同一 2000 节点场景八次文字修改，比较器热点 40.60% → 0.88%。
 - [折叠面板、明确恢复与窄屏](data/lazy-controls.json)：关闭时无控件、键盘展开、查询保留、刷新恢复无效分组缓冲及 390px 页面宽度。
+- [主线程同源整合复验](integrated-results.json)：最终组合的 70 单元／173 数据库，以及实际 API 的两种容量短流程；不属于新增性能采样。[脚本](verify-integrated.js)记录当前技术夹具身份。
 - `data/entry-*-*.json`：各 20 次完整重载的原始时间、可见节点/边、DOM 数量及可得 JS heap。
 - `data/select-*-*.json` / `edit-*-*.json` / `search-*-*.json`：原生事件到可观察 DOM 的逐次数据；编辑包含实际请求字节数、服务端读回文本与刷新结果。
 - `data/frames-*-*.json` / `overview-*-*.json`：每轮所有 RAF 间隔、实际 viewport transform、长任务。局部与全览必须分别解读。
