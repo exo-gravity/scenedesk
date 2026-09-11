@@ -1,3 +1,4 @@
+import { fixedShotSources } from "./canvas-shot-sources.js";
 import type { components } from "@drama/contracts";
 import type { PromptDraft } from "./prompt-draft.js";
 import { type ImageCapability, type ImageRequest } from "./image-generation.js";
@@ -79,6 +80,7 @@ export function canvasAudioRequest(
   sceneId: string,
   nodeId: string,
   capabilities: readonly ImageCapability[],
+  shotSources: readonly Schema<"ShotSource">[] = [],
 ): ImageRequest {
   const node = canvas.document.nodes.find((node) => node.id === nodeId);
   if (!node || node.kind !== "audio" || node.content.type !== "draft")
@@ -98,7 +100,7 @@ export function canvasAudioRequest(
     label: node.title,
     input: {
       nodeId,
-      shotSources: [],
+      shotSources: fixedShotSources(shotSources),
       referenceOverrides: [],
       promptPolicy: "append",
     },

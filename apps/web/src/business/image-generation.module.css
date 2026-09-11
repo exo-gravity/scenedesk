@@ -31,3 +31,13 @@
   max-height: min(480px, 60dvh);
   overflow: auto;
 }
+
+.sourceList {
+  max-height: 280px;
+  overflow: auto;
+}
+.sourceItem {
+  min-width: 0;
+  padding-block: var(--mantine-spacing-xs);
+  border-bottom: 1px solid var(--ws-border);
+}

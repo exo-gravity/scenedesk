@@ -1,0 +1,8 @@
+### Error
+Error: locator.waitFor: Error: strict mode violation: locator('[aria-label="生成单张图片"]').locator('[aria-label="已选来源 1"]').getByText('门边旧版不可自动替换', { exact: true }) resolved to 2 elements:
+    1) <p data-size="sm" data-line-clamp="true" class="_focus_kuo2q_1 _prose_1x0pu_16 m_b6d8b162 mantine-Text-root">门边旧版不可自动替换</p> aka getByLabel('已选来源').getByRole('paragraph').filter({ hasText: '门边旧版不可自动替换' })
+    2) <p data-size="sm" class="_focus_kuo2q_1 _prose_1x0pu_16 m_b6d8b162 mantine-Text-root">门边旧版不可自动替换</p> aka getByText('门边旧版不可自动替换').nth(1)
+
+Call log:
+[2m  - waiting for locator('[aria-label="生成单张图片"]').locator('[aria-label="已选来源 1"]').getByText('门边旧版不可自动替换', { exact: true }) to be visible[22m
+

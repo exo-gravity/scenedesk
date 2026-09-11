@@ -1,3 +1,5 @@
+import { CanvasShotSources, FixedPlanShotSources } from "./CanvasShotSources";
+import { fixedShotSources } from "./canvas-shot-sources";
 import { GenerationJobControls } from "./GenerationJobControls";
 import { reworkScope } from "./prompt-draft";
 import { useEffect, useState } from "react";
@@ -187,6 +189,14 @@ function GenerationWorkspace({
   const prepare = () => {
     if (!draft) return;
     setError(undefined);
+    // Capture the ordered references before awaiting the owning canvas save.
+    let shotSources: Schema<"ShotSource">[];
+    try {
+      shotSources = fixedShotSources(draft.shotSources);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "请核对镜头来源。");
+      return;
+    }
     void controller.prepareFrom(draft, async () => {
       if (source.kind === "shot") {
         if (!capability) throw Error(`请选择可执行${label}模型。`);
@@ -203,7 +213,7 @@ function GenerationWorkspace({
         image: canvasImageRequest,
         video: canvasVideoRequest,
         audio: canvasAudioRequest,
-      }[kind](canvas, source.sceneId, source.nodeId, models);
+      }[kind](canvas, source.sceneId, source.nodeId, models, shotSources);
     });
   };
   const post = <T,>(
@@ -395,6 +405,24 @@ function GenerationWorkspace({
         >
           {`打开所选的固定${label}任务`}
         </Button>
+      )}
+      {source.kind === "canvas" && draft && !frozen && (
+        <CanvasShotSources
+          path={path}
+          projectId={projectId}
+          sceneId={source.sceneId}
+          sources={draft.shotSources}
+          disabled={disabled || !content}
+          onChange={(shotSources) =>
+            controller.updateDraft({ ...draft, shotSources })
+          }
+        />
+      )}
+      {source.kind === "canvas" && record?.planRequest && !plan && (
+        <Text size="sm">
+          原请求已固定 {record.planRequest.input.input.shotSources?.length ?? 0}{" "}
+          个镜头来源，恢复时使用原版本与顺序。
+        </Text>
       )}
       <Select
         label={`${label}生成模型`}
@@ -591,6 +619,7 @@ function GenerationWorkspace({
               : ""}
             。有效至 {new Date(plan.expiresAt).toLocaleString()}。
           </Text>
+          {resolved && <FixedPlanShotSources resolved={resolved} />}
           {kind === "audio" && resolved && (
             <AudioPlanSources resolved={resolved} />
           )}
@@ -618,7 +647,13 @@ function GenerationWorkspace({
               onClick={() =>
                 draft &&
                 void controller.revise(
-                  { capabilityId: draft.capabilityId, output: draft.output },
+                  {
+                    capabilityId: draft.capabilityId,
+                    output: draft.output,
+                    ...(draft.shotSources === undefined
+                      ? {}
+                      : { shotSources: draft.shotSources }),
+                  },
                   draft,
                 )
               }
@@ -829,7 +864,7 @@ function GenerationWorkspace({
       >
         <Stack>
           <Text>
-            {`将已归档的${label}添加为独立节点，放在原草稿旁边；保留原草稿和镜头采用。`}
+            {`将已归档的${label}作为独立节点添加到画布。`}
           </Text>
           <Button
             disabled={disabled || job?.status !== "succeeded"}

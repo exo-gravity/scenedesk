@@ -1,0 +1,310 @@
+### Result
+{"job":{"id":"73235f8a-e573-4a4c-9dd7-605cc10fc7f5","revision":4,"createdAt":"2026-09-11T21:49:15.762Z","updatedAt":"2026-09-11T21:51:47.966Z","scope":"project","projectId":"35a7bc00-f944-4dc8-807f-6ad9d6135baa","planId":"91f7ba24-f520-4425-928c-b35d0af0f6da","status":"succeeded","cancelStatus":"not_requested","mediaIds":["73235f8a-e573-4a4c-9dd7-605cc10fc7f5"],"reservationStatus":"released","inputOutdated":true,"connectionVersionId":"1579cac5-2d16-4efa-86bf-61fb2e2d3e65","costStatus":"final","confirmedCost":{"currency":"CNY","amountMicros":"0"},"reservationRemaining":{"currency":"CNY","amountMicros":"0"},"recoveryEpoch":1,"executionMode":"test_fixture","finalCost":{"currency":"CNY","amountMicros":"0"}},"media":{"id":"73235f8a-e573-4a4c-9dd7-605cc10fc7f5","scope":"project","projectId":"35a7bc00-f944-4dc8-807f-6ad9d6135baa","kind":"image","status":"ready","mime":"image/png","displayName":"生成图片（显式技术测试）","createdBy":"07e16037-9917-4784-af86-a57e2d98c2e4","sourceJobId":"73235f8a-e573-4a4c-9dd7-605cc10fc7f5","sha256":"90df114133da3c93c1f5eb9143b008825470bf003edcd1e2faee39faf2586f5c","revision":2,"bytes":99,"width":32,"height":32,"createdAt":"2026-09-11T21:51:41.399Z","updatedAt":"2026-09-11T21:51:47.966Z","originalFileName":"generation.png","tags":[],"provenance":{"status":"unknown"},"hasAudio":false,"derivatives":[{"id":"33a8c197-98ba-436d-9127-694da9e1dfa0","kind":"poster","status":"processing","profileRevision":1}]},"worker":{"paused":false,"calls":1,"last":{"jobId":"73235f8a-e573-4a4c-9dd7-605cc10fc7f5","attemptId":"211a681b-315c-4f5d-a08a-d485de1a915f","input":{"scope":"project","output":{"resolution":"32x32","aspectRatio":"1:1"},"prompt":"手工提示：保留用户选定镜头和来源顺序。","purpose":"image","projectId":"35a7bc00-f944-4dc8-807f-6ad9d6135baa","shotSources":[{"shotId":"6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3","shotRevisionId":"1e2ecb33-6616-4487-9e2d-42597d678948"},{"shotId":"56ea456c-fb2a-4b11-9703-5ac9feb5189d","shotRevisionId":"153cb9c0-0d95-498d-852e-c389323db7be"}],"capabilityId":"c95bbad5-566a-44a6-9ec8-6899c23e39c9","connectionId":"a3ac89b3-cb79-46ee-8352-0c4d4b7a6621","promptPolicy":"append","contextSources":[{"kind":"canvas_draft","objectId":"3bb02f4d-b8c5-4f63-9cde-127532051e3a","revision":2}],"referenceOverrides":[],"additionalReferences":[]},"resolvedInput":{"shots":[{"spec":{"intent":"B要求：保持窗边反应","exitState":{"spatialNotes":"窗边未动"},"entryState":{"spatialNotes":"窗边"},"references":[{"note":"B固定红色造型","mediaId":"5526847c-89fe-4df2-a760-e6d820d468ce","purpose":"look"}]},"shotId":"6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3","exitState":{"spatialNotes":"窗边未动"},"entryState":{"spatialNotes":"窗边"},"shotRevisionId":"1e2ecb33-6616-4487-9e2d-42597d678948"},{"spec":{"intent":"旧要求：先看门口再看钥匙","exitState":{"spatialNotes":"旧终点：桌前"},"entryState":{"spatialNotes":"旧起点：门边"},"references":[{"note":"A固定蓝色构图","mediaId":"6cf8474c-a31b-49fa-ae71-021df369a5b8","purpose":"composition"}]},"shotId":"56ea456c-fb2a-4b11-9703-5ac9feb5189d","exitState":{"spatialNotes":"旧终点：桌前"},"entryState":{"spatialNotes":"旧起点：门边"},"shotRevisionId":"153cb9c0-0d95-498d-852e-c389323db7be"}],"output":{"resolution":"32x32","aspectRatio":"1:1"},"prompt":"手工提示：保留用户选定镜头和来源顺序。\n\n镜头要求：{\"entryState\":{\"spatialNotes\":\"窗边\"},\"exitState\":{\"spatialNotes\":\"窗边未动\"},\"intent\":\"B要求：保持窗边反应\"}\n\n镜头要求：{\"entryState\":{\"spatialNotes\":\"旧起点：门边\"},\"exitState\":{\"spatialNotes\":\"旧终点：桌前\"},\"intent\":\"旧要求：先看门口再看钥匙\"}\n\n第一段画布文字：先看门口。\n\n第二段画布文字：再看钥匙。","references":[{"shotId":"6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3","reference":{"note":"B固定红色造型","mediaId":"5526847c-89fe-4df2-a760-e6d820d468ce","purpose":"look"},"sourceLevel":"shot","sourceObjectId":"1e2ecb33-6616-4487-9e2d-42597d678948"},{"shotId":"56ea456c-fb2a-4b11-9703-5ac9feb5189d","reference":{"note":"A固定蓝色构图","mediaId":"6cf8474c-a31b-49fa-ae71-021df369a5b8","purpose":"composition"},"sourceLevel":"shot","sourceObjectId":"153cb9c0-0d95-498d-852e-c389323db7be"}],"dependencies":[{"kind":"shot_revision","objectId":"1e2ecb33-6616-4487-9e2d-42597d678948","revision":1,"tracking":"fixed","contentHash":"d38501ae22af44bdddaef80f7c6594ab4ac18becbc0471588119eb0dcbafa320"},{"kind":"shot_revision","objectId":"153cb9c0-0d95-498d-852e-c389323db7be","revision":1,"tracking":"fixed","contentHash":"ae2137f486dcfc18a4fa2b396c3c7d6da4836750479de1b6d039fdc56f3d937c"},{"kind":"canvas_draft","objectId":"3bb02f4d-b8c5-4f63-9cde-127532051e3a","revision":2,"tracking":"current","contentHash":"6c479fbd9f2aaf32e66d3eb397bc032236abd157a52617e136ea28a9e6caf3a9"}],"resolverVersion":"image-generation/1","contextSnapshots":[{"text":"{\"content\":{\"capabilityId\":\"c95bbad5-566a-44a6-9ec8-6899c23e39c9\",\"connectionId\":\"a3ac89b3-cb79-46ee-8352-0c4d4b7a6621\",\"output\":{\"aspectRatio\":\"1:1\",\"resolution\":\"32x32\"},\"prompt\":\"手工提示：保留用户选定镜头和来源顺序。\",\"type\":\"draft\"},\"inputs\":[{\"content\":{\"text\":\"第一段画布文字：先看门口。\",\"type\":\"text\"},\"position\":0,\"purpose\":\"prompt\",\"sourceNodeId\":\"cda91084-40e8-4d65-bacc-2b8abdf25ea8\"},{\"content\":{\"text\":\"第二段画布文字：再看钥匙。\",\"type\":\"text\"},\"position\":1,\"purpose\":\"prompt\",\"sourceNodeId\":\"5abae5c4-80d9-437f-9ef3-fa967d9fbefa\"}],\"kind\":\"image\",\"nodeId\":\"3bb02f4d-b8c5-4f63-9cde-127532051e3a\"}","source":{"kind":"canvas_draft","objectId":"3bb02f4d-b8c5-4f63-9cde-127532051e3a","revision":2,"tracking":"current","contentHash":"6c479fbd9f2aaf32e66d3eb397bc032236abd157a52617e136ea28a9e6caf3a9"}}],"capabilitySnapshot":{"id":"c95bbad5-566a-44a6-9ec8-6899c23e39c9","mode":"image_fixture_v1","enabled":true,"purpose":"image","revision":1,"inputRules":[{"kind":"image","maxBytes":1048576,"maxCount":2,"minCount":0,"purposes":["composition","look"],"mimeTypes":["image/png"]}],"connectionId":"a3ac89b3-cb79-46ee-8352-0c4d4b7a6621","modelVersion":"显式文件 fixture，无真实模型","executionMode":"test_fixture","maxReferences":2,"supportedPurposes":["composition","look"],"allowedResolutions":["32x32"],"allowedAspectRatios":["1:1"]}}},"errors":[],"queueErrors":[]},"canvasBeforePlacement":{"id":"2e8f154d-a091-48c0-8744-7c1bbcd8f148","projectId":"35a7bc00-f944-4dc8-807f-6ad9d6135baa","revision":3,"schemaVersion":1,"document":{"edges":[],"nodes":[{"id":"5abae5c4-80d9-437f-9ef3-fa967d9fbefa","kind":"text","title":"后发给模型","width":240,"content":{"text":"第二段画布文字：再看钥匙。","type":"text"},"position":{"x":40,"y":40}},{"id":"cda91084-40e8-4d65-bacc-2b8abdf25ea8","kind":"text","title":"先发给模型","width":240,"content":{"text":"第一段画布文字：先看门口。","type":"text"},"position":{"x":340,"y":40}},{"id":"3a2b5bcc-4b5f-44a9-aada-3f0ec2948450","kind":"text","title":"停用来源","width":240,"content":{"text":"停用文字不可进入固定输入。","type":"text"},"position":{"x":640,"y":40}},{"id":"0c39d073-81a6-4e00-b848-415f18ac2267","kind":"image","title":"独立空来源草稿","width":320,"content":{"type":"draft","output":{"resolution":"32x32","aspectRatio":"1:1"},"prompt":"手工提示：保留用户选定镜头和来源顺序。","capabilityId":"c95bbad5-566a-44a6-9ec8-6899c23e39c9","connectionId":"a3ac89b3-cb79-46ee-8352-0c4d4b7a6621"},"position":{"x":560,"y":240}}],"groups":[]},"documentHash":"f470b5bb350feb7de19ea8a8f5274a0cfad2981711d71fa7785f5bfe04729196","updatedAt":"2026-09-11T21:51:40.725Z"},"sourceDeleted":true,"historySnapshotRecovered":true,"buttons":["打开所选的固定图片任务","保留原任务，准备下一张图片","核对图片任务","查看添加到画布的位置"]}
+### Ran Playwright code
+```js
+await (async page => {
+ const f={
+  "origin": "http://127.0.0.1:4319",
+  "tenantId": "18dcee52-a98a-431b-b585-3edf36efae12",
+  "projectId": "35a7bc00-f944-4dc8-807f-6ad9d6135baa",
+  "sceneId": "f3cf0c48-511a-4a8c-a0a1-ac996b5b09f4",
+  "otherSceneId": "b533a30c-e5ae-4f7a-b93d-b1e7759f3d83",
+  "canvasId": "2e8f154d-a091-48c0-8744-7c1bbcd8f148",
+  "nodeId": "3bb02f4d-b8c5-4f63-9cde-127532051e3a",
+  "alternateNodeId": "0c39d073-81a6-4e00-b848-415f18ac2267",
+  "scriptRevisionId": "ef672d69-4437-486d-834b-6002e5489aad",
+  "selectedA": {
+    "shotId": "56ea456c-fb2a-4b11-9703-5ac9feb5189d",
+    "shotRevisionId": "153cb9c0-0d95-498d-852e-c389323db7be",
+    "number": 2
+  },
+  "selectedB": {
+    "shotId": "6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3",
+    "shotRevisionId": "1e2ecb33-6616-4487-9e2d-42597d678948",
+    "number": 1
+  },
+  "initialCurrentA": "1c5be608-b8bb-4f89-b08c-650ae6628093",
+  "referenceA": "6cf8474c-a31b-49fa-ae71-021df369a5b8",
+  "referenceB": "5526847c-89fe-4df2-a760-e6d820d468ce",
+  "capabilityId": "c95bbad5-566a-44a6-9ec8-6899c23e39c9",
+  "expectedOutputSha256": "90df114133da3c93c1f5eb9143b008825470bf003edcd1e2faee39faf2586f5c",
+  "executionMode": "test_fixture",
+  "paidProvidersEnabled": false
+}
+,expected={
+  "plan": {
+    "id": "91f7ba24-f520-4425-928c-b35d0af0f6da",
+    "revision": 1,
+    "createdAt": "2026-09-11T21:46:15.891Z",
+    "updatedAt": "2026-09-11T21:46:15.891Z",
+    "input": {
+      "scope": "project",
+      "output": {
+        "resolution": "32x32",
+        "aspectRatio": "1:1"
+      },
+      "prompt": "手工提示：保留用户选定镜头和来源顺序。",
+      "purpose": "image",
+      "projectId": "35a7bc00-f944-4dc8-807f-6ad9d6135baa",
+      "shotSources": [
+        {
+          "shotId": "6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3",
+          "shotRevisionId": "1e2ecb33-6616-4487-9e2d-42597d678948"
+        },
+        {
+          "shotId": "56ea456c-fb2a-4b11-9703-5ac9feb5189d",
+          "shotRevisionId": "153cb9c0-0d95-498d-852e-c389323db7be"
+        }
+      ],
+      "capabilityId": "c95bbad5-566a-44a6-9ec8-6899c23e39c9",
+      "connectionId": "a3ac89b3-cb79-46ee-8352-0c4d4b7a6621",
+      "promptPolicy": "append",
+      "contextSources": [
+        {
+          "kind": "canvas_draft",
+          "objectId": "3bb02f4d-b8c5-4f63-9cde-127532051e3a",
+          "revision": 2
+        }
+      ],
+      "referenceOverrides": [],
+      "additionalReferences": []
+    },
+    "capabilityRevision": 1,
+    "inputHash": "1405cb38b083fcf25a2f07acb5b973cedaef03212bddb06342fbdf072098ac48",
+    "expiresAt": "2026-09-11T21:56:15.891Z",
+    "status": "ready",
+    "blockingReasons": [],
+    "resolvedInput": {
+      "shots": [
+        {
+          "spec": {
+            "intent": "B要求：保持窗边反应",
+            "exitState": {
+              "spatialNotes": "窗边未动"
+            },
+            "entryState": {
+              "spatialNotes": "窗边"
+            },
+            "references": [
+              {
+                "note": "B固定红色造型",
+                "mediaId": "5526847c-89fe-4df2-a760-e6d820d468ce",
+                "purpose": "look"
+              }
+            ]
+          },
+          "shotId": "6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3",
+          "exitState": {
+            "spatialNotes": "窗边未动"
+          },
+          "entryState": {
+            "spatialNotes": "窗边"
+          },
+          "shotRevisionId": "1e2ecb33-6616-4487-9e2d-42597d678948"
+        },
+        {
+          "spec": {
+            "intent": "旧要求：先看门口再看钥匙",
+            "exitState": {
+              "spatialNotes": "旧终点：桌前"
+            },
+            "entryState": {
+              "spatialNotes": "旧起点：门边"
+            },
+            "references": [
+              {
+                "note": "A固定蓝色构图",
+                "mediaId": "6cf8474c-a31b-49fa-ae71-021df369a5b8",
+                "purpose": "composition"
+              }
+            ]
+          },
+          "shotId": "56ea456c-fb2a-4b11-9703-5ac9feb5189d",
+          "exitState": {
+            "spatialNotes": "旧终点：桌前"
+          },
+          "entryState": {
+            "spatialNotes": "旧起点：门边"
+          },
+          "shotRevisionId": "153cb9c0-0d95-498d-852e-c389323db7be"
+        }
+      ],
+      "output": {
+        "resolution": "32x32",
+        "aspectRatio": "1:1"
+      },
+      "prompt": "手工提示：保留用户选定镜头和来源顺序。\n\n镜头要求：{\"entryState\":{\"spatialNotes\":\"窗边\"},\"exitState\":{\"spatialNotes\":\"窗边未动\"},\"intent\":\"B要求：保持窗边反应\"}\n\n镜头要求：{\"entryState\":{\"spatialNotes\":\"旧起点：门边\"},\"exitState\":{\"spatialNotes\":\"旧终点：桌前\"},\"intent\":\"旧要求：先看门口再看钥匙\"}\n\n第一段画布文字：先看门口。\n\n第二段画布文字：再看钥匙。",
+      "references": [
+        {
+          "shotId": "6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3",
+          "reference": {
+            "note": "B固定红色造型",
+            "mediaId": "5526847c-89fe-4df2-a760-e6d820d468ce",
+            "purpose": "look"
+          },
+          "sourceLevel": "shot",
+          "sourceObjectId": "1e2ecb33-6616-4487-9e2d-42597d678948"
+        },
+        {
+          "shotId": "56ea456c-fb2a-4b11-9703-5ac9feb5189d",
+          "reference": {
+            "note": "A固定蓝色构图",
+            "mediaId": "6cf8474c-a31b-49fa-ae71-021df369a5b8",
+            "purpose": "composition"
+          },
+          "sourceLevel": "shot",
+          "sourceObjectId": "153cb9c0-0d95-498d-852e-c389323db7be"
+        }
+      ],
+      "dependencies": [
+        {
+          "kind": "shot_revision",
+          "objectId": "1e2ecb33-6616-4487-9e2d-42597d678948",
+          "revision": 1,
+          "tracking": "fixed",
+          "contentHash": "d38501ae22af44bdddaef80f7c6594ab4ac18becbc0471588119eb0dcbafa320"
+        },
+        {
+          "kind": "shot_revision",
+          "objectId": "153cb9c0-0d95-498d-852e-c389323db7be",
+          "revision": 1,
+          "tracking": "fixed",
+          "contentHash": "ae2137f486dcfc18a4fa2b396c3c7d6da4836750479de1b6d039fdc56f3d937c"
+        },
+        {
+          "kind": "canvas_draft",
+          "objectId": "3bb02f4d-b8c5-4f63-9cde-127532051e3a",
+          "revision": 2,
+          "tracking": "current",
+          "contentHash": "6c479fbd9f2aaf32e66d3eb397bc032236abd157a52617e136ea28a9e6caf3a9"
+        }
+      ],
+      "resolverVersion": "image-generation/1",
+      "contextSnapshots": [
+        {
+          "text": "{\"content\":{\"capabilityId\":\"c95bbad5-566a-44a6-9ec8-6899c23e39c9\",\"connectionId\":\"a3ac89b3-cb79-46ee-8352-0c4d4b7a6621\",\"output\":{\"aspectRatio\":\"1:1\",\"resolution\":\"32x32\"},\"prompt\":\"手工提示：保留用户选定镜头和来源顺序。\",\"type\":\"draft\"},\"inputs\":[{\"content\":{\"text\":\"第一段画布文字：先看门口。\",\"type\":\"text\"},\"position\":0,\"purpose\":\"prompt\",\"sourceNodeId\":\"cda91084-40e8-4d65-bacc-2b8abdf25ea8\"},{\"content\":{\"text\":\"第二段画布文字：再看钥匙。\",\"type\":\"text\"},\"position\":1,\"purpose\":\"prompt\",\"sourceNodeId\":\"5abae5c4-80d9-437f-9ef3-fa967d9fbefa\"}],\"kind\":\"image\",\"nodeId\":\"3bb02f4d-b8c5-4f63-9cde-127532051e3a\"}",
+          "source": {
+            "kind": "canvas_draft",
+            "objectId": "3bb02f4d-b8c5-4f63-9cde-127532051e3a",
+            "revision": 2,
+            "tracking": "current",
+            "contentHash": "6c479fbd9f2aaf32e66d3eb397bc032236abd157a52617e136ea28a9e6caf3a9"
+          }
+        }
+      ],
+      "capabilitySnapshot": {
+        "id": "c95bbad5-566a-44a6-9ec8-6899c23e39c9",
+        "mode": "image_fixture_v1",
+        "enabled": true,
+        "purpose": "image",
+        "revision": 1,
+        "inputRules": [
+          {
+            "kind": "image",
+            "maxBytes": 1048576,
+            "maxCount": 2,
+            "minCount": 0,
+            "purposes": [
+              "composition",
+              "look"
+            ],
+            "mimeTypes": [
+              "image/png"
+            ]
+          }
+        ],
+        "connectionId": "a3ac89b3-cb79-46ee-8352-0c4d4b7a6621",
+        "modelVersion": "显式文件 fixture，无真实模型",
+        "executionMode": "test_fixture",
+        "maxReferences": 2,
+        "supportedPurposes": [
+          "composition",
+          "look"
+        ],
+        "allowedResolutions": [
+          "32x32"
+        ],
+        "allowedAspectRatios": [
+          "1:1"
+        ]
+      }
+    },
+    "connectionVersionId": "1579cac5-2d16-4efa-86bf-61fb2e2d3e65",
+    "executionMode": "test_fixture",
+    "costEstimate": {
+      "lines": [],
+      "baseCost": {
+        "currency": "CNY",
+        "amountMicros": "0"
+      },
+      "basisNote": "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。",
+      "holdMargin": {
+        "currency": "CNY",
+        "amountMicros": "0"
+      },
+      "pricingRevision": "explicit-test-fixture/1",
+      "totalReservation": {
+        "currency": "CNY",
+        "amountMicros": "0"
+      }
+    }
+  },
+  "origin": {
+    "nodeId": "3bb02f4d-b8c5-4f63-9cde-127532051e3a",
+    "canvasId": "2e8f154d-a091-48c0-8744-7c1bbcd8f148",
+    "sourceNodeIds": [
+      "cda91084-40e8-4d65-bacc-2b8abdf25ea8",
+      "5abae5c4-80d9-437f-9ef3-fa967d9fbefa"
+    ],
+    "canvasRevision": 2,
+    "inputFingerprint": "851fb99b56603363a3a08150f2f847f6561bfe7f86607c26bfa1def9cd1a61ea"
+  },
+  "actualApi": true,
+  "refreshNoAutomaticPost": true,
+  "samePlanRecovered": true,
+  "recoveryRequests": [
+    {
+      "body": {
+        "nodeId": "3bb02f4d-b8c5-4f63-9cde-127532051e3a",
+        "shotSources": [
+          {
+            "shotId": "6ebca2c3-0131-4e2c-8e77-6e1c4a8f55a3",
+            "shotRevisionId": "1e2ecb33-6616-4487-9e2d-42597d678948"
+          },
+          {
+            "shotId": "56ea456c-fb2a-4b11-9703-5ac9feb5189d",
+            "shotRevisionId": "153cb9c0-0d95-498d-852e-c389323db7be"
+          }
+        ],
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      },
+      "key": "a96f7abd-1139-44db-8ba7-1e350a999237",
+      "version": "\"2\""
+    }
+  ],
+  "buttons": [
+    "确认执行图片生成",
+    "保留原任务，准备下一张图片"
+  ]
+}
+,ensure=(v,m)=>{if(!v)throw Error(m)};
+ const base=`${f.origin}/v1/tenants/${f.tenantId}`,path=`${base}/projects/${f.projectId}`,url=`${path}/canvases/${f.canvasId}/generation-plans`;
+ const entries=await (await page.request.get(url)).json();ensure(entries.items.length===1&&entries.items[0].jobId,'one fixed job expected');const jobId=entries.items[0].jobId;
+ const before=await (await page.request.get(`${base}/generation-jobs/${jobId}`)).json();ensure(before.status==='queued'&&before.planId===expected.plan.id,'original queued job differs');
+ const first=await (await page.request.get(`${f.origin}/__fixture/state`)).json();ensure(first.paused&&first.calls===0,'provider was submitted before explicit execution');
+ await page.getByRole('button',{name:'移除节点',exact:true}).click();
+ const saved=page.waitForResponse(r=>r.url().endsWith(`/canvases/${f.canvasId}`)&&r.request().method()==='PUT',{timeout:60000});await page.getByRole('button',{name:'保存画布',exact:true}).click();ensure((await saved).status()===200,'source deletion was not saved');
+ let canvas=await (await page.request.get(`${path}/canvases/${f.canvasId}`)).json();ensure(!canvas.document.nodes.some(n=>n.id===f.nodeId),'source draft still exists');
+ const started=await page.request.post(`${f.origin}/__fixture/control`,{data:{action:'resume'}});ensure(started.ok(),'resume fixture failed');
+ let job;const deadline=Date.now()+240000;
+ do {job=await (await page.request.get(`${base}/generation-jobs/${jobId}`)).json();if(job.status==='succeeded')break;ensure(!['failed','archive_failed','reconciliation_required'].includes(job.status),`job failed ${JSON.stringify(job)}`);ensure(Date.now()<deadline,`waited for original job: ${job.status}`);await page.waitForTimeout(1000);} while(true);
+ const state=await (await page.request.get(`${f.origin}/__fixture/state`)).json();ensure(state.calls===1&&state.errors.length===0&&state.queueErrors.length===0,'worker submission/error count differs');
+ ensure(JSON.stringify(state.last.input.shotSources)===JSON.stringify(expected.plan.input.shotSources),'worker source order differs');ensure(JSON.stringify(state.last.resolvedInput)===JSON.stringify(expected.plan.resolvedInput),'worker fixed snapshot differs');
+ ensure(job.mediaIds.length===1,'expected one archived image');const media=await (await page.request.get(`${base}/media/${job.mediaIds[0]}`)).json();ensure(media.status==='ready'&&media.sha256===f.expectedOutputSha256,'actual image archive/hash failed');
+ await page.reload();const panel=page.getByRole('region',{name:'画布生成与结果',exact:true}),toggle=page.getByRole('button',{name:'画布生成与结果',exact:true});await toggle.waitFor();if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.click();await panel.getByRole('combobox',{name:'画布生成任务历史',exact:true}).selectOption(expected.plan.id);await panel.getByRole('button',{name:'打开所选的固定图片任务',exact:true}).click();
+ await panel.getByText('图片结果已归档',{exact:true}).waitFor();await panel.locator('summary').filter({hasText:'固定镜头来源（2 个）'}).click();await panel.locator('[aria-label="计划原镜头来源"]').getByText('旧要求：先看门口再看钥匙',{exact:true}).first().waitFor();
+ return {job,media,worker:state,canvasBeforePlacement:canvas,sourceDeleted:true,historySnapshotRecovered:true,buttons:await panel.getByRole('button').allTextContents()};
+}
+)(page);
+```

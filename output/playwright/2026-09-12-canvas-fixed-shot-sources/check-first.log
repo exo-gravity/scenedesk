@@ -1,0 +1,134 @@
+
+> drama-platform@0.0.0 check
+> npm run contracts:check && npm run ui:check && npm run build && npm test
+
+
+> drama-platform@0.0.0 contracts:check
+> node scripts/check-generated.mjs
+
+Generated TypeScript matches the design contract.
+
+> drama-platform@0.0.0 ui:check
+> node --import tsx scripts/check-ui.ts
+
+{
+  "passed": true,
+  "scope": "Migrated source rules and selected opaque color pairs; browser interaction and composed media checked separately.",
+  "files": 133,
+  "contrastChecks": [
+    {
+      "name": "light primary",
+      "ratio": 15.41,
+      "minimum": 4.5
+    },
+    {
+      "name": "light secondary",
+      "ratio": 5.58,
+      "minimum": 4.5
+    },
+    {
+      "name": "light action",
+      "ratio": 12.11,
+      "minimum": 4.5
+    },
+    {
+      "name": "light input border",
+      "ratio": 3.48,
+      "minimum": 3
+    },
+    {
+      "name": "light focus",
+      "ratio": 5.5,
+      "minimum": 3
+    },
+    {
+      "name": "dark primary",
+      "ratio": 11.77,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark secondary",
+      "ratio": 6.23,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark action",
+      "ratio": 11.48,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark input border",
+      "ratio": 3.13,
+      "minimum": 3
+    },
+    {
+      "name": "dark focus",
+      "ratio": 8,
+      "minimum": 3
+    },
+    {
+      "name": "primary on raised",
+      "ratio": 12.9,
+      "minimum": 4.5
+    },
+    {
+      "name": "secondary on raised",
+      "ratio": 7.83,
+      "minimum": 4.5
+    },
+    {
+      "name": "muted on raised",
+      "ratio": 5.65,
+      "minimum": 4.5
+    },
+    {
+      "name": "success on raised",
+      "ratio": 8.74,
+      "minimum": 4.5
+    },
+    {
+      "name": "warning on raised",
+      "ratio": 8.73,
+      "minimum": 4.5
+    },
+    {
+      "name": "danger on raised",
+      "ratio": 8.19,
+      "minimum": 4.5
+    },
+    {
+      "name": "info on raised",
+      "ratio": 8.84,
+      "minimum": 4.5
+    },
+    {
+      "name": "focus on raised",
+      "ratio": 9.61,
+      "minimum": 4.5
+    },
+    {
+      "name": "filled button",
+      "ratio": 9.62,
+      "minimum": 4.5
+    },
+    {
+      "name": "input border",
+      "ratio": 3.27,
+      "minimum": 3
+    }
+  ],
+  "failures": []
+}
+
+> drama-platform@0.0.0 build
+> npm run typecheck && npm run build --workspace @drama/web
+
+
+> drama-platform@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json
+
+tests/canvas-shot-sources.test.ts(44,18): error TS2352: Conversion of type '{ id: string; revision: number; document: { nodes: { id: string; kind: "image" | "video" | "audio"; title: string; content: { type: "draft"; connectionId: string; capabilityId: "image" | "video" | "audio"; prompt: string; output: {}; }; }[]; edges: never[]; groups: never[]; }; }' to type '{ id: string; projectId: string; revision: number; schemaVersion: 1; document: { nodes: ({ id: string; title: string; position: { x: number; y: number; }; width: number; groupId?: string; kind: "text"; content: { ...; }; } | { ...; })[]; edges: { ...; }[]; groups: { ...; }[]; }; documentHash: string; updatedAt: stri...' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: string; revision: number; document: { nodes: { id: string; kind: "image" | "video" | "audio"; title: string; content: { type: "draft"; connectionId: string; capabilityId: "image" | "video" | "audio"; prompt: string; output: {}; }; }[]; edges: never[]; groups: never[]; }; }' is missing the following properties from type '{ id: string; projectId: string; revision: number; schemaVersion: 1; document: { nodes: ({ id: string; title: string; position: { x: number; y: number; }; width: number; groupId?: string; kind: "text"; content: { ...; }; } | { ...; })[]; edges: { ...; }[]; groups: { ...; }[]; }; documentHash: string; updatedAt: stri...': projectId, schemaVersion, documentHash, updatedAt
+tests/canvas-shot-sources.test.ts(202,48): error TS2345: Argument of type '() => Promise<void>' is not assignable to parameter of type '(prepared: ImageDraft, checkCurrent: () => void) => Promise<ImageDraft>'.
+  Type 'Promise<void>' is not assignable to type 'Promise<ImageDraft>'.
+    Type 'void' is not assignable to type 'ImageDraft'.

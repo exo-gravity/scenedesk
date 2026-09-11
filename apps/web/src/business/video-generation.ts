@@ -1,3 +1,4 @@
+import { fixedShotSources } from "./canvas-shot-sources.js";
 import type { components } from "@drama/contracts";
 import type { PromptDraft } from "./prompt-draft.js";
 import {
@@ -81,6 +82,7 @@ export function canvasVideoRequest(
   sceneId: string,
   nodeId: string,
   capabilities: readonly ImageCapability[],
+  shotSources: readonly Schema<"ShotSource">[] = [],
 ): ImageRequest {
   const node = canvas.document.nodes.find((node) => node.id === nodeId);
   if (!node || node.kind !== "video" || node.content.type !== "draft")
@@ -100,7 +102,7 @@ export function canvasVideoRequest(
     label: node.title,
     input: {
       nodeId,
-      shotSources: [],
+      shotSources: fixedShotSources(shotSources),
       referenceOverrides: [],
       promptPolicy: "append",
     },
