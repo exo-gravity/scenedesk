@@ -21,6 +21,7 @@ import {
 } from "./storage-client.js";
 import { MediaFailure, validateSha256, type VerifiedObject } from "./policy.js";
 import { PRODUCTION_LIMITS } from "./source-timing.js";
+import { accountMediaWrite } from "./execution.js";
 
 export const PRODUCTION_PART_BYTES = 64 * 1024 * 1024;
 export type ProductionArtifact = Readonly<{
@@ -189,6 +190,13 @@ export class ProductionStore {
       transform(chunk: Buffer, _encoding, callback) {
         bytes += chunk.length;
         if (bytes > artifact.bytes) return callback(mismatch());
+        if (destination) {
+          try {
+            accountMediaWrite(chunk.length);
+          } catch (error) {
+            return callback(error as Error);
+          }
+        }
         hash.update(chunk);
         callback(null, chunk);
       },

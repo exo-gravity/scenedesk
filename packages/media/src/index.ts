@@ -18,6 +18,7 @@ export * from "./audio-timing.js";
 export * from "./audio-production.js";
 export * from "./production-storage.js";
 export * from "./production-jobs.js";
+export * from "./normalization-source.js";
 export {
   createProductionProcessor,
   PRODUCTION_WORKER_VERSION,

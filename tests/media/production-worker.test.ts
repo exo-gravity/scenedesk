@@ -11,7 +11,14 @@ import {
   createProductionProcessor,
   repairMediaWork,
   requestMediaProduction,
+  readNormalizationMedia,
+  normalizationMediaFromVerifiedMaps,
 } from "@drama/media";
+import {
+  editingCanonical,
+  normalizeSavedCut,
+  type WorkDocument,
+} from "@drama/domain";
 import { runMediaProcess } from "../../packages/media/src/sandbox.js";
 import { storageFixture } from "../support/storage.js";
 import { productionJobsFixture } from "../support/production-jobs.js";
@@ -192,6 +199,114 @@ test(
           else assert.ok(map.verification.allOutputSamplesFinite);
         }
       }
+      // Normalize the document read back from the real work-draft API, using
+      // only the durable copy's fixed, fully verified source maps.
+      const cut = await f.ok("POST", `${f.path}/cuts`, {
+        name: "真实制作归一验收",
+      });
+      const workPath = `${f.path}/cuts/${cut.id}/work-draft`;
+      const work = await f.ok("GET", workPath);
+      const document = work.document as WorkDocument;
+      const videoClipId = randomUUID();
+      document.timeline.tracks = [
+        {
+          id: randomUUID(),
+          kind: "video",
+          muted: false,
+          items: [
+            {
+              id: videoClipId,
+              kind: "video",
+              mediaId,
+              range: { inUs: 1000, outUs: 490000 },
+              timelineStartUs: 0,
+              gainDb: 0,
+              muted: false,
+              fit: "contain",
+              streamSelection: "default",
+            },
+          ],
+        },
+      ];
+      const saved = await f.ok(
+        "PUT",
+        workPath,
+        { baseCutRevision: cut.revision, document },
+        0,
+      );
+      assert.equal(saved.revision, 1);
+      const snapshot = await f.ok("GET", workPath);
+      assert.equal(
+        snapshot.documentHash,
+        createHash("sha256")
+          .update(editingCanonical(snapshot.document))
+          .digest("hex"),
+      );
+      const fact = await readNormalizationMedia({
+        context,
+        source: { mediaId, sha256 },
+        store: storage.production,
+        workDirectory: directory,
+        signal: t.signal,
+      });
+      assert.equal(fact.video!.frameCount, 12);
+      assert.deepEqual(fact.duration, { numerator: "1", denominator: "2" });
+      const normalized = normalizeSavedCut({
+        cutId: cut.id,
+        document: snapshot.document,
+        media: new Map([[mediaId, fact]]),
+        changeId: () => randomUUID(),
+      });
+      assert.equal(normalized.lengthFrames, 10);
+      assert.equal(normalized.normalizedItems[0]!.sourceInFrame, 1);
+      assert.equal(normalized.normalizedItems[0]!.sourceOutFrame, 11);
+      assert.equal(normalized.normalizedItems[0]!.timelineEndSample, 20000);
+      assert.equal(normalized.normalizedItems[0]!.productionCopyId, copy.id);
+      assert.ok(normalized.changes.some((c) => c.kind === "frame_snap"));
+      const videoMap = JSON.parse(
+        await readFile(join(directory, "video_map"), "utf8"),
+      );
+      const audioMap = JSON.parse(
+        await readFile(join(directory, "audio_map"), "utf8"),
+      );
+      for (const altered of [
+        { ...videoMap, frameCount: 13 },
+        { ...videoMap, sourceSha256: "0".repeat(64) },
+        {
+          ...videoMap,
+          runtime: { ...videoMap.runtime, platform: "unverified" },
+        },
+      ]) {
+        assert.throws(
+          () =>
+            normalizationMediaFromVerifiedMaps(
+              context,
+              { mediaId, sha256 },
+              { video: altered, audio: audioMap },
+            ),
+          (error: unknown) =>
+            (error as { code?: string }).code ===
+            "NORMALIZATION_SOURCE_MISMATCH",
+        );
+      }
+      assert.throws(
+        () =>
+          normalizationMediaFromVerifiedMaps(
+            context,
+            { mediaId, sha256 },
+            {
+              video: videoMap,
+              audio: { ...audioMap, zero: { ...audioMap.zero, pts: "1" } },
+            },
+          ),
+        (error: unknown) =>
+          (error as { code?: string }).code === "NORMALIZATION_SOURCE_MISMATCH",
+      );
+      // The arithmetic result has not been confirmed by a save command.
+      assert.equal(
+        (await f.ok("GET", `${f.path}/cuts/${cut.id}`)).normalizationId,
+        undefined,
+      );
       const hints = await f.admin.query(
         `SELECT expire_seconds FROM ${f.queueSchema}.job WHERE data->>'businessId'=$1`,
         [copy.id],
@@ -310,6 +425,18 @@ test(
         ["audio", "audio_map"],
       );
       assert.equal(audioContext.artifacts[0]!.bytes, 48000 * 16);
+      const audioFact = await readNormalizationMedia({
+        context: audioContext,
+        source: { mediaId: audioId, sha256: audioSha },
+        store: storage.production,
+        workDirectory: directory,
+        signal: t.signal,
+      });
+      assert.deepEqual(audioFact.duration, {
+        numerator: "1",
+        denominator: "1",
+      });
+      assert.equal(audioFact.audio!.sampleCount, 48000);
       await queue.close();
       queue = undefined;
       await producer.close();

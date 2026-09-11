@@ -5,6 +5,7 @@
   "type": "module",
   "exports": "./src/index.ts",
   "dependencies": {
+    "@drama/domain": "0.0.0",
     "@drama/database": "0.0.0",
     "@drama/queue": "0.0.0",
     "pg": "8.23.0",
