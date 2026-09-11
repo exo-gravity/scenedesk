@@ -459,7 +459,7 @@ async (page) => {
     "reload repeated cancel",
   );
   first.cancelStatus = "unsupported";
-  first.status = "provider_running";
+  first.status = "cancel_requested";
   await composer
     .getByRole("button", { name: "核对原任务", exact: true })
     .click();

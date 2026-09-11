@@ -74,7 +74,7 @@ export const jobStatusLabel: Record<Schema<"GenerationJob">["status"], string> =
     archive_failed: "结果保存需恢复",
     succeeded: "分镜提案可用",
     failed: "生成失败",
-    cancel_requested: "正在请求取消",
+    cancel_requested: "原任务结果待核对",
     cancelled: "已取消",
     reconciliation_required: "需要核对结果",
   };

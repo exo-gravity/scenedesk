@@ -1,0 +1,196 @@
+
+> drama-platform@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json
+
+
+> drama-platform@0.0.0 ui:check
+> node --import tsx scripts/check-ui.ts
+
+{
+  "passed": true,
+  "scope": "Migrated source rules and selected opaque color pairs; browser interaction and composed media checked separately.",
+  "files": 131,
+  "contrastChecks": [
+    {
+      "name": "light primary",
+      "ratio": 15.41,
+      "minimum": 4.5
+    },
+    {
+      "name": "light secondary",
+      "ratio": 5.58,
+      "minimum": 4.5
+    },
+    {
+      "name": "light action",
+      "ratio": 12.11,
+      "minimum": 4.5
+    },
+    {
+      "name": "light input border",
+      "ratio": 3.48,
+      "minimum": 3
+    },
+    {
+      "name": "light focus",
+      "ratio": 5.5,
+      "minimum": 3
+    },
+    {
+      "name": "dark primary",
+      "ratio": 11.77,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark secondary",
+      "ratio": 6.23,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark action",
+      "ratio": 11.48,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark input border",
+      "ratio": 3.13,
+      "minimum": 3
+    },
+    {
+      "name": "dark focus",
+      "ratio": 8,
+      "minimum": 3
+    },
+    {
+      "name": "primary on raised",
+      "ratio": 12.9,
+      "minimum": 4.5
+    },
+    {
+      "name": "secondary on raised",
+      "ratio": 7.83,
+      "minimum": 4.5
+    },
+    {
+      "name": "muted on raised",
+      "ratio": 5.65,
+      "minimum": 4.5
+    },
+    {
+      "name": "success on raised",
+      "ratio": 8.74,
+      "minimum": 4.5
+    },
+    {
+      "name": "warning on raised",
+      "ratio": 8.73,
+      "minimum": 4.5
+    },
+    {
+      "name": "danger on raised",
+      "ratio": 8.19,
+      "minimum": 4.5
+    },
+    {
+      "name": "info on raised",
+      "ratio": 8.84,
+      "minimum": 4.5
+    },
+    {
+      "name": "focus on raised",
+      "ratio": 9.61,
+      "minimum": 4.5
+    },
+    {
+      "name": "filled button",
+      "ratio": 9.62,
+      "minimum": 4.5
+    },
+    {
+      "name": "input border",
+      "ratio": 3.27,
+      "minimum": 3
+    }
+  ],
+  "failures": []
+}
+TAP version 13
+# Subtest: accepted and running jobs advance by GET; success after cancellation still preserves results and manual input
+not ok 1 - accepted and running jobs advance by GET; success after cancellation still preserves results and manual input
+  ---
+  duration_ms: 7.711792
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-frontend/tests/generation-cancellation.test.ts:1:1849'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /待核对/. Input:
+    
+    '本次取消的回执仍未确定；任务已完成，结果仍可取回。'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '本次取消的回执仍未确定；任务已完成，结果仍可取回。'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-frontend/tests/generation-cancellation.test.ts:100:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: lost cancellation receipt survives reload and known cancellation facts never repeat POST
+ok 2 - lost cancellation receipt survives reload and known cancellation facts never repeat POST
+  ---
+  duration_ms: 3.224791
+  type: 'test'
+  ...
+# Subtest: not-delivered cancellation waits for explicit recovery of the same job and key after reload
+ok 3 - not-delivered cancellation waits for explicit recovery of the same job and key after reload
+  ---
+  duration_ms: 0.981583
+  type: 'test'
+  ...
+# Subtest: cancel storage failure prevents POST and preserves the original input
+ok 4 - cancel storage failure prevents POST and preserves the original input
+  ---
+  duration_ms: 0.545584
+  type: 'test'
+  ...
+# Subtest: opened cancellation cannot retarget another job and a completed job is only read
+ok 5 - opened cancellation cannot retarget another job and a completed job is only read
+  ---
+  duration_ms: 1.026375
+  type: 'test'
+  ...
+# Subtest: malformed or wrong-target cancellation replies retain an unresolved fixed intent
+ok 6 - malformed or wrong-target cancellation replies retain an unresolved fixed intent
+  ---
+  duration_ms: 0.8185
+  type: 'test'
+  ...
+# Subtest: permission recheck precedes cancellation; confirmed revocation hides and clears local recovery
+ok 7 - permission recheck precedes cancellation; confirmed revocation hides and clears local recovery
+  ---
+  duration_ms: 0.844125
+  type: 'test'
+  ...
+# Subtest: late cancellation reply cannot revive a retired session or its durable intent
+ok 8 - late cancellation reply cannot revive a retired session or its durable intent
+  ---
+  duration_ms: 0.745875
+  type: 'test'
+  ...
+# Subtest: SQL cancel_requested with unsupported or unknown continues reads; terminal results supersede processing text
+ok 9 - SQL cancel_requested with unsupported or unknown continues reads; terminal results supersede processing text
+  ---
+  duration_ms: 1.10025
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 343.419167

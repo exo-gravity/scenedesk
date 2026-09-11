@@ -3,11 +3,14 @@ import { test } from "node:test";
 import type { components } from "@drama/contracts";
 import {
   AssistantSession,
+  jobStatusLabel,
+  jobFinished,
   type AssistantRecord,
   type AssistantTransport,
 } from "../apps/web/src/business/assistant-session.js";
 import {
   cancellationDescription,
+  canRequestCancellation,
   type AsyncGenerationJob,
 } from "../apps/web/src/business/generation-lifecycle.js";
 type Schema<T extends keyof components["schemas"]> = components["schemas"][T];
@@ -96,7 +99,7 @@ test("accepted and running jobs advance by GET; success after cancellation still
   assert.equal(f.calls.length, 1);
   assert.match(
     cancellationDescription(f.job(), f.saved()?.cancellation)!,
-    /待核对/,
+    /本次取消的回执仍未确定/,
   );
 });
 test("lost cancellation receipt survives reload and known cancellation facts never repeat POST", async () => {
@@ -226,4 +229,55 @@ test("late cancellation reply cannot revive a retired session or its durable int
   await cancelling;
   assert.equal(f.saved(), undefined);
   assert.equal(session.getSnapshot().job, undefined);
+});
+
+test("SQL cancel_requested with unsupported or unknown continues reads; terminal results supersede processing text", async () => {
+  for (const cancelStatus of ["requested", "unsupported", "unknown"] as const) {
+    const f = fixture(),
+      session = f.session();
+    await session.load("unused");
+    await session.requestCancellation(target);
+    f.setJob({ status: "cancel_requested", cancelStatus });
+    await session.refresh();
+    assert.equal(
+      jobFinished(session.getSnapshot().job),
+      false,
+      "cancellation facts do not stop job reads",
+    );
+    assert.equal(
+      canRequestCancellation(f.job()),
+      false,
+      "known cancellation fact must not offer another POST",
+    );
+    assert.match(jobStatusLabel[f.job().status], /原任务.*核对/);
+    assert.doesNotMatch(jobStatusLabel[f.job().status], /正在请求取消/);
+    for (const status of [
+      "succeeded",
+      "failed",
+      "archiving",
+      "archive_failed",
+    ] as const) {
+      f.setJob({
+        status,
+        mediaIds: status === "succeeded" ? ["ready-result"] : [],
+      });
+      await session.refresh();
+      const description = cancellationDescription(
+        f.job(),
+        f.saved()?.cancellation,
+      )!;
+      assert.doesNotMatch(
+        description,
+        /原任务继续处理|原任务仍会继续核对|完成后可取回|模型是否取消仍待核对/,
+      );
+      if (status === "succeeded") {
+        assert.match(description, /已完成.*结果仍可取回/);
+        assert.deepEqual(session.getSnapshot().job?.mediaIds, ["ready-result"]);
+      } else if (status === "failed")
+        assert.match(description, /已结束.*未产生可用结果/);
+      else assert.match(description, /生成已结束.*保存/);
+    }
+    assert.equal(f.calls.length, 1);
+    assert.equal(f.saved()?.draft, "original manual input");
+  }
 });

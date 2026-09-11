@@ -20,3 +20,9 @@
 `browser-first.log` 是 CLI 函数字符串末尾分号解析问题；`browser-second.log` 是该 CLI 沙箱没有 URL 构造器；修正纯测试脚本。`browser-third.log` 记录既有下拉浮层滚动时隐藏导致点击超时；测试改走同一公开控件的键盘选择并核对后续固定计划，未强制点击隐藏元素或改产品。`browser-fourth.log` 为核心取消流程通过，`browser-final.log` 追加 queued 下一次和晚回包跨镜头通过。`browser-complete.log` 是分镜测试能力的按钮实际文案为“确认执行测试计划”，修正语义定位后最终完整通过；未放宽任何业务断言。
 
 本片没有改画布 Board/controller、采用、Take、媒体归档或供应商实现。通用取消控件及 transport 已接入三类工作区；本轮浏览器实际覆盖分镜、普通提示与视频镜头入口，图片／音频／画布／意见修改复用相同通用代码和原作用域，未另重跑已经验收的媒体／结果放置套件。服务端新增可选取消字段由后端生成器独占；本分支以等价交叉类型兼容旧 DTO，主任务整合新合同后可收敛为其直接别名。
+
+## 新 SQL 状态组合复审
+
+整合后只读核对 0092/0093 与 observation worker，发现取消 unsupported/unknown 后 SQL 的主状态仍为 `cancel_requested`（不恢复成 provider_running），此前受控浏览器的 unsupported 设置没有覆盖此组合。最小修正把该主状态改述为“原任务结果待核对”；取消说明在 succeeded/failed/archiving/archive_failed 下展示已经发生的结果事实，不再说任务继续处理。没有改变 API、轮询、可取消判定或原输入。
+
+新增公开行为验证真实 SQL 组合：requested/unsupported/unknown 均继续 GET 且不允许再次取消，随后成功仍取回原结果、失败没有结果暗示、归档说明准确、原输入不变。`followup-check-first.log` 的类型和 UI 检查通过，新组合通过；旧成功竞态用例仍匹配旧文案“待核对”，更新为明确历史回执“仍未确定”后，`followup-tests-final.log` 取消行为 9/9 通过。未重跑完整套件或媒体。`verify-async.js` 同步使用实际 SQL 组合供根任务实际浏览器验证；本目录原截图与 `browser-complete-final.log` 保留前次生产验证事实，没有替换成未运行的新截图。
