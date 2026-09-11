@@ -1,0 +1,4 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["runtime/**/*.ts", "smoke/**/*.ts", "tests/**/*.ts"]
+}

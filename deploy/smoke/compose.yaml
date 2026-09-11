@@ -1,0 +1,70 @@
+services:
+  api:
+    environment: { NODE_EXTRA_CA_CERTS: /certs/ca.crt }
+    volumes: ["${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"]
+  operations:
+    environment: { NODE_EXTRA_CA_CERTS: /certs/ca.crt }
+    volumes: ["${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"]
+  media-worker:
+    environment: { NODE_EXTRA_CA_CERTS: /certs/ca.crt }
+    volumes: !override
+      - "${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"
+      - "${SCENEDESK_MEDIA_DIRECTORY}:${SCENEDESK_MEDIA_DIRECTORY}"
+      - decoder_socket:/run/decoder
+  database:
+    image: postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+    environment:
+      POSTGRES_DB: scenedesk
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes:
+      - database_data:/var/lib/postgresql/data
+      - "${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"
+    command: [sh, -c, "cp /certs/tls.key /tmp/server.key && chmod 600 /tmp/server.key && chown postgres /tmp/server.key && exec docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/certs/tls.crt -c ssl_key_file=/tmp/server.key"]
+    networks: [application]
+    healthcheck: { test: [CMD, pg_isready, -U, postgres, -d, scenedesk], interval: 2s, timeout: 3s, retries: 30 }
+  identity:
+    image: scenedesk-private-api:local
+    entrypoint: [node, deploy/smoke/identity.mjs]
+    volumes: ["${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"]
+    networks: [application]
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z@sha256:d249d1fb6966de4d8ad26c04754b545205ff15a62e4fd19ebd0f26fa5baacbc0
+    environment:
+      MINIO_ROOT_USER_FILE: /run/secrets/minio_user
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_password
+    secrets: [minio_user, minio_password]
+    command: [server, /data]
+    volumes: [storage_data:/data]
+    networks: [application]
+  storage:
+    image: nginx:alpine@sha256:b0f7830b6bfaa1258f45d94c240ab668ced1b3651c8a222aefe6683447c7bf55
+    volumes:
+      - "${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"
+      - "${SCENEDESK_SMOKE_DIRECTORY}/storage.conf:/etc/nginx/nginx.conf:ro"
+    networks: [application]
+  decoder:
+    image: docker:28.5.1-dind@sha256:ea9d20492ca1caaaba78e68453433895d256173c79281756e88b745647fcbcfd
+    privileged: true
+    cpus: 2
+    mem_limit: 2g
+    entrypoint: [dockerd-entrypoint.sh]
+    command: [dockerd, --host=unix:///run/decoder/docker.sock, --group=0, --storage-driver=overlay2]
+    volumes:
+      - decoder_socket:/run/decoder
+      - "${SCENEDESK_MEDIA_DIRECTORY}:${SCENEDESK_MEDIA_DIRECTORY}"
+    networks: [application]
+  storage-init:
+    image: minio/mc:RELEASE.2025-07-21T05-28-08Z@sha256:fb8f773eac8ef9d6da0486d5dec2f42f219358bcb8de579d1623d518c9ebd4cc
+    profiles: [setup]
+    entrypoint: [sh, /setup/storage.sh]
+    volumes: ["${SCENEDESK_SMOKE_DIRECTORY}/setup:/setup:ro"]
+    networks: [application]
+secrets:
+  postgres_password: { file: "${SCENEDESK_SMOKE_DIRECTORY}/postgres-password" }
+  minio_user: { file: "${SCENEDESK_SMOKE_DIRECTORY}/minio-user" }
+  minio_password: { file: "${SCENEDESK_SMOKE_DIRECTORY}/minio-password" }
+volumes:
+  database_data: {}
+  storage_data: {}
+  decoder_socket: {}
