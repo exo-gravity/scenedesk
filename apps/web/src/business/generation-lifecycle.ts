@@ -1,12 +1,8 @@
 import type { components } from "@drama/contracts";
 type Schema<T extends keyof components["schemas"]> = components["schemas"][T];
 
-// Optional fields keep old persisted jobs readable while the API is upgraded.
-export type AsyncGenerationJob = Schema<"GenerationJob"> & {
-  cancelStatus?:
-    "not_requested" | "requested" | "unsupported" | "unknown" | "confirmed";
-  cancelRequestedAt?: string;
-};
+// The generated contract keeps cancellation facts optional for persisted older jobs.
+export type AsyncGenerationJob = Schema<"GenerationJob">;
 export type CancellationRequest = {
   jobId: string;
   planId: string;
