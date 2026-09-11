@@ -1,6 +1,6 @@
 import {
-  validateGeneratedVisual,
-  type GeneratedVisualOptions,
+  validateGeneratedOutput,
+  type GeneratedMediaOptions,
 } from "./generated-output.js";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -30,7 +30,7 @@ type Claim = {
   projectId: string;
   token: string;
   source: Source;
-  output: GeneratedVisualOptions;
+  output: GeneratedMediaOptions;
 };
 /** Same verified object storage and strict decode path as imports; never fetches provider-supplied URLs. */
 export function generatedMediaProcessor(
@@ -85,7 +85,7 @@ export function generatedMediaProcessor(
         signal,
       );
       const probe = await probeMedia(file, active.source.mime, signal);
-      validateGeneratedVisual(probe, active.source.mime, active.output);
+      validateGeneratedOutput(probe, active.source.mime, active.output);
       const original = await options.store.publish(
         file,
         {

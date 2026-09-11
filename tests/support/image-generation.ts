@@ -26,7 +26,7 @@ import { createAssistanceWorker } from "../../apps/api/src/modules/generation/wo
 export async function imageGenerationFixture(
   t: TestContext,
   store = { verify: async () => undefined } as unknown as MediaStore,
-  options: { purpose?: "image" | "video" } = {},
+  options: { purpose?: "image" | "video" | "audio" } = {},
 ) {
   const kind = options.purpose ?? "image";
   const queueErrors: Error[] = [];
@@ -134,21 +134,21 @@ export async function imageGenerationFixture(
   const definition = {
     purpose: kind,
     mode: `${kind}_fixture_v1`,
-    ...(kind === "video"
+    ...(kind !== "image"
       ? { minDurationSeconds: 2, maxDurationSeconds: 2, audioOutput: true }
       : {}),
     modelVersion: "显式文件 fixture，无真实模型",
-    supportedPurposes: ["composition", "look"],
+    supportedPurposes: kind === "audio" ? ["voice"] : ["composition", "look"],
     maxReferences: 2,
     allowedResolutions: ["32x32"],
     allowedAspectRatios: ["1:1"],
     inputRules: [
       {
-        kind: "image",
-        purposes: ["composition", "look"],
+        kind: kind === "audio" ? "audio" : "image",
+        purposes: kind === "audio" ? ["voice"] : ["composition", "look"],
         minCount: 0,
         maxCount: 2,
-        mimeTypes: ["image/png"],
+        mimeTypes: kind === "audio" ? ["audio/wav"] : ["image/png"],
         maxBytes: 1048576,
       },
     ],
@@ -169,16 +169,21 @@ export async function imageGenerationFixture(
     referenceOverrides: [],
     prompt: "固定的技术测试图像",
     promptPolicy: "replace",
-    output: {
-      resolution: "32x32",
-      aspectRatio: "1:1",
-      ...(kind === "video" ? { durationSeconds: 2, withAudio: false } : {}),
-    },
+    output:
+      kind === "audio"
+        ? { durationSeconds: 2 }
+        : {
+            resolution: "32x32",
+            aspectRatio: "1:1",
+            ...(kind === "video"
+              ? { durationSeconds: 2, withAudio: false }
+              : {}),
+          },
   };
   let calls = 0,
     last: AssistanceSubmission | undefined,
     output: unknown = {
-      [kind === "video" ? "videos" : "images"]: [
+      [kind === "audio" ? "audios" : kind === "video" ? "videos" : "images"]: [
         {
           kind: "fixture_object",
           object: {
@@ -187,7 +192,12 @@ export async function imageGenerationFixture(
             bytes: 100,
           },
           sha256: "a".repeat(64),
-          mime: kind === "video" ? "video/mp4" : "image/png",
+          mime:
+            kind === "audio"
+              ? "audio/wav"
+              : kind === "video"
+                ? "video/mp4"
+                : "image/png",
         },
       ],
     },

@@ -77,3 +77,30 @@ test("generated video rejects missing audio, frame evidence and wrong output kin
     { resolution: "256x144" },
   );
 });
+
+test("generated audio retains exact sample timing without any video dimensions or track toggle", () => {
+  const source = {
+    kind: "audio" as const,
+    mime: "audio/wav",
+    hasAudio: true,
+    durationUs: 2000000,
+    timing: {
+      frameRateMode: "unknown" as const,
+      audioSampleRate: 48000,
+      audioChannels: 1,
+    },
+  };
+  validateGeneratedVisual(source, "audio/wav", { durationSeconds: 2 });
+  validateGeneratedVisual({ ...source, durationUs: 2000020 }, "audio/wav", {
+    durationSeconds: 2,
+  });
+  for (const invalid of [
+    { ...source, durationUs: 2000021 },
+    { ...source, hasAudio: false },
+    { ...source, width: 10 },
+    { ...source, timing: { frameRateMode: "unknown" as const } },
+  ])
+    assert.throws(() =>
+      validateGeneratedVisual(invalid, "audio/wav", { durationSeconds: 2 }),
+    );
+});

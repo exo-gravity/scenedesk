@@ -27,17 +27,16 @@ function keys(
 }
 function visualOutput(
   raw: unknown,
-  kind: "image" | "video",
-): ImageOutput | VideoOutput {
-  const collection = kind === "image" ? "images" : "videos";
+  kind: "image" | "video" | "audio",
+): ImageOutput | VideoOutput | AudioOutput {
+  const collection =
+    kind === "image" ? "images" : kind === "video" ? "videos" : "audios";
   if (
     !keys(raw, [collection]) ||
     !Array.isArray(raw[collection]) ||
     raw[collection].length !== 1
   )
-    throw new Error(
-      kind === "video" ? "INVALID_VIDEO_OUTPUT" : "INVALID_IMAGE_OUTPUT",
-    );
+    throw new Error(`INVALID_${kind.toUpperCase()}_OUTPUT`);
   const source = raw[collection][0];
   if (
     !keys(source, ["kind", "object", "sha256", "mime"]) ||
@@ -57,15 +56,15 @@ function visualOutput(
     !(
       kind === "image"
         ? ["image/png", "image/jpeg", "image/webp"]
-        : ["video/mp4"]
+        : kind === "video"
+          ? ["video/mp4"]
+          : ["audio/wav"]
     ).includes(String(source.mime))
   )
-    throw new Error(
-      kind === "video" ? "INVALID_VIDEO_OUTPUT" : "INVALID_IMAGE_OUTPUT",
-    );
+    throw new Error(`INVALID_${kind.toUpperCase()}_OUTPUT`);
   validateByteCount(source.object.bytes);
   validateSha256(source.sha256);
-  return raw as ImageOutput | VideoOutput;
+  return raw as ImageOutput | VideoOutput | AudioOutput;
 }
 
 export type VideoOutput = {
@@ -76,4 +75,11 @@ export function imageOutput(raw: unknown): ImageOutput {
 }
 export function videoOutput(raw: unknown): VideoOutput {
   return visualOutput(raw, "video") as VideoOutput;
+}
+
+export type AudioOutput = {
+  audios: [Omit<ImageOutput["images"][0], "mime"> & { mime: "audio/wav" }];
+};
+export function audioOutput(raw: unknown): AudioOutput {
+  return visualOutput(raw, "audio") as AudioOutput;
 }

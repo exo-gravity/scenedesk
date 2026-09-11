@@ -1,0 +1,164 @@
+{
+  "recordedAt": "2026-09-11T17:17:35.850901+00:00",
+  "baseCommit": "17695d26c3e8e3322f9332f0e3a6ee815aff0060",
+  "branch": "feat/audio-generation-runtime",
+  "executionMode": "test_fixture",
+  "realProviderCalls": 0,
+  "paidProviderCalls": 0,
+  "productionAcceptance": false,
+  "browserAcceptance": "pending parent actual API/worker integration",
+  "migrations": [
+    {
+      "file": "0080_audio_fixed_sources.sql",
+      "sha256": "dc9c4759d36717319c02fd6c9e39eb88d2a423defe24adcfe64a2950279ac510",
+      "appliedAndFrozen": true
+    },
+    {
+      "file": "0081_audio_receipt_guards.sql",
+      "sha256": "09d61f427879149c4dbc08e0e604655b495f5e96c3305e4ea3dee4818fb210b5",
+      "appliedAndFrozen": true
+    },
+    {
+      "file": "0082_audio_archive_receipt.sql",
+      "sha256": "b1ef48b5f3e40bbf0c6644fbbf27451408a3ddeb401087c8a644f0fbfca52aae",
+      "appliedAndFrozen": true
+    },
+    {
+      "file": "0083_audio_verified_archive.sql",
+      "sha256": "4a9581db2dcfa22a51e540de6ced283a8cc5f2c6b493af4b294b94c245fa60fb",
+      "appliedAndFrozen": true
+    },
+    {
+      "file": "0084_audio_dispatch_authority.sql",
+      "sha256": "dcff2efded47f7d1adb1c501ebed333a2c51e7302c61ccf8408b6242a79e0093",
+      "appliedAndFrozen": true
+    },
+    {
+      "file": "0085_audio_voice_source_guards.sql",
+      "sha256": "8e03b004d5ceaceae854140bd72e0197a5d5f9bba9e406ad38cf95240b3889e4",
+      "appliedAndFrozen": true
+    },
+    {
+      "file": "0086_audio_guard_namespace.sql",
+      "sha256": "781ae67e9c1697d9e09ac5c712f90a8717185f3301472f52bf92d3011b6e7c6d",
+      "appliedAndFrozen": true
+    }
+  ],
+  "checks": [
+    {
+      "name": "complete_check",
+      "result": "passed",
+      "logSha256": "22d772f5c2b0a767995710d596ae3b978b4c082ef0856f0032a145011892119d",
+      "tests": 54,
+      "pass": 54,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 6937.819542
+    },
+    {
+      "name": "audio_database_regression",
+      "result": "passed",
+      "logSha256": "548c615f56554267eb58accb1634065fbad6faba2f78ec89c9c834457177c6c3",
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 47501.359542
+    },
+    {
+      "name": "media_output_validation_unit",
+      "result": "passed",
+      "logSha256": "a722c49aba4735c960dd62cfd1e2a545bea6a6898534efcfe518569eaea97ed8",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 628.656667
+    },
+    {
+      "name": "real_pcm_wav_probe_and_aac_proxy",
+      "result": "passed",
+      "logSha256": "482569fd709a0062a2224775fc18a35d3debe8585def107aabb849a493af6496",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 24332.764166
+    }
+  ],
+  "relatedRegression": {
+    "imageDatabaseTests": 10,
+    "videoDatabaseTests": 5,
+    "pass": 15,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "sourceLogSha256": "f9047c70a359160544eb3d5478da8b82e5d03c0e121c880ff9bc4f3143f86df6",
+    "scope": "Image and video subtests in first serial combined run passed; audio fixture expectation failed separately."
+  },
+  "retainedFailures": [
+    {
+      "name": "first_related_database_run",
+      "tests": 22,
+      "pass": 20,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 198406.069542,
+      "reason": "Audio canvas test incorrectly expected existing ensureCanvas POST status 201 instead of 200; parent and that child failed. Test expectation corrected without changing product behavior. Audio rerun passed 7/7.",
+      "logSha256": "f9047c70a359160544eb3d5478da8b82e5d03c0e121c880ff9bc4f3143f86df6"
+    }
+  ],
+  "pendingValidation": [
+    {
+      "name": "complete_audio_object_storage_archive_recovery",
+      "status": "not_run",
+      "test": "tests/media/audio-generation.test.ts",
+      "reason": "Parent independent CI and continuous API/worker integration will verify full storage/decode/recovery; relational fixtures do not prove file decoding."
+    },
+    {
+      "name": "integrated_complete_database_and_media_regression",
+      "status": "pending parent CI"
+    },
+    {
+      "name": "real_provider_and_creative_quality",
+      "status": "unavailable without service, region, credentials and spending authorization"
+    }
+  ],
+  "technicalFileFactory": {
+    "observedDecode": true,
+    "intendedMime": "audio/wav",
+    "intendedDurationSeconds": 2,
+    "intendedAudioSampleRate": 48000,
+    "intendedAudioChannels": 1,
+    "intendedPcmBitsPerSample": 16,
+    "intendedToneHz": 440,
+    "speechSynthesis": false
+  },
+  "documentValidation": {
+    "operations": 148,
+    "paths": 114,
+    "schemas": 222,
+    "examples": 157,
+    "localLinks": 1285,
+    "logSha256": "934bdb3f8c7f746c1b3ebdaf6668576038c610789fbb013074ddc0da0681ad23"
+  },
+  "reviewNotes": [
+    "Public API DTO and generated contracts unchanged. Canonical media resolver retains image/visual compatibility exports. Existing media_generation queue, repair, attempt and archive recovery protocols reused.",
+    "git diff --check passed before staging; already applied migrations 0080 through 0086 checksums frozen."
+  ],
+  "actualTechnicalSource": {
+    "mime": "audio/wav",
+    "durationUs": 2000000,
+    "audioSampleRate": 48000,
+    "audioChannels": 1,
+    "bytes": 192044,
+    "proxyMime": "audio/mp4",
+    "proxyDurationUs": 2021333,
+    "originalPreserved": true
+  }
+}
