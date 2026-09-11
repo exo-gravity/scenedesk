@@ -1,12 +1,77 @@
 import { test, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { Pool } from "pg";
 import { grantGenerationWorkerAccess, sqlIdentifier } from "@drama/database";
 import { createAssistanceWorker } from "../../apps/api/src/modules/generation/worker.js";
 import { businessFixture } from "../support/business.js";
 import { asyncProviderHttpFixture } from "../helpers/async-provider-http.js";
+
+async function isolatedWorkerProcess(configuration: {
+  databaseUrl: string;
+  schema: string;
+  origin: string;
+  connectionVersionId: string;
+  action: "process" | "reconcile";
+  jobId: string;
+}) {
+  // The only database credential passed to this fresh process is the generated,
+  // restricted fixture worker login. No real application environment is inherited.
+  const code = `
+    import { Pool } from "pg";
+    import { createAssistanceWorker } from "./apps/api/src/modules/generation/worker.ts";
+    import { asyncProviderHttpAdapter } from "./tests/helpers/async-provider-http.ts";
+    const config = JSON.parse(process.env.SCENEDESK_HTTP_TEST_WORKER);
+    const pool = new Pool({ connectionString: config.databaseUrl, max: 2 });
+    try {
+      const adapter = asyncProviderHttpAdapter({ origin: config.origin, connectionVersionId: config.connectionVersionId, executionMode: "test_fixture" });
+      const worker = await createAssistanceWorker({ pool, schema: config.schema, adapters: [adapter] });
+      await worker[config.action](config.jobId);
+      process.stdout.write(JSON.stringify({ pid: process.pid }));
+    } catch (error) {
+      process.stdout.write(JSON.stringify({ errorCode: typeof error?.code === "string" ? error.code.slice(0, 40) : "WORKER_FAILED" }));
+      process.exitCode = 1;
+    } finally { await pool.end(); }
+  `;
+  const child = spawn(
+    process.execPath,
+    ["--import", "tsx", "--input-type=module", "--eval", code],
+    {
+      cwd: new URL("../../", import.meta.url),
+      env: {
+        PATH: process.env.PATH,
+        SCENEDESK_HTTP_TEST_WORKER: JSON.stringify(configuration),
+      },
+      stdio: ["ignore", "pipe", "ignore"],
+      signal: AbortSignal.timeout(20000),
+    },
+  );
+  let output = "";
+  child.stdout.on("data", (chunk: Buffer) => {
+    if (output.length + chunk.length > 4096) child.kill("SIGKILL");
+    else output += chunk.toString("utf8");
+  });
+  await new Promise<void>((resolve, reject) => {
+    child.once("error", reject);
+    child.once("close", (status) => {
+      if (status === 0) resolve();
+      else
+        reject(
+          new Error(`Isolated fixture worker failed: ${status}, ${output}`),
+        );
+    });
+  });
+  const result: unknown = JSON.parse(output);
+  assert.ok(
+    result &&
+      typeof result === "object" &&
+      "pid" in result &&
+      Number.isSafeInteger(result.pid),
+  );
+  return (result as { pid: number }).pid;
+}
 
 async function setup(t: TestContext) {
   const f = await businessFixture(t);
@@ -87,6 +152,15 @@ async function setup(t: TestContext) {
       schema: f.schema,
       adapters: [provider.adapter],
     });
+  const workerProcess = (action: "process" | "reconcile", jobId: string) =>
+    isolatedWorkerProcess({
+      databaseUrl: url.href,
+      schema: f.schema,
+      origin: provider.origin,
+      connectionVersionId,
+      action,
+      jobId,
+    });
   const createJob = async () => {
     const plan = await f.ok("POST", `${base}/generation-plans`, {
       scope: "project",
@@ -144,7 +218,18 @@ async function setup(t: TestContext) {
       "HTTP fixture worker did not reach the expected observed state",
     );
   }
-  return { ...f, base, pool, provider, newWorker, createJob, read, drive, due };
+  return {
+    ...f,
+    base,
+    pool,
+    provider,
+    newWorker,
+    workerProcess,
+    createJob,
+    read,
+    drive,
+    due,
+  };
 }
 
 test("loopback async acceptance produces one persistent proposal through pending and running without another submit", async (t) => {
@@ -217,11 +302,9 @@ test("a lost HTTP creation reply is recovered by reading the original attempt, n
   const accepted = f.provider.creations()[0]!;
   const restarted = await f.newWorker();
   await Promise.all([worker.process(job.id), restarted.process(job.id)]);
-  await f.drive(
-    restarted,
-    job.id,
-    async () => (await f.read(job.id)).status === "provider_pending",
-  );
+  await f.due(job.id);
+  assert.notEqual(await f.workerProcess("reconcile", job.id), process.pid);
+  assert.equal((await f.read(job.id)).status, "provider_pending");
   assert.equal((await f.read(job.id)).providerJobId, accepted.providerJobId);
   assert.equal(
     f.provider.requests().filter((event) => event.operation === "recover")
@@ -297,12 +380,8 @@ test("a lost cancellation response permits one cancellation call and preserves a
   });
   const repeated = await cancel();
   assert.equal(repeated.statusCode, 202, repeated.body);
-  const restarted = await f.newWorker();
-  await f.drive(
-    restarted,
-    job.id,
-    async () => (await f.read(job.id)).status === "succeeded",
-  );
+  await f.due(job.id);
+  assert.notEqual(await f.workerProcess("reconcile", job.id), process.pid);
   const result = await f.read(job.id);
   const proposal = await f.ok(
     "GET",
@@ -325,6 +404,158 @@ test("a lost cancellation response permits one cancellation call and preserves a
       .length,
     1,
   );
+  for (const event of f.provider.requests()) {
+    assert.equal(event.attemptId, accepted.submission.attemptId);
+    assert.equal(event.providerJobId, accepted.providerJobId);
+  }
+});
+
+test("HTTP errors and mismatched result identities preserve the original job and durable query backoff across workers", async (t) => {
+  const f = await setup(t),
+    { job } = await f.createJob(),
+    worker = await f.newWorker();
+  await worker.process(job.id);
+  const accepted = f.provider.creations()[0]!;
+  const queries = () =>
+    f.provider.requests().filter((event) => event.operation === "query").length;
+  for (const fault of [
+    "http_503",
+    "wrong_correlation",
+    "wrong_provider_id",
+  ] as const) {
+    f.provider.failNextQuery(accepted.providerJobId, fault);
+    const second = await f.newWorker(),
+      before = queries();
+    await f.due(job.id);
+    await Promise.all([worker.reconcile(job.id), second.reconcile(job.id)]);
+    assert.equal(
+      queries(),
+      before + 1,
+      "concurrent workers share a durable observation lease",
+    );
+    const stillPending = await f.read(job.id);
+    assert.equal(stillPending.status, "provider_pending");
+    assert.equal(stillPending.providerJobId, accepted.providerJobId);
+    assert.equal(stillPending.proposalId, undefined);
+    const restarted = await f.newWorker();
+    await restarted.reconcile(job.id);
+    assert.equal(
+      queries(),
+      before + 1,
+      "a new worker must respect the saved backoff",
+    );
+    assert.equal(f.provider.creations().length, 1);
+  }
+  f.provider.setState(accepted.providerJobId, {
+    kind: "completed",
+    output: {
+      shots: [{ label: "Verified HTTP", intent: "原任务通过身份核对后的结果" }],
+    },
+  });
+  await f.drive(
+    worker,
+    job.id,
+    async () => (await f.read(job.id)).status === "succeeded",
+  );
+  const result = await f.read(job.id);
+  const proposal = await f.ok(
+    "GET",
+    `${f.path}/proposals/${result.proposalId}`,
+  );
+  assert.equal(
+    proposal.operations[0].proposed.spec.intent,
+    "原任务通过身份核对后的结果",
+  );
+  assert.equal(
+    f.provider.requests().filter((event) => event.operation === "submit")
+      .length,
+    1,
+  );
+});
+
+test("independent worker processes concurrently submit once and reopen the original HTTP task after process exit", async (t) => {
+  const f = await setup(t),
+    { job } = await f.createJob();
+  const initialPids = await Promise.all([
+    f.workerProcess("process", job.id),
+    f.workerProcess("process", job.id),
+  ]);
+  assert.notEqual(initialPids[0], initialPids[1]);
+  assert.equal(f.provider.creations().length, 1);
+  const accepted = f.provider.creations()[0]!;
+  assert.equal((await f.read(job.id)).providerJobId, accepted.providerJobId);
+  f.provider.setState(accepted.providerJobId, { kind: "running" });
+  await f.due(job.id);
+  const runningPid = await f.workerProcess("reconcile", job.id);
+  assert.equal((await f.read(job.id)).status, "provider_running");
+  assert.ok(!initialPids.includes(runningPid));
+  f.provider.setState(accepted.providerJobId, {
+    kind: "completed",
+    output: {
+      shots: [
+        { label: "Process restart", intent: "进程退出后查询原任务保存的产物" },
+      ],
+    },
+  });
+  await f.due(job.id);
+  const finalPid = await f.workerProcess("reconcile", job.id);
+  assert.ok(![...initialPids, runningPid].includes(finalPid));
+  const result = await f.read(job.id);
+  assert.equal(result.status, "succeeded");
+  const proposal = await f.ok(
+    "GET",
+    `${f.path}/proposals/${result.proposalId}`,
+  );
+  assert.equal(
+    proposal.operations[0].proposed.spec.intent,
+    "进程退出后查询原任务保存的产物",
+  );
+  assert.equal(f.provider.creations().length, 1);
+  assert.equal(
+    f.provider.requests().filter((event) => event.operation === "submit")
+      .length,
+    1,
+  );
+  for (const event of f.provider.requests()) {
+    assert.equal(event.attemptId, accepted.submission.attemptId);
+    assert.equal(event.providerJobId, accepted.providerJobId);
+  }
+});
+
+test("a fresh worker recovers an already-completed lost submission through a read-only HTTP lookup", async (t) => {
+  const f = await setup(t),
+    { job } = await f.createJob(),
+    worker = await f.newWorker();
+  f.provider.dropNextCreationResponse();
+  await worker.process(job.id);
+  assert.equal((await f.read(job.id)).status, "submission_unknown");
+  const accepted = f.provider.creations()[0]!;
+  f.provider.setState(accepted.providerJobId, {
+    kind: "completed",
+    output: {
+      shots: [
+        { label: "Completed recovery", intent: "只读找回原提交的已完成产物" },
+      ],
+    },
+  });
+  await f.due(job.id);
+  await f.workerProcess("reconcile", job.id);
+  const result = await f.read(job.id);
+  assert.equal(result.status, "succeeded");
+  assert.equal(result.providerJobId, accepted.providerJobId);
+  const proposal = await f.ok(
+    "GET",
+    `${f.path}/proposals/${result.proposalId}`,
+  );
+  assert.equal(
+    proposal.operations[0].proposed.spec.intent,
+    "只读找回原提交的已完成产物",
+  );
+  assert.deepEqual(
+    f.provider.requests().map((event) => event.operation),
+    ["submit", "recover"],
+  );
+  assert.equal(f.provider.creations().length, 1);
   for (const event of f.provider.requests()) {
     assert.equal(event.attemptId, accepted.submission.attemptId);
     assert.equal(event.providerJobId, accepted.providerJobId);

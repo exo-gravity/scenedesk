@@ -26,6 +26,7 @@ type FixtureJob = {
   submission: AssistanceSubmission;
   state: FixtureState;
 };
+type QueryFault = "http_503" | "wrong_correlation" | "wrong_provider_id";
 
 const limit = 262144;
 async function readBody(request: IncomingMessage) {
@@ -56,6 +57,7 @@ export async function asyncProviderHttpFixture(connectionVersionId: string) {
   const jobs: FixtureJob[] = [],
     events: HttpEvent[] = [];
   const droppedCancellations = new Set<string>();
+  const queryFaults = new Map<string, QueryFault>();
   let dropCreationResponse = false;
   const find = (id: string) => {
     const job = jobs.find((item) => item.providerJobId === id);
@@ -187,10 +189,31 @@ export async function asyncProviderHttpFixture(connectionVersionId: string) {
           json(response, 409, { code: "FIXTURE_IDENTITY_MISMATCH" });
           return;
         }
+        const fault = queryFaults.get(job.providerJobId);
+        queryFaults.delete(job.providerJobId);
+        if (fault === "http_503") {
+          json(response, 503, { code: "FIXTURE_TEMPORARILY_UNAVAILABLE" });
+          return;
+        }
         json(response, 200, {
-          ...job.state,
+          ...(fault
+            ? {
+                kind: "completed",
+                output: {
+                  shots: [
+                    { label: "Wrong identity", intent: "不可保存的异源结果" },
+                  ],
+                },
+              }
+            : job.state),
           correlation: job.submission.attemptId,
           providerJobId: job.providerJobId,
+          ...(fault === "wrong_correlation"
+            ? { correlation: randomUUID() }
+            : {}),
+          ...(fault === "wrong_provider_id"
+            ? { providerJobId: `scenedesk-http-fixture-${randomUUID()}` }
+            : {}),
         });
         return;
       }
@@ -227,6 +250,10 @@ export async function asyncProviderHttpFixture(connectionVersionId: string) {
     dropCancellationResponse(id: string) {
       find(id);
       droppedCancellations.add(id);
+    },
+    failNextQuery(id: string, fault: QueryFault) {
+      find(id);
+      queryFaults.set(id, fault);
     },
     setState(id: string, state: FixtureState) {
       find(id).state = structuredClone(state);
