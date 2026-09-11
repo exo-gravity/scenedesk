@@ -47,11 +47,13 @@ node --env-file=.env --import tsx scripts/extend-local-prompt-fixture.ts <tenant
 
 扩展命令要求 APP_ENV=local 和明确现有 fixture 身份，复用原 connectionVersion 与 worker，不改私密 worker 配置、不创建第二个 worker、不调用供应商。同样输入再次执行会复用已有两个目标描述。默认迁移不创建任何能力，未配置时 capabilities 为空。
 
-新增迁移 0030–0033；每次已运行的迁移保持不变，后续 SQL 修正采用追加迁移。升级后必须重跑显式运行时角色授权。API 无权创建原始 artifact 或改写其修订，worker 只能调用受限执行函数，不能直接读取任意镜头/剧本文本表。
+新增迁移 0030–0033；每次已运行的迁移保持不变，后续 SQL 修正采用追加迁移。整合时发现 0030 对自动命名约束的判断错误，误删 ready 计划必须有估算且无阻塞原因的数据库检查；0034 用明确名称补回，数据库负例分别验证缺少估算及存在阻塞原因均被拒绝。接口仍保持原校验，没有将商业计费重新加入首发。`upgrade:business` 同时重授已配置 generation worker 的受限函数权限，复用既有身份。API 无权创建原始 artifact 或改写其修订，worker 只能调用受限执行函数，不能直接读取任意镜头/剧本文本表。
 
 验证记录见 [prompt-assistance-results.json](../../output/engineering/prompt-assistance-results.json)。数据库测试使用隔离 schema、受限 API/worker 登录和真实 PostgreSQL 事务，媒体记录为明确的关系夹具，没有媒体字节验收。测试覆盖固定镜头闭环、CAS/history、未知执行与过期幂等恢复、输出引用注入、旧镜头版本、可变上下文与画布语义、参考归档/私有项目隔离、权限撤销、迟到冲突与运行时权限。前端整合、浏览器闭环、持续环境升级与 GitHub CI/merge 由主线程统一执行。
 
 ## 明确剩余工作
+
+前后端已在主线程整合并通过[实际生产网页与受限 worker 闭环](../../output/playwright/2026-09-11-prompt-integrated/verification.md)：真实回执丢失后仅通过 GET 恢复同一任务与人工修订，原镜头未改变，明确追加保留手工原文和固定来源。完整检查 69 单元、172 数据库通过，0034 加强后的提示专项 13 项通过；远端 CI／合并待完成。
 
 `prepare_rework` 需要真实 review、comment 和固定 CutRevision 等来源实体；当前没有对应持久化业务，合法形状的请求返回 `503 REWORK_FEEDBACK_UNAVAILABLE`。现有 Take 不足以构造原意见来源。不能用自由文本、伪造 ID 或恢复后期编辑作为首发捷径。
 

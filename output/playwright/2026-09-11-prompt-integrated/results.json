@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-09-11T12:34:32.106738+00:00",
+  "checks": [
+    {
+      "name": "complete_check",
+      "tests": 69,
+      "pass": 69,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "aaaebee9f92e2695936db6ce6c2cdd2d0b8c5cd4c5b4456b13293ec51ad1cffd"
+    },
+    {
+      "name": "database_full_before_readiness_fix",
+      "tests": 172,
+      "pass": 172,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "da98a41ca07558955951a3b98c21dd8711218ba260f4c2a975577b5546cf906c"
+    },
+    {
+      "name": "database_prompt_with_readiness_fix",
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "1d79caeb5feaa6fd87772964157e9a4646fa527de754e99505d4a09b5a80aed5"
+    }
+  ],
+  "browser": {
+    "actualApi": true,
+    "actualPostgreSql": true,
+    "actualRestrictedWorker": true,
+    "paidCalls": 0,
+    "notRealModelAcceptance": true,
+    "projectId": "ff8f70f2-8075-45de-b2bc-c54bd62e2653",
+    "shotId": "a9f4d414-2467-43bb-a56d-4be7fe13e651",
+    "fixedShotRevisionId": "9522ed5a-d2e3-4ba0-a678-7aab55c495a2",
+    "jobId": "eb6b7a51-4e7e-4465-b3bc-307358492e65",
+    "planId": "114d3224-6444-4e8a-b1cd-197ef9bce8a1",
+    "status": "succeeded",
+    "executionMode": "test_fixture",
+    "artifactId": "eb6b7a51-4e7e-4465-b3bc-307358492e65",
+    "currentRevision": 2,
+    "r1Prompt": "显式测试 fixture：重点安排动作与运镜。明确测试输入 🌌。",
+    "r2Prompt": "人工修订建议：先停顿，再缓慢推进。",
+    "planPosts": 1,
+    "executePosts": 1,
+    "editPuts": 1,
+    "executionRecovery": "Real 202 lost; GET same job after reload",
+    "editRecovery": "Real PUT 200 lost; GET confirms r2 without replay",
+    "manualInputPreserved": true,
+    "shotUnchanged": true,
+    "modeRecovery": true,
+    "viewportWidths": [
+      1512,
+      1366,
+      390
+    ],
+    "pageErrors": [],
+    "api5xx": []
+  },
+  "viewedScreenshots": [
+    "confirm.png",
+    "applied-1512.png",
+    "applied-1366.png",
+    "applied-390.png"
+  ],
+  "migrationCount": 33,
+  "workerIdentityReused": true,
+  "productionAcceptance": false
+}

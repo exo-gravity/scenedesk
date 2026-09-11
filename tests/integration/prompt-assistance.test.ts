@@ -298,6 +298,35 @@ test("fixed prompt assistance preserves shot sources and immutable human-editabl
     },
   );
   await t.test(
+    "the database rejects ready plans without an estimate or with blocking reasons",
+    async () => {
+      for (const [estimate, reasons] of [
+        [null, []],
+        [plan.costEstimate, ["CAPABILITY_UNAVAILABLE"]],
+      ]) {
+        await assert.rejects(
+          admin.query(
+            `INSERT INTO "${schema}".generation_plans
+              (id,tenant_id,project_id,capability_id,connection_version_id,created_by,
+               input,resolved_input,input_hash,capability_revision,base_content_snapshot,
+               cost_estimate,blocking_reasons,execution_mode,status,expires_at)
+             SELECT $1,tenant_id,project_id,capability_id,connection_version_id,created_by,
+               input,resolved_input,input_hash,capability_revision,base_content_snapshot,
+               $2::jsonb,$3::jsonb,execution_mode,'ready',expires_at
+             FROM "${schema}".generation_plans WHERE id=$4`,
+            [
+              randomUUID(),
+              estimate === null ? null : JSON.stringify(estimate),
+              JSON.stringify(reasons),
+              plan.id,
+            ],
+          ),
+          { code: "23514", constraint: "generation_plans_ready_cost_check" },
+        );
+      }
+    },
+  );
+  await t.test(
     "human edits append immutable revisions; conflicts and lost responses recover by authoritative reads",
     async () => {
       const edited = { ...original, prompt: "人工修改：镜头从门把手移到钥匙" };
