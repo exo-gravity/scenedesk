@@ -253,11 +253,34 @@ test(
     await t.test(
       "10-bit samples, HDR color tags and sample aspect ratio retain their original precision",
       async () => {
-        const file = join(directory, "ten-bit.nut");
-        await create(
-          file,
-          "format=yuv420p10le,geq=lum='300+N*13':cb=513:cr=517,setsar=4/3",
+        const file = join(directory, "ten-bit.mp4");
+        // NUT does not persist these color tags. The source must carry real VUI
+        // metadata before its interpretation can be retained in the source map.
+        await runMediaProcess(
+          undefined,
+          "/ffmpeg",
           [
+            "-v",
+            "error",
+            "-nostdin",
+            "-threads",
+            "2",
+            "-filter_threads",
+            "2",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=black:size=64x48:rate=24:duration=0.5",
+            "-vf",
+            "format=yuv420p10le,geq=lum='300+N*13':cb=513:cr=517,setparams=range=tv:colorspace=bt2020nc:color_primaries=bt2020:color_trc=smpte2084,setsar=4/3",
+            "-c:v",
+            "libx265",
+            "-threads",
+            "2",
+            "-pix_fmt",
+            "yuv420p10le",
+            "-x265-params",
+            "lossless=1:log-level=error:pools=2:frame-threads=1",
             "-color_primaries",
             "bt2020",
             "-color_trc",
@@ -266,7 +289,13 @@ test(
             "bt2020nc",
             "-color_range",
             "tv",
+            "-movflags",
+            "+frag_keyframe+delay_moov+default_base_moof",
+            "-f",
+            "mp4",
+            "pipe:1",
           ],
+          { outputFile: file, maxBytes: 4 * 1024 * 1024, signal: t.signal },
         );
         const result = await makeVideoProduction(
           file,

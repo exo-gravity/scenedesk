@@ -251,6 +251,21 @@ export async function makeVideoProduction(
     const sar = /^[1-9]\d*:[1-9]\d*$/.test(source.sampleAspectRatio)
       ? source.sampleAspectRatio.replace(":", "/")
       : "1/1";
+    // Raw pipes contain pixels only. Restore the audited interpretation before
+    // negotiation; automatic color conversion remains disabled by +pix_fmt.
+    const colorParams = Object.entries({
+      range: source.pixelFormat.startsWith("yuvj") ? "pc" : source.color.range,
+      colorspace: source.color.space,
+      color_trc: source.color.transfer,
+      color_primaries: source.color.primaries,
+    })
+      .filter(([, value]) => value !== "unknown")
+      .map(([key, value]) => `${key}=${value}`)
+      .join(":");
+    const encodeFilters = [
+      ...(colorParams ? [`setparams=${colorParams}`] : []),
+      `setsar=ratio=${sar}:max=2147483647`,
+    ].join(",");
     await Promise.all([
       finish(
         runMediaProcess(
@@ -293,7 +308,7 @@ export async function makeVideoProduction(
             "-map",
             "0:v:0",
             "-vf",
-            `setsar=ratio=${sar}:max=2147483647`,
+            encodeFilters,
             "-c:v",
             "ffv1",
             "-level",
