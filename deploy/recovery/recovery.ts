@@ -141,6 +141,12 @@ async function bundleDirectory(path: string, create: boolean) {
   if (create) {
     try {
       await mkdir(canonical, { mode: 0o700 });
+      const parent = await open(dirname(canonical), "r");
+      try {
+        await parent.sync();
+      } finally {
+        await parent.close();
+      }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "EEXIST")
         throw new RecoveryError("RECOVERY_BUNDLE_EXISTS");
