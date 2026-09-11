@@ -864,7 +864,7 @@ function GenerationWorkspace({
       >
         <Stack>
           <Text>
-            {`将已归档的${label}添加为独立节点，放在原草稿旁边；保留原草稿和镜头采用。`}
+            {`将已归档的${label}作为独立节点添加到画布。`}
           </Text>
           <Button
             disabled={disabled || job?.status !== "succeeded"}

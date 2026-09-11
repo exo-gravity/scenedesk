@@ -1,0 +1,27 @@
+{
+  "actualApi": true,
+  "actualPostgres": true,
+  "actualQueueAndDecode": true,
+  "provider": "test_fixture",
+  "jobId": "73235f8a-e573-4a4c-9dd7-605cc10fc7f5",
+  "planId": "91f7ba24-f520-4425-928c-b35d0af0f6da",
+  "mediaId": "73235f8a-e573-4a4c-9dd7-605cc10fc7f5",
+  "downloadedBytes": 99,
+  "sha256": "90df114133da3c93c1f5eb9143b008825470bf003edcd1e2faee39faf2586f5c",
+  "placements": [
+    {
+      "nodeId": "137b3976-593a-4453-95d6-ec72c517a47c",
+      "position": {
+        "x": 80,
+        "y": 80
+      }
+    }
+  ],
+  "canvasNodeCount": 5,
+  "sourceStillDeleted": true,
+  "singleExplicitResult": true,
+  "previewDecoded": true,
+  "providerCalls": 1,
+  "errors": [],
+  "queueErrors": []
+}

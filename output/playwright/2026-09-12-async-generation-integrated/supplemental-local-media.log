@@ -1,0 +1,522 @@
+
+> drama-platform@0.0.0 test:media
+> node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 tests/media/*.test.ts
+
+TAP version 13
+# Subtest: generated PCM audio archives original bytes and independently recovers its preview
+    # Subtest: original audio is verified and readable before its only proxy completes
+    ok 1 - original audio is verified and readable before its only proxy completes
+      ---
+      duration_ms: 23364.183125
+      type: 'test'
+      ...
+    # Subtest: a real three-second output cannot masquerade as the fixed two-second request
+    ok 2 - a real three-second output cannot masquerade as the fixed two-second request
+      ---
+      duration_ms: 16343.912833
+      type: 'test'
+      ...
+    # Subtest: archive retries keep the same source; a failed proxy preserves ready original and job success
+    ok 3 - archive retries keep the same source; a failed proxy preserves ready original and job success
+      ---
+      duration_ms: 32316.794125
+      type: 'test'
+      ...
+    1..3
+ok 1 - generated PCM audio archives original bytes and independently recovers its preview
+  ---
+  duration_ms: 136958.048792
+  type: 'test'
+  ...
+# Subtest: accepted PCM WAV keeps signed source samples through the production API
+ok 2 - accepted PCM WAV keeps signed source samples through the production API
+  ---
+  duration_ms: 39747.885333
+  type: 'test'
+  ...
+# Subtest: actual audio production retains signal, decoded presentation intervals and fixed sample positions
+    # Subtest: millisecond PTS do not manufacture gaps; mono is duplicated exactly
+    ok 1 - millisecond PTS do not manufacture gaps; mono is duplicated exactly
+      ---
+      duration_ms: 72830.236917
+      type: 'test'
+      ...
+    # Subtest: actual video t0 preserves delayed embedded audio
+    ok 2 - actual video t0 preserves delayed embedded audio
+      ---
+      duration_ms: 42395.289416
+      type: 'test'
+      ...
+    # Subtest: internal gaps and fractional negative offsets are explicit, stereo channels stay distinct
+    ok 3 - internal gaps and fractional negative offsets are explicit, stereo channels stay distinct
+      ---
+      duration_ms: 84103.089708
+      type: 'test'
+      ...
+    # Subtest: 44.1 kHz resampling matches a known 997 Hz signal at the actual 48 kHz positions
+    ok 4 - 44.1 kHz resampling matches a known 997 Hz signal at the actual 48 kHz positions
+      ---
+      duration_ms: 39116.965708
+      type: 'test'
+      ...
+    # Subtest: AAC decoder tail beyond declared presentation is discarded; unknown leading delay is never guessed
+    ok 5 - AAC decoder tail beyond declared presentation is discarded; unknown leading delay is never guessed
+      ---
+      duration_ms: 61618.191625
+      type: 'test'
+      ...
+    # Subtest: a one-sample source retains its presentation interval despite resampler filter latency
+    ok 6 - a one-sample source retains its presentation interval despite resampler filter latency
+      ---
+      duration_ms: 185030.450458
+      type: 'test'
+      ...
+    # Subtest: Opus decoder skip and discard metadata produce only effective samples
+    ok 7 - Opus decoder skip and discard metadata produce only effective samples
+      ---
+      duration_ms: 47172.182292
+      type: 'test'
+      ...
+    # Subtest: multichannel, non-finite samples and cancellation fail without partial production directories
+    ok 8 - multichannel, non-finite samples and cancellation fail without partial production directories
+      ---
+      duration_ms: 72730.890166
+      type: 'test'
+      ...
+    # Subtest: an undecodable midstream sample rate change is rejected rather than silently resampled
+    ok 9 - an undecodable midstream sample rate change is rejected rather than silently resampled
+      ---
+      duration_ms: 49892.775083
+      type: 'test'
+      ...
+    1..9
+ok 3 - actual audio production retains signal, decoded presentation intervals and fixed sample positions
+  ---
+  duration_ms: 660606.730167
+  type: 'test'
+  ...
+# Subtest: technical PCM source preserves exact sample timing while AAC proxy remains independent
+ok 4 - technical PCM source preserves exact sample timing while AAC proxy remains independent
+  ---
+  duration_ms: 42393.224292
+  type: 'test'
+  ...
+# PCM durationUs=2000000, sampleRate=48000, channels=1, bytes=192044; AAC proxyDurationUs=2021333, source preserved
+# Subtest: media business: scoped upload, durable processing and immutable access
+    # Subtest: actual queue worker accepts an authorized document and explicit variant access
+    ok 1 - actual queue worker accepts an authorized document and explicit variant access
+      ---
+      duration_ms: 1944.588792
+      type: 'test'
+      ...
+    # Subtest: enqueue failure rolls back both completion and the new media root
+    ok 2 - enqueue failure rolls back both completion and the new media root
+      ---
+      duration_ms: 1073.08025
+      type: 'test'
+      ...
+    # Subtest: metadata CAS and archival retain accepted bytes and old access
+    ok 3 - metadata CAS and archival retain accepted bytes and old access
+      ---
+      duration_ms: 323.009084
+      type: 'test'
+      ...
+    # Subtest: retry reads the pinned upload version after the staging key is overwritten
+    ok 4 - retry reads the pinned upload version after the staging key is overwritten
+      ---
+      duration_ms: 541.892083
+      type: 'test'
+      ...
+    # Subtest: invalid content is rejected and cannot be recovered as an accepted original
+    ok 5 - invalid content is rejected and cannot be recovered as an accepted original
+      ---
+      duration_ms: 408.301208
+      type: 'test'
+      ...
+    # Subtest: poster failure and explicit recovery preserve the original image
+    ok 6 - poster failure and explicit recovery preserve the original image
+      ---
+      duration_ms: 78960.033958
+      type: 'test'
+      ...
+    # Subtest: scope authorization is rechecked for cached access and shared upload credentials
+    ok 7 - scope authorization is rechecked for cached access and shared upload credentials
+      ---
+      duration_ms: 5553.814458
+      type: 'test'
+      ...
+    # Subtest: repair recreates lost hints and finite retries require explicit recovery
+    ok 8 - repair recreates lost hints and finite retries require explicit recovery
+      ---
+      duration_ms: 4766.339625
+      type: 'test'
+      ...
+    # Subtest: database identities cannot bypass scope or change accepted content
+    ok 9 - database identities cannot bypass scope or change accepted content
+      ---
+      duration_ms: 465.888125
+      type: 'test'
+      ...
+    1..9
+ok 5 - media business: scoped upload, durable processing and immutable access
+  ---
+  duration_ms: 160970.975083
+  type: 'test'
+  ...
+# Subtest: image fixture archives real isolated bytes through strict probe and preview processing
+    # Subtest: original and poster become separately ready and fixed access returns exact bytes
+    ok 1 - original and poster become separately ready and fixed access returns exact bytes
+      ---
+      duration_ms: 44178.910792
+      type: 'test'
+      ...
+    # Subtest: finite download failures recover the same object and never call the model again
+    ok 2 - finite download failures recover the same object and never call the model again
+      ---
+      duration_ms: 22568.359208
+      type: 'test'
+      ...
+    # Subtest: wrong bytes cannot become usable Media or be retried as generation
+    ok 3 - wrong bytes cannot become usable Media or be retried as generation
+      ---
+      duration_ms: 3974.669584
+      type: 'test'
+      ...
+    # Subtest: poster failure preserves verified original and job success
+    ok 4 - poster failure preserves verified original and job success
+      ---
+      duration_ms: 30258.71175
+      type: 'test'
+      ...
+    1..4
+ok 6 - image fixture archives real isolated bytes through strict probe and preview processing
+  ---
+  duration_ms: 166333.699417
+  type: 'test'
+  ...
+# Subtest: bounded media decode and independent previews
+    # Subtest: pinned build and full decode report actual image, video and audio metadata
+    ok 1 - pinned build and full decode report actual image, video and audio metadata
+      ---
+      duration_ms: 55076.760834
+      type: 'test'
+      ...
+    # Subtest: poster and proxy are decoded independently while original bytes remain fixed
+    ok 2 - poster and proxy are decoded independently while original bytes remain fixed
+      ---
+      duration_ms: 101874.37425
+      type: 'test'
+      ...
+    # Subtest: type spoofing, damaged files and oversized dimensions cannot become ready
+    ok 3 - type spoofing, damaged files and oversized dimensions cannot become ready
+      ---
+      duration_ms: 21691.984542
+      type: 'test'
+      ...
+    # Subtest: documents require bounded UTF-8 and remain separate from rendered media
+    ok 4 - documents require bounded UTF-8 and remain separate from rendered media
+      ---
+      duration_ms: 12.687458
+      type: 'test'
+      ...
+    # Subtest: untrusted playlist cannot cause a network request
+    ok 5 - untrusted playlist cannot cause a network request
+      ---
+      duration_ms: 7451.969875
+      type: 'test'
+      ...
+    # Subtest: timeout kills the container with enforced resource limits and no writable host paths
+    ok 6 - timeout kills the container with enforced resource limits and no writable host paths
+      ---
+      duration_ms: 10405.176083
+      type: 'test'
+      ...
+    # Subtest: output cap aborts decoding and removes incomplete worker output
+    ok 7 - output cap aborts decoding and removes incomplete worker output
+      ---
+      duration_ms: 15389.475208
+      type: 'test'
+      ...
+    1..7
+ok 7 - bounded media decode and independent previews
+  ---
+  duration_ms: 219461.940416
+  type: 'test'
+  ...
+# Subtest: a killed storage worker is recovered from SQL receipts and the exact stored version
+ok 8 - a killed storage worker is recovered from SQL receipts and the exact stored version
+  ---
+  duration_ms: 43702.540375
+  type: 'test'
+  ...
+# Subtest: a killed decoder leaves durable owned resources that a new host coordinator reaps
+ok 9 - a killed decoder leaves durable owned resources that a new host coordinator reaps
+  ---
+  duration_ms: 30540.741917
+  type: 'test'
+  ...
+# Subtest: internal production storage preserves exact versions and resumable owned uploads
+    # Subtest: unknown initiation and interrupted parts resume under the already reserved key
+    ok 1 - unknown initiation and interrupted parts resume under the already reserved key
+      ---
+      duration_ms: 9526.325792
+      type: 'test'
+      ...
+    # Subtest: lost final journal write recovers the stored fixed version without local files or another upload
+    ok 2 - lost final journal write recovers the stored fixed version without local files or another upload
+      ---
+      duration_ms: 42.759917
+      type: 'test'
+      ...
+    # Subtest: private bucket permissions exclude API signing, current object reads and unrelated media enumeration
+    ok 3 - private bucket permissions exclude API signing, current object reads and unrelated media enumeration
+      ---
+      duration_ms: 133.827667
+      type: 'test'
+      ...
+    # Subtest: fixed versions survive a changed current object; conflicting unknown versions are never guessed
+    ok 4 - fixed versions survive a changed current object; conflicting unknown versions are never guessed
+      ---
+      duration_ms: 1313.861125
+      type: 'test'
+      ...
+    # Subtest: cleanup only aborts uploads for its retired or verified reserved artifact
+    ok 5 - cleanup only aborts uploads for its retired or verified reserved artifact
+      ---
+      duration_ms: 45.610875
+      type: 'test'
+      ...
+    # Subtest: cancellation keeps the uploaded part owned until explicit retirement cleanup
+    ok 6 - cancellation keeps the uploaded part owned until explicit retirement cleanup
+      ---
+      duration_ms: 1336.427208
+      type: 'test'
+      ...
+    # Subtest: matching metadata cannot conceal changed content, and failed downloads leave no file
+    ok 7 - matching metadata cannot conceal changed content, and failed downloads leave no file
+      ---
+      duration_ms: 25.051291
+      type: 'test'
+      ...
+    # Subtest: explicit empty PCM and actual files larger than the import limit are verified without widening imports
+    ok 8 - explicit empty PCM and actual files larger than the import limit are verified without widening imports
+      ---
+      duration_ms: 13904.014792
+      type: 'test'
+      ...
+    # Subtest: hash mismatch and expired ownership stop publication
+    ok 9 - hash mismatch and expired ownership stop publication
+      ---
+      duration_ms: 243.465375
+      type: 'test'
+      ...
+    1..9
+ok 10 - internal production storage preserves exact versions and resumable owned uploads
+  ---
+  duration_ms: 57800.635459
+  type: 'test'
+  ...
+# Subtest: accepted original media is produced by the real queue dispatcher and fixed artifacts survive restart
+ok 11 - accepted original media is produced by the real queue dispatcher and fixed artifacts survive restart
+  ---
+  duration_ms: 319966.746458
+  type: 'test'
+  ...
+# Subtest: sandbox stream input and output stay bounded and clean up on every termination
+    # Subtest: binary samples survive stdin, stdout and backpressure
+    ok 1 - binary samples survive stdin, stdout and backpressure
+      ---
+      duration_ms: 5721.549291
+      type: 'test'
+      ...
+    # Subtest: an over-limit producer cannot keep an encoder alive
+    ok 2 - an over-limit producer cannot keep an encoder alive
+      ---
+      duration_ms: 2431.369708
+      type: 'test'
+      ...
+    # Subtest: timeout releases an input that never reaches EOF
+    ok 3 - timeout releases an input that never reaches EOF
+      ---
+      duration_ms: 3934.430333
+      type: 'test'
+      ...
+    # Subtest: a stalled output cannot prevent cancellation after the decoder exits
+    ok 4 - a stalled output cannot prevent cancellation after the decoder exits
+      ---
+      duration_ms: 16689.028458
+      type: 'test'
+      ...
+    # Subtest: input exceptions and output limits remove the container
+    ok 5 - input exceptions and output limits remove the container
+      ---
+      duration_ms: 14447.141125
+      type: 'test'
+      ...
+    1..5
+ok 12 - sandbox stream input and output stay bounded and clean up on every termination
+  ---
+  duration_ms: 48113.515625
+  type: 'test'
+  ...
+# Subtest: private versioned media storage
+    # Subtest: POST policy fixes key, content type and exact byte count
+    ok 1 - POST policy fixes key, content type and exact byte count
+      ---
+      duration_ms: 251.023417
+      type: 'test'
+      ...
+    # Subtest: fixed version survives reuse of an old staging upload authorization
+    ok 2 - fixed version survives reuse of an old staging upload authorization
+      ---
+      duration_ms: 222.416209
+      type: 'test'
+      ...
+    # Subtest: published content has verified checksum and explicit version on every access
+    ok 3 - published content has verified checksum and explicit version on every access
+      ---
+      duration_ms: 201.592416
+      type: 'test'
+      ...
+# An error was encountered in a non-retryable streaming request.
+    # Subtest: signing principal cannot overwrite accepted originals or read staging
+    ok 4 - signing principal cannot overwrite accepted originals or read staging
+      ---
+      duration_ms: 288.345375
+      type: 'test'
+      ...
+# An error was encountered in a non-retryable streaming request.
+    # Subtest: checksum failures and pre-existing local files cannot be accepted
+    ok 5 - checksum failures and pre-existing local files cannot be accepted
+      ---
+      duration_ms: 41.4875
+      type: 'test'
+      ...
+    # Subtest: missing source versions and suspended versioning fail closed
+    ok 6 - missing source versions and suspended versioning fail closed
+      ---
+      duration_ms: 143.864708
+      type: 'test'
+      ...
+    1..6
+ok 13 - private versioned media storage
+  ---
+  duration_ms: 129494.17175
+  type: 'test'
+  ...
+# Subtest: generated technical MP4 retains real timing/audio and independently verified poster/proxy
+    # Subtest: silent and audible originals are decoded, exact source bytes remain accessible, poster/proxy finish separately
+    ok 1 - silent and audible originals are decoded, exact source bytes remain accessible, poster/proxy finish separately
+      ---
+      duration_ms: 143932.277708
+      type: 'test'
+      ...
+    # Subtest: declared audio mismatch rejects actual MP4 and never triggers a new generation
+    ok 2 - declared audio mismatch rejects actual MP4 and never triggers a new generation
+      ---
+      duration_ms: 14580.438583
+      type: 'test'
+      ...
+    # Subtest: archive retry preserves the original fixed file, while proxy failure does not revoke original success
+    ok 3 - archive retry preserves the original fixed file, while proxy failure does not revoke original success
+      ---
+      duration_ms: 32611.542708
+      type: 'test'
+      ...
+    1..3
+ok 14 - generated technical MP4 retains real timing/audio and independently verified poster/proxy
+  ---
+  duration_ms: 363142.641791
+  type: 'test'
+  ...
+# technical MP4 audio=false: actual 2000000 microseconds at 24/1 fps; no timing metadata rewritten
+# technical MP4 audio=true: actual 2021333 microseconds at 24/1 fps; no timing metadata rewritten
+# Subtest: actual video production follows the source map without proxy quality loss
+    # Subtest: nonzero PTS, VFR long frames, exact joints, skipped frames and fractional tails
+    ok 1 - nonzero PTS, VFR long frames, exact joints, skipped frames and fractional tails
+      ---
+      duration_ms: 123535.049791
+      type: 'test'
+      ...
+    # Subtest: all declared rates produce exact rational PTS and repeatable artifacts
+    ok 2 - all declared rates produce exact rational PTS and repeatable artifacts
+      ---
+      duration_ms: 270564.927708
+      type: 'test'
+      ...
+    # Subtest: accepted H.264 with B-frame reordering retains every decoded pixel
+    not ok 3 - accepted H.264 with B-frame reordering retains every decoded pixel
+      ---
+      duration_ms: 113927.386
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/video-production.test.ts:1:3845'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: 10-bit samples, HDR color tags and sample aspect ratio retain their original precision
+    not ok 4 - 10-bit samples, HDR color tags and sample aspect ratio retain their original precision
+      ---
+      duration_ms: 57721.812042
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/video-production.test.ts:1:4840'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: unaccepted profiles and cancelled work leave no partial production artifacts
+    ok 5 - unaccepted profiles and cancelled work leave no partial production artifacts
+      ---
+      duration_ms: 69466.585208
+      type: 'test'
+      ...
+    1..5
+not ok 15 - actual video production follows the source map without proxy quality loss
+  ---
+  duration_ms: 640453.694792
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/media/video-production.test.ts:1:611'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: technical video source and previews decode independently of object storage
+    # Subtest: silent video
+    ok 1 - silent video
+      ---
+      duration_ms: 156691.586292
+      type: 'test'
+      ...
+    # Subtest: AAC mixed track
+    ok 2 - AAC mixed track
+      ---
+      duration_ms: 153795.99975
+      type: 'test'
+      ...
+    1..2
+ok 16 - technical video source and previews decode independently of object storage
+  ---
+  duration_ms: 310501.720292
+  type: 'test'
+  ...
+# MP4 audio=false, sourceDurationUs=2000000, fps=24/1, sourceBytes=51015, proxyDurationUs=2000000, posterBytes=7059; source preserved
+# MP4 audio=true, sourceDurationUs=2021333, fps=24/1, sourceBytes=70080, proxyDurationUs=2026667, posterBytes=7059; source preserved
+1..16
+# tests 78
+# suites 0
+# pass 75
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3382971.501958
