@@ -1,0 +1,140 @@
+{
+  "controlledTransport": true,
+  "realIndexedDB": true,
+  "notBackendOrProviderAcceptance": true,
+  "plans": [
+    {
+      "id": "00006100-aabb-4ccd-8eef-112233445566",
+      "kind": "image",
+      "sources": [
+        {
+          "shotId": "00006012-aabb-4ccd-8eef-112233445566",
+          "shotRevisionId": "00006016-aabb-4ccd-8eef-112233445566"
+        },
+        {
+          "shotId": "00006011-aabb-4ccd-8eef-112233445566",
+          "shotRevisionId": "00006014-aabb-4ccd-8eef-112233445566"
+        }
+      ]
+    },
+    {
+      "id": "00006101-aabb-4ccd-8eef-112233445566",
+      "kind": "image",
+      "sources": []
+    },
+    {
+      "id": "00006102-aabb-4ccd-8eef-112233445566",
+      "kind": "video",
+      "sources": [
+        {
+          "shotId": "00006011-aabb-4ccd-8eef-112233445566",
+          "shotRevisionId": "00006017-aabb-4ccd-8eef-112233445566"
+        }
+      ]
+    },
+    {
+      "id": "00006103-aabb-4ccd-8eef-112233445566",
+      "kind": "audio",
+      "sources": [
+        {
+          "shotId": "00006012-aabb-4ccd-8eef-112233445566",
+          "shotRevisionId": "00006016-aabb-4ccd-8eef-112233445566"
+        }
+      ]
+    }
+  ],
+  "planPosts": [
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/scenes/00006005-aabb-4ccd-8eef-112233445566/canvas/generation-plans",
+      "method": "POST",
+      "key": "cbffad8b-3db3-43a9-a88c-e1a76049175c",
+      "version": "\"1\"",
+      "body": "{\"nodeId\":\"00006008-aabb-4ccd-8eef-112233445566\",\"shotSources\":[{\"shotId\":\"00006012-aabb-4ccd-8eef-112233445566\",\"shotRevisionId\":\"00006016-aabb-4ccd-8eef-112233445566\"},{\"shotId\":\"00006011-aabb-4ccd-8eef-112233445566\",\"shotRevisionId\":\"00006014-aabb-4ccd-8eef-112233445566\"}],\"referenceOverrides\":[],\"promptPolicy\":\"append\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/scenes/00006005-aabb-4ccd-8eef-112233445566/canvas/generation-plans",
+      "method": "POST",
+      "key": "cbffad8b-3db3-43a9-a88c-e1a76049175c",
+      "version": "\"1\"",
+      "body": "{\"nodeId\":\"00006008-aabb-4ccd-8eef-112233445566\",\"shotSources\":[{\"shotId\":\"00006012-aabb-4ccd-8eef-112233445566\",\"shotRevisionId\":\"00006016-aabb-4ccd-8eef-112233445566\"},{\"shotId\":\"00006011-aabb-4ccd-8eef-112233445566\",\"shotRevisionId\":\"00006014-aabb-4ccd-8eef-112233445566\"}],\"referenceOverrides\":[],\"promptPolicy\":\"append\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/scenes/00006005-aabb-4ccd-8eef-112233445566/canvas/generation-plans",
+      "method": "POST",
+      "key": "ae8df41e-c44f-4733-9691-806366dc4c01",
+      "version": "\"2\"",
+      "body": "{\"nodeId\":\"00006008-aabb-4ccd-8eef-112233445566\",\"shotSources\":[],\"referenceOverrides\":[],\"promptPolicy\":\"append\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/scenes/00006005-aabb-4ccd-8eef-112233445566/canvas/generation-plans",
+      "method": "POST",
+      "key": "0946e219-a6ec-4829-9435-33ddec1e6087",
+      "version": "\"2\"",
+      "body": "{\"nodeId\":\"00006009-aabb-4ccd-8eef-112233445566\",\"shotSources\":[{\"shotId\":\"00006011-aabb-4ccd-8eef-112233445566\",\"shotRevisionId\":\"00006017-aabb-4ccd-8eef-112233445566\"}],\"referenceOverrides\":[],\"promptPolicy\":\"append\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/scenes/00006005-aabb-4ccd-8eef-112233445566/canvas/generation-plans",
+      "method": "POST",
+      "key": "3498f952-0f0a-4529-bc63-9cee8b97056e",
+      "version": "\"2\"",
+      "body": "{\"nodeId\":\"00006010-aabb-4ccd-8eef-112233445566\",\"shotSources\":[{\"shotId\":\"00006012-aabb-4ccd-8eef-112233445566\",\"shotRevisionId\":\"00006016-aabb-4ccd-8eef-112233445566\"}],\"referenceOverrides\":[],\"promptPolicy\":\"append\"}"
+    }
+  ],
+  "otherWrites": [
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    },
+    {
+      "path": "/v1/tenants/00006001-aabb-4ccd-8eef-112233445566/projects/00006002-aabb-4ccd-8eef-112233445566/editing-presence",
+      "method": "PUT",
+      "body": "{\"target\":{\"kind\":\"canvas\",\"objectId\":\"00006007-aabb-4ccd-8eef-112233445566\"},\"clientSessionId\":\"82306f85-216a-4a90-ba08-26921f6efd81\",\"activity\":\"viewing\"}"
+    }
+  ],
+  "zeroAndMultipleSources": true,
+  "historicalRevisionPreserved": true,
+  "orderedCrossSceneSources": true,
+  "refreshNoAutomaticPost": true,
+  "exactOriginalRequestRecovery": true,
+  "temporaryReadFailurePreservesReferences": true,
+  "perNodeKindIsolation": true,
+  "lateHistoryCannotChangePickerOrSelection": true,
+  "deletedDraftHistorySnapshot": true,
+  "revocationHidesSource": true,
+  "widths": [
+    1512,
+    390
+  ],
+  "errors": []
+}
