@@ -192,8 +192,8 @@ export function nextPromptInput(
     source: draft.rework
       ? structuredClone(draft.source)
       : { shotId: shot.id, shotRevisionId: shot.specRevisionId },
-    label: shot.label,
-    intent: shot.spec.intent,
+    label: draft.rework ? draft.label : shot.label,
+    intent: draft.rework ? draft.intent : shot.spec.intent,
     prompt: "",
     references: [],
     instruction: "",

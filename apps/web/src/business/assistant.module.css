@@ -11,6 +11,7 @@
   border-block: 1px solid var(--ws-border);
 }
 .selection {
+  flex-shrink: 0;
   padding: var(--mantine-spacing-sm);
   background: var(--ws-canvas);
   border-radius: var(--ws-card-radius);

@@ -416,6 +416,8 @@ test("rework plan and next input preserve old Take shot and opinion revision; no
   } as Schema<"Shot">);
   assert.deepEqual(next.source, draft.source);
   assert.deepEqual(next.rework, source);
+  assert.equal(next.label, draft.label);
+  assert.equal(next.intent, draft.intent);
   assert.equal(next.previousInputs?.[0]?.prompt, "手工原文");
   assert.notEqual(reworkScope(source), reworkScope());
   assert.notEqual(
