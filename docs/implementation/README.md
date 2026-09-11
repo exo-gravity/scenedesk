@@ -16,9 +16,9 @@
 
 长期在同一平台内支持短剧与广告工作台；当前为中小工作室交付 AI 写实短剧闭环，不设 10 人上限。本期每场次提供分镜／自由画布两模式，画布覆盖整场并与制作事实分离；UX-01验证实际收益及具体呈现。复杂 AI 重拆、广告入口、外包权限、专业 NLE 后置。
 
-主场景是一位制作人员主责完成一场戏，其他成员按需协助；场次内制作／剪辑为编辑视图，审阅从独立固定版本入口进入。完整 MVP 含整集独立审阅与交付、下一集复用和真实内部后期交接。
+当前首发服务一位制作人员完成一场戏的创作准备，保留集场镜、分镜/自由画布、AI辅助与媒体生成、候选及明确采用。整集审阅交付、跨集制作复用、内部后期交接属于完整平台后续路线，按[38](38-first-release-scope-review.md)移出首发。
 
-主流程：已有剧本／分镜 CSV → 集场镜与确切创作依据 → 固定生成计划 → 候选及明确采用 → 声音与轻量剪辑 → 固定版本审阅 → 指定返工 → 交付。仅有采用时也能导出原素材包，不必先在平台剪完整片。Seedance 等领先模型优先，只启用实际服务／地区／账号验证过的能力。
+首发主流程：已有剧本／分镜 CSV → 集场镜与确切创作依据 → 分镜/自由画布及AI辅助 → 固定生成计划 → 查看、比较、形成候选并明确采用 → 下载素材，在外部工具完成后期。原素材包属于后续交付契约，当前逐个下载的实现见[31](31-media-workspace.md)。只启用实际服务、地区与账号验证过的模型能力。
 
 ## 文档地图
 
@@ -100,7 +100,7 @@ python docs/implementation/check_design.py
 
 ## 当前设计与后续实施入口
 
-优先阅读[21 技术定案](21-technical-baseline-closure.md)和[19 收口清单](19-design-closure-and-implementation-entry.md)，再按[18 画布工程设计](18-canvas-workspace-contract.md)和[16 工作包](16-implementation-backlog.md)实施。模型／基础设施／试点／广告与商业验证见[20](20-external-validation-and-launch-plan.md)。当前主稿v1.3、实施包v1.3、OpenAPI1.3.0；技术收尾新增7个API及AT-64–75。此前12个画布API继续保留，业务路由尚未实现。
+优先阅读[21 技术定案](21-technical-baseline-closure.md)和[19 收口清单](19-design-closure-and-implementation-entry.md)，再按[18 画布工程设计](18-canvas-workspace-contract.md)和[16 工作包](16-implementation-backlog.md)实施。模型／基础设施／试点／广告与商业验证见[20](20-external-validation-and-launch-plan.md)。当前主稿v1.3、实施包v1.3、OpenAPI1.3.0；技术收尾新增7个API及AT-64–75。画布业务与生成流程已经分阶段实施；设计目录包含后续能力，实际交付状态以[22](22-implementation-progress.md)为准。
 
 当前实际资产引用与失败恢复的实现证据见[场镜资产引用](33-creative-asset-bindings.md)；工程执行与合入要求见仓库[工程约定](../../AGENTS.md)。
 

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Alert,
   Button,
@@ -26,6 +26,7 @@ import {
 } from "./CreativeAssetFields";
 import { AssetReferenceFields } from "./AssetReferenceFields";
 import { reconcileContent } from "./content-reconcile";
+import { submitCreation, type CreationIntent } from "./content-creation";
 import { ShotReferenceFields } from "./ShotReferenceFields";
 import classes from "./workbench.module.css";
 
@@ -124,7 +125,9 @@ export function StructureEditor({
     references: shot?.spec.references ?? [],
     defaultAssetRevisionIds: scene?.defaultAssetRevisionIds ?? [],
   };
-  const draft = useContentDraft<Fields & { baseline?: Fields }>(
+  const draft = useContentDraft<
+    Fields & { baseline?: Fields; creationIntent?: CreationIntent }
+  >(
     `${path}/${editing.kind}/${editing.id ?? `new:${editing.parentId}`}`,
     { ...sourceFields, baseline: sourceFields },
     entity?.revision ?? tree.revision,
@@ -135,6 +138,15 @@ export function StructureEditor({
       tree.currentScriptRevisionId ?? null,
     ),
     [selected, setSelected] = useState<Schema<"ScriptExcerpt">>();
+  const current = useRef(true),
+    staging = useRef(false);
+  const [preparing, setPreparing] = useState(false);
+  useEffect(() => {
+    current.current = true;
+    return () => {
+      current.current = false;
+    };
+  }, []);
   const source = scripts.find((s) => s.id === scriptId);
   // Drafts saved by earlier releases lack the newly exposed binding fields.
   // Keep those inputs and fill only absent fields from the server document.
@@ -162,8 +174,45 @@ export function StructureEditor({
     conflict = version !== draft.baseVersion;
   const tenantPath = path.split("/projects/")[0]!,
     projectId = tree.projectId;
+  const creationIntent = draft.value.creationIntent;
+  const recoveredCreation = draft.recovered?.value.creationIntent;
+  const creationPath = `${path}/${editing.kind}s`;
+  async function sendCreation(intent: CreationIntent, initialSend: boolean) {
+    if (staging.current || command.isPending || !draft.ready || draft.recovered)
+      return;
+    staging.current = true;
+    setPreparing(true);
+    setValidation(undefined);
+    try {
+      await submitCreation(
+        intent,
+        creationPath,
+        (creationIntent) => draft.stage({ ...draft.value, creationIntent }),
+        (request) =>
+          command.mutateAsync({
+            ...request,
+            onCommitted: () => void draft.complete(done),
+          }),
+        { initialSend, isCurrent: () => current.current },
+      );
+    } catch (error) {
+      if (current.current) setValidation(error as Error);
+    } finally {
+      staging.current = false;
+      if (current.current) setPreparing(false);
+    }
+  }
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (
+      creationIntent ||
+      recoveredCreation ||
+      staging.current ||
+      command.isPending ||
+      !draft.ready ||
+      draft.recovered
+    )
+      return;
     setValidation(undefined);
     let body:
       Schema<"EpisodeInput"> | Schema<"SceneInput"> | Schema<"ShotInput">;
@@ -242,6 +291,21 @@ export function StructureEditor({
         spec,
       };
     }
+    if (!entity) {
+      await sendCreation(
+        {
+          command: {
+            path: creationPath,
+            method: "POST",
+            body,
+            version: draft.baseVersion,
+            idempotencyKey: crypto.randomUUID(),
+          },
+        },
+        true,
+      );
+      return;
+    }
     command.mutate(
       {
         path: `${path}/${editing.kind}s${entity ? `/${entity.id}` : ""}`,
@@ -258,8 +322,61 @@ export function StructureEditor({
   return (
     <form onSubmit={submit}>
       <Stack gap="lg">
-        <DraftNotice draft={draft} />
-        {conflict && (
+        <DraftNotice
+          draft={draft}
+          pendingCreation={
+            !!(creationIntent ?? recoveredCreation) &&
+            !(creationIntent ?? recoveredCreation)?.rejected
+          }
+        />
+        {creationIntent && !draft.recovered && (
+          <Alert
+            title={
+              creationIntent.rejected
+                ? "本次创建未提交"
+                : command.isPending
+                  ? "正在提交原创建请求"
+                  : "创建结果待确认"
+            }
+          >
+            <Text>
+              {creationIntent.rejected
+                ? creationIntent.rejected.message
+                : "原输入和提交位置已保留。请明确恢复原请求以核对结果；刷新或内容更新不会另建一项。"}
+            </Text>
+            <Text size="sm">
+              原输入：{values.name} · 提交时内容版本{" "}
+              {creationIntent.command.version}
+            </Text>
+            {creationIntent.rejected ? (
+              <Button
+                mt="sm"
+                disabled={preparing}
+                onClick={() => {
+                  const { creationIntent: _intent, ...input } = draft.value;
+                  void draft.stage(input).then((saved) => {
+                    if (saved && current.current) {
+                      command.reset();
+                      setValidation(undefined);
+                    }
+                  });
+                }}
+              >
+                保留输入，返回编辑
+              </Button>
+            ) : (
+              <Button
+                mt="sm"
+                loading={preparing || command.isPending}
+                disabled={!draft.ready}
+                onClick={() => void sendCreation(creationIntent, false)}
+              >
+                恢复原创建请求
+              </Button>
+            )}
+          </Alert>
+        )}
+        {conflict && !creationIntent && !recoveredCreation && (
           <Alert title="服务器内容已更新">
             <Text>
               当前版本 {version}。
@@ -361,7 +478,13 @@ export function StructureEditor({
           </Alert>
         )}
         <Fieldset
-          disabled={!draft.ready || !!draft.recovered || command.isPending}
+          disabled={
+            !draft.ready ||
+            !!draft.recovered ||
+            command.isPending ||
+            preparing ||
+            !!creationIntent
+          }
           variant="unstyled"
         >
           <Stack gap="lg">
@@ -743,6 +866,8 @@ export function StructureEditor({
             !draft.ready ||
             !!draft.recovered ||
             conflict ||
+            preparing ||
+            !!creationIntent ||
             !values.name.trim() ||
             (editing.kind !== "episode" &&
               !parents.some((p) => p.value === values.parentId))

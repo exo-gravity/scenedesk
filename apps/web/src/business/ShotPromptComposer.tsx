@@ -299,11 +299,12 @@ function PromptContent({
           </Accordion.Item>
         </Accordion>
       )}
-      {!assistantOnly && draft?.assistanceSource && (
+      {draft && (
         <Button
           variant="subtle"
           disabled={
             disabled ||
+            !!record?.planRequest ||
             !!draft.saveIntent ||
             (!!artifact && !sameValue(draft.editBody, artifact.body)) ||
             (!!record?.execution && !jobFinished(job))
@@ -318,7 +319,7 @@ function PromptContent({
           保留当前输入，另开一次
         </Button>
       )}
-      {!assistantOnly && !!draft?.previousInputs?.length && (
+      {!!draft?.previousInputs?.length && (
         <details>
           <summary>此前保留的输入（{draft.previousInputs.length}）</summary>
           <Stack mt="sm">
@@ -331,8 +332,13 @@ function PromptContent({
                     : ""}
                 </Text>
                 <Text className={classes.prose} size="sm">
-                  {input.prompt}
+                  {input.prompt || "（未填写手工提示）"}
                 </Text>
+                {input.instruction && (
+                  <Text className={classes.prose} size="sm">
+                    准备要求：{input.instruction}
+                  </Text>
+                )}
               </div>
             ))}
           </Stack>
@@ -819,7 +825,7 @@ function PromptContent({
       >
         <Stack>
           <Text>
-            当前原文与建议来源将保留在此前输入中。下一次使用已核对的镜头要求：
+            当前原文、准备要求与建议来源将保留，原固定任务不会改变。下一次使用本次确认打开的镜头要求：
             {nextInput?.shot.label} · {nextInput?.shot.spec.intent}
           </Text>
           <Button

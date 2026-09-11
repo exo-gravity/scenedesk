@@ -81,6 +81,7 @@ export type Command = {
   method?: "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
   version?: number;
+  idempotencyKey?: string;
 };
 type CommittedCommand<T> = Command & { onCommitted?: (result: T) => void };
 export function useCommand<T>() {
@@ -100,7 +101,7 @@ export function useCommand<T>() {
         method: command.method ?? "POST",
         headers: {
           "X-CSRF-Token": session.csrfToken,
-          "Idempotency-Key": pending.current.key,
+          "Idempotency-Key": command.idempotencyKey ?? pending.current.key,
           ...(command.body === undefined
             ? {}
             : { "Content-Type": "application/json" }),

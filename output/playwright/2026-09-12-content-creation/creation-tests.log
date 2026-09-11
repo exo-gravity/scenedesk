@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: lost creation response and reload replay the durable original request exactly once despite newer content
+ok 1 - lost creation response and reload replay the durable original request exactly once despite newer content
+  ---
+  duration_ms: 7.055417
+  type: 'test'
+  ...
+# Subtest: failed local persistence or a departed editor never sends a creation request
+ok 2 - failed local persistence or a departed editor never sends a creation request
+  ---
+  duration_ms: 0.215625
+  type: 'test'
+  ...
+# Subtest: only a known first-send rejection permits editing; an unknown replay 412 preserves its original identity
+ok 3 - only a known first-send rejection permits editing; an unknown replay 412 preserves its original identity
+  ---
+  duration_ms: 0.2075
+  type: 'test'
+  ...
+# Subtest: recovery keeps permission checks and cannot change the request target
+ok 4 - recovery keeps permission checks and cannot change the request target
+  ---
+  duration_ms: 0.729458
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 550.340042
