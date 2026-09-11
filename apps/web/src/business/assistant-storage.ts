@@ -32,7 +32,11 @@ export function assistantStorage<
   ): Promise<AssistantRecord<Draft, Request> | undefined> {
     const [db, id] = await Promise.all([database(), key]);
     return new Promise((resolve, reject) => {
-      const tx = db.transaction("sessions", change ? "readwrite" : "readonly"),
+      const tx = db.transaction(
+          "sessions",
+          change ? "readwrite" : "readonly",
+          change ? { durability: "strict" } : undefined,
+        ),
         store = tx.objectStore("sessions");
       const request = change
         ? "remove" in change

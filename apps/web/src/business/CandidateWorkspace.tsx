@@ -23,6 +23,7 @@ import { sourceSeconds } from "./candidate-time";
 import { useAssetPages } from "./asset-queries";
 import { StatusLabel } from "../components/workspace/cards";
 import classes from "./candidates.module.css";
+import { TakeFeedback } from "./TakeFeedback";
 import { ShotPromptComposer } from "./ShotPromptComposer";
 type Take = Schema<"Take">;
 
@@ -128,6 +129,7 @@ export default function CandidateWorkspace({
       ) : (
         <ShotProduction
           key={shot.id}
+          tenantId={tenantId}
           path={path}
           mediaPath={mediaPath}
           projectId={projectId}
@@ -174,6 +176,7 @@ export default function CandidateWorkspace({
   );
 }
 function ShotProduction({
+  tenantId,
   path,
   mediaPath,
   projectId,
@@ -183,6 +186,7 @@ function ShotProduction({
   href,
   contentHref,
 }: {
+  tenantId: string;
   path: string;
   mediaPath: string;
   projectId: string;
@@ -385,6 +389,16 @@ function ShotProduction({
                   )}
                 </Stack>
               </details>
+              {revision.data && !revision.isError && (
+                <TakeFeedback
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  take={take}
+                  shot={shot}
+                  revision={revision.data}
+                  active={active}
+                />
+              )}
             </Stack>
           ) : takes.isPending ? (
             <Loader aria-label="正在读取候选" />

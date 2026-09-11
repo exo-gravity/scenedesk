@@ -29,6 +29,7 @@ import {
   validateArtifact,
   type IdentifiedArtifact,
   type PromptDraft,
+  type ReworkSource,
 } from "./prompt-draft";
 import { usePromptSession } from "./use-prompt-session";
 import classes from "./assistant.module.css";
@@ -42,9 +43,15 @@ export function ShotPromptComposer(props: {
   shot: Schema<"Shot">;
   active: boolean;
   assistantOnly?: boolean;
+  rework?: ReworkSource;
 }) {
   const session = useSession();
-  return <PromptContent key={`${session.id}:${props.shot.id}`} {...props} />;
+  return (
+    <PromptContent
+      key={`${session.id}:${props.shot.id}:${props.rework?.takeId ?? ""}:${props.rework?.comment.id ?? ""}:${props.rework?.comment.revision ?? ""}`}
+      {...props}
+    />
+  );
 }
 function PromptContent({
   tenantId,
@@ -52,14 +59,20 @@ function PromptContent({
   shot,
   active,
   assistantOnly = false,
+  rework,
 }: Parameters<typeof ShotPromptComposer>[0]) {
   const session = useSession(),
     path = projectPath(tenantId, projectId),
     tenant = tenantPath(tenantId);
-  const { controller, state } = usePromptSession(tenantId, projectId, shot);
+  const { controller, state } = usePromptSession(
+    tenantId,
+    projectId,
+    shot,
+    rework,
+  );
   const capabilities = useList<Schema<"Capability">>(`${tenant}/capabilities`);
   const savedArtifacts = useList<IdentifiedArtifact>(
-    `${path}/assistance-artifacts?shotId=${shot.id}&kind=prepare_prompt`,
+    `${path}/assistance-artifacts?shotId=${shot.id}&kind=${rework ? "prepare_rework" : "prepare_prompt"}`,
     state.access === "ready",
   );
   useEffect(() => {
@@ -183,11 +196,22 @@ function PromptContent({
       if (
         !latest ||
         latest.status !== "active" ||
-        latest.specRevisionId !== current.source.shotRevisionId
+        (!current.rework &&
+          latest.specRevisionId !== current.source.shotRevisionId)
       )
         throw new Error(
           "镜头来源已改变。当前输入仍保留，请核对镜头后重新准备。",
         );
+      if (current.rework) {
+        const take = await api<Schema<"Take">>(
+          `${path}/takes/${current.rework.takeId}`,
+        );
+        if (
+          take.shotId !== current.source.shotId ||
+          take.shotRevisionId !== current.source.shotRevisionId
+        )
+          throw new Error("候选来源已改变，请保留原输入核对。");
+      }
       return applyPrompt(current, freshArtifact);
     });
   };
@@ -216,10 +240,12 @@ function PromptContent({
     <Stack
       className={assistantOnly ? classes.panel : classes.creation}
       gap="md"
-      aria-label="本次创作输入"
+      aria-label={rework ? "按意见准备修改" : "本次创作输入"}
     >
       <Group justify="space-between">
-        <Text fw={600}>本次创作输入 · {draft?.label}</Text>
+        <Text fw={600}>
+          {rework ? "按意见准备修改" : "本次创作输入"} · {draft?.label}
+        </Text>
         <Badge variant="light">
           {state.draftSaved ? "本机已保留" : "正在保留"}
         </Badge>
@@ -227,6 +253,20 @@ function PromptContent({
       <Text size="xs" c="dimmed">
         固定镜头要求：{draft?.intent}。切换镜头后，可返回此修订继续本次输入。
       </Text>
+      {draft?.rework && (
+        <div className={classes.selection}>
+          <Text size="sm">
+            固定候选 {draft.rework.takeId.slice(0, 8)} · 意见 r
+            {draft.rework.comment.revision}
+          </Text>
+          <Text size="sm" className={classes.prose}>
+            {draft.rework.comment.body}
+          </Text>
+          <Text size="xs" c="dimmed">
+            新尝试保留原候选、原意见及普通创作输入。
+          </Text>
+        </div>
+      )}
       {(state.error || error) && (
         <Alert role="alert" title="需要处理">
           {state.error ?? error}
@@ -394,7 +434,9 @@ function PromptContent({
                 minRows={2}
               />
               <Text size="xs" c="dimmed">
-                上下文仅使用已固定的当前镜头及其引用。返工准备需可核对的反馈来源，暂未开放。
+                {rework
+                  ? "使用候选当时的镜头要求及选定意见修订。意见后来有变化时，原记录保留供核对。"
+                  : "上下文仅使用已固定的当前镜头及其引用。可在候选旁记录意见，再按意见准备修改。"}
               </Text>
               {!plan && (
                 <Button
@@ -439,6 +481,17 @@ function PromptContent({
                     来源：{draft?.label} · {plan.resolvedInput.shots.length}{" "}
                     个固定镜头
                   </Text>
+                  {plan.resolvedInput.feedbackSnapshot && (
+                    <div className={classes.selection}>
+                      <Text size="xs" c="dimmed">
+                        计划固定意见 · r
+                        {plan.resolvedInput.feedbackSnapshot.commentRevision}
+                      </Text>
+                      <Text size="sm" className={classes.prose}>
+                        {plan.resolvedInput.feedbackSnapshot.body}
+                      </Text>
+                    </div>
+                  )}
                   <Text size="sm">
                     目标能力：
                     {(
@@ -563,13 +616,21 @@ function PromptContent({
                     (!!artifact && !sameValue(draft?.editBody, artifact.body))
                   }
                   data={savedArtifacts.data
-                    .filter((a) =>
-                      a.shotSources.some(
-                        (source) =>
-                          source.shotId === draft?.source.shotId &&
-                          source.shotRevisionId ===
-                            draft?.source.shotRevisionId,
-                      ),
+                    .filter(
+                      (a) =>
+                        (rework
+                          ? a.request.sourceTakeId === rework.takeId &&
+                            a.request.feedback?.commentId ===
+                              rework.comment.id &&
+                            (a.request.feedback as { commentRevision?: number })
+                              ?.commentRevision === rework.comment.revision
+                          : a.request.kind === "prepare_prompt") &&
+                        a.shotSources.some(
+                          (source) =>
+                            source.shotId === draft?.source.shotId &&
+                            source.shotRevisionId ===
+                              draft?.source.shotRevisionId,
+                        ),
                     )
                     .map((a) => ({
                       value: a.id,
