@@ -24,6 +24,7 @@ import classes from "./workbench.module.css";
 import { ContentWorkspace } from "./ContentWorkspace";
 import { ProductionSettings } from "./ProductionSettings";
 import { QualityReferenceSettings } from "./QualityReferenceSettings";
+import { CreateProjectForm } from "./CreateProjectForm";
 
 type Member = Schema<"Membership">;
 type Project = Schema<"Project">;
@@ -160,88 +161,24 @@ export function Projects({
           </Empty>
         )}
       <Modal
-        opened={creating}
+        opened={creating && manager}
         onClose={() => setCreating(false)}
         title="新建短剧项目"
         size="lg"
       >
-        <CreateProject
-          tenantId={tenantId}
-          own={own}
-          onCreated={(id) => {
-            setCreating(false);
-            location.hash = `/app/t/${tenantId}/p/${id}/content`;
-          }}
-        />
+        {creating && manager && (
+          <CreateProjectForm
+            key={`${tenantId}:${own.id}`}
+            tenantId={tenantId}
+            own={own}
+            onCreated={(id) => {
+              setCreating(false);
+              location.hash = `/app/t/${tenantId}/p/${id}/content`;
+            }}
+          />
+        )}
       </Modal>
     </>
-  );
-}
-function CreateProject({
-  tenantId,
-  own,
-  onCreated,
-}: {
-  tenantId: string;
-  own: Member;
-  onCreated: (id: string) => void;
-}) {
-  const command = useCommand<Project>();
-  const form = useForm({
-    initialValues: {
-      name: "",
-      leadMembershipId: own.id,
-      format: "portrait",
-      rate: "24/1",
-      language: "zh-CN",
-    },
-    validate: {
-      name: (v) =>
-        v.trim().length && v.length <= 160 ? null : "请输入项目名称。",
-    },
-  });
-  return (
-    <form
-      className={classes.form}
-      onSubmit={form.onSubmit((values) => {
-        const [fpsNum, fpsDen] = values.rate.split("/").map(Number);
-        command.mutate(
-          {
-            path: `${tenantPath(tenantId)}/projects`,
-            body: {
-              name: values.name.trim(),
-              leadMembershipId: values.leadMembershipId,
-              spec: {
-                width: values.format === "portrait" ? 1080 : 1920,
-                height: values.format === "portrait" ? 1920 : 1080,
-                fpsNum,
-                fpsDen,
-                language: values.language,
-              },
-            },
-          },
-          { onSuccess: (p) => onCreated(p.id) },
-        );
-      })}
-    >
-      <TextInput required label="项目名称" {...form.getInputProps("name")} />
-      <div className={classes.grid}>
-        <Select
-          label="画幅"
-          data={[
-            { value: "portrait", label: "竖屏 · 1080 × 1920" },
-            { value: "landscape", label: "横屏 · 1920 × 1080" },
-          ]}
-          {...form.getInputProps("format")}
-        />
-        <Select label="目标帧率" data={rates} {...form.getInputProps("rate")} />
-      </div>
-      <TextInput label="语言" required {...form.getInputProps("language")} />
-      <ErrorNotice error={command.error} />
-      <Button variant="filled" type="submit" loading={command.isPending}>
-        创建项目
-      </Button>
-    </form>
   );
 }
 function ProjectDetails({
