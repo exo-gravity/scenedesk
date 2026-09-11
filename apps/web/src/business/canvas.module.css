@@ -1,0 +1,186 @@
+.workspace {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  min-width: 0;
+}
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mantine-spacing-lg);
+  align-items: start;
+}
+.body[data-dock] {
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+.board {
+  min-width: 0;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  overflow: hidden;
+  background: var(--ws-canvas);
+}
+.toolbar {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--ws-border);
+  background: var(--ws-panel);
+}
+.flow {
+  height: clamp(360px, calc(100dvh - 380px), 700px);
+  min-width: 0;
+  --xy-edge-stroke: var(--ws-field-border);
+  --xy-edge-stroke-selected: var(--ws-accent);
+  --xy-connectionline-stroke: var(--ws-accent);
+  --xy-selection-background-color: var(--ws-accent-soft);
+  --xy-selection-border: 1px solid var(--ws-accent);
+  --xy-attribution-background-color: var(--ws-panel);
+}
+.flow[data-editing] {
+  height: clamp(240px, calc(100dvh - 675px), 420px);
+}
+.node {
+  width: 100%;
+  background: var(--ws-raised);
+  color: var(--ws-text);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  overflow: visible;
+}
+.node[data-selected] {
+  border-color: var(--ws-accent);
+  outline: 1px solid var(--ws-accent);
+}
+.nodeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--ws-border);
+  cursor: grab;
+}
+.nodeHeader > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.nodeContent {
+  padding: var(--mantine-spacing-md);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  max-height: 200px;
+  overflow: auto;
+}
+.nodeMedia {
+  --ws-preview-height: 220px;
+  padding: var(--mantine-spacing-sm);
+}
+.nodeMedia img {
+  object-fit: contain;
+}
+.handle {
+  width: 12px;
+  height: 12px;
+  background: var(--ws-accent);
+  border: 2px solid var(--ws-raised);
+}
+.draft {
+  min-height: 140px;
+  display: grid;
+  align-content: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-lg);
+}
+.composer {
+  padding: var(--mantine-spacing-lg);
+  background: var(--ws-panel);
+  border-top: 1px solid var(--ws-border);
+  max-height: min(330px, 33dvh);
+  overflow: auto;
+}
+.composerFields {
+  width: min(100%, 760px);
+  margin: auto;
+  display: grid;
+  gap: var(--mantine-spacing-md);
+}
+.dock {
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  background: var(--ws-panel);
+  padding: var(--mantine-spacing-lg);
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  max-height: calc(100dvh - 240px);
+  overflow: auto;
+}
+.choice {
+  border-bottom: 1px solid var(--ws-border);
+  padding-bottom: var(--mantine-spacing-md);
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+.dockHeading {
+  position: sticky;
+  top: calc(-1 * var(--mantine-spacing-lg));
+  z-index: 2;
+  background: var(--ws-panel);
+  margin: calc(-1 * var(--mantine-spacing-lg));
+  margin-bottom: 0;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--ws-border);
+}
+.nodeList {
+  max-height: 400px;
+  overflow: auto;
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.uploadNode {
+  padding: var(--mantine-spacing-md);
+}
+.uploadList {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  max-height: 400px;
+  overflow: auto;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  background: var(--ws-panel);
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--mantine-spacing-md);
+}
+.empty {
+  display: grid;
+  place-content: center;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-xl);
+  text-align: center;
+  min-height: 160px;
+}
+@media (max-width: 1000px) {
+  .body[data-dock] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dock {
+    max-height: 440px;
+  }
+}
+@media (max-width: 760px) {
+  .flow {
+    display: none;
+  }
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .composer {
+    max-height: none;
+  }
+}

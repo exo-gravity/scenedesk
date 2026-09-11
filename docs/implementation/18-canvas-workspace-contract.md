@@ -56,6 +56,16 @@ CanvasWorkspace 不依赖 Episode／Scene／Shot。它拥有画布身份、文�
 
 整文档保存按锁定当前基线区分既有和新增引用：已有且仍授权的归档媒体允许原样保留、移动与改标题；新引入媒体必须 ready，归档媒体不能作为新生成输入。权限撤销不适用旧引用例外；读取按当前权限过滤不可访问媒体的展示和访问凭据，并给出引用不可用状态。服务器保留原依赖作审计，不因界面隐藏删除它；用户需明确移除失权引用后才能提交影响该引用的修改。
 
+### 3.1 拖入文件与固定落点（2026-09-11 实施补充）
+
+拖入图片、视频或音频沿用素材导入、字节摘要、验收与不可变原片归档。`UploadInput.canvasTarget` 指定当前项目的真实 canvasId、固定 clientRequestId 和落点；上传意图与 `canvas_upload_placements` 同事务创建，使用原创建幂等键。同一画布、发起人和 clientRequestId 永久唯一；成功回包丢失时，可按本人请求身份读取已有记录，不依赖重新创建，已放入或移除后仍可核对。共享范围、外项目画布和文档类型不能冒充画布媒体上传；文本／SRT 沿用素材库入口。每画布最多 100 份尚未放入且未移除的上传，创建在画布锁内检查；单次页面处理最多 20 份待办，文件依次核对与上传，避免同时缓冲多份大文件。
+
+待上传呈现不属于文档中的媒体节点，不能连线或用于生成。它拥有固定上传身份、未来节点 UUID 与落点；进度和错误在该位置及恢复列表中显示。服务器返回状态和原文件声明，不把上传授权或媒体字节写入画布／本机记录。页面重新选择文件时核对大小及 SHA-256，创建成功但回包丢失仍使用原幂等键。
+
+文件验收通过后，当前发起流程使用普通画布编辑追加确切媒体节点；服务端再次验证已验收上传、媒体与预留节点身份完全一致。Worker 不直接写画布。追加进入原 CAS、恢复和撤销系统，不占用上传进度版本。预留 UUID 不能被其他项目、文字节点或另一媒体抢用；节点索引的永久身份作为“曾经放入”的证据，移除或撤销后不会再次作为自动待放入项出现。
+
+页面在追加前持久记录本次自动放入已处理；任一步骤断开、恢复冲突或刷新后，保留“文件已导入／待放入画布”的明确恢复动作，不在后台重复追加。移除待处理呈现只设置不可逆的 dismissed 标记，保留上传和素材；已放入的节点必须使用普通文档移除。该标记和原始落点不改画布 revision，也不能用它撤销素材导入。创建、查询、恢复和移除都按当前项目权限核对。
+
 ## 4. 保存、冲突与撤销
 
 选择整个画布文档的 CAS，暂不引入独占编辑租约、CRDT 或无条件覆盖。服务器 GET 返回 ETag；PUT 携带 If-Match，正文只含 schemaVersion 和文档。所有变更检查项目可编辑及完整文档约束，再在单事务追加修订、更新当前文档与引用索引、发出 outbox 通知。绑定变更与文档保存共用canvas revision；所有修订均关联对应正文hash，绑定变化不复制相同正文。历史按21分层保留。
@@ -102,6 +112,10 @@ materialize 以 unique(canvas_id,job_id,media_id) 防止回执或同一结果重
 | getSceneCanvas | GET /scenes/{sceneId}/canvas | 返回画布及镜头关联；没有则 404/SCENE_CANVAS_NOT_CREATED |
 | getCanvas / getCanvasRevision | GET /canvases/{canvasId}，/revisions/{revisionNumber} | 当前／历史；历史只读，访问按当前权限；过期410 EDIT_HISTORY_EXPIRED；新增listCanvasHistory列实际恢复点 |
 | saveCanvas | PUT /canvases/{canvasId} | If-Match(canvas)，整文档校验；不接收 jobs／绑定／采用字段 |
+| listCanvasUploads | GET /canvases/{canvasId}/uploads | 最多 100 份未放入且未移除的上传，返回固定落点、未来节点身份、声明及验收状态；不返回上传凭证 |
+| getCanvasUpload | GET /canvases/{canvasId}/uploads/{uploadId} | 核对本画布的确切上传与呈现身份，放入／移除后仍可查询 |
+| getCanvasUploadRequest | GET /canvases/{canvasId}/uploads/by-request/{clientRequestId} | 仅按当前发起人查询确切请求；丢失创建回包后找回同一上传，无记录返回专用 404，不代表失权 |
+| dismissCanvasUpload | POST /canvases/{canvasId}/uploads/{uploadId}/dismiss | 原幂等规则；仅移除待处理呈现，保留文件，不推进文档版本；已放入则使用文档移除 |
 | bindSceneCanvasNode | POST /scenes/{sceneId}/canvas/nodes/{nodeId}/shot-bindings | If-Match(canvas)＋正文 shotRevisionId；短剧适配器锁 canvas→shot，候选去重与绑定同事务 |
 | unbindSceneCanvasNode | DELETE /scenes/{sceneId}/canvas/nodes/{nodeId}/shot-bindings/{bindingId} | If-Match(canvas)；仅解绑，不删除 Take、参考或镜头 |
 | prepareCanvasGeneration | POST /scenes/{sceneId}/canvas/generation-plans | If-Match(canvas)，原固定输入／模型／预算估计规则；节点不可用返回明确错误 |

@@ -1,0 +1,335 @@
+{
+  "scope": "Local technical fixtures; real browser, IndexedDB, production API/DB and imported media where specified. No paid model or user/production acceptance.",
+  "pageRecovery": {
+    "cases": [
+      "actual API 412; mode switch keeps in-flight input; frozen comparison blocks stale replay; explicit replay retains peer changes",
+      "lost response after real commit resolves via GET without repeat PUT",
+      "offline request survives reload; fresh authority before disclosure; explicit retry saves original input"
+    ],
+    "canvasId": "379e96ec-f6a0-4cd2-8c85-5204065a7859",
+    "finalRevision": 17,
+    "pageErrors": 0,
+    "scope": "production build and real local API/DB with controlled network faults; local test identity; no model calls"
+  },
+  "controller": {
+    "cases": [
+      "synchronous undo state; saved refresh preserves history; grouped edits undo and redo",
+      "raw numeric input persisted and restored; invalid value cannot reach transport",
+      "canvas envelope and content hash reconcile committed unknown write",
+      "canvas CAS and stale replay retain local edit",
+      "revocation clears canvas memory and own recovery"
+    ],
+    "scope": "real browser IndexedDB and actual CanvasController with controlled transport; no real provider"
+  },
+  "sharedCutRecovery": {
+    "cases": [
+      "authorized recovery, loading gate, invalid raw input",
+      "late save, edit during request, leave and reopen",
+      "unknown reply resolved by content and version without resubmit",
+      "unknown uncommitted request retains identity and newer input",
+      "412 and second conflict preserve manual merge",
+      "post-commit IndexedDB cleanup abort and recovery without repeat PUT",
+      "pre-submit storage failure prevents transport",
+      "revocation clears memory and local copy before late response",
+      "IME suspension, 800ms debounce and 5s maximum continuous interval"
+    ],
+    "scope": "real browser, IndexedDB and production controller with controlled API transport; actual API/page validation remains separate",
+    "pageErrors": 0
+  },
+  "sharedAccess": {
+    "cases": [
+      "bounded identifiers and content-free parsed hint",
+      "suspension blocks edits and sends; authorized read preserves original input",
+      "network failure retains hidden work until successful authorization",
+      "older denial and pre-hint successful read cannot override later access check",
+      "inflight receipt remains hidden; verified revocation clears memory and local copy",
+      "CSRF failure preserves pending work for session verification and explicit retry",
+      "exact session and object scope; retired acquisition blocked; newer login recovery retained",
+      "late logout cleanup respects the newest writer session, including same partition"
+    ],
+    "caseCount": 8,
+    "scope": "real IndexedDB and controllers with controlled transport",
+    "pageErrors": 0
+  },
+  "mediaLayout": {
+    "cases": [
+      "real proxy decodes and plays; player controls do not drag node",
+      "second preview releases prior decoder",
+      "mode switch releases player and returns to thumbnails",
+      "incomplete coordinate stays exact through mode switch and authorized reload recovery"
+    ],
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 760,
+        "height": 900,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": false
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "production build, real imported technical media; narrow layout is a list, not mobile canvas acceptance"
+  },
+  "history": {
+    "baseRevision": 22,
+    "editedRevision": 23,
+    "restoredRevision": 25,
+    "undoRevision": 26,
+    "staleConfirmationBlocked": true,
+    "fullTextReviewed": true,
+    "newRevisionWithoutJob": true,
+    "historyUndoRetainsLatest": true
+  },
+  "pageAccess": {
+    "hiddenUntilAuthorized": true,
+    "falseHintPreservesContent": true,
+    "deniedReadClearsVisibleCanvas": true,
+    "scope": "real production page and BroadcastChannel with controlled GET response; backend authorization separately covered by DB tests"
+  },
+  "blankTitle": {
+    "blankNamePreservedAcrossModeAndReload": true,
+    "restoredFocusedNode": true,
+    "correctedAndSaved": true
+  },
+  "shotBindings": {
+    "canvasId": "379e96ec-f6a0-4cd2-8c85-5204065a7859",
+    "revision": 72,
+    "rawRangeModeAndReload": true,
+    "unknownCommittedPosts": 1,
+    "candidateId": "fd9a9ec7-35f2-498a-b343-7d059ce3078b",
+    "staleUnlinkBlocked": true,
+    "unlinkRetainsCandidate": true,
+    "undoOnlyChangesDocument": true,
+    "copyDoesNotInheritBinding": true,
+    "existingCandidatePlacement": true,
+    "placementInputsSurviveReload": true,
+    "focusedMediaContained": true,
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "horizontalOverflow": false,
+        "bindingTargetStaysVisible": true,
+        "explicitFocusContainsMedia": true
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "horizontalOverflow": false,
+        "bindingTargetStaysVisible": true,
+        "explicitFocusContainsMedia": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": false,
+        "bindingTargetStaysVisible": true
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "production browser and real local API/PostgreSQL with imported technical video; no real model or user acceptance"
+  },
+  "focusRecovery": {
+    "consumedShotFocusKeepsManualViewport": true,
+    "consumedToolbarFocusSurvivesNarrowView": true,
+    "before": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "afterMode": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "beforeNarrow": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "afterNarrow": "matrix(1, 0, 0, 1, 783.231, 130.876)",
+    "pageErrors": 0,
+    "scope": "production browser with actual canvas; view-only checks"
+  },
+  "projectUpdates": {
+    "distinctTabPresence": true,
+    "activeEditingVisible": true,
+    "actualCanvasSse": true,
+    "notificationMs": 3323,
+    "dirtyBufferPreserved": true,
+    "offlineShownAsUnknown": true,
+    "reconnectPreservedInput": true,
+    "explicitServerRecovery": true,
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": false
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "local fixture, actual production browser/API/database; no real provider or user acceptance"
+  },
+  "continueCreation": {
+    "singleSource": true,
+    "multipleSources": true,
+    "fixedMediaAndText": true,
+    "independentDraft": true,
+    "editableReferences": true,
+    "modeAndReloadRecovery": true,
+    "staleSourceBlocked": true,
+    "atomicUndoRedo": true,
+    "generationRequests": 0,
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "containedPicker": true,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "containedPicker": true,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "containedPicker": true,
+        "horizontalOverflow": false
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "actual local production browser/API canvas, no model execution"
+  },
+  "uploads": {
+    "scope": "Production browser, actual local API/PostgreSQL/media worker, technical PNG and UTF-8 document fixtures; controlled lost replies; no model calls.",
+    "cases": {
+      "drop": {
+        "actualDrop": true,
+        "pendingNode": true,
+        "acceptedMedia": true,
+        "reloadPreservesIdentity": true,
+        "nodeId": "c4ba0f12-0010-4404-b994-55ad5147d9bb",
+        "mediaId": "17c161e4-f48c-4a44-909f-2576ba7ba991",
+        "marker": "画布拖入验证 1789124236609.png",
+        "canvasId": "379e96ec-f6a0-4cd2-8c85-5204065a7859",
+        "pageErrors": 0
+      },
+      "lostCreate": {
+        "lostActualCreateRecovered": true,
+        "createRequests": 1,
+        "uploadId": "28d075b2-a603-4450-903b-94729ff29055",
+        "requestId": "76147aa5-df39-462a-8f0e-7dd1018e6483",
+        "marker": "上传恢复 1789124885414 丢失创建回包.png",
+        "pageErrors": []
+      },
+      "resume": {
+        "wrongFileRejected": true,
+        "originalFileResumes": true,
+        "noRepeatedCreate": true,
+        "undoNeverReinsertsAfterReload": true,
+        "uploadId": "28d075b2-a603-4450-903b-94729ff29055",
+        "nodeId": "56d80007-7654-44d4-b2ed-8a7ffb0b07dc",
+        "mediaId": "79643d82-b02d-4d77-a0bf-f8faa7b88c26",
+        "pageErrors": 0
+      },
+      "multiple": {
+        "multipleFiles": true,
+        "modeSwitchContinues": true,
+        "fixedLandingOffsets": true,
+        "undoNeverReinserts": true,
+        "nodes": [
+          {
+            "id": "cda1ac80-6162-466a-8fb5-e0c4c39ab377",
+            "title": "上传恢复 1789124963653 A.png",
+            "position": {
+              "x": 371.1345252051583,
+              "y": 149.76171875
+            }
+          },
+          {
+            "id": "faac5372-3281-415c-a886-7f3e4c7536e8",
+            "title": "上传恢复 1789124963653 B.png",
+            "position": {
+              "x": 407.1345252051583,
+              "y": 173.76171875
+            }
+          }
+        ],
+        "pageErrors": 0
+      },
+      "manualPlacement": {
+        "completedBytesSurviveLostReply": true,
+        "refreshRequiresExplicitPlacement": true,
+        "manualPlacementUsesOriginalIdentity": true,
+        "completeRequests": 1,
+        "uploadId": "48a26938-2ea9-441d-af49-2f7a69b094f9",
+        "nodeId": "0c9adac7-4b89-4f1a-a9ba-0410c6127314",
+        "mediaId": "a2b286ea-42ec-47ac-b0cb-780e54f750a7",
+        "layouts": [
+          {
+            "width": 1512,
+            "horizontalOverflow": false
+          },
+          {
+            "width": 1366,
+            "horizontalOverflow": false
+          },
+          {
+            "width": 390,
+            "horizontalOverflow": false
+          }
+        ],
+        "pageErrors": 0,
+        "failedReads": []
+      },
+      "assetLibrary": {
+        "assetLibraryActualTextImport": true,
+        "uploadId": "9fcf150b-403e-40c2-b346-33db3be602ba",
+        "mediaId": "f28595d1-cc99-494c-95ae-54803155e6ed",
+        "pageErrors": 0
+      },
+      "expiredLocalCleanup": {
+        "expiredUnknownRecordReconciledAndRemoved": true,
+        "noCreationForCleanup": true,
+        "cleanupKeptCanvasRevision": true,
+        "lookupRequests": 2,
+        "createRequests": 0,
+        "pageErrors": []
+      },
+      "dismiss": {
+        "acceptedMediaDismissal": true,
+        "originalMediaStillReady": true,
+        "canvasRevisionUnchanged": true,
+        "completeRequests": 1,
+        "uploadId": "dd9a10b2-d759-4ad2-b714-434a06f67210",
+        "mediaId": "70e28b9b-3780-4f87-a25b-4b28934af2c2",
+        "pageErrors": 0,
+        "failedReads": []
+      },
+      "initialReadRetry": {
+        "initialRecoveryReadFailureRetry": true,
+        "uploadsBlockedUntilRecoveryRead": true,
+        "expiredUnknownRecordReconciledAndRemoved": true,
+        "noCreationForCleanup": true,
+        "cleanupKeptCanvasRevision": true,
+        "lookupRequests": 3,
+        "createRequests": 0,
+        "pageErrors": []
+      }
+    }
+  }
+}

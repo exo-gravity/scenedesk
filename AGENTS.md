@@ -1,6 +1,6 @@
 # SceneDesk engineering agreement
 
-The user authorized implementing the complete documented MVP and merging verified changes into `beyondgravitylab/scenedesk`. Continue within that authorization. Default to imported media and the mock provider; lack of a model account does not block manual production workflows. Do not make paid provider calls without the actual service, credentials and spending authorization.
+The user authorized implementation and merging verified changes into `exo-gravity/scenedesk`. Latest first-release direction (2026-09-11) supersedes the original full-platform launch gate: prioritize a usable private creative workspace; defer post-production editing/rendering, full team management, public signup and operations. The user explicitly retained canvas and AI capabilities according to the original plan, including generation, fixed inputs/results and documented recovery; do not reduce them to a lightweight board or text-only assistant. See `docs/implementation/38-first-release-scope-review.md`. Preserve deferred code and history, but do not continue media normalization/rendering as a prerequisite for this MVP. Commercial billing and cost operations are deferred; safe model execution, limits and duplicate-submission protection remain necessary. Imported media supports manual workflows but cannot replace real AI acceptance. Do not make paid provider calls without the actual service, credentials and spending authorization.
 
 ## Sources of truth
 

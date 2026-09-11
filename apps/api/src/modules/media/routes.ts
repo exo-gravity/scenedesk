@@ -6,6 +6,10 @@ import { Problem, requireThat, versionMatches } from "../../kernel/errors.js";
 import { page, searchPattern } from "../../kernel/pages.js";
 import { registerAction } from "../../kernel/routes.js";
 import {
+  lockCanvasUploadTarget,
+  registerCanvasUpload,
+} from "../canvas/uploads.js";
+import {
   authorizeMediaScope,
   findMedia,
   findUpload,
@@ -77,6 +81,7 @@ export function mediaRoutes(app: FastifyInstance, context: MediaContext) {
     "createUpload",
     async (tx, { body: input }) => {
       const body = uploadInput(input as Schema<"UploadInput">);
+      await lockCanvasUploadTarget(tx, body);
       const recorded = await provenance(tx, body.provenance);
       const id = randomUUID(),
         epoch = await currentEpoch(tx);
@@ -104,6 +109,7 @@ export function mediaRoutes(app: FastifyInstance, context: MediaContext) {
           epoch,
         ],
       );
+      await registerCanvasUpload(tx, body, id);
       for (const evidenceId of recorded.record?.evidenceMediaIds ?? [])
         await tx.sql.query(
           "INSERT INTO upload_provenance_evidence(tenant_id,upload_id,evidence_media_id) VALUES ($1,$2,$3)",

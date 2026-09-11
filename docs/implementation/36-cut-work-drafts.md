@@ -1,6 +1,6 @@
 # 共享剪辑工作稿基础
 
-2026-09-11。依据 E05A、PR-12、[21 技术定案](21-technical-baseline-closure.md)的工作稿与有限恢复历史。本次可独立交付的共享工作稿、页面编辑与恢复基础见 [PR #14](https://github.com/beyondgravitylab/scenedesk/pull/14)。完整 E05A 及 MVP 仍在实施，后续范围列在文末。
+2026-09-11。依据 E05A、PR-12、[21 技术定案](21-technical-baseline-closure.md)的工作稿与有限恢复历史。本次可独立交付的共享工作稿、页面编辑与恢复基础见 [PR #14](https://github.com/exo-gravity/scenedesk/pull/14)。完整 E05A 及 MVP 仍在实施，后续范围列在文末。
 
 ## 已实现的服务与约束
 

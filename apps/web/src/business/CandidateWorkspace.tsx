@@ -28,9 +28,11 @@ type Take = Schema<"Take">;
 export default function CandidateWorkspace({
   tenantId,
   projectId,
+  embedded = false,
 }: {
   tenantId: string;
   projectId: string;
+  embedded?: boolean;
 }) {
   const cache = useQueryClient(),
     session = useSession();
@@ -71,44 +73,49 @@ export default function CandidateWorkspace({
     scene?.status === "active";
   return (
     <Stack gap="lg">
-      <Group justify="space-between">
-        <Group>
-          <Button
-            component="a"
-            href={contentHref}
-            variant="subtle"
-            leftSection={<ArrowLeft size={16} />}
-          >
-            场次目录
-          </Button>
-          <div>
-            <Text fw={600}>
-              {project.data.name} / {episode?.title} /{" "}
-              {scene?.title ?? "场次不可用"}
-            </Text>
-            <Text size="sm" c="dimmed">
-              镜头制作 · 分镜
-            </Text>
-          </div>
+      {!embedded && (
+        <Group justify="space-between">
+          <Group>
+            <Button
+              component="a"
+              href={contentHref}
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+            >
+              场次目录
+            </Button>
+            <div>
+              <Text fw={600}>
+                {project.data.name} / {episode?.title} /{" "}
+                {scene?.title ?? "场次不可用"}
+              </Text>
+              <Text size="sm" c="dimmed">
+                镜头制作 · 分镜
+              </Text>
+            </div>
+          </Group>
+          <Group>
+            <Button
+              component="a"
+              href={`${base}/production?scene=${sceneId ?? ""}&mode=canvas`}
+            >
+              自由画布
+            </Button>
+            <Button
+              onClick={() =>
+                void cache.invalidateQueries({
+                  queryKey: ["user", session.userId],
+                })
+              }
+            >
+              刷新制作状态
+            </Button>
+            <Button component="a" href={`${base}/media`}>
+              导入与管理视频
+            </Button>
+          </Group>
         </Group>
-        <Group>
-          <Button component="a" href={`${base}/editing?scene=${sceneId ?? ""}`}>
-            场次剪辑
-          </Button>
-          <Button
-            onClick={() =>
-              void cache.invalidateQueries({
-                queryKey: ["user", session.userId],
-              })
-            }
-          >
-            刷新制作状态
-          </Button>
-          <Button component="a" href={`${base}/media`}>
-            导入与管理视频
-          </Button>
-        </Group>
-      </Group>
+      )}
       {!scene ? (
         <Empty>指定场次不存在或不属于当前项目。请返回场次目录。</Empty>
       ) : !shot ? (

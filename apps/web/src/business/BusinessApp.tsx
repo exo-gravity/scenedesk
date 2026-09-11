@@ -54,10 +54,13 @@ import {
 } from "./use-cut-work";
 import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
-const CandidateWorkspace = lazy(() => import("./CandidateWorkspace"));
+const SceneProductionWorkspace = lazy(
+  () => import("./SceneProductionWorkspace"),
+);
 const CutWorkspace = lazy(() => import("./CutWorkspace"));
 const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
+import { ProjectUpdates } from "./ProjectUpdates";
 import {
   invitationFromFragment,
   loginReturnPath,
@@ -148,7 +151,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
       )
         return;
       suspendEditingAccess(hint);
-      if (hint.kind === "cut") {
+      if (hint.kind !== "session") {
         void refreshEditingAccess(hint);
         return;
       }
@@ -471,17 +474,22 @@ function Workspace({ hash }: { hash: string }) {
               )}
             </>
           ) : (
-            <TenantArea
-              key={tenantId}
+            <ProjectUpdates
               tenantId={tenantId}
-              section={segments[4]}
               projectId={segments[4] === "p" ? segments[5] : undefined}
-              contentView={segments[6] === "content"}
-              mediaView={segments[6] === "media"}
-              assetView={segments[6] === "assets"}
-              productionView={segments[6] === "production"}
-              editingView={segments[6] === "editing"}
-            />
+            >
+              <TenantArea
+                key={tenantId}
+                tenantId={tenantId}
+                section={segments[4]}
+                projectId={segments[4] === "p" ? segments[5] : undefined}
+                contentView={segments[6] === "content"}
+                mediaView={segments[6] === "media"}
+                assetView={segments[6] === "assets"}
+                productionView={segments[6] === "production"}
+                editingView={segments[6] === "editing"}
+              />
+            </ProjectUpdates>
           )}
         </main>
       </div>
@@ -522,7 +530,7 @@ function TenantArea({
   if (projectId && productionView)
     return (
       <Suspense fallback={<Loader aria-label="正在加载镜头制作" />}>
-        <CandidateWorkspace tenantId={tenantId} projectId={projectId} />
+        <SceneProductionWorkspace tenantId={tenantId} projectId={projectId} />
       </Suspense>
     );
   if (projectId && editingView)

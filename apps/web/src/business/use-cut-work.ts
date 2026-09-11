@@ -7,20 +7,20 @@ import {
   type WorkTransport,
 } from "./cut-work-controller";
 import { CutWorkSessionRegistry } from "./cut-work-sessions";
-import { clearEditingLocal } from "./editing-local";
+import {
+  registerEditingSessions,
+  suspendEditingAccess,
+} from "./editing-lifecycle";
 import { notifyEditingAccess, type EditingAccessHint } from "./editing-access";
 
 const controllers = new CutWorkSessionRegistry();
-export const suspendEditingAccess = (hint: EditingAccessHint) =>
-  controllers.suspendAccess(hint);
-export const refreshEditingAccess = (hint: EditingAccessHint) =>
-  controllers.refreshAccess(hint);
-export const retireEditingSession = (hint: EditingAccessHint) =>
-  controllers.retireSession(hint);
-export async function clearUserEditing(userId: string, sessionId?: string) {
-  await controllers.clearUser(userId, sessionId);
-  await clearEditingLocal(userId, {}, sessionId);
-}
+registerEditingSessions(controllers);
+export {
+  suspendEditingAccess,
+  refreshEditingAccess,
+  retireEditingSession,
+  clearUserEditing,
+} from "./editing-lifecycle";
 export function useCutWork(tenantId: string, projectId: string, cutId: string) {
   const session = useSession(),
     cache = useQueryClient();
