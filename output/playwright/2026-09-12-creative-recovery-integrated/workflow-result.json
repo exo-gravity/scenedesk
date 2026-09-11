@@ -1,0 +1,16 @@
+{
+  "controlledTransport": true,
+  "realProviderAcceptance": false,
+  "tenantMembershipRemainedActive": true,
+  "deniedCachedContentHidden": true,
+  "outageAfterDenialStayedHidden": true,
+  "transientDraftPreserved": true,
+  "reauthorizedDraftRestored": true,
+  "unappliedPromptAdvancedExplicitly": true,
+  "priorInputAndTaskRestored": true,
+  "planPosts": 1,
+  "executePosts": 1,
+  "otherWrites": 0,
+  "contentReads": 13,
+  "pageErrors": []
+}

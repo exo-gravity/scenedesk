@@ -1,0 +1,13 @@
+{
+  "base": "c9233f60bce57a2a7d6eddc4341b3ea62133dff8",
+  "sourceFixes": [
+    "cc0a14b758c451ec7a772bf2ec1c39ef0a62c0c6",
+    "8e02af71315e478a889a6e3c15fdd536fc85a34c"
+  ],
+  "testedCommit": "900d22035de0c923bd51d7db58d12563c6291584",
+  "checkTests": 99,
+  "checkFailures": 0,
+  "scriptChanges": "Only screenshot/evidence output directory prefixes; original assertions, fixtures, URLs and user actions unchanged",
+  "controlledTransport": true,
+  "realBackendAcceptance": false
+}
