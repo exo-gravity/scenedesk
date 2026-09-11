@@ -1,6 +1,6 @@
 # 55 私有工作台首位 owner 引导
 
-状态：基于 `c9233f6` 的独立切片。本地验证见第 4 节；尚未合并，不代表真实身份或外部部署验收。首发范围继续遵循 [38](38-first-release-scope-review.md)，部署前提见 [47](47-private-deployment-package.md) 和 [52](52-private-deployment-integration.md)。
+状态：基于 `c9233f6` 的独立切片。本地验证见第 4 节；对应源切片的本机证据不代表真实身份或外部部署验收；主任务整合及GitHub状态见文末。首发范围继续遵循 [38](38-first-release-scope-review.md)，部署前提见 [47](47-private-deployment-package.md) 和 [52](52-private-deployment-integration.md)。
 
 ## 1. 最小入口与权限
 
@@ -100,3 +100,7 @@ createTenant 没有内容 CAS，服务幂等回包的保留期为 24 小时。�
 - 文档检查通过：152 operations / 118 paths / 225 schemas / 157 examples；报告写入本 worktree 的全新 `output/owner-bootstrap-validation-final-20260912/`，不覆盖历史报告或提交完整清单。以上结果在 Apple Silicon/macOS、Node 22.22.2/npm 10.9.7 上获得；大小写不敏感文件别名的 CLI 负例在本机实际执行，Linux 按文件系统是否存在别名有条件核对。
 
 新增测试由现有 deployment CI 的 `deploy/tests/*.test.ts` 与 `deploy/integration/*.test.ts` 自动纳入，无需修改既有 workflow。工作室内项目/内容/画布和 AI 能力仍按 22/38 的状态验收；此入口仅补首位 owner 的操作步骤，不能把真实身份、模型执行或外部部署缺口算作已完成。
+
+## 5. 主任务整合
+
+源切片 `f3c1d6e` 已由主任务整合到已合入音频及创作恢复的 main `d161c0c`，没有改写已验证的operator源代码。主任务审查完整diff、状态边界、测试与操作步骤，后端agent独立只读审查无剩余阻断；路径别名/大小写、代理错误和大小上限的发现及修正已包含。本片对应GitHub PR的检查及合并状态以实际记录为准，不以独立分支93项检查代替组合版本CI。
