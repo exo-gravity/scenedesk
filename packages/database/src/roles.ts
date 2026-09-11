@@ -186,6 +186,21 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.recover_media_production(uuid,uuid,text) TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${["canvases", "canvas_history_bodies", "canvas_revisions", "scene_canvas_links", "canvas_node_index", "canvas_media_refs", "canvas_subject_refs", "canvas_outbox", "scene_workspace_preferences"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(revision,updated_at) ON ${scope}.canvases TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(revision,preference) ON ${scope}.scene_workspace_preferences TO ${target}`,
+  );
+  await client.query(
+    `GRANT DELETE ON ${scope}.canvas_revisions,${scope}.canvas_history_bodies TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.validate_canvas_shape(jsonb),${scope}.validate_canvas_current_references(uuid) TO ${target}`,
+  );
 }
 
 export async function grantAuthAccess(

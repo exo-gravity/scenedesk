@@ -4,7 +4,7 @@ import type { Database, Transaction } from "./database.js";
 import { audit } from "./database.js";
 import { canonical, digest, Secrets } from "./crypto.js";
 import { Problem, requireThat } from "./errors.js";
-import { EditingDocumentError } from "@drama/domain";
+import { EditingDocumentError, CanvasDocumentError } from "@drama/domain";
 
 export type Input = {
   body: any;
@@ -96,9 +96,50 @@ function permission(tx: Transaction, name: string) {
 }
 export function installProblemHandler(app: FastifyInstance) {
   app.setErrorHandler(
-    (error: Error & { code?: string; statusCode?: number }, request, reply) => {
+    (
+      error: Error & {
+        code?: string;
+        statusCode?: number;
+        constraint?: string;
+      },
+      request,
+      reply,
+    ) => {
       let problem: Problem;
       if (error instanceof Problem) problem = error;
+      else if (error instanceof CanvasDocumentError)
+        problem = new Problem(
+          error.code === "CANVAS_LIMIT_EXCEEDED" ? 413 : 422,
+          error.code,
+          error.message,
+        );
+      else if (error.code === "P0414")
+        problem = new Problem(
+          412,
+          "CANVAS_VERSION_CONFLICT",
+          "画布已被更新，请保留本机内容并比较。",
+        );
+      else if (error.code === "P0425")
+        problem = new Problem(
+          422,
+          "CANVAS_REFERENCE_INVALID",
+          "请核对画布节点、连线和固定素材引用；节点身份不可替换，新引用必须可用且有访问权限。",
+        );
+      else if (error.code === "P0415")
+        problem = new Problem(
+          413,
+          "CANVAS_LIMIT_EXCEEDED",
+          "画布超过容量限制，请保留本机内容并分开整理。",
+        );
+      else if (
+        ["23503", "23505"].includes(error.code ?? "") &&
+        /^canvas_/.test(error.constraint ?? "")
+      )
+        problem = new Problem(
+          422,
+          "CANVAS_REFERENCE_INVALID",
+          "画布引用或节点身份无效，请重新核对素材、固定资产版本及所属画布。",
+        );
       else if (error instanceof EditingDocumentError)
         problem = new Problem(
           error.code === "WORK_DOCUMENT_TOO_LARGE" ? 413 : 422,
@@ -214,7 +255,9 @@ export function registerAction(
       ? { bodyLimit: 6 * 1024 * 1024 }
       : name === "saveCutWorkDraft"
         ? { bodyLimit: 25 * 1024 * 1024 }
-        : {}),
+        : name === "saveCanvas"
+          ? { bodyLimit: 25 * 1024 * 1024 }
+          : {}),
     async handler(request, reply) {
       const token = sessionCookie(request);
       const query = { ...(request.query as Record<string, unknown>) };
@@ -243,7 +286,7 @@ export function registerAction(
       const inputValid = operation.validateInput(validationInput);
       if (
         !inputValid &&
-        name === "saveCutWorkDraft" &&
+        ["saveCutWorkDraft", "saveCanvas"].includes(name) &&
         operation.validateInput.errors?.some(
           (error) =>
             error.keyword === "maxItems" &&
@@ -252,8 +295,10 @@ export function registerAction(
       )
         throw new Problem(
           413,
-          "WORK_DOCUMENT_TOO_LARGE",
-          "工作稿超过容量限制，请保留本机内容并分段整理。",
+          name === "saveCanvas"
+            ? "CANVAS_LIMIT_EXCEEDED"
+            : "WORK_DOCUMENT_TOO_LARGE",
+          "文档超过容量限制，请保留本机内容并分开整理。",
         );
       requireThat(
         inputValid,

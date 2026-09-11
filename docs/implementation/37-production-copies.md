@@ -1,6 +1,6 @@
 # 精确制作副本：实施记录
 
-本记录对应 [11 §6](11-transaction-and-implementation-blueprint.md#6-tx-04-采用规范化草稿与冻结) 的内部媒体阶段。当前在 `feat/cut-normalization` 实施；工作稿归一、确认、固定渲染和页面尚未接通，不代表 E05 已完成。原片、预览代理和制作副本继续保持不同身份。
+本记录对应 [11 §6](11-transaction-and-implementation-blueprint.md#6-tx-04-采用规范化草稿与冻结) 的内部媒体阶段。已验证的内部制作基础通过 [PR #15](https://github.com/beyondgravitylab/scenedesk/pull/15) 合入（`b7c14e4`），对应功能提交 `63d7d75` 的两组完整远端 CI 均通过。工作稿归一、确认、固定渲染和页面尚未接通，不代表 E05 已完成；按照[当前 MVP 范围](38-first-release-scope-review.md)，后期实现停止作为首发依赖，未合并的归一化工作保存在 `feat/deferred-normalization`。原片、预览代理和制作副本继续保持不同身份。
 
 ## 视频时间与实际内容
 
