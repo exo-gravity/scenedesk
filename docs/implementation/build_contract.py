@@ -198,6 +198,7 @@ for media_resource in ["UploadIntent", "Media", "MediaDerivative"]:
 schema("ProbeTiming", {"frameRateMode": enum("cfr", "vfr", "unknown"), "timeBaseNum": POS, "timeBaseDen": POS, "startPts": string(pattern="^-?[0-9]+$"), "audioSampleRate": POS, "audioChannels": POS}, ["frameRateMode", "timeBaseNum", "timeBaseDen", "startPts"])
 extend("Media", {"displayName": NAME, "originalFileName": NAME, "tags": arr(NAME), "createdBy": ID, "provenance": ref("MediaProvenance"), "derivatives": arr(ref("MediaDerivative")), "timing": ref("ProbeTiming")}, ["displayName", "tags", "provenance", "derivatives"])
 extend("UploadInput", {"displayName": NAME, "tags": arr(NAME), "provenance": ref("ProvenanceInput")})
+extend("UploadInput", {"canvasTarget": ref("CanvasUploadTarget")})
 schema("MediaMetadataChange", {"displayName": NAME, "tags": arr(NAME), "provenance": ref("ProvenanceInput")}, ["displayName", "tags"])
 extend("AccessRequest", {"variant": enum("original", "proxy", "poster"), "derivativeId": ID}, ["variant"])
 schema("RecoverDerivative", {"variant": enum("proxy", "poster")}, ["variant"])

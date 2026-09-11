@@ -5,6 +5,7 @@ import { registerAction, type ApiContext } from "../../kernel/routes.js";
 import { digest } from "../../kernel/crypto.js";
 import { Problem, requireThat } from "../../kernel/errors.js";
 import { findContent, type Schema } from "../content/model.js";
+import { canvasUploadRoutes } from "./uploads.js";
 import {
   canvasRoot,
   readCanvas,
@@ -20,6 +21,7 @@ import {
 } from "./scene-bindings.js";
 
 export function canvasRoutes(app: FastifyInstance, context: ApiContext) {
+  canvasUploadRoutes(app, context);
   registerAction(app, context, "ensureSceneCanvas", async (tx, input) => {
     const sceneId = input.params.sceneId!;
     await findContent(tx, "scenes", sceneId);

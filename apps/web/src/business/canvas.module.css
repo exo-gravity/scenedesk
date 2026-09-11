@@ -139,6 +139,19 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.uploadNode {
+  padding: var(--mantine-spacing-md);
+}
+.uploadList {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  max-height: 400px;
+  overflow: auto;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+  background: var(--ws-panel);
+}
 .fields {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

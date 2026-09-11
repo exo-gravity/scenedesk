@@ -24,6 +24,7 @@ import "@xyflow/react/dist/base.css";
 import {
   Alert,
   Button,
+  FileButton,
   Group,
   NumberInput,
   Select,
@@ -60,9 +61,15 @@ import { appendCanvasReference } from "./canvas-reference";
 import { ErrorNotice } from "./common";
 import classes from "./canvas.module.css";
 import { CanvasContinueCreation } from "./CanvasContinueCreation";
+import {
+  CanvasUploadSummary,
+  useCanvasUploads,
+  type CanvasUploadRow,
+} from "./CanvasUploads";
+import { importAccept } from "./media-imports";
 
 type Preference = Schema<"SaveSceneWorkspacePreference">;
-type FlowNode = Node<
+type CanvasFlowNode = Node<
   {
     node: CanvasNode;
     mediaPath: string;
@@ -71,10 +78,12 @@ type FlowNode = Node<
   },
   "canvas"
 >;
+type UploadFlowNode = Node<{ row: CanvasUploadRow }, "upload">;
+type FlowNode = CanvasFlowNode | UploadFlowNode;
 const CanvasNodeView = memo(function CanvasNodeView({
   data,
   selected,
-}: NodeProps<FlowNode>) {
+}: NodeProps<CanvasFlowNode>) {
   const node = data.node;
   return (
     <article
@@ -162,7 +171,19 @@ function NodeMedia({
     </div>
   );
 }
-const nodeTypes = { canvas: CanvasNodeView };
+const UploadNodeView = memo(function UploadNodeView({
+  data,
+}: NodeProps<UploadFlowNode>) {
+  return (
+    <article
+      className={`${classes.node} ${classes.uploadNode}`}
+      aria-label={`${data.row.title} · 上传状态`}
+    >
+      <CanvasUploadSummary row={data.row} />
+    </article>
+  );
+});
+const nodeTypes = { canvas: CanvasNodeView, upload: UploadNodeView };
 export function CanvasBoard({
   controller,
   document,
@@ -186,6 +207,7 @@ export function CanvasBoard({
   focusRequest?: { ids: string[]; nonce: number } | undefined;
   focusCompleted: (nonce: number) => void;
 }) {
+  const uploads = useCanvasUploads();
   const [hand, setHand] = useState(false),
     [playing, setPlaying] = useState<string | null>(null),
     [error, setError] = useState<Error | null>(null),
@@ -207,14 +229,17 @@ export function CanvasBoard({
     Record<string, { width: number; height: number }>
   >({});
   useEffect(() => {
-    const ids = new Set(document.nodes.map((node) => node.id));
+    const ids = new Set([
+      ...document.nodes.map((node) => node.id),
+      ...(uploads?.rows ?? []).map((row) => `upload:${row.id}`),
+    ]);
     setMeasurements((current) => {
       if (Object.keys(current).every((id) => ids.has(id))) return current;
       return Object.fromEntries(
         Object.entries(current).filter(([id]) => ids.has(id)),
       );
     });
-  }, [document.nodes]);
+  }, [document.nodes, uploads?.rows]);
   const narrow = useMediaQuery("(max-width: 760px)"),
     flow = useRef<ReactFlowInstance<FlowNode> | null>(null);
   const play = useCallback(
@@ -229,7 +254,7 @@ export function CanvasBoard({
     selected.length === 1
       ? document.nodes.find((n) => n.id === selected[0])
       : undefined;
-  const nodes = useMemo<FlowNode[]>(
+  const nodes = useMemo<CanvasFlowNode[]>(
     () =>
       document.nodes.map((node) => ({
         id: node.id,
@@ -251,6 +276,23 @@ export function CanvasBoard({
       measurements,
     ],
   );
+  const displayedNodes: FlowNode[] = [
+    ...nodes,
+    ...(uploads?.rows ?? []).map((row): UploadFlowNode => ({
+      id: `upload:${row.id}`,
+      type: "upload",
+      data: { row },
+      position: row.position,
+      width: 320,
+      ...(measurements[`upload:${row.id}`]
+        ? { measured: measurements[`upload:${row.id}`] }
+        : {}),
+      selectable: false,
+      draggable: false,
+      connectable: false,
+      focusable: false,
+    })),
+  ];
   const edges = useMemo(
     () =>
       document.edges.map((edge) => ({
@@ -477,6 +519,31 @@ export function CanvasBoard({
           <Button size="xs" disabled={readOnly} onClick={addMedia}>
             添加素材
           </Button>
+          {uploads && (
+            <FileButton
+              multiple
+              accept={importAccept}
+              onChange={(files) =>
+                uploads.begin(
+                  files,
+                  flow.current?.screenToFlowPosition({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                  }) ?? { x: 80, y: 80 },
+                )
+              }
+            >
+              {(props) => (
+                <Button
+                  {...props}
+                  size="xs"
+                  disabled={readOnly || uploads.readOnly || uploads.busy}
+                >
+                  上传文件
+                </Button>
+              )}
+            </FileButton>
+          )}
         </Group>
         <Group gap="xs">
           <Button
@@ -548,9 +615,33 @@ export function CanvasBoard({
           <Text>窄屏以列表查看内容；完整空间制作请使用桌面宽度。</Text>
         </div>
       ) : (
-        <div className={classes.flow} data-editing={!!active || undefined}>
+        <div
+          className={classes.flow}
+          data-editing={!!active || undefined}
+          onDragOver={(event) => {
+            if (event.dataTransfer.types.includes("Files")) {
+              event.preventDefault();
+              event.dataTransfer.dropEffect =
+                readOnly || uploads?.readOnly || uploads?.busy
+                  ? "none"
+                  : "copy";
+            }
+          }}
+          onDrop={(event) => {
+            if (!event.dataTransfer.types.includes("Files")) return;
+            event.preventDefault();
+            if (readOnly || uploads?.readOnly || uploads?.busy) return;
+            uploads?.begin(
+              [...event.dataTransfer.files],
+              flow.current?.screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+              }) ?? { x: 80, y: 80 },
+            );
+          }}
+        >
           <ReactFlow<FlowNode>
-            nodes={nodes}
+            nodes={displayedNodes}
             edges={edges}
             nodeTypes={nodeTypes}
             onInit={(instance) => {

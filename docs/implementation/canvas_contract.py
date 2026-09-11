@@ -23,6 +23,9 @@ HASH = {"type": "string", "pattern": "^[0-9a-f]{64}$"}
 def schemas():
     s = {}
     s["CanvasPoint"] = obj({"x": COORD, "y": COORD}, ["x", "y"])
+    s["CanvasUploadTarget"] = obj({"canvasId": ID, "clientRequestId": ID, "position": ref("CanvasPoint")}, ["canvasId", "clientRequestId", "position"])
+    s["CanvasUpload"] = obj({"canvasId": ID, "nodeId": ID, "clientRequestId": ID, "createdBy": ID, "position": ref("CanvasPoint"), "declaration": ref("UploadInput"), "upload": ref("UploadIntent"), "placed": BOOL, "dismissed": BOOL}, ["canvasId", "nodeId", "clientRequestId", "createdBy", "position", "declaration", "upload", "placed", "dismissed"])
+    s["CanvasUploadPage"] = obj({"items": array(ref("CanvasUpload"), 100)}, ["items"])
     s["CanvasTextContent"] = obj({"type": enum("text"), "text": TEXT}, ["type", "text"])
     s["CanvasMediaContent"] = obj({"type": enum("media"), "mediaId": ID, "assetRevisionId": ID}, ["type", "mediaId"])
     s["CanvasDraftContent"] = obj({"type": enum("draft"), "prompt": TEXT, "connectionId": ID, "capabilityId": ID, "output": ref("OutputOptions")}, ["type", "prompt", "output"])
@@ -65,6 +68,10 @@ def register_routes(route, paths):
     route("get", canvas, "getCanvas", "PR-16", "读取通用画布当前文档", "Canvas")
     route("get", canvas + "/revisions/{revisionNumber}", "getCanvasRevision", "PR-17", "按保存修订读取只读画布", "Canvas")
     route("put", canvas, "saveCanvas", "PR-17", "按版本保存画布，不改制作事实", "Canvas", "SaveCanvas", cas=True)
+    route("get", canvas + "/uploads", "listCanvasUploads", "PR-16", "读取画布未放入且未移除的上传及固定落点", "CanvasUploadPage")
+    route("get", canvas + "/uploads/{uploadId}", "getCanvasUpload", "PR-16", "核对上传与唯一呈现身份，移除后仍可查询", "CanvasUpload")
+    route("get", canvas + "/uploads/by-request/{clientRequestId}", "getCanvasUploadRequest", "PR-16", "按本人固定请求身份找回已提交上传，不重建导入", "CanvasUpload")
+    route("post", canvas + "/uploads/{uploadId}/dismiss", "dismissCanvasUpload", "PR-16", "移除待处理上传呈现，保留文件与导入事实", "CanvasUpload", code=200)
     route("post", scene + "/canvas/nodes/{nodeId}/shot-bindings", "bindSceneCanvasNode", "PR-16", "明确关联镜头参考或视频候选", "SceneCanvas", "BindCanvasNode", cas=True)
     route("delete", scene + "/canvas/nodes/{nodeId}/shot-bindings/{bindingId}", "unbindSceneCanvasNode", "PR-16", "移除关联，保留候选及采用", "SceneCanvas", cas=True)
     route("post", scene + "/canvas/generation-plans", "prepareCanvasGeneration", "PR-16", "固定画布草稿与明确镜头输入，只准备不执行", "CanvasPlanEntry", "PrepareCanvasGeneration", cas=True)
@@ -72,7 +79,7 @@ def register_routes(route, paths):
     route("post", canvas + "/results", "materializeCanvasResults", "PR-16", "将已归档结果添加或恢复到画布", "CanvasResultPlacement", "MaterializeCanvasResults", cas=True)
     route("get", scene + "/workspace-preference", "getSceneWorkspacePreference", "PR-17", "读取本人偏好，无记录返回revision0默认值", "SceneWorkspacePreference")
     route("put", scene + "/workspace-preference", "saveSceneWorkspacePreference", "PR-17", "保存本人模式与视口，不改共同画布", "SceneWorkspacePreference", "SaveSceneWorkspacePreference", cas=True)
-    names = {"getCanvas", "getCanvasRevision", "saveCanvas", "materializeCanvasResults", "ensureSceneCanvas", "getSceneCanvas", "bindSceneCanvasNode", "unbindSceneCanvasNode", "prepareCanvasGeneration", "listCanvasPlans", "getSceneWorkspacePreference", "saveSceneWorkspacePreference"}
+    names = {"getCanvas", "getCanvasRevision", "saveCanvas", "materializeCanvasResults", "ensureSceneCanvas", "getSceneCanvas", "bindSceneCanvasNode", "unbindSceneCanvasNode", "prepareCanvasGeneration", "listCanvasPlans", "getSceneWorkspacePreference", "saveSceneWorkspacePreference", "listCanvasUploads", "getCanvasUpload", "getCanvasUploadRequest", "dismissCanvasUpload"}
     for methods in paths.values():
         for operation in methods.values():
             name = operation["operationId"]

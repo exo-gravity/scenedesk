@@ -19,9 +19,8 @@ import {
   importAccept,
   importMime,
   importRecords,
-  mediaPost,
+  resumeMediaImport,
   saveImport,
-  transferFile,
   type ImportRecord,
 } from "./media-imports";
 import classes from "./media.module.css";
@@ -89,62 +88,22 @@ export function MediaImports(props: Props) {
     setActive(initial.id);
     setError(undefined);
     setProgress(0);
-    let record = initial;
+    const record = initial;
     try {
-      if (selected) {
-        setPhase("正在核对文件");
-        importMime(selected);
-        if (
-          selected.size !== record.declaration.bytes ||
-          (await fileHash(selected, current.signal)) !==
-            record.declaration.sha256
-        )
-          throw new Error(
-            "所选文件与本次上传的原声明不同，请选择原文件；更换内容应新建导入。",
-          );
-      }
-      setPhase("正在读取上传状态");
-      if (!record.intentId) {
-        if (Date.parse(record.createdAt) < Date.now() - 15 * 60_000)
-          throw new Error("本次上传创建确认已过期，请新建导入。");
-        const created = await mediaPost<Schema<"UploadIntent">>(
-          session,
-          `${props.path}/uploads`,
-          record.declaration,
-          current.signal,
-          record.id,
-        );
-        record = { ...record, intentId: created.id };
-        await store(record);
-      }
-      const intent = await api<Schema<"UploadIntent">>(
-        `${props.path}/uploads/${record.intentId}`,
-        { signal: current.signal },
-      );
-      if (["expired", "rejected"].includes(intent.status))
-        throw new Error(
-          intent.issue?.message ?? "本次上传已结束，请重新导入文件。",
-        );
-      if (intent.status === "accepted") {
-        await refresh();
-        return;
-      }
-      if (intent.status === "pending" && !record.transferred) {
-        if (!selected) throw new Error("请选择原文件，核对后继续上传。");
-        setPhase("正在上传文件");
-        await transferFile(selected, intent, current.signal, (value) => {
-          if (mounted.current) setProgress(value);
-        });
-        record = { ...record, transferred: true };
-        await store(record);
-      }
-      setPhase("正在提交验收");
-      await mediaPost<Schema<"UploadIntent">>(
+      await resumeMediaImport({
+        initial: record,
+        selected,
         session,
-        `${props.path}/uploads/${record.intentId}/complete`,
-        { bytes: record.declaration.bytes, sha256: record.declaration.sha256 },
-        current.signal,
-      );
+        path: props.path,
+        signal: current.signal,
+        store,
+        phase: (value) => {
+          if (mounted.current) setPhase(value);
+        },
+        progress: (value) => {
+          if (mounted.current) setProgress(value);
+        },
+      });
       await refresh();
       if (mounted.current) {
         setFile(null);

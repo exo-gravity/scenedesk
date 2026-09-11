@@ -213,5 +213,123 @@
     ],
     "pageErrors": 0,
     "scope": "actual local production browser/API canvas, no model execution"
+  },
+  "uploads": {
+    "scope": "Production browser, actual local API/PostgreSQL/media worker, technical PNG and UTF-8 document fixtures; controlled lost replies; no model calls.",
+    "cases": {
+      "drop": {
+        "actualDrop": true,
+        "pendingNode": true,
+        "acceptedMedia": true,
+        "reloadPreservesIdentity": true,
+        "nodeId": "c4ba0f12-0010-4404-b994-55ad5147d9bb",
+        "mediaId": "17c161e4-f48c-4a44-909f-2576ba7ba991",
+        "marker": "画布拖入验证 1789124236609.png",
+        "canvasId": "379e96ec-f6a0-4cd2-8c85-5204065a7859",
+        "pageErrors": 0
+      },
+      "lostCreate": {
+        "lostActualCreateRecovered": true,
+        "createRequests": 1,
+        "uploadId": "28d075b2-a603-4450-903b-94729ff29055",
+        "requestId": "76147aa5-df39-462a-8f0e-7dd1018e6483",
+        "marker": "上传恢复 1789124885414 丢失创建回包.png",
+        "pageErrors": []
+      },
+      "resume": {
+        "wrongFileRejected": true,
+        "originalFileResumes": true,
+        "noRepeatedCreate": true,
+        "undoNeverReinsertsAfterReload": true,
+        "uploadId": "28d075b2-a603-4450-903b-94729ff29055",
+        "nodeId": "56d80007-7654-44d4-b2ed-8a7ffb0b07dc",
+        "mediaId": "79643d82-b02d-4d77-a0bf-f8faa7b88c26",
+        "pageErrors": 0
+      },
+      "multiple": {
+        "multipleFiles": true,
+        "modeSwitchContinues": true,
+        "fixedLandingOffsets": true,
+        "undoNeverReinserts": true,
+        "nodes": [
+          {
+            "id": "cda1ac80-6162-466a-8fb5-e0c4c39ab377",
+            "title": "上传恢复 1789124963653 A.png",
+            "position": {
+              "x": 371.1345252051583,
+              "y": 149.76171875
+            }
+          },
+          {
+            "id": "faac5372-3281-415c-a886-7f3e4c7536e8",
+            "title": "上传恢复 1789124963653 B.png",
+            "position": {
+              "x": 407.1345252051583,
+              "y": 173.76171875
+            }
+          }
+        ],
+        "pageErrors": 0
+      },
+      "manualPlacement": {
+        "completedBytesSurviveLostReply": true,
+        "refreshRequiresExplicitPlacement": true,
+        "manualPlacementUsesOriginalIdentity": true,
+        "completeRequests": 1,
+        "uploadId": "48a26938-2ea9-441d-af49-2f7a69b094f9",
+        "nodeId": "0c9adac7-4b89-4f1a-a9ba-0410c6127314",
+        "mediaId": "a2b286ea-42ec-47ac-b0cb-780e54f750a7",
+        "layouts": [
+          {
+            "width": 1512,
+            "horizontalOverflow": false
+          },
+          {
+            "width": 1366,
+            "horizontalOverflow": false
+          },
+          {
+            "width": 390,
+            "horizontalOverflow": false
+          }
+        ],
+        "pageErrors": 0,
+        "failedReads": []
+      },
+      "assetLibrary": {
+        "assetLibraryActualTextImport": true,
+        "uploadId": "9fcf150b-403e-40c2-b346-33db3be602ba",
+        "mediaId": "f28595d1-cc99-494c-95ae-54803155e6ed",
+        "pageErrors": 0
+      },
+      "expiredLocalCleanup": {
+        "expiredUnknownRecordReconciledAndRemoved": true,
+        "noCreationForCleanup": true,
+        "cleanupKeptCanvasRevision": true,
+        "lookupRequests": 2,
+        "createRequests": 0,
+        "pageErrors": []
+      },
+      "dismiss": {
+        "acceptedMediaDismissal": true,
+        "originalMediaStillReady": true,
+        "canvasRevisionUnchanged": true,
+        "completeRequests": 1,
+        "uploadId": "dd9a10b2-d759-4ad2-b714-434a06f67210",
+        "mediaId": "70e28b9b-3780-4f87-a25b-4b28934af2c2",
+        "pageErrors": 0,
+        "failedReads": []
+      },
+      "initialReadRetry": {
+        "initialRecoveryReadFailureRetry": true,
+        "uploadsBlockedUntilRecoveryRead": true,
+        "expiredUnknownRecordReconciledAndRemoved": true,
+        "noCreationForCleanup": true,
+        "cleanupKeptCanvasRevision": true,
+        "lookupRequests": 3,
+        "createRequests": 0,
+        "pageErrors": []
+      }
+    }
   }
 }

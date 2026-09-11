@@ -8,6 +8,7 @@ export type ImportRecord = {
   declaration: Schema<"UploadInput">;
   intentId?: string;
   transferred?: boolean;
+  placementHandled?: boolean;
 };
 let connection: Promise<IDBDatabase> | undefined;
 function database() {
@@ -114,12 +115,87 @@ export function mediaPost<T>(
     method: "POST",
     ...(signal ? { signal } : {}),
     headers: {
-      "Content-Type": "application/json",
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
       "X-CSRF-Token": session.csrfToken,
       "Idempotency-Key": key,
     },
     body: JSON.stringify(body),
   });
+}
+
+/** One resumable upload protocol shared by the asset library and canvas. The
+ * durable declaration/request identity is stored before any external write. */
+export async function resumeMediaImport({
+  initial,
+  selected,
+  session,
+  path,
+  signal,
+  store,
+  phase,
+  progress,
+}: {
+  initial: ImportRecord;
+  selected: File | null;
+  session: Session;
+  path: string;
+  signal: AbortSignal;
+  store: (record: ImportRecord) => Promise<void>;
+  phase: (value: string) => void;
+  progress: (value: number) => void;
+}) {
+  let record = initial;
+  if (selected) {
+    phase("正在核对文件");
+    importMime(selected);
+    if (
+      selected.size !== record.declaration.bytes ||
+      (await fileHash(selected, signal)) !== record.declaration.sha256
+    )
+      throw new Error(
+        "所选文件与本次上传的原声明不同，请选择原文件；更换内容应新建导入。",
+      );
+  }
+  signal.throwIfAborted();
+  phase("正在读取上传状态");
+  if (!record.intentId) {
+    if (Date.parse(record.createdAt) < Date.now() - 15 * 60_000)
+      throw new Error("本次上传创建确认已过期，请新建导入。");
+    const created = await mediaPost<Schema<"UploadIntent">>(
+      session,
+      `${path}/uploads`,
+      record.declaration,
+      signal,
+      record.id,
+    );
+    record = { ...record, intentId: created.id };
+    await store(record);
+  }
+  const intent = await api<Schema<"UploadIntent">>(
+    `${path}/uploads/${record.intentId}`,
+    { signal },
+  );
+  if (["expired", "rejected"].includes(intent.status))
+    throw new Error(
+      intent.issue?.message ?? "本次上传已结束，请重新导入文件。",
+    );
+  if (intent.status === "accepted") return { record, intent };
+  if (intent.status === "pending" && !record.transferred) {
+    if (!selected) throw new Error("请选择原文件，核对后继续上传。");
+    phase("正在上传文件");
+    await transferFile(selected, intent, signal, progress);
+    record = { ...record, transferred: true };
+    await store(record);
+  }
+  signal.throwIfAborted();
+  phase("正在提交验收");
+  const submitted = await mediaPost<Schema<"UploadIntent">>(
+    session,
+    `${path}/uploads/${record.intentId}/complete`,
+    { bytes: record.declaration.bytes, sha256: record.declaration.sha256 },
+    signal,
+  );
+  return { record, intent: submitted };
 }
 export function transferFile(
   file: File,

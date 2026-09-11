@@ -31,6 +31,7 @@ import { useScenePreference } from "./use-scene-preference";
 import { useCanvas } from "./use-canvas";
 import { EditingPresence } from "./EditingPresence";
 import { CanvasBoard } from "./CanvasBoard";
+import { CanvasUploads } from "./CanvasUploads";
 import { CanvasShotConnections } from "./CanvasShotConnections";
 import { useQueryClient } from "@tanstack/react-query";
 import { CanvasEntryDetails } from "./CanvasEntryDetails";
@@ -370,244 +371,252 @@ function SceneCanvasSession({
     return node;
   };
   return (
-    <Stack gap="md">
-      <Group justify="space-between">
-        <Text role="status" aria-live="polite">
-          画布 · {canvasSaveLabel(state)}
-          {state.local ? ` · 服务器版本 ${state.local.base.revision}` : ""}
-        </Text>
-        <Group gap="xs">
-          <Button
-            size="xs"
-            disabled={readOnly || state.phase === "conflict"}
-            loading={state.phase === "saving"}
-            onClick={() => void controller.save()}
-          >
-            保存画布
-          </Button>
-          <Button
-            size="xs"
-            aria-pressed={dock === "shots"}
-            onClick={() => selectDock("shots")}
-          >
-            本场镜头与探索
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<Images size={16} />}
-            aria-pressed={dock === "media"}
-            onClick={() => selectDock("media")}
-          >
-            素材
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<ClockCounterClockwise size={16} />}
-            aria-pressed={dock === "history"}
-            onClick={() => selectDock("history")}
-          >
-            历史
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<Sparkle size={16} />}
-            aria-pressed={dock === "assistant"}
-            onClick={() => selectDock("assistant")}
-          >
-            AI 助手
-          </Button>
+    <CanvasUploads
+      controller={controller}
+      tenantId={tenantId}
+      projectId={projectId}
+      canvasId={canvasId}
+      readOnly={readOnly}
+    >
+      <Stack gap="md">
+        <Group justify="space-between">
+          <Text role="status" aria-live="polite">
+            画布 · {canvasSaveLabel(state)}
+            {state.local ? ` · 服务器版本 ${state.local.base.revision}` : ""}
+          </Text>
+          <Group gap="xs">
+            <Button
+              size="xs"
+              disabled={readOnly || state.phase === "conflict"}
+              loading={state.phase === "saving"}
+              onClick={() => void controller.save()}
+            >
+              保存画布
+            </Button>
+            <Button
+              size="xs"
+              aria-pressed={dock === "shots"}
+              onClick={() => selectDock("shots")}
+            >
+              本场镜头与探索
+            </Button>
+            <Button
+              size="xs"
+              leftSection={<Images size={16} />}
+              aria-pressed={dock === "media"}
+              onClick={() => selectDock("media")}
+            >
+              素材
+            </Button>
+            <Button
+              size="xs"
+              leftSection={<ClockCounterClockwise size={16} />}
+              aria-pressed={dock === "history"}
+              onClick={() => selectDock("history")}
+            >
+              历史
+            </Button>
+            <Button
+              size="xs"
+              leftSection={<Sparkle size={16} />}
+              aria-pressed={dock === "assistant"}
+              onClick={() => selectDock("assistant")}
+            >
+              AI 助手
+            </Button>
+          </Group>
         </Group>
-      </Group>
-      <CanvasRecovery
-        controller={controller}
-        state={state}
-        retry={retry}
-        selectNode={selectNode}
-      />
-      <EditingPresence
-        tenantId={tenantId}
-        projectId={projectId}
-        canvasId={canvasId}
-        enabled={!state.accessChecking && state.phase !== "loading"}
-        editing={
-          active &&
-          (state.dirty || state.hasInvalidInput || state.phase === "saving")
-        }
-      />
-      {state.phase === "loading" || !document ? (
-        <Loader aria-label="正在读取画布" />
-      ) : (
-        <div className={classes.body} data-dock={dock || undefined}>
-          <div>
-            {preference.mode === "canvas" ? (
-              <CanvasBoard
-                controller={controller}
-                document={document}
-                preference={preference}
-                changePreference={changePreference}
-                mediaPath={mediaPath}
-                readOnly={readOnly || bindingBusy}
-                focusRequest={focusRequest}
-                focusCompleted={focusCompleted}
-                nodeActions={
-                  preference.selectedNodeIds.length === 1 &&
-                  document.nodes.find(
-                    (n) => n.id === preference.selectedNodeIds[0],
-                  )?.content.type === "media" ? (
+        <CanvasRecovery
+          controller={controller}
+          state={state}
+          retry={retry}
+          selectNode={selectNode}
+        />
+        <EditingPresence
+          tenantId={tenantId}
+          projectId={projectId}
+          canvasId={canvasId}
+          enabled={!state.accessChecking && state.phase !== "loading"}
+          editing={
+            active &&
+            (state.dirty || state.hasInvalidInput || state.phase === "saving")
+          }
+        />
+        {state.phase === "loading" || !document ? (
+          <Loader aria-label="正在读取画布" />
+        ) : (
+          <div className={classes.body} data-dock={dock || undefined}>
+            <div>
+              {preference.mode === "canvas" ? (
+                <CanvasBoard
+                  controller={controller}
+                  document={document}
+                  preference={preference}
+                  changePreference={changePreference}
+                  mediaPath={mediaPath}
+                  readOnly={readOnly || bindingBusy}
+                  focusRequest={focusRequest}
+                  focusCompleted={focusCompleted}
+                  nodeActions={
+                    preference.selectedNodeIds.length === 1 &&
+                    document.nodes.find(
+                      (n) => n.id === preference.selectedNodeIds[0],
+                    )?.content.type === "media" ? (
+                      <Button
+                        size="xs"
+                        onClick={() =>
+                          editBinding(
+                            document.nodes.find(
+                              (n) => n.id === preference.selectedNodeIds[0],
+                            )!,
+                          )
+                        }
+                      >
+                        镜头关联 ·{" "}
+                        {connections.data?.bindings.filter(
+                          (b) => b.nodeId === preference.selectedNodeIds[0],
+                        ).length ?? 0}
+                      </Button>
+                    ) : undefined
+                  }
+                  addMedia={() => {
+                    setDock("media");
+                    changePreference({
+                      assetPanelOpen: true,
+                      assistantOpen: false,
+                    });
+                  }}
+                />
+              ) : (
+                <CandidateWorkspace
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  embedded
+                />
+              )}
+            </div>
+            {dock && (
+              <aside
+                className={classes.dock}
+                aria-label={
+                  dock === "media"
+                    ? "素材浏览"
+                    : dock === "history"
+                      ? "画布恢复历史"
+                      : dock === "shots"
+                        ? "本场镜头与探索"
+                        : "AI 创作助手"
+                }
+              >
+                <div className={classes.dockHeading}>
+                  <Group justify="space-between">
+                    <Text fw={600}>
+                      {dock === "media"
+                        ? "素材浏览"
+                        : dock === "history"
+                          ? "画布历史"
+                          : dock === "shots"
+                            ? "本场镜头与探索"
+                            : "AI 创作助手"}
+                    </Text>
                     <Button
                       size="xs"
-                      onClick={() =>
-                        editBinding(
-                          document.nodes.find(
-                            (n) => n.id === preference.selectedNodeIds[0],
-                          )!,
-                        )
-                      }
+                      variant="subtle"
+                      onClick={() => selectDock(dock)}
                     >
-                      镜头关联 ·{" "}
-                      {connections.data?.bindings.filter(
-                        (b) => b.nodeId === preference.selectedNodeIds[0],
-                      ).length ?? 0}
+                      收起
                     </Button>
-                  ) : undefined
-                }
-                addMedia={() => {
-                  setDock("media");
-                  changePreference({
-                    assetPanelOpen: true,
-                    assistantOpen: false,
-                  });
-                }}
-              />
-            ) : (
-              <CandidateWorkspace
-                tenantId={tenantId}
-                projectId={projectId}
-                embedded
-              />
+                  </Group>
+                  {dock === "shots" && bindingTarget && (
+                    <Text size="xs" lineClamp={1} title={bindingTarget.title}>
+                      当前关联：{bindingTarget.title}
+                    </Text>
+                  )}
+                </div>
+                {dock === "media" ? (
+                  <CanvasMediaBrowser
+                    projectId={projectId}
+                    path={mediaPath}
+                    readOnly={readOnly}
+                    add={addMedia}
+                  />
+                ) : dock === "history" ? (
+                  <CanvasHistory
+                    path={`${path}/canvases/${canvasId}`}
+                    controller={controller}
+                    readOnly={
+                      readOnly ||
+                      state.phase === "conflict" ||
+                      !!state.local?.pending
+                    }
+                  />
+                ) : dock === "shots" ? (
+                  <Stack>
+                    <ErrorNotice
+                      error={connections.error ?? content.error}
+                      retry={() => void changedConnections()}
+                    />
+                    <Button size="xs" onClick={() => void changedConnections()}>
+                      刷新画布与关联
+                    </Button>
+                    {connections.data && content.data ? (
+                      <CanvasShotConnections
+                        path={path}
+                        sceneId={sceneId}
+                        controller={controller}
+                        sceneCanvas={connections.data}
+                        shots={content.data.shots.filter(
+                          (s) => s.sceneId === sceneId,
+                        )}
+                        target={bindingTarget}
+                        seed={bindingSeed}
+                        readOnly={readOnly}
+                        changed={changedConnections}
+                        focus={focusNodes}
+                        editTarget={editBinding}
+                        busyChange={setBindingBusy}
+                        place={(media, shot, take, assetRevisionId) => {
+                          const node = addMedia(media, assetRevisionId);
+                          if (!node) return;
+                          setBindingTarget(node);
+                          setBindingSeed({
+                            shotId: shot.id,
+                            shotRevisionId:
+                              take?.shotRevisionId ?? shot.specRevisionId,
+                            ...(take ? { take } : {}),
+                          });
+                          focusNodes([node.id]);
+                        }}
+                      />
+                    ) : (
+                      <Loader size="sm" aria-label="正在读取本场关联" />
+                    )}
+                  </Stack>
+                ) : (
+                  <Stack>
+                    <Text>当前上下文：{sceneTitle}</Text>
+                    <Text>
+                      目标：
+                      {preference.mode === "canvas" &&
+                      preference.selectedNodeIds.length === 1
+                        ? (document.nodes.find(
+                            (n) => n.id === preference.selectedNodeIds[0],
+                          )?.title ?? "请选择内容")
+                        : "场次"}
+                    </Text>
+                    <Alert title="助手服务尚未接入">
+                      <Text>
+                        原定分镜建议、提示准备和生成流程正在接入。当前可以直接编辑画布内容和参考。
+                      </Text>
+                    </Alert>
+                  </Stack>
+                )}
+              </aside>
             )}
           </div>
-          {dock && (
-            <aside
-              className={classes.dock}
-              aria-label={
-                dock === "media"
-                  ? "素材浏览"
-                  : dock === "history"
-                    ? "画布恢复历史"
-                    : dock === "shots"
-                      ? "本场镜头与探索"
-                      : "AI 创作助手"
-              }
-            >
-              <div className={classes.dockHeading}>
-                <Group justify="space-between">
-                  <Text fw={600}>
-                    {dock === "media"
-                      ? "素材浏览"
-                      : dock === "history"
-                        ? "画布历史"
-                        : dock === "shots"
-                          ? "本场镜头与探索"
-                          : "AI 创作助手"}
-                  </Text>
-                  <Button
-                    size="xs"
-                    variant="subtle"
-                    onClick={() => selectDock(dock)}
-                  >
-                    收起
-                  </Button>
-                </Group>
-                {dock === "shots" && bindingTarget && (
-                  <Text size="xs" lineClamp={1} title={bindingTarget.title}>
-                    当前关联：{bindingTarget.title}
-                  </Text>
-                )}
-              </div>
-              {dock === "media" ? (
-                <CanvasMediaBrowser
-                  projectId={projectId}
-                  path={mediaPath}
-                  readOnly={readOnly}
-                  add={addMedia}
-                />
-              ) : dock === "history" ? (
-                <CanvasHistory
-                  path={`${path}/canvases/${canvasId}`}
-                  controller={controller}
-                  readOnly={
-                    readOnly ||
-                    state.phase === "conflict" ||
-                    !!state.local?.pending
-                  }
-                />
-              ) : dock === "shots" ? (
-                <Stack>
-                  <ErrorNotice
-                    error={connections.error ?? content.error}
-                    retry={() => void changedConnections()}
-                  />
-                  <Button size="xs" onClick={() => void changedConnections()}>
-                    刷新画布与关联
-                  </Button>
-                  {connections.data && content.data ? (
-                    <CanvasShotConnections
-                      path={path}
-                      sceneId={sceneId}
-                      controller={controller}
-                      sceneCanvas={connections.data}
-                      shots={content.data.shots.filter(
-                        (s) => s.sceneId === sceneId,
-                      )}
-                      target={bindingTarget}
-                      seed={bindingSeed}
-                      readOnly={readOnly}
-                      changed={changedConnections}
-                      focus={focusNodes}
-                      editTarget={editBinding}
-                      busyChange={setBindingBusy}
-                      place={(media, shot, take, assetRevisionId) => {
-                        const node = addMedia(media, assetRevisionId);
-                        if (!node) return;
-                        setBindingTarget(node);
-                        setBindingSeed({
-                          shotId: shot.id,
-                          shotRevisionId:
-                            take?.shotRevisionId ?? shot.specRevisionId,
-                          ...(take ? { take } : {}),
-                        });
-                        focusNodes([node.id]);
-                      }}
-                    />
-                  ) : (
-                    <Loader size="sm" aria-label="正在读取本场关联" />
-                  )}
-                </Stack>
-              ) : (
-                <Stack>
-                  <Text>当前上下文：{sceneTitle}</Text>
-                  <Text>
-                    目标：
-                    {preference.mode === "canvas" &&
-                    preference.selectedNodeIds.length === 1
-                      ? (document.nodes.find(
-                          (n) => n.id === preference.selectedNodeIds[0],
-                        )?.title ?? "请选择内容")
-                      : "场次"}
-                  </Text>
-                  <Alert title="助手服务尚未接入">
-                    <Text>
-                      原定分镜建议、提示准备和生成流程正在接入。当前可以直接编辑画布内容和参考。
-                    </Text>
-                  </Alert>
-                </Stack>
-              )}
-            </aside>
-          )}
-        </div>
-      )}
-    </Stack>
+        )}
+      </Stack>
+    </CanvasUploads>
   );
 }
 function CanvasMediaBrowser({

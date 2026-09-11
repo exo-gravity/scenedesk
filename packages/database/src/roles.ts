@@ -212,6 +212,12 @@ export async function grantRuntimeAccess(
     `GRANT SELECT,INSERT,DELETE ON ${scope}.node_shot_bindings TO ${target}`,
   );
   await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.canvas_upload_placements TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(dismissed) ON ${scope}.canvas_upload_placements TO ${target}`,
+  );
+  await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.get_editing_presence(uuid,text,uuid),${scope}.put_editing_presence(uuid,text,uuid,uuid,text,uuid) TO ${target}`,
   );
   await client.query(
@@ -319,6 +325,9 @@ export async function hardenAuthorizationFunctions(
     `GRANT SELECT ON ${["canvases", "scene_canvas_links", "scenes", "episodes", "cuts"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
   );
   await client.query(
+    `GRANT SELECT ON ${scope}.canvas_upload_placements,${scope}.canvas_node_index TO ${target}`,
+  );
+  await client.query(
     `GRANT SELECT,INSERT,UPDATE,DELETE ON ${scope}.editing_presence TO ${target}`,
   );
   await client.query(
@@ -333,6 +342,7 @@ export async function hardenAuthorizationFunctions(
     ...productionFunctions,
     ...presenceFunctions,
     "record_project_invalidation()",
+    "guard_canvas_upload_node_identity()",
     "relay_project_events(uuid)",
     "enforce_tenant_owner()",
     "enforce_project_lead()",

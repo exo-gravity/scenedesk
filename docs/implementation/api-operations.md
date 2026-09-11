@@ -138,6 +138,10 @@
 | PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}` | `getCanvas` | `project_member` |
 | PR-17 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/revisions/{revisionNumber}` | `getCanvasRevision` | `project_member` |
 | PR-17 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}` | `saveCanvas` | `project_member` |
+| PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/uploads` | `listCanvasUploads` | `project_member` |
+| PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/uploads/{uploadId}` | `getCanvasUpload` | `project_member` |
+| PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/uploads/by-request/{clientRequestId}` | `getCanvasUploadRequest` | `project_member` |
+| PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/uploads/{uploadId}/dismiss` | `dismissCanvasUpload` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/nodes/{nodeId}/shot-bindings` | `bindSceneCanvasNode` | `project_member` |
 | PR-16 | DELETE | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/nodes/{nodeId}/shot-bindings/{bindingId}` | `unbindSceneCanvasNode` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/generation-plans` | `prepareCanvasGeneration` | `project_member` |
