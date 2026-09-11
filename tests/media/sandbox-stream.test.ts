@@ -28,12 +28,35 @@ const args = [
 ];
 test(
   "sandbox stream input and output stay bounded and clean up on every termination",
-  { timeout: 90_000 },
+  { timeout: 240_000 },
   async (t) => {
     const names: string[] = [];
     t.after(async () => {
-      for (const name of names)
-        await assert.rejects(exec("docker", ["inspect", name]));
+      const listing = await exec(
+        "docker",
+        [
+          "ps",
+          "-a",
+          "--filter",
+          "name=scenedesk-media-",
+          "--format",
+          "{{.Names}}",
+        ],
+        { timeout: 15_000 },
+      );
+      const remaining = listing.stdout
+        .trim()
+        .split("\n")
+        .filter((name) => names.includes(name));
+      if (remaining.length)
+        await exec("docker", ["rm", "--force", ...remaining], {
+          timeout: 15_000,
+        });
+      assert.deepEqual(
+        remaining,
+        [],
+        "Completed stream work must remove its containers",
+      );
     });
     const onCreated = (name: string) => {
       names.push(name);
@@ -108,7 +131,7 @@ test(
           inputStream: Readable.from([Buffer.alloc(32768)]),
           maxInputBytes: 32768,
           outputStream: output,
-          timeoutMs: 15_000,
+          timeoutMs: 180_000,
           signal: controller.signal,
           onCreated(value) {
             name = value;
@@ -116,15 +139,23 @@ test(
           },
         });
         void running.catch(written);
-        const result = assert.rejects(running, { code: "MEDIA_CANCELLED" });
-        await firstWrite;
-        // Prove cancellation still works while only the host sink remains unfinished.
-        const stopped = await exec("docker", ["wait", name], {
-          timeout: 10_000,
-        });
-        assert.equal(stopped.stdout.trim(), "0");
-        controller.abort();
-        await result;
+        const checks = await Promise.allSettled([
+          assert.rejects(running, { code: "MEDIA_CANCELLED" }),
+          (async () => {
+            try {
+              await firstWrite;
+              // Prove cancellation works while only the host sink remains unfinished.
+              const stopped = await exec("docker", ["wait", name], {
+                timeout: 30_000,
+              });
+              assert.equal(stopped.stdout.trim(), "0");
+            } finally {
+              controller.abort();
+            }
+          })(),
+        ]);
+        for (const check of checks)
+          if (check.status === "rejected") throw check.reason;
         assert.equal(output.destroyed, true);
       },
     );

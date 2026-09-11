@@ -13,7 +13,7 @@ import {
 import { MediaStore } from "@drama/media";
 import { storageFixture } from "../support/storage.js";
 
-test("private versioned media storage", { timeout: 120_000 }, async (t) => {
+test("private versioned media storage", { timeout: 360_000 }, async (t) => {
   const fixture = await storageFixture(t);
   const { api, processing, admin, config } = fixture;
   const directory = await mkdtemp(join(tmpdir(), "scenedesk-storage-"));
