@@ -12,6 +12,13 @@ import "media-chrome/dist/lang/zh-CN.js";
 import { setLanguage } from "media-chrome/dist/utils/i18n.js";
 import classes from "./media-player.module.css";
 setLanguage("zh-CN");
+const mountedPlayers = new Set<HTMLVideoElement>();
+function coordinateAudiblePlayback(current: HTMLVideoElement) {
+  if (current.paused || current.muted || current.volume === 0) return;
+  for (const other of mountedPlayers)
+    if (other !== current && !other.paused && !other.muted && other.volume > 0)
+      other.pause();
+}
 
 /** Plays one authorized fixed file. Timeline composition and URL authorization belong to callers. */
 export default function MediaPlayer({
@@ -34,12 +41,14 @@ export default function MediaPlayer({
   const media = useRef<HTMLVideoElement | null>(null);
   useEffect(() => {
     const element = media.current;
+    if (element) mountedPlayers.add(element);
     if (element && element.getAttribute("src") !== src) {
       element.src = src;
       element.load();
     }
     return () => {
       if (element) {
+        mountedPlayers.delete(element);
         element.pause();
         element.removeAttribute("src");
         element.load();
@@ -72,8 +81,12 @@ export default function MediaPlayer({
               (range?.outUs ?? Infinity) / 1_000_000,
             );
         }}
+        onVolumeChange={(event) =>
+          coordinateAudiblePlayback(event.currentTarget)
+        }
         onPlay={(event) => {
           const el = event.currentTarget;
+          coordinateAudiblePlayback(el);
           if (
             range &&
             (el.currentTime < range.inUs / 1_000_000 ||
