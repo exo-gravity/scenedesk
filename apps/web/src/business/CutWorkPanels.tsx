@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -17,7 +17,7 @@ import {
   type WorkDocument,
   type WorkClip,
 } from "@drama/domain";
-import { useList, useResource, type Schema } from "./api";
+import { useList, usePages, useResource, type Schema } from "./api";
 import { Empty, ErrorNotice } from "./common";
 import { MediaPreview } from "./MediaPreview";
 import { sourceSeconds } from "./candidate-time";
@@ -322,6 +322,22 @@ export function CutSources({
     </Stack>
   );
 }
+function historyRestoreContext(state: WorkEditorState) {
+  const local = state.local;
+  return editingCanonical({
+    local: local
+      ? {
+          baseRevision: local.base.revision,
+          baseCutRevision: local.baseCutRevision,
+          document: local.document,
+          buffers: local.buffers,
+          pending: local.pending?.id ?? null,
+        }
+      : null,
+    remoteRevision: state.remote?.revision ?? null,
+    currentCutRevision: state.remote?.currentCutRevision ?? null,
+  });
+}
 export function CutHistory({
   controller,
   state,
@@ -333,15 +349,26 @@ export function CutHistory({
   path: string;
   disabled: boolean;
 }) {
-  const history = useList<Schema<"EditingHistoryEntry">>(
+  const history = usePages<Schema<"EditingHistoryEntry">>(
       `${path}/work-draft/revisions`,
     ),
     [revision, setRevision] = useState<string | null>(null),
-    [confirm, setConfirm] = useState(false);
+    [confirm, setConfirm] = useState<{
+      context: string;
+      fixed: Schema<"CutWorkDraft">;
+    } | null>(null);
   const fixed = useResource<Schema<"CutWorkDraft">>(
     `${path}/work-draft/revisions/${revision ?? ""}`,
     !!revision,
   );
+  const restoreContext = useMemo(
+    () => historyRestoreContext(state),
+    [state.local, state.remote?.revision, state.remote?.currentCutRevision],
+  );
+  const confirmed =
+    !!confirm &&
+    confirm.context === restoreContext &&
+    confirm.fixed === fixed.data;
   return (
     <Stack gap="md">
       <Text fw={600}>取回工作历史</Text>
@@ -359,15 +386,23 @@ export function CutHistory({
       <Select
         label="保留版本"
         value={revision}
-        data={(history.data ?? []).map((h) => ({
+        data={(history.data?.pages.flatMap((p) => p.items) ?? []).map((h) => ({
           value: String(h.revision),
           label: `r${h.revision} · ${new Date(h.updatedAt).toLocaleString()}`,
         }))}
         onChange={(value) => {
           setRevision(value);
-          setConfirm(false);
+          setConfirm(null);
         }}
       />
+      {history.hasNextPage && (
+        <Button
+          loading={history.isFetchingNextPage}
+          onClick={() => void history.fetchNextPage()}
+        >
+          加载更早的保留历史
+        </Button>
+      )}
       {fixed.data && !fixed.error && (
         <>
           <Text>
@@ -389,30 +424,61 @@ export function CutHistory({
                 · {sourceSeconds(c.timelineStartUs)} 秒
               </Text>
             ))}
+          <Text size="sm">
+            本机尚未应用的输入：{Object.keys(state.local?.buffers ?? {}).length}{" "}
+            项。取回将替换当前全部工作内容，包括对白关联、声音版本、输出设置及待处理事项。
+          </Text>
+          {confirm && !confirmed && (
+            <Alert title="取回确认已失效">
+              本机内容、服务器版本或所选历史发生变化。请重新核对后勾选确认，当前输入仍保留。
+            </Alert>
+          )}
           <Checkbox
             label="以此历史替换当前本机工作内容，再作为新修改保存"
-            checked={confirm}
-            onChange={(e) => setConfirm(e.currentTarget.checked)}
+            checked={confirmed}
+            disabled={
+              disabled || !!state.local?.pending || state.phase === "conflict"
+            }
+            onChange={(e) =>
+              setConfirm(
+                e.currentTarget.checked && fixed.data
+                  ? {
+                      context: restoreContext,
+                      fixed: fixed.data,
+                    }
+                  : null,
+              )
+            }
           />
           <Button
             disabled={
               disabled ||
-              !confirm ||
+              !confirmed ||
               !!state.local?.pending ||
               state.phase === "conflict"
             }
             onClick={() => {
-              if (fixed.data) controller.edit(fixed.data.document, {});
-              setConfirm(false);
+              const current = controller.getSnapshot();
+              if (
+                !disabled &&
+                confirm &&
+                fixed.data === confirm.fixed &&
+                historyRestoreContext(current) === confirm.context &&
+                !current.local?.pending &&
+                current.phase !== "conflict"
+              )
+                controller.edit(confirm.fixed.document, {});
+              setConfirm(null);
             }}
           >
             取回 r{fixed.data.revision} 的内容
           </Button>
         </>
       )}
-      {!history.isFetching && !history.data?.length && (
-        <Empty>尚无已保存的工作历史。</Empty>
-      )}
+      {!history.isFetching &&
+        !history.data?.pages.some((p) => p.items.length) && (
+          <Empty>尚无已保存的工作历史。</Empty>
+        )}
     </Stack>
   );
 }

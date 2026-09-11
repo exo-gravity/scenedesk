@@ -1,19 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { api, useSession, type Page } from "./api";
-export function useAssetPages<T>(path: string, enabled = true) {
-  const session = useSession();
-  return useInfiniteQuery({
-    queryKey: ["user", session.userId, path],
-    initialPageParam: "",
-    enabled,
-    queryFn: ({ signal, pageParam }) =>
-      api<Page<T>>(
-        `${path}${path.includes("?") ? "&" : "?"}limit=30${pageParam ? "&cursor=" + encodeURIComponent(pageParam) : ""}`,
-        { signal },
-      ),
-    getNextPageParam: (last) => last.nextCursor,
-  });
-}
+export { usePages as useAssetPages } from "./api";
 export const assetKinds = {
   character: "角色",
   location: "空间",
