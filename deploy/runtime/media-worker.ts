@@ -11,7 +11,7 @@ import {
   pool,
   fail,
 } from "./config.js";
-import { verifyImportQueue } from "./queue-boundary.js";
+import { supportsMediaTask, verifyMediaQueue } from "./queue-boundary.js";
 
 let stage = "configuration",
   healthy = false,
@@ -39,8 +39,8 @@ try {
     () => database.end(),
     () => scheduler.end(),
   );
-  stage = "import_queue_boundary";
-  await verifyImportQueue(scheduler);
+  stage = "creative_media_queue_boundary";
+  await verifyMediaQueue(scheduler);
   stage = "queue_producer_role";
   const producer = await createScheduler(database, {
     onError: () => diagnostic(undefined, "worker_queue"),
@@ -58,7 +58,8 @@ try {
     console.log(
       JSON.stringify({
         status: "ok",
-        scope: "import_worker_dependencies",
+        scope: "creative_media_worker_dependencies",
+        generationExecutor: "unavailable",
         productionEnabled: false,
         paidProvidersEnabled: false,
       }),
@@ -84,7 +85,7 @@ try {
       async (step, context) => {
         // Recognized deferred kinds fail here; malformed/new kinds fail in the wrapper.
         // Both reach onError and stop this consumer instead of exhausting retries.
-        if (!["media_probe", "media_derivative"].includes(step.taskKind))
+        if (!supportsMediaTask(step.taskKind))
           fail("QUEUE_EXCLUSIVITY_VIOLATED");
         await processor(step, context);
       },
@@ -96,7 +97,7 @@ try {
     let repair: Promise<unknown> | undefined;
     const repairOnce = () => {
       if (repair || stopping) return;
-      repair = verifyImportQueue(scheduler)
+      repair = verifyMediaQueue(scheduler)
         .then(() =>
           repairMediaWork({
             pool: scheduler,
@@ -143,7 +144,8 @@ try {
           reply.end(
             JSON.stringify({
               status: healthy && !stopping ? "ok" : "unavailable",
-              scope: "import_worker",
+              scope: "creative_media_worker",
+              generationExecutor: "unavailable",
               productionEnabled: false,
               paidProvidersEnabled: false,
             }),
@@ -163,7 +165,8 @@ try {
     console.log(
       JSON.stringify({
         status: "listening",
-        service: "import_worker",
+        service: "creative_media_worker",
+        generationExecutor: "unavailable",
         productionEnabled: false,
         paidProvidersEnabled: false,
       }),

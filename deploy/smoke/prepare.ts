@@ -7,13 +7,37 @@ const directory = resolve(process.argv[2] ?? "");
 if (!directory.includes("/.runtime/deploy-smoke-"))
   throw new Error("Use a fresh .runtime/deploy-smoke-* directory");
 mkdirSync(directory, { mode: 0o700 });
-for (const sub of ["certs", "setup", "media"])
+for (const sub of ["certs", "setup", "media", "browser"])
   mkdirSync(`${directory}/${sub}`, { mode: 0o755 });
+// This disposable directory is shared with UID 1000 on Linux as well as Docker Desktop.
+// The private parent remains 0700; production directory permissions are not changed.
+chmodSync(`${directory}/media`, 0o1777);
 const write = (name: string, value: string) =>
   writeFileSync(`${directory}/${name}`, value, { mode: 0o444, flag: "wx" });
 const json = (name: string, value: unknown) =>
   write(name, JSON.stringify(value));
 const random = () => randomBytes(32).toString("hex");
+execFileSync(
+  resolve("node_modules/.bin/esbuild"),
+  [
+    "apps/web/src/business/contract-validation.ts",
+    "--bundle",
+    "--format=iife",
+    "--global-name=SmokeContract",
+    "--platform=browser",
+    `--outfile=${directory}/browser/compiler.js`,
+  ],
+  { stdio: "ignore" },
+);
+write(
+  "browser/contract.html",
+  `<!doctype html><meta charset="utf-8"><title>SceneDesk contract smoke</title><pre id="result">pending</pre><script src="./compiler.js"></script><script>
+SmokeContract.browserContractCompiler().then(compiler => {
+  if (!compiler.validateContract("CanvasDocument", {nodes: [], edges: [], groups: []}).valid) throw new Error("invalid canvas");
+  document.getElementById("result").textContent = "SCENEDESK_BROWSER_CONTRACT_PASSED";
+}).catch(() => { document.getElementById("result").textContent = "SCENEDESK_BROWSER_CONTRACT_FAILED"; });
+</script>`,
+);
 const passwords = Object.fromEntries(
   ["postgres", "api", "auth", "media", "scheduler"].map((role) => [
     role,

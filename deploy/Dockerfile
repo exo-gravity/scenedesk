@@ -10,7 +10,7 @@ COPY tests ./tests
 COPY docs/implementation/openapi.json ./docs/implementation/openapi.json
 RUN npm ci && npm run build
 COPY deploy ./deploy
-RUN ./node_modules/.bin/tsc -p deploy/tsconfig.json && node --import tsx --test deploy/tests/*.test.ts
+RUN sh deploy/check.sh
 ENV NODE_ENV=production
 USER node
 

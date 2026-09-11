@@ -14,12 +14,21 @@ try {
   await boss.start();
   await boss.send("media-probe", {
     taskKind:
-      process.argv[2] === "invalid" ? "future_kind" : "media_production",
+      process.argv[2] === "invalid"
+        ? "future_kind"
+        : process.argv[2] === "generated"
+          ? "media_generation"
+          : "media_production",
     businessId: randomUUID(),
     stepRevision: 1,
     epoch: 1,
   });
-  console.log('{"status":"inserted_unsupported_test_hint"}');
+  console.log(
+    JSON.stringify({
+      status: "inserted_test_hint",
+      kind: process.argv[2] ?? "production",
+    }),
+  );
 } finally {
   await boss.stop();
 }

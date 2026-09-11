@@ -1,4 +1,6 @@
 services:
+  web:
+    volumes: ["${SCENEDESK_SMOKE_DIRECTORY}/browser:/usr/share/nginx/html/__smoke:ro"]
   api:
     environment: { NODE_EXTRA_CA_CERTS: /certs/ca.crt }
     volumes: ["${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"]
@@ -24,7 +26,7 @@ services:
     networks: [application]
     healthcheck: { test: [CMD, pg_isready, -U, postgres, -d, scenedesk], interval: 2s, timeout: 3s, retries: 30 }
   identity:
-    image: scenedesk-private-api:local
+    image: scenedesk-private-api:${SCENEDESK_IMAGE_TAG:-local}
     entrypoint: [node, deploy/smoke/identity.mjs]
     volumes: ["${SCENEDESK_SMOKE_DIRECTORY}/certs:/certs:ro"]
     networks: [application]

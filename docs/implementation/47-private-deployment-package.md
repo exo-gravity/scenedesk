@@ -2,6 +2,10 @@
 
 状态：本地部署包构建及隔离容器验收通过；未创建外部资源、域名或真实身份客户端，未调用付费模型。基线 `origin/main=c939900c4208cac75b0465f9a28e97682d66fac0`。本文落实 [20 的部署拓扑](20-external-validation-and-launch-plan.md#3-默认部署拓扑与容量落实)，范围按 [38 首发范围](38-first-release-scope-review.md) 收敛。
 
+本文保留首片部署包及其验收历史。当前图片主线兼容、生成执行缺口、队列允许种类和独立 CI 由 [52 部署整合](52-private-deployment-integration.md) 更新：已有 enabled capability 不代表当前部署能执行，新任务在网关返回 `GENERATION_EXECUTOR_UNAVAILABLE`；原文件归档需要已持久化的 `generation_media_outputs` 事实。下文首片的“拒绝全部启用生成能力”与“仅导入队列”审计边界已被 52 的分类规则取代，历史证据不覆盖新行为。
+
+52 同时修复了首片误拦截 `/design/openapi.json` 的问题：该公开契约是画布恢复的实际依赖，现已精确放行，其余原型路径仍关闭。下文首片的全部 `/design/` 404 记录只保留为历史证据，不再是当前配置。
+
 ## 1. 启动审计与实现边界
 
 已有 `apps/api/src/main.ts` 明确拒绝非 local 环境并只允许 loopback 绑定；`apps/worker/src/main.ts` 同样只支持 local，还无条件要求制作产物桶与后期工作目录。直接给这些入口套镜像不能成为真实配置的部署包。
