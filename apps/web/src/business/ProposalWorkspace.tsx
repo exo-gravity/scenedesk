@@ -44,7 +44,7 @@ export function ProposalWorkspace(props: Props) {
       </Button>
       <SectionHeading
         title={`${props.projectName} · 导入与提案`}
-        description="先核对制作结构，再明确采纳。CSV 导入不调用模型。"
+        description="先核对制作结构，再明确采纳。这里保留剧本分析和 CSV 导入的提案。"
         action={
           view === "list" && (
             <Button
@@ -114,7 +114,7 @@ export function ProposalWorkspace(props: Props) {
                 <article key={p.id} className={classes.row}>
                   <Group justify="space-between">
                     <Text fw={600}>
-                      CSV ·{" "}
+                      {p.sourceKind === "ai_analysis" ? "AI 分镜" : "CSV"} ·{" "}
                       {p.operations.filter((op) => op.kind === "shot").length}{" "}
                       个镜头
                     </Text>
@@ -145,10 +145,11 @@ export function ProposalWorkspace(props: Props) {
     </Stack>
   );
 }
-function ProposalDetail(props: Props & { id: string }) {
+export function ProposalDetail(props: Props & { id: string }) {
   const current = useResource<Proposal>(`${props.path}/proposals/${props.id}`),
     [revision, setRevision] = useState<string | null>(null),
     [epoch, setEpoch] = useState(0),
+    [opening, setOpening] = useState(false),
     [selection, setSelection] = useState<string[]>([]);
   const history = useResource<Proposal>(
     `${props.path}/proposals/${props.id}?revisionNumber=${revision ?? 1}`,
@@ -175,22 +176,24 @@ function ProposalDetail(props: Props & { id: string }) {
             },
             ...Array.from({ length: current.data.revision }, (_, i) => ({
               value: String(i + 1),
-              label: `历史 · 第 ${i + 1} 版${i === 0 ? "（原始导入）" : ""}`,
+              label: `历史 · 第 ${i + 1} 版${i === 0 ? "（原始内容）" : ""}`,
             })),
           ]}
         />
       </Group>
       <details>
-        <summary>导入来源记录</summary>
+        <summary>提案来源记录</summary>
         <Text size="xs" c="dimmed" className={classes.wrap}>
-          CSV 内容摘要：{current.data.sourceHash}
+          来源内容摘要：{current.data.sourceHash}
         </Text>
         <Text size="sm" c="dimmed">
-          原始导入内容保存在第 1 版，每次人工修改另存修订。
+          原始内容保存在第 1 版，每次人工修改另存修订。
         </Text>
       </details>
       <ErrorNotice error={history.error} retry={() => void history.refetch()} />
-      {proposal ? (
+      {opening ? (
+        <Loader aria-label="正在读取已保存的提案修订" />
+      ) : proposal ? (
         <ProposalEditor
           {...props}
           key={`${props.id}:${revision ?? "current"}:${epoch}`}
@@ -200,7 +203,15 @@ function ProposalDetail(props: Props & { id: string }) {
           initialSelection={revision ? [] : selection}
           onSaved={(selected) => {
             setSelection(selected);
-            setEpoch((e) => e + 1);
+            setOpening(true);
+            // Local cleanup can finish before global query invalidation. Reopen
+            // only after reading the saved revision, not the stale cached one.
+            void current
+              .refetch()
+              .then((result) => {
+                if (!result.isError) setEpoch((e) => e + 1);
+              })
+              .finally(() => setOpening(false));
           }}
         />
       ) : (

@@ -171,6 +171,12 @@ export function ProposalEditor({
     );
   }
   if (draft.committed) return <DraftNotice draft={draft} />;
+  if (command.isPending || apply.isPending)
+    return (
+      <Text role="status">
+        {apply.isPending ? "正在确认采纳结果…" : "正在保存提案修订…"}
+      </Text>
+    );
   if (editing && !readOnly)
     return (
       <OperationEditor

@@ -32,6 +32,8 @@ import { useCanvas } from "./use-canvas";
 import { EditingPresence } from "./EditingPresence";
 import { CanvasBoard } from "./CanvasBoard";
 import { CanvasUploads } from "./CanvasUploads";
+import { SceneAssistant } from "./SceneAssistant";
+import { AssistantProposal } from "./AssistantProposal";
 import { CanvasShotConnections } from "./CanvasShotConnections";
 import { useQueryClient } from "@tanstack/react-query";
 import { CanvasEntryDetails } from "./CanvasEntryDetails";
@@ -192,10 +194,14 @@ function SceneWorkspace({
           active={active}
         />
       ) : mode === "storyboard" ? (
-        <CandidateWorkspace
+        <SceneWithoutCanvasAssistant
           tenantId={tenantId}
           projectId={projectId}
-          embedded
+          sceneId={sceneId}
+          sceneTitle={scene.title}
+          active={active}
+          open={view.assistantOpen}
+          changeOpen={(assistantOpen) => preference.change({ assistantOpen })}
         />
       ) : (
         <Stack>
@@ -262,6 +268,7 @@ function SceneCanvasSession({
           ? "assistant"
           : null,
     );
+  const [assistantProposalId, setAssistantProposalId] = useState<string>();
   const mediaPath = tenantPath(tenantId),
     path = projectPath(tenantId, projectId);
   const cache = useQueryClient(),
@@ -447,7 +454,15 @@ function SceneCanvasSession({
         ) : (
           <div className={classes.body} data-dock={dock || undefined}>
             <div>
-              {preference.mode === "canvas" ? (
+              {assistantProposalId ? (
+                <AssistantProposal
+                  path={path}
+                  proposalId={assistantProposalId}
+                  sceneTitle={sceneTitle}
+                  active={active}
+                  onClose={() => setAssistantProposalId(undefined)}
+                />
+              ) : preference.mode === "canvas" ? (
                 <CanvasBoard
                   controller={controller}
                   document={document}
@@ -495,7 +510,33 @@ function SceneCanvasSession({
                 />
               )}
             </div>
-            {dock && (
+            <aside
+              className={classes.dock}
+              aria-label="AI 创作助手"
+              hidden={dock !== "assistant"}
+            >
+              <div className={classes.dockHeading}>
+                <Group justify="space-between">
+                  <Text fw={600}>AI 创作助手</Text>
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    onClick={() => selectDock("assistant")}
+                  >
+                    收起
+                  </Button>
+                </Group>
+              </div>
+              <SceneAssistant
+                tenantId={tenantId}
+                projectId={projectId}
+                sceneId={sceneId}
+                active={active}
+                visible={dock === "assistant"}
+                onOpenProposal={setAssistantProposalId}
+              />
+            </aside>
+            {dock && dock !== "assistant" && (
               <aside
                 className={classes.dock}
                 aria-label={
@@ -592,25 +633,7 @@ function SceneCanvasSession({
                       <Loader size="sm" aria-label="正在读取本场关联" />
                     )}
                   </Stack>
-                ) : (
-                  <Stack>
-                    <Text>当前上下文：{sceneTitle}</Text>
-                    <Text>
-                      目标：
-                      {preference.mode === "canvas" &&
-                      preference.selectedNodeIds.length === 1
-                        ? (document.nodes.find(
-                            (n) => n.id === preference.selectedNodeIds[0],
-                          )?.title ?? "请选择内容")
-                        : "场次"}
-                    </Text>
-                    <Alert title="助手服务尚未接入">
-                      <Text>
-                        原定分镜建议、提示准备和生成流程正在接入。当前可以直接编辑画布内容和参考。
-                      </Text>
-                    </Alert>
-                  </Stack>
-                )}
+                ) : null}
               </aside>
             )}
           </div>
@@ -783,6 +806,80 @@ function CanvasHistory({
       {history.hasNextPage && (
         <Button onClick={() => void history.fetchNextPage()}>更多历史</Button>
       )}
+    </Stack>
+  );
+}
+
+function SceneWithoutCanvasAssistant({
+  tenantId,
+  projectId,
+  sceneId,
+  sceneTitle,
+  active,
+  open,
+  changeOpen,
+}: {
+  tenantId: string;
+  projectId: string;
+  sceneId: string;
+  sceneTitle: string;
+  active: boolean;
+  open: boolean;
+  changeOpen: (open: boolean) => void;
+}) {
+  const [proposalId, setProposalId] = useState<string>();
+  return (
+    <Stack>
+      <Group justify="end">
+        <Button
+          leftSection={<Sparkle size={16} />}
+          aria-pressed={open}
+          onClick={() => changeOpen(!open)}
+        >
+          AI 助手
+        </Button>
+      </Group>
+      <div className={classes.body} data-dock={open || undefined}>
+        <div>
+          {proposalId ? (
+            <AssistantProposal
+              path={projectPath(tenantId, projectId)}
+              proposalId={proposalId}
+              sceneTitle={sceneTitle}
+              active={active}
+              onClose={() => setProposalId(undefined)}
+            />
+          ) : (
+            <CandidateWorkspace
+              tenantId={tenantId}
+              projectId={projectId}
+              embedded
+            />
+          )}
+        </div>
+        <aside className={classes.dock} aria-label="AI 创作助手" hidden={!open}>
+          <div className={classes.dockHeading}>
+            <Group justify="space-between">
+              <Text fw={600}>AI 创作助手</Text>
+              <Button
+                size="xs"
+                variant="subtle"
+                onClick={() => changeOpen(false)}
+              >
+                收起
+              </Button>
+            </Group>
+          </div>
+          <SceneAssistant
+            tenantId={tenantId}
+            projectId={projectId}
+            sceneId={sceneId}
+            active={active}
+            visible={open}
+            onOpenProposal={setProposalId}
+          />
+        </aside>
+      </div>
     </Stack>
   );
 }
