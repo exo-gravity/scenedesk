@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { businessFixture } from "../support/business.js";
 import { Database } from "../../apps/api/src/kernel/database.js";
 
@@ -50,6 +51,47 @@ test("complete canvas overviews persist through current authority and independen
     assert.equal(reread.viewport.zoom, zoom);
     assert.equal(reread.revision, revision);
   }
+  for (const x of [-8_000_000, 8_000_000, -4_000_000, 4_000_000]) {
+    const saved = await f.ok(
+      "PUT", path, { ...body, viewport: { x, y: -x, zoom: 4 } }, revision++,
+    );
+    assert.deepEqual(await f.ok("GET", path), saved);
+  }
+  for (const x of [-8_000_001, 8_000_001]) {
+    assert.equal(
+      (await f.request("PUT", path, {
+        ...body, viewport: { x, y: 0, zoom: 4 },
+      }, revision)).statusCode,
+      422,
+    );
+    await assert.rejects(
+      db.transaction(
+        f.owner.token,
+        { tenantId: f.tenant.id, projectId: f.project.id, write: true },
+        async (tx) => {
+          await tx.sql.query(
+            "UPDATE scene_workspace_preferences SET revision=revision+1,preference=jsonb_set(preference,'{viewport,x}',$1::jsonb) WHERE scene_id=$2 AND user_id=$3",
+            [JSON.stringify(x), scene.id, f.owner.userId],
+          );
+        },
+      ),
+    );
+  }
+  // Screen-space translation must never expand legal content coordinates.
+  assert.equal(
+    (await f.request("PUT", `${f.path}/canvases/${linked.canvas.id}`, {
+      schemaVersion: 1,
+      document: {
+        nodes: [{
+          id: randomUUID(), title: "超界节点", kind: "text",
+          position: { x: 1_000_001, y: 0 }, width: 320,
+          content: { type: "text", text: "不应保存" },
+        }],
+        edges: [], groups: [],
+      },
+    }, linked.canvas.revision)).statusCode,
+    422,
+  );
   for (const zoom of [0, 0.000009, -1, 4.1])
     assert.equal(
       (

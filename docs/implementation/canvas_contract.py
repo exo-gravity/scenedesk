@@ -17,6 +17,8 @@ POS = {"type": "integer", "minimum": 1, "maximum": 9007199254740991}
 TEXT = {"type": "string", "maxLength": 20000}
 NAME = {"type": "string", "minLength": 1, "maxLength": 160}
 COORD = {"type": "number", "minimum": -1000000, "maximum": 1000000}
+# Screen translation scales node coordinates; it is not a CanvasPoint.
+VIEWPORT_COORD = {"type": "number", "minimum": -8000000, "maximum": 8000000}
 BOOL = {"type": "boolean"}
 HASH = {"type": "string", "pattern": "^[0-9a-f]{64}$"}
 
@@ -53,7 +55,7 @@ def schemas():
     s["CanvasPlanEntryPage"] = obj({"items": array(ref("CanvasPlanEntry"), 100), "nextCursor": {"type": "string"}}, ["items"])
     s["MaterializeCanvasResults"] = obj({"jobId": ID, "mediaIds": {**array(ID, 100, 1), "uniqueItems": True}, "position": ref("CanvasPoint")}, ["jobId", "mediaIds", "position"])
     s["CanvasResultPlacement"] = obj({"canvas": ref("Canvas"), "placements": array(obj({"mediaId": ID, "nodeId": ID}, ["mediaId", "nodeId"]), 100, 1)}, ["canvas", "placements"])
-    s["CanvasViewport"] = obj({"x": COORD, "y": COORD, "zoom": {"type": "number", "minimum": 0.00001, "maximum": 4}}, ["x", "y", "zoom"])
+    s["CanvasViewport"] = obj({"x": VIEWPORT_COORD, "y": VIEWPORT_COORD, "zoom": {"type": "number", "minimum": 0.00001, "maximum": 4}}, ["x", "y", "zoom"])
     preference = {"mode": enum("storyboard", "canvas"), "selectedShotId": {"anyOf": [ID, {"type": "null"}]}, "selectedNodeIds": {**array(ID, 2000), "uniqueItems": True}, "viewport": ref("CanvasViewport"), "assetPanelOpen": BOOL, "assistantOpen": BOOL}
     s["SaveSceneWorkspacePreference"] = obj(preference, list(preference))
     s["SceneWorkspacePreference"] = obj({"sceneId": ID, "revision": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, **preference}, ["sceneId", "revision", *preference])

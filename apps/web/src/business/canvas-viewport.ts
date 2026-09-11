@@ -4,10 +4,11 @@
  * clamp cropping distant nodes. Keep aligned with CanvasViewport and SQL. */
 export const CANVAS_MIN_ZOOM = 0.00001;
 export const CANVAS_MAX_ZOOM = 4;
-const MAX_VIEWPORT_COORDINATE = 1_000_000;
+export const MAX_VIEWPORT_COORDINATE = 8_000_000;
 
-/** Centering a node at the negative coordinate boundary can move the viewport
- * just beyond its own legal range. Keep the visible and persisted view equal. */
+/** Screen translation must cover scaled node coordinates: 2 * zoom 4 *
+ * node limit 1,000,000, including centering room. It is not a CanvasPoint.
+ * Keep the visible and persisted view equal at the viewport range boundary. */
 export function constrainCanvasViewport<T extends { x: number; y: number }>(
   viewport: T,
 ): T {

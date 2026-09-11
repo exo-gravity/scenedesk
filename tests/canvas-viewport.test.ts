@@ -5,6 +5,7 @@ import { getViewportForBounds } from "@xyflow/react";
 import {
   CANVAS_MIN_ZOOM,
   CANVAS_MAX_ZOOM,
+  MAX_VIEWPORT_COORDINATE,
   canvasZoomLabel,
   constrainCanvasViewport,
 } from "../apps/web/src/business/canvas-viewport.js";
@@ -87,8 +88,8 @@ test("single-node focus at legal coordinate boundaries remains visible and persi
           bounds, width!, height!, CANVAS_MIN_ZOOM, 1, 0.3,
         );
         const view = constrainCanvasViewport(proposed);
-        assert.ok(view.x >= legal.minimum && view.x <= legal.maximum);
-        assert.ok(view.y >= legal.minimum && view.y <= legal.maximum);
+        assert.ok(Math.abs(view.x) <= MAX_VIEWPORT_COORDINATE);
+        assert.ok(Math.abs(view.y) <= MAX_VIEWPORT_COORDINATE);
         assert.ok(x * view.zoom + view.x >= -1e-7);
         assert.ok(y * view.zoom + view.y >= -1e-7);
         assert.ok((x + bounds.width) * view.zoom + view.x <= width! + 1e-7);
@@ -98,4 +99,26 @@ test("single-node focus at legal coordinate boundaries remains visible and persi
       }
     }
   }
+});
+
+test("screen-space viewport retains extreme node anchors at 400% without extending node coordinates", () => {
+  const viewport = contract.components.schemas.CanvasViewport.properties;
+  assert.equal(legal.minimum, -1_000_000);
+  assert.equal(legal.maximum, 1_000_000);
+  assert.equal(viewport.x.minimum, -MAX_VIEWPORT_COORDINATE);
+  assert.equal(viewport.x.maximum, MAX_VIEWPORT_COORDINATE);
+  assert.deepEqual(viewport.y, viewport.x);
+  for (const x of [legal.minimum, legal.maximum]) {
+    for (const y of [legal.minimum, legal.maximum]) {
+      const anchor = { x: x + 160, y: y + 90.5 };
+      const view = { x: 711.5 - anchor.x * 4, y: 301 - anchor.y * 4, zoom: 4 };
+      assert.equal(constrainCanvasViewport(view), view);
+      assert.equal(anchor.x * view.zoom + view.x, 711.5);
+      assert.equal(anchor.y * view.zoom + view.y, 301);
+    }
+  }
+  assert.deepEqual(
+    constrainCanvasViewport({ x: 9_000_000, y: -9_000_000, zoom: 4 }),
+    { x: 8_000_000, y: -8_000_000, zoom: 4 },
+  );
 });
