@@ -1,3 +1,4 @@
+import { canvasGenerationRoutes } from "./modules/generation/canvas-generation.js";
 import { assistanceArtifactRoutes } from "./modules/generation/artifacts.js";
 import { generationRoutes } from "./modules/generation/routes.js";
 import Fastify from "fastify";
@@ -63,8 +64,13 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     invitationRoutes(app, context);
     projectRoutes(app, context);
     contentRoutes(app, context);
-    generationRoutes(app, context);
+    const generationContext = {
+      ...context,
+      ...(business.media ? { media: business.media } : {}),
+    };
+    generationRoutes(app, generationContext);
     assistanceArtifactRoutes(app, context);
+    canvasGenerationRoutes(app, generationContext);
     proposalRoutes(app, context);
     creativeRoutes(app, context);
     taskRoutes(app, context);

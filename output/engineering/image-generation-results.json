@@ -1,0 +1,149 @@
+{
+  "recordedAt": "2026-09-11T13:04:33.772501+00:00",
+  "baseCommit": "1d1b83a14623871e81867e853ff7306c6557b40e",
+  "branch": "feat/image-generation-runtime",
+  "executionMode": "test_fixture",
+  "realProviderCalls": 0,
+  "paidProviderCalls": 0,
+  "productionAcceptance": false,
+  "browserAcceptance": "pending parent integration",
+  "migrations": [
+    {
+      "file": "0040_image_generation_sources.sql",
+      "sha256": "bd2dd4fb73939156f210f1797e446ece107d6600fe763f7d22c34886c7403ea9"
+    },
+    {
+      "file": "0041_image_archive_protocol.sql",
+      "sha256": "0ac3b4a2ecda3af097297528835a496db82d238342d036efefe804a2202d4379"
+    },
+    {
+      "file": "0042_image_source_and_state_guards.sql",
+      "sha256": "f1397a09e957cf454fbd5c6ea8a70fd7a60d4f819c12b621f961f80eb53f0c73"
+    },
+    {
+      "file": "0043_canvas_generation_result_identity.sql",
+      "sha256": "1cfe745413b32bb9860009fef1602209ed1e2994e409d63a7bb56bfb4d6c828a"
+    },
+    {
+      "file": "0044_image_late_evidence_result.sql",
+      "sha256": "0a9b4518324fc375e80dda1bbcf4a5069d32561a6685b70e50b61c43ec961f70"
+    },
+    {
+      "file": "0045_image_source_completeness.sql",
+      "sha256": "625c74f320f6909b106aae134673bd4d113995d5fabadf1ee7bd048002fe8230"
+    },
+    {
+      "file": "0046_image_dispatch_source_authority.sql",
+      "sha256": "4e6b59138ec8baf5e52c6fd27af4dec7e3f1547cfbb3df4ba09ebc6614fadeb5"
+    }
+  ],
+  "checks": [
+    {
+      "name": "complete_check",
+      "result": "passed",
+      "tests": 51,
+      "pass": 51,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "d4502dd264c1b88dcb8acf0fb741e3b45b7ae39771730033cc8344037c5d06ee"
+    },
+    {
+      "name": "complete_database_regression_serial",
+      "result": "passed",
+      "tests": 174,
+      "pass": 174,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "109e77182ab3f0f43166d41229f85ef645c69d3c376287368fabaca65c50271d"
+    },
+    {
+      "name": "image_database_with_canvas_cursor_scope",
+      "result": "passed",
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "bb3bcc2cda8eeb8e3714f57923f7a0e115dfe8f4e85f1b01229e8b2f10f51199"
+    },
+    {
+      "name": "real_image_original_archive_and_poster",
+      "result": "passed",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "c0ed1d0734dafccc948a61b7e920159c83ec6f4f8d17e8066c424c65319d40f0"
+    },
+    {
+      "name": "real_storage_with_bounded_S3_readiness",
+      "result": "passed",
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "ef3a9ddba024b8c7856eb6c362e1ebbf429bc506e5614d78f6ae72b17be2bd63"
+    },
+    {
+      "name": "S3_startup_readiness_boundaries",
+      "result": "passed",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "782a75ebb368d516e429caa6f442c8732cbf57807b47e39c92da6364c73b9436"
+    },
+    {
+      "name": "existing_media_import_business_regression",
+      "result": "passed",
+      "tests": 10,
+      "logSha256": "bc060b59fcd8bdbff1c1c530f218311ae015463daa44e8066f3dac61a107e742",
+      "detail": "The first top-level import business suite passed all 9 child cases; the second image fixture failed during S3 startup before business execution. That startup failure is retained below; image was independently rerun successfully."
+    },
+    {
+      "name": "documentation_contract_check",
+      "result": "PASS",
+      "operations": 148,
+      "paths": 114,
+      "schemas": 222,
+      "examples": 157,
+      "localLinks": 1285,
+      "logSha256": "f520a5d79c60cbbd8409f6dbb428d1c394fe0a50fca6d465b9fb9daa29790478"
+    }
+  ],
+  "retainedFailures": [
+    {
+      "name": "parallel_database_regression",
+      "tests": 174,
+      "pass": 172,
+      "fail": 2,
+      "detail": "One pre-existing canvas capacity case and its parent suite failed with HTTP 500 after 20.6 seconds under parallel load. Same full suite passed serially; no capacity implementation was changed. Root integration already has the separately reviewed capacity optimization.",
+      "logSha256": "047303566fbf307dc704cb5225c4b2a6a45fae878fda1df5ae1f1e9d70860f11"
+    },
+    {
+      "name": "combined_media_fixture_startup",
+      "detail": "The second isolated MinIO fixture health endpoint became ready before S3; S3 returned explicit 503 Server not initialized yet. Added a 20-second bounded ListBuckets readiness check only for that exact 503; network/auth/other service errors remain immediate failures. Real storage and image suites passed independently.",
+      "logSha256": "bc060b59fcd8bdbff1c1c530f218311ae015463daa44e8066f3dac61a107e742"
+    }
+  ],
+  "implemented": [
+    "fixed shot or actual canvas image draft -> original GenerationPlan/Job/unique attempt",
+    "distinct image_fixture_v1 executable identity; old target descriptors never execute",
+    "durable private provider source -> isolated MediaStore download/hash/decode -> independent ready Media and poster",
+    "atomic archive queue hints, finite retries and explicit same-source archive recovery",
+    "late conflicting evidence preserves first verified Media without claiming success",
+    "canvas semantic origins, current authority and stable explicit result materialization",
+    "fixed references rechecked before first dispatch; execute-after changes do not rewrite input"
+  ],
+  "unavailable": [
+    "real image provider transport and quality acceptance",
+    "video/audio/multiple outputs",
+    "prepare_rework without real review/comment/fixedCut entities",
+    "automatic Take/candidate/adoption/cut effects (deliberately separate explicit actions)"
+  ]
+}

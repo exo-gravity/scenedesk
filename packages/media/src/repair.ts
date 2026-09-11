@@ -14,7 +14,7 @@ export async function repairMediaWork(options: {
     await sql.query("BEGIN");
     await sql.query("SET LOCAL statement_timeout='10s'");
     const rows = await sql.query(
-      `SELECT * FROM ${sqlIdentifier(options.schema ?? "drama")}.scan_media_work(100)` +
+      `SELECT * FROM ${sqlIdentifier(options.schema ?? "drama")}.scan_media_work(100) UNION ALL SELECT * FROM ${sqlIdentifier(options.schema ?? "drama")}.scan_generated_media(100)` +
         (options.includeProduction
           ? ` UNION ALL SELECT * FROM ${sqlIdentifier(options.schema ?? "drama")}.scan_media_production(100)`
           : ""),

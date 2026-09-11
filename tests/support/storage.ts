@@ -1,3 +1,4 @@
+import { waitForStorageApi } from "./storage-ready.js";
 import { execFile, spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { promisify } from "node:util";
@@ -5,6 +6,7 @@ import type { TestContext } from "node:test";
 import {
   S3Client,
   CreateBucketCommand,
+  ListBucketsCommand,
   PutBucketVersioningCommand,
 } from "@aws-sdk/client-s3";
 import {
@@ -112,6 +114,7 @@ export async function storageFixture(t: TestContext) {
     maxAttempts: 1,
   });
   clients.push(admin);
+  await waitForStorageApi(() => admin.send(new ListBucketsCommand({})));
   await admin.send(new CreateBucketCommand({ Bucket: config.bucket }));
   await admin.send(
     new PutBucketVersioningCommand({

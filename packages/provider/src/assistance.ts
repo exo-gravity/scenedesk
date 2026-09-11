@@ -21,10 +21,10 @@ export type AssistanceReceipt =
   | { kind: "rejected"; correlation: string; code: string }
   | { kind: "unknown"; correlation: string };
 
-/** A synchronous text response has no fabricated providerJobId. Submission is never retried here.
- * prepare_prompt / prepare_rework share this boundary and return an AssistanceBody; their fixed
- * prepare_prompt has fixed shot/artifact persistence. prepare_rework remains unavailable until
- * real review/comment sources exist; no transport may synthesize those identities.
+/** Fixed-plan transport boundary; synchronous responses have no fabricated providerJobId.
+ * Submission is never retried here. Text prepares durable proposals or assistance artifacts;
+ * image returns an exact private output locator for the separate verified media archive step.
+ * prepare_rework remains unavailable until real review/comment sources exist.
  */
 export interface AssistanceAdapter {
   readonly executionMode: "test_fixture" | "verified_provider";

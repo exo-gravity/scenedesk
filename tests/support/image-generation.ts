@@ -1,0 +1,255 @@
+import assert from "node:assert/strict";
+import { randomBytes, randomUUID } from "node:crypto";
+import type { TestContext } from "node:test";
+import { Pool } from "pg";
+import {
+  grantGenerationWorkerAccess,
+  grantMediaWorkerAccess,
+  sqlIdentifier,
+} from "@drama/database";
+import {
+  createScheduler,
+  grantQueueAccess,
+  installQueue,
+  type StepEnvelope,
+} from "@drama/queue";
+import {
+  createAssistanceFixture,
+  type AssistanceReceipt,
+  type AssistanceSubmission,
+} from "@drama/provider";
+import type { MediaStore } from "@drama/media";
+import { businessFixture } from "./business.js";
+import { createAssistanceWorker } from "../../apps/api/src/modules/generation/worker.js";
+
+/** DB fixtures prove persistence, not file or AI quality. Media tests supply a real isolated store. */
+export async function imageGenerationFixture(
+  t: TestContext,
+  store = { verify: async () => undefined } as unknown as MediaStore,
+) {
+  const queueErrors: Error[] = [];
+  t.after(() => assert.deepEqual(queueErrors, []));
+  const suffix = randomBytes(5).toString("hex"),
+    queueSchema = `scenedesk_queue_${suffix}`;
+  const roles = [
+      `image_gen_${suffix}`,
+      `image_media_${suffix}`,
+      `image_sched_${suffix}`,
+    ],
+    pools: Pool[] = [],
+    stops: (() => Promise<void>)[] = [];
+  t.after(async () => {
+    for (const stop of stops.reverse()) await stop();
+    for (const pool of pools) await pool.end();
+    const admin = new Pool({ connectionString: process.env.DATABASE_URL });
+    try {
+      await admin.query(
+        `DROP SCHEMA IF EXISTS ${sqlIdentifier(queueSchema)} CASCADE`,
+      );
+      for (const role of roles) {
+        await admin.query(`DROP OWNED BY ${sqlIdentifier(role)}`);
+        await admin.query(`DROP ROLE ${sqlIdentifier(role)}`);
+      }
+    } finally {
+      await admin.end();
+    }
+  });
+  const f = await businessFixture(t, async (db) => {
+    for (const role of roles) {
+      const password = randomBytes(24).toString("hex");
+      await db.admin.query(
+        `CREATE ROLE ${sqlIdentifier(role)} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB PASSWORD '${password}'`,
+      );
+      const url = new URL(process.env.DATABASE_URL!);
+      url.username = role;
+      url.password = password;
+      pools.push(new Pool({ connectionString: url.href, max: 3 }));
+    }
+    await installQueue(db.admin, queueSchema);
+    const sql = await db.admin.connect();
+    try {
+      await grantGenerationWorkerAccess(sql, db.schema, roles[0]!);
+      await grantMediaWorkerAccess(sql, db.schema, roles[1]!, roles[2]!);
+      for (const role of [db.apiRole, roles[0]!, roles[1]!])
+        await grantQueueAccess(sql, queueSchema, role, roles[2]!);
+    } finally {
+      sql.release();
+    }
+    const producer = await createScheduler(db.runtime, {
+      schema: queueSchema,
+      onError: (error) => queueErrors.push(error),
+    });
+    stops.push(producer.close);
+    return { media: { store, schedule: producer.schedule } };
+  });
+  const [generationDb, mediaDb, schedulerDb] = pools as [Pool, Pool, Pool];
+  const producer = await createScheduler(generationDb, {
+    schema: queueSchema,
+    onError: (error) => queueErrors.push(error),
+  });
+  stops.push(producer.close);
+  const mediaProducer = await createScheduler(mediaDb, {
+    schema: queueSchema,
+    onError: (error) => queueErrors.push(error),
+  });
+  stops.push(mediaProducer.close);
+  const base = `/v1/tenants/${f.tenant.id}`,
+    scope = sqlIdentifier(f.schema);
+  const episode = await f.ok(
+    "POST",
+    `${f.path}/episodes`,
+    { title: "一", position: 0, status: "active" },
+    await f.next(),
+  );
+  const scene = await f.ok(
+    "POST",
+    `${f.path}/scenes`,
+    {
+      episodeId: episode.id,
+      title: "图像场次",
+      summary: "明确选定的场次",
+      position: 0,
+      state: {},
+      status: "active",
+    },
+    await f.next(),
+  );
+  const shot = await f.ok(
+    "POST",
+    `${f.path}/shots`,
+    {
+      sceneId: scene.id,
+      label: "01",
+      position: 0,
+      status: "active",
+      spec: { intent: "寻找钥匙", references: [] },
+    },
+    await f.next(),
+  );
+  const capabilityId = randomUUID(),
+    connectionId = randomUUID(),
+    connectionVersionId = randomUUID();
+  const definition = {
+    purpose: "image",
+    mode: "image_fixture_v1",
+    modelVersion: "显式文件 fixture，无真实模型",
+    supportedPurposes: ["composition", "look"],
+    maxReferences: 2,
+    allowedResolutions: ["32x32"],
+    allowedAspectRatios: ["1:1"],
+    inputRules: [
+      {
+        kind: "image",
+        purposes: ["composition", "look"],
+        minCount: 0,
+        maxCount: 2,
+        mimeTypes: ["image/png"],
+        maxBytes: 1048576,
+      },
+    ],
+  };
+  await f.admin.query(
+    `INSERT INTO ${scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'test_fixture',true,2,100)`,
+    [capabilityId, f.tenant.id, connectionId, connectionVersionId, definition],
+  );
+  const input = {
+    scope: "project",
+    projectId: f.project.id,
+    purpose: "image",
+    connectionId,
+    capabilityId,
+    shotSources: [{ shotId: shot.id, shotRevisionId: shot.specRevisionId }],
+    contextSources: [],
+    additionalReferences: [],
+    referenceOverrides: [],
+    prompt: "固定的技术测试图像",
+    promptPolicy: "replace",
+    output: { resolution: "32x32", aspectRatio: "1:1" },
+  };
+  let calls = 0,
+    last: AssistanceSubmission | undefined,
+    output: unknown = {
+      images: [
+        {
+          kind: "fixture_object",
+          object: {
+            key: `originals/${randomUUID()}`,
+            versionId: "relational-fixture-only",
+            bytes: 100,
+          },
+          sha256: "a".repeat(64),
+          mime: "image/png",
+        },
+      ],
+    },
+    unknown = false,
+    queueFailure = false;
+  const receipt = (submission: AssistanceSubmission): AssistanceReceipt =>
+    unknown
+      ? { kind: "unknown", correlation: submission.attemptId }
+      : { kind: "completed", correlation: submission.attemptId, output };
+  const adapter = createAssistanceFixture(
+    connectionVersionId,
+    async (submission) => {
+      calls++;
+      last = submission;
+      return receipt(submission);
+    },
+    async (submission) => (unknown ? null : receipt(submission)),
+  );
+  const worker = await createAssistanceWorker({
+    pool: generationDb,
+    schema: f.schema,
+    adapters: [adapter],
+    scheduleArchive: async (sql, envelope) => {
+      if (queueFailure) throw new Error("Injected archive queue failure");
+      await producer.schedule(sql, envelope);
+    },
+  });
+  const plan = async (extra: Record<string, unknown> = {}) =>
+    f.ok("POST", `${base}/generation-plans`, { ...input, ...extra });
+  const execute = async (planId: string) => {
+    const r = await f.request("POST", `${base}/generation-jobs`, { planId });
+    assert.equal(r.statusCode, 202, r.body);
+    return r.json();
+  };
+  const job = (id: string) => f.ok("GET", `${base}/generation-jobs/${id}`);
+  const envelope = async (id: string) => {
+    const r = await generationDb.query(
+      `SELECT ${scope}.read_generation_archive_envelope($1) AS data`,
+      [id],
+    );
+    return r.rows[0]?.data as StepEnvelope;
+  };
+  return {
+    ...f,
+    base,
+    scope,
+    scene,
+    shot,
+    input,
+    definition,
+    roles,
+    queueSchema,
+    generationDb,
+    mediaDb,
+    schedulerDb,
+    worker,
+    mediaProducer,
+    plan,
+    execute,
+    job,
+    envelope,
+    setOutput: (value: unknown) => {
+      output = value;
+    },
+    setUnknown: (value: boolean) => {
+      unknown = value;
+    },
+    setQueueFailure: (value: boolean) => {
+      queueFailure = value;
+    },
+    calls: () => calls,
+    last: () => last,
+  };
+}

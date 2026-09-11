@@ -55,6 +55,7 @@ const generationFunctions = [
   "record_generation_evidence(uuid,uuid,jsonb)",
   "read_generation_evidence(uuid)",
   "finish_generation_job(uuid,uuid,jsonb,text)",
+  "read_generation_archive_envelope(uuid)",
 ] as const;
 const productionTables = [
   "media_production_copies",
@@ -96,6 +97,15 @@ export async function grantRuntimeAccess(
     `GRANT UPDATE(status,error_code,revision,updated_at,recovery_epoch) ON ${scope}.generation_jobs TO ${target}`,
   );
   await client.query(`GRANT INSERT ON ${scope}.generation_work TO ${target}`);
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_canvas_origins,${scope}.generation_canvas_results TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.generation_media_outputs TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.recover_generated_archive(uuid) TO ${target}`,
+  );
   await client.query(
     `GRANT SELECT,INSERT ON ${scope}.generation_plan_shots,${scope}.assistance_artifact_revisions,${scope}.assistance_revision_refs TO ${target}`,
   );
@@ -330,6 +340,12 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT SELECT ON ${["users", "sessions", "tenants", "memberships", "invitations", "projects", "project_memberships"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT ON ${scope}.assets,${scope}.asset_revisions,${scope}.asset_revision_media,${scope}.shared_imports TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.asset_revision_usable(uuid,uuid,uuid,boolean),${scope}.asset_identity_usable(uuid,uuid,uuid,boolean) TO ${target}`,
+  );
   await client.query(`GRANT UPDATE(updated_at) ON ${scope}.users TO ${target}`);
   await client.query(
     `GRANT UPDATE ON ${["sessions", "tenants", "memberships", "invitations", "projects", "project_memberships"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
@@ -376,7 +392,7 @@ export async function hardenAuthorizationFunctions(
     `GRANT UPDATE(enabled) ON ${scope}.generation_capabilities TO ${target}`,
   );
   await client.query(
-    `GRANT UPDATE(status,proposal_id,assistance_artifact_id,error_code,revision,updated_at) ON ${scope}.generation_jobs TO ${target}`,
+    `GRANT UPDATE(status,proposal_id,assistance_artifact_id,result_media_id,error_code,revision,updated_at) ON ${scope}.generation_jobs TO ${target}`,
   );
   await client.query(
     `GRANT SELECT,INSERT,DELETE ON ${scope}.generation_work TO ${target}`,
@@ -390,12 +406,27 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT SELECT,INSERT ON ${scope}.assistance_artifacts,${scope}.assistance_artifact_revisions,${scope}.assistance_revision_refs TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT,UPDATE ON ${scope}.generation_media_outputs TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.media,${scope}.media_derivatives TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(kind,status,immutable_key,storage_version_id,sha256,bytes,mime,width,height,has_audio,probe_metadata,issue,revision,updated_at) ON ${scope}.media TO ${target}`,
+  );
   for (const signature of [
     ...authorizationFunctions,
     ...generationFunctions,
     "generation_submission_allowed(uuid)",
     "request_generation_reconciliation(uuid)",
     "finish_script_analysis_job(uuid,uuid,jsonb,text)",
+    "finish_text_assistance_job(uuid,uuid,jsonb,text)",
+    "validate_media_source()",
+    "claim_generated_media(uuid,bigint,bigint,uuid)",
+    "finish_generated_media(uuid,uuid,jsonb,jsonb)",
+    "recover_generated_archive(uuid)",
+    "scan_generated_media(integer)",
     ...mediaAuthorizationFunctions,
     ...productionFunctions,
     ...presenceFunctions,
@@ -469,12 +500,14 @@ export async function grantMediaWorkerAccess(
     "tenant_role(uuid)",
     "project_role(uuid)",
     "resolve_media_work(uuid,text,bigint,bigint)",
+    "claim_generated_media(uuid,bigint,bigint,uuid)",
+    "finish_generated_media(uuid,uuid,jsonb,jsonb)",
   ])
     await client.query(
       `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${worker}`,
     );
   await client.query(
-    `GRANT EXECUTE ON FUNCTION ${scope}.scan_media_work(integer) TO ${scheduler}`,
+    `GRANT EXECUTE ON FUNCTION ${scope}.scan_media_work(integer),${scope}.scan_generated_media(integer) TO ${scheduler}`,
   );
   for (const signature of productionFunctions.filter(
     (s) =>

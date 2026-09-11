@@ -1,3 +1,6 @@
+import { readFile, stat } from "node:fs/promises";
+import { createScheduler } from "@drama/queue";
+import { imageOutput } from "../../api/src/modules/generation/image-output.js";
 import { Pool } from "pg";
 import { createAssistanceFixture } from "@drama/provider";
 import { createAssistanceWorker } from "../../api/src/modules/generation/worker.js";
@@ -13,7 +16,10 @@ if (
   process.env.DATABASE_URL ||
   process.env.RUNTIME_DATABASE_URL ||
   process.env.AUTH_DATABASE_URL ||
-  process.env.APP_SECRET
+  process.env.APP_SECRET ||
+  process.env.SCHEDULER_DATABASE_URL ||
+  process.env.MEDIA_WORKER_DATABASE_URL ||
+  process.env.MEDIA_SECRET_ACCESS_KEY
 )
   throw new Error(
     "Generation worker must not load migration, API or identity credentials",
@@ -56,10 +62,48 @@ const adapter = createAssistanceFixture(
           },
   }),
 );
+let imageAdapter: ReturnType<typeof createAssistanceFixture> | undefined;
+let archiveScheduler: Awaited<ReturnType<typeof createScheduler>> | undefined;
+if (process.env.GENERATION_IMAGE_FIXTURE_FILE) {
+  const info = await stat(process.env.GENERATION_IMAGE_FIXTURE_FILE);
+  if (!info.isFile() || (info.mode & 0o077) !== 0 || info.size > 65536)
+    throw new Error("Image fixture manifest must be a private bounded file");
+  const manifest = JSON.parse(
+    await readFile(process.env.GENERATION_IMAGE_FIXTURE_FILE, "utf8"),
+  );
+  if (
+    manifest.version !== 1 ||
+    manifest.executionMode !== "test_fixture" ||
+    !/^[0-9a-f-]{36}$/.test(manifest.connectionVersionId) ||
+    !/^[0-9a-f-]{36}$/.test(manifest.capabilityId)
+  )
+    throw new Error("Explicit fixed image fixture identity is required");
+  const output = imageOutput(manifest.output);
+  imageAdapter = createAssistanceFixture(
+    manifest.connectionVersionId,
+    async (submission) =>
+      submission.input.purpose === "image" &&
+      submission.input.capabilityId === manifest.capabilityId
+        ? { kind: "completed", correlation: submission.attemptId, output }
+        : {
+            kind: "rejected",
+            correlation: submission.attemptId,
+            code: "IMAGE_FIXTURE_IDENTITY_MISMATCH",
+          },
+  );
+  archiveScheduler = await createScheduler(pool, {
+    ...(process.env.QUEUE_SCHEMA ? { schema: process.env.QUEUE_SCHEMA } : {}),
+    onError: () =>
+      console.error(
+        "Generation archive queue operation failed; durable receipt remains available",
+      ),
+  });
+}
 const worker = await createAssistanceWorker({
   pool,
   schema: process.env.DATABASE_SCHEMA ?? "drama",
-  adapters: [adapter],
+  adapters: imageAdapter ? [adapter, imageAdapter] : [adapter],
+  ...(archiveScheduler ? { scheduleArchive: archiveScheduler.schedule } : {}),
 });
 let closing = false,
   timer: NodeJS.Timeout | undefined,
@@ -83,6 +127,7 @@ async function close() {
   closing = true;
   clearTimeout(timer);
   await active;
+  await archiveScheduler?.close();
   await pool.end();
 }
 for (const signal of ["SIGINT", "SIGTERM"] as const)
@@ -94,6 +139,7 @@ console.log(
     generationWorker: "ready",
     executionMode: "test_fixture",
     paidProvidersEnabled: false,
+    imageFixtureEnabled: !!imageAdapter,
   }),
 );
 scan();

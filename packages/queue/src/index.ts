@@ -16,7 +16,11 @@ export {
 
 /** A scheduling hint only. The handler resolves tenant and authority from its business root. */
 export type StepEnvelope = {
-  taskKind: "media_probe" | "media_derivative" | "media_production";
+  taskKind:
+    | "media_probe"
+    | "media_derivative"
+    | "media_production"
+    | "media_generation";
   businessId: string;
   stepRevision: number;
   epoch: number;
@@ -32,9 +36,12 @@ export function parseEnvelope(input: unknown): StepEnvelope {
     Object.keys(value).sort().join(",") !==
       "businessId,epoch,stepRevision,taskKind" ||
     typeof value.taskKind !== "string" ||
-    !["media_probe", "media_derivative", "media_production"].includes(
-      value.taskKind,
-    ) ||
+    ![
+      "media_probe",
+      "media_derivative",
+      "media_production",
+      "media_generation",
+    ].includes(value.taskKind) ||
     typeof value.businessId !== "string" ||
     !uuid.test(value.businessId) ||
     !Number.isSafeInteger(value.epoch) ||

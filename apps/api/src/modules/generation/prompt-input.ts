@@ -127,11 +127,29 @@ export async function resolvePrompt(
     "目标媒体能力尚未配置或已停用，不能隐式选用其他版本。",
   );
   versionMatches(Number(target.revision), request.targetCapabilityRevision);
+  return resolveSelectedInput(tx, input, target);
+}
+
+/** Resolve only explicitly selected fixed shots, contexts and overrides for prompt or media plans. */
+export async function resolveSelectedInput(
+  tx: Transaction,
+  input: Schema<"PlanInput">,
+  target: Record<string, any>,
+) {
+  requireThat(
+    (input.shotSources?.length ?? 0) <= 100 &&
+      (input.contextSources?.length ?? 0) <= 20 &&
+      input.additionalReferences.length <= 100 &&
+      input.referenceOverrides.length <= 100,
+    422,
+    "GENERATION_INPUT_LIMIT",
+    "明确选择的输入超过限制。",
+  );
   const shots: Schema<"ResolvedShotInput">[] = [],
     references: Schema<"ResolvedReference">[] = [],
     dependencies: Schema<"SourceDependency">[] = [];
   const selected = new Set<string>();
-  for (const source of input.shotSources!) {
+  for (const source of input.shotSources ?? []) {
     const id = source.shotId.toLowerCase();
     requireThat(
       !selected.has(id),
@@ -271,7 +289,7 @@ export async function resolvePrompt(
       shots,
       dependencies: [...dependencies, ...snapshots.map((s) => s.source)],
       contextSnapshots: snapshots,
-      assistanceRequest: request,
+      ...(input.assistance ? { assistanceRequest: input.assistance } : {}),
       targetCapabilitySnapshot: {
         ...target.definition,
         id: target.id,
@@ -306,6 +324,12 @@ export async function assertPromptCurrent(
     "TARGET_CAPABILITY_CHANGED",
     "目标能力版本或启用状态已变化，请核对原计划。",
   );
+  await assertSelectedCurrent(tx, resolved);
+}
+export async function assertSelectedCurrent(
+  tx: Transaction,
+  resolved: Schema<"ResolvedInput">,
+) {
   for (const source of resolved.shots) {
     const row = (
       await tx.sql.query(

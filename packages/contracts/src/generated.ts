@@ -3910,6 +3910,8 @@ export interface components {
             targetCapabilitySnapshot?: components["schemas"]["Capability"];
             /** Format: uuid */
             targetConnectionVersionId?: string;
+            capabilitySnapshot?: components["schemas"]["Capability"];
+            output?: components["schemas"]["OutputOptions"];
         };
         EstimateLine: {
             metric: string;

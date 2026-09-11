@@ -1,3 +1,6 @@
+import { imageOutput, type ImageOutput } from "./image-output.js";
+import { parseEnvelope, type StepEnvelope } from "@drama/queue";
+import type { PoolClient } from "pg";
 import { assistanceBody } from "./artifacts.js";
 import { randomUUID } from "node:crypto";
 import type { Pool } from "pg";
@@ -110,6 +113,10 @@ export async function createAssistanceWorker(options: {
   pool: Pool;
   schema?: string;
   adapters: AssistanceAdapter[];
+  scheduleArchive?: (
+    sql: PoolClient,
+    envelope: StepEnvelope,
+  ) => Promise<unknown>;
 }) {
   const schema = options.schema ?? "drama",
     scope = sqlIdentifier(schema),
@@ -147,24 +154,55 @@ export async function createAssistanceWorker(options: {
     const terminal = state.evidence.filter((e) => e.body.kind !== "unknown"),
       selected = terminal[0] ?? state.evidence[0];
     if (!selected) return;
-    let ops: Schema<"ProposalOperation">[] | Schema<"AssistanceBody"> | null =
-        null,
+    let ops:
+        | Schema<"ProposalOperation">[]
+        | Schema<"AssistanceBody">
+        | ImageOutput
+        | null = null,
       failure: string | null = null;
     if (selected.body.kind === "completed")
       try {
         ops =
-          state.input.purpose === "creative_assistance"
-            ? assistanceBody(selected.body.output, state.resolvedInput)
-            : analysisOperations(selected.body.output, state);
+          state.input.purpose === "image"
+            ? imageOutput(selected.body.output)
+            : state.input.purpose === "creative_assistance"
+              ? assistanceBody(selected.body.output, state.resolvedInput)
+              : analysisOperations(selected.body.output, state);
       } catch {
-        failure = "INVALID_ASSISTANCE_OUTPUT";
+        failure =
+          state.input.purpose === "image"
+            ? "INVALID_IMAGE_OUTPUT"
+            : "INVALID_ASSISTANCE_OUTPUT";
       }
-    await query(`SELECT ${scope}.finish_generation_job($1,$2,$3,$4)`, [
-      jobId,
-      selected.id,
-      ops ? JSON.stringify(ops) : null,
-      failure,
-    ]);
+    const sql = await options.pool.connect();
+    try {
+      await sql.query("BEGIN");
+      await sql.query(`SELECT ${scope}.finish_generation_job($1,$2,$3,$4)`, [
+        jobId,
+        selected.id,
+        ops ? JSON.stringify(ops) : null,
+        failure,
+      ]);
+      if (state.input.purpose === "image") {
+        const envelope = (
+          await sql.query(
+            `SELECT ${scope}.read_generation_archive_envelope($1) AS envelope`,
+            [jobId],
+          )
+        ).rows[0]?.envelope;
+        if (envelope) {
+          if (!options.scheduleArchive)
+            throw new Error("ARCHIVE_NOT_CONFIGURED");
+          await options.scheduleArchive(sql, parseEnvelope(envelope));
+        }
+      }
+      await sql.query("COMMIT");
+    } catch (error) {
+      await sql.query("ROLLBACK");
+      throw error;
+    } finally {
+      sql.release();
+    }
   }
   async function process(jobId: string, signal = AbortSignal.timeout(120000)) {
     const token = randomUUID();
@@ -177,10 +215,17 @@ export async function createAssistanceWorker(options: {
     if (submission) {
       const adapter = adapters.get(submission.connectionVersionId);
       // A missing transport is an explicit local rejection before any call; no fixture fallback.
-      if (!adapter || adapter.executionMode !== submission.executionMode)
+      if (
+        !adapter ||
+        adapter.executionMode !== submission.executionMode ||
+        (submission.input.purpose === "image" && !options.scheduleArchive)
+      )
         await save(submission.attemptId, {
           kind: "rejected",
-          code: "ADAPTER_NOT_CONFIGURED",
+          code:
+            submission.input.purpose === "image" && !options.scheduleArchive
+              ? "ARCHIVE_NOT_CONFIGURED"
+              : "ADAPTER_NOT_CONFIGURED",
           correlation: submission.attemptId,
         });
       else {

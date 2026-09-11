@@ -36,6 +36,7 @@ const strings = [
   "display_name",
   "created_by",
   "source_upload_id",
+  "source_job_id",
   "sha256",
 ] as const;
 const numbers = [
