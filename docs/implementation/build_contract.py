@@ -558,6 +558,11 @@ for methods in paths.values():
 
 register_canvas_routes(route, paths)
 register_editing_routes(route, paths)
+# Execution evidence must visibly distinguish explicit fixtures from verified providers.
+for entity_name in ["Capability", "GenerationPlan", "GenerationJob"]:
+    extend(entity_name, {"executionMode": enum("test_fixture", "verified_provider")})
+paths[PREFIX+"/generation-jobs"]["get"]["parameters"].append({"name":"planId","in":"query","schema":ID})
+
 document = {"openapi":"3.1.0", "info":{"title":"AI Short Drama Workbench MVP Design Contract","version":"1.3.0","description":"Design-only contract including scene canvas, durable editing work, finite recovery history and presence. Scope, invariants, permissions and recovery behavior are specified in the accompanying implementation documents. No live endpoints or verified model capability are claimed."}, "servers":[{"url":"http://localhost:4310","description":"Planned business API; S0 provides health endpoints only. See engineering readiness report."}], "security":[{"sessionCookie":[]}], "paths":paths, "components":{"securitySchemes":{"sessionCookie":{"type":"apiKey","in":"cookie","name":"session"}},"parameters":{"Csrf":{"name":"X-CSRF-Token","in":"header","required":True,"schema":string()},"IdempotencyKey":{"name":"Idempotency-Key","in":"header","required":True,"schema":string(minLength=16,maxLength=128)},"IfMatch":{"name":"If-Match","in":"header","required":True,"schema":string(pattern='^"[1-9][0-9]*"$'),"description":"对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。"}},"responses":{"Problem":{"description":"结构化错误，按 code 决定恢复，不自动重放付费创建。","content":{"application/json":{"schema":ref("Error")}}}},"schemas":S}}
 (ROOT/"openapi.json").write_text(json.dumps(document,ensure_ascii=False,indent=2)+"\n")
 lines=["# API 操作目录（由 build_contract.py 生成）","","完整协议见 [openapi.json](openapi.json)，行为见 [接口规则](06-api-contract.md)。权限标识在接口规则中解释。","","| 需求 | 方法 | 路径 | operationId | 权限 |","|---|---|---|---|---|"]

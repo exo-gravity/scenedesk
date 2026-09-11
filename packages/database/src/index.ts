@@ -5,5 +5,6 @@ export {
   verifyRuntimeRole,
   hardenAuthorizationFunctions,
   grantMediaWorkerAccess,
+  grantGenerationWorkerAccess,
   sqlIdentifier,
 } from "./roles.js";

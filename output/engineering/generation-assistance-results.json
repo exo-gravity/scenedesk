@@ -1,0 +1,50 @@
+{
+  "recordedAt": "2026-09-11T11:43:11.937921+00:00",
+  "baseCommit": "91c1f4729a5f44c5a1945d5f40559f7c2e676c2c",
+  "branch": "feat/ai-assistance-runtime",
+  "executionMode": "test_fixture",
+  "realProviderCalls": 0,
+  "paidProviderCalls": 0,
+  "productionAcceptance": false,
+  "browserAcceptance": "pending integrated frontend verification",
+  "checks": [
+    {
+      "name": "complete_check",
+      "result": "passed",
+      "tests": 48,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "765ba675ef381a7583d1c9b67067a1713ac371a3dc45899ce2e60e2ac7fa0f85",
+      "covers": [
+        "generated contracts",
+        "UI constraints",
+        "TypeScript",
+        "production build",
+        "48 unit tests"
+      ]
+    },
+    {
+      "name": "database_assistance_and_csv",
+      "result": "passed",
+      "tests": 23,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "ba7e7422e64bae32e69d899eed6dad35044660b0e4671ea4376931531c85fc87",
+      "covers": [
+        "16 generation tests including parent",
+        "7 preexisting CSV proposal tests including parent",
+        "real API route handlers and restricted PostgreSQL roles",
+        "fixed script source",
+        "explicit editable proposal adoption",
+        "unique attempt and cached response recovery",
+        "revocation before dispatch",
+        "unknown and late receipt recovery",
+        "inflight and cross-project daily limits",
+        "inputOutdated current semantic checks",
+        "isolated worker privileges"
+      ]
+    }
+  ]
+}
