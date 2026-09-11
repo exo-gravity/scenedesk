@@ -141,16 +141,24 @@ export async function storageFixture(t: TestContext) {
           stdio: ["pipe", "ignore", "ignore"],
         },
       );
-      const timer = setTimeout(() => child.kill("SIGKILL"), 30_000);
+      let timedOut = false;
+      const timer = setTimeout(() => {
+        timedOut = true;
+        child.kill("SIGKILL");
+      }, 30_000);
       child.once("error", () => {
         clearTimeout(timer);
         reject(new Error("Storage permission fixture failed to start"));
       });
-      child.once("exit", (code) => {
+      child.once("exit", (code, signal) => {
         clearTimeout(timer);
         code === 0
           ? resolve()
-          : reject(new Error("Storage permission fixture failed"));
+          : reject(
+              new Error(
+                `Storage permission fixture ${args.slice(0, 3).join("/")} ${timedOut ? "timed out" : `exited ${code ?? signal}`}`,
+              ),
+            );
       });
       child.stdin.end(input);
     });
