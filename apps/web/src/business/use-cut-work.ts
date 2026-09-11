@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { api, useSession, type Schema } from "./api";
+import { api, ApiError, useSession, type Schema } from "./api";
 import { tabIdentity } from "./content-drafts";
 import {
   type CutWorkController,
@@ -8,11 +8,18 @@ import {
 } from "./cut-work-controller";
 import { CutWorkSessionRegistry } from "./cut-work-sessions";
 import { clearEditingLocal } from "./editing-local";
+import { notifyEditingAccess, type EditingAccessHint } from "./editing-access";
 
 const controllers = new CutWorkSessionRegistry();
-export async function clearUserEditing(userId: string) {
-  await controllers.clearUser(userId);
-  await clearEditingLocal(userId);
+export const suspendEditingAccess = (hint: EditingAccessHint) =>
+  controllers.suspendAccess(hint);
+export const refreshEditingAccess = (hint: EditingAccessHint) =>
+  controllers.refreshAccess(hint);
+export const retireEditingSession = (hint: EditingAccessHint) =>
+  controllers.retireSession(hint);
+export async function clearUserEditing(userId: string, sessionId?: string) {
+  await controllers.clearUser(userId, sessionId);
+  await clearEditingLocal(userId, {}, sessionId);
 }
 export function useCutWork(tenantId: string, projectId: string, cutId: string) {
   const session = useSession(),
@@ -49,25 +56,67 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
           clientSessionId,
         ]);
         const path = `/v1/tenants/${tenantId}/projects/${projectId}/cuts/${cutId}/work-draft`;
+        const guarded = async <T>(request: Promise<T>) => {
+          try {
+            return await request;
+          } catch (error) {
+            const changedSession =
+              error instanceof ApiError &&
+              (error.status === 401 || error.code === "CSRF_REJECTED");
+            if (changedSession) {
+              suspendEditingAccess({
+                kind: "session",
+                sessionId: session.id,
+                userId: session.userId,
+              });
+              void cache.invalidateQueries({ queryKey: ["session"] });
+            }
+            if (
+              error instanceof ApiError &&
+              [401, 403, 404].includes(error.status)
+            )
+              notifyEditingAccess(
+                changedSession
+                  ? {
+                      kind: "session",
+                      sessionId: session.id,
+                      userId: session.userId,
+                    }
+                  : {
+                      kind: "cut",
+                      sessionId: session.id,
+                      userId: session.userId,
+                      tenantId,
+                      projectId,
+                      objectId: cutId,
+                    },
+              );
+            throw error;
+          }
+        };
         const transport: WorkTransport = {
           read: () =>
-            api<Schema<"CutWorkDraft">>(path, {
-              signal: AbortSignal.timeout(15_000),
-            }),
-          save: (pending) =>
-            api<Schema<"CutWorkDraft">>(path, {
-              method: "PUT",
-              signal: AbortSignal.timeout(15_000),
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-Token": session.csrfToken,
-                "If-Match": `"${pending.version}"`,
-              },
-              body: JSON.stringify({
-                baseCutRevision: pending.baseCutRevision,
-                document: pending.document,
+            guarded(
+              api<Schema<"CutWorkDraft">>(path, {
+                signal: AbortSignal.timeout(15_000),
               }),
-            }),
+            ),
+          save: (pending) =>
+            guarded(
+              api<Schema<"CutWorkDraft">>(path, {
+                method: "PUT",
+                signal: AbortSignal.timeout(15_000),
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRF-Token": session.csrfToken,
+                  "If-Match": `"${pending.version}"`,
+                },
+                body: JSON.stringify({
+                  baseCutRevision: pending.baseCutRevision,
+                  document: pending.document,
+                }),
+              }),
+            ),
         };
         const { controller: found, reopening } = await controllers.acquire(
           key,
@@ -80,6 +129,7 @@ export function useCutWork(tenantId: string, projectId: string, cutId: string) {
             clientSessionId,
           },
           transport,
+          session.id,
         );
         currentKey = key;
         current = found;

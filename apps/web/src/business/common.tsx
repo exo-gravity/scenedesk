@@ -6,9 +6,11 @@ import classes from "./workbench.module.css";
 export function ErrorNotice({
   error,
   retry,
+  retryLabel = "重新读取",
 }: {
   error: Error | null;
   retry?: () => void;
+  retryLabel?: string;
 }) {
   if (!error) return null;
   return (
@@ -21,7 +23,7 @@ export function ErrorNotice({
       <Text>{error.message}</Text>
       {retry && (
         <Button mt="sm" onClick={retry}>
-          重新读取
+          {retryLabel}
         </Button>
       )}
     </Alert>

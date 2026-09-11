@@ -308,6 +308,18 @@ function CutEditor({
         <ErrorNotice error={state.storageError} />
       </Alert>
     );
+  if (state.accessChecking)
+    return (
+      <Alert title="正在重新核对编辑权限">
+        <Text size="sm">
+          当前输入仍保留在编辑会话中。核对完成前暂停编辑和发送。
+        </Text>
+        <ErrorNotice error={state.error} />
+        <Button mt="sm" onClick={() => void controller.refresh()}>
+          重新核对编辑权限
+        </Button>
+      </Alert>
+    );
   if (!state.local)
     return (
       <ErrorNotice

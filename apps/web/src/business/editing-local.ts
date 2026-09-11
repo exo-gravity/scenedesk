@@ -18,6 +18,7 @@ export type EditingLocalCopy<T> = Readonly<{
   value: T;
 }>;
 export type EditingLocalMetadata = EditingPartition & {
+  appSessionId?: string;
   key: string;
   version: number;
   token: string;
@@ -140,7 +141,11 @@ function validMetadata(
     Number.isSafeInteger(row.savedAt) &&
     row.savedAt > 0 &&
     Number.isSafeInteger(row.bytes) &&
-    row.bytes >= 0
+    row.bytes >= 0 &&
+    (row.appSessionId === undefined ||
+      (typeof row.appSessionId === "string" &&
+        row.appSessionId.length > 0 &&
+        row.appSessionId.length <= 128))
   );
 }
 function metadataStamp(value: unknown) {
@@ -266,6 +271,7 @@ export async function saveEditingLocal<T>(
   partition: EditingPartition,
   value: T,
   expectedToken: string | undefined,
+  appSessionId?: string,
 ) {
   const encoded = editingCanonical(value);
   const bytes = new TextEncoder().encode(encoded).byteLength;
@@ -356,6 +362,7 @@ export async function saveEditingLocal<T>(
     copies.put(saved, key);
     metadata.put({
       ...partition,
+      ...(appSessionId ? { appSessionId } : {}),
       key,
       version: saved.version,
       token: saved.token,
@@ -436,6 +443,7 @@ export async function discardInspectedEditingLocal(
 export async function clearEditingLocal(
   userId: string,
   scope: { tenantId?: string; projectId?: string; objectId?: string } = {},
+  appSessionId?: string,
 ) {
   const db = await open(),
     tx = db.transaction(["copies", "metadata"], "readwrite");
@@ -444,6 +452,10 @@ export async function clearEditingLocal(
   const finished = complete(tx, () => undefined);
   request.onsuccess = () => {
     for (const row of request.result as EditingLocalMetadata[]) {
+      // A late old-session logout must not clear a newer login's work. Legacy
+      // metadata without an owner remains eligible until its next normal save.
+      if (appSessionId && row.appSessionId && row.appSessionId !== appSessionId)
+        continue;
       if (
         Object.entries(scope).some(
           ([field, value]) =>

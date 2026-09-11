@@ -48,6 +48,7 @@ export type WorkEditorState = {
   recovery: EditingLocalCopy<WorkLocalValue> | null;
   recoveryBlocked: boolean;
   recoveryInspection: EditingLocalInspection | null;
+  accessChecking: boolean;
   error: Error | null;
   storageError: Error | null;
   localSaved: boolean;
@@ -72,7 +73,9 @@ const receiptMatches = (work: Work, pending: WorkPendingWrite) =>
   work.documentHash === pending.documentHash &&
   same(work.document, pending.document);
 const unauthorized = (error: unknown) =>
-  error instanceof ApiError && [401, 403, 404].includes(error.status);
+  error instanceof ApiError &&
+  [401, 403, 404].includes(error.status) &&
+  error.code !== "CSRF_REJECTED";
 const asError = (error: unknown) =>
   error instanceof Error
     ? error
@@ -97,6 +100,7 @@ export class CutWorkController {
     recovery: null,
     recoveryBlocked: false,
     recoveryInspection: null,
+    accessChecking: false,
     error: null,
     storageError: null,
     localSaved: false,
@@ -122,6 +126,7 @@ export class CutWorkController {
   constructor(
     readonly partition: EditingPartition,
     private transport: WorkTransport,
+    private readonly appSessionId?: string,
   ) {}
   updateTransport(transport: WorkTransport) {
     this.transport = transport;
@@ -282,6 +287,12 @@ export class CutWorkController {
     this.clearTimer();
     void this.persist().catch(() => {});
   }
+  suspendAccess() {
+    if (this.revoked) return;
+    this.readSequence++;
+    this.clearTimer();
+    this.publish({ accessChecking: true, error: null });
+  }
   /** Release only a detached session whose latest work is already durable.
    * This is memory eviction, never a deletion of its local recovery copy. */
   async retireIfDurable() {
@@ -342,6 +353,7 @@ export class CutWorkController {
   edit(document: WorkDocument, buffers = this.state.local?.buffers ?? {}) {
     if (
       !this.state.local ||
+      this.state.accessChecking ||
       this.state.recovery ||
       this.state.recoveryBlocked ||
       this.state.phase === "loading" ||
@@ -358,6 +370,7 @@ export class CutWorkController {
   ) {
     if (
       !this.state.local ||
+      this.state.accessChecking ||
       !document ||
       this.state.recovery ||
       this.state.recoveryBlocked ||
@@ -373,7 +386,8 @@ export class CutWorkController {
   }
   restore() {
     const { recovery, remote } = this.state;
-    if (!recovery || !remote || this.revoked) return;
+    if (!recovery || !remote || this.revoked || this.state.accessChecking)
+      return;
     const local = recovery.value;
     this.publish({
       recovery: null,
@@ -395,6 +409,7 @@ export class CutWorkController {
     this.clearTimer();
     if (
       this.paused ||
+      this.state.accessChecking ||
       this.revoked ||
       this.composing ||
       this.writing ||
@@ -437,7 +452,12 @@ export class CutWorkController {
         if (this.token) await removeEditingLocal(this.partition, this.token);
         this.token = undefined;
       } else {
-        const copy = await saveEditingLocal(this.partition, local, this.token);
+        const copy = await saveEditingLocal(
+          this.partition,
+          local,
+          this.token,
+          this.appSessionId,
+        );
         this.token = copy.token;
       }
       this.publish({
@@ -466,6 +486,7 @@ export class CutWorkController {
     this.clearTimer();
     if (
       this.revoked ||
+      this.state.accessChecking ||
       this.writing ||
       this.composing ||
       this.state.recovery ||
@@ -517,7 +538,12 @@ export class CutWorkController {
   }
   private async submit(pending: WorkPendingWrite) {
     await this.persist();
-    if (this.revoked || this.state.local?.pending?.id !== pending.id) return;
+    if (
+      this.revoked ||
+      this.state.accessChecking ||
+      this.state.local?.pending?.id !== pending.id
+    )
+      return;
     try {
       const receipt = this.acceptSnapshot(await this.transport.save(pending));
       if (!receiptMatches(receipt, pending))
@@ -562,7 +588,13 @@ export class CutWorkController {
     await this.persist().catch(() => {});
   }
   private async checkPending(retry: boolean) {
-    if (this.writing || this.revoked || !this.state.local?.pending) return;
+    if (
+      this.writing ||
+      this.revoked ||
+      this.state.accessChecking ||
+      !this.state.local?.pending
+    )
+      return;
     this.writing = true;
     this.publish({ phase: "checking", error: null });
     try {
@@ -619,7 +651,12 @@ export class CutWorkController {
         remote.revision < (this.state.remote?.revision ?? 0)
       )
         return !this.revoked;
-      this.publish({ remote });
+      const wasChecking = this.state.accessChecking;
+      this.publish({ remote, accessChecking: false, error: null });
+      if (wasChecking && this.state.local?.pending && !this.writing) {
+        await this.checkPending(false);
+        return true;
+      }
       if (
         this.writing ||
         this.state.local?.pending ||
@@ -637,8 +674,10 @@ export class CutWorkController {
         await this.persist();
       } else if (remote.revision !== this.state.local.base.revision)
         this.publish({ phase: "conflict" });
+      this.schedule();
       return true;
     } catch (error) {
+      if (sequence !== this.readSequence || this.revoked) return !this.revoked;
       if (unauthorized(error)) await this.revoke();
       else this.publish({ error: asError(error) });
       return false;
@@ -654,6 +693,7 @@ export class CutWorkController {
     if (
       !this.state.local ||
       !this.state.remote ||
+      this.state.accessChecking ||
       this.revoked ||
       this.writing ||
       this.state.recovery ||
@@ -699,6 +739,7 @@ export class CutWorkController {
     if (
       !this.state.remote ||
       this.revoked ||
+      this.state.accessChecking ||
       this.writing ||
       this.state.phase === "loading" ||
       this.state.local?.pending ||
@@ -748,6 +789,7 @@ export class CutWorkController {
   async discardDamagedLocal(inspection: EditingLocalInspection) {
     if (
       this.revoked ||
+      this.state.accessChecking ||
       this.writing ||
       !this.state.recoveryBlocked ||
       this.state.recoveryInspection?.stamp !== inspection.stamp
@@ -797,7 +839,7 @@ export class CutWorkController {
       this.writing = false;
     }
   }
-  async revoke() {
+  async revoke(options: { preserveLocal?: boolean } = {}) {
     this.revoked = true;
     this.paused = true;
     this.clearTimer();
@@ -811,11 +853,17 @@ export class CutWorkController {
       storageError: null,
     });
     await this.storageQueue;
+    if (options.preserveLocal) return;
     try {
-      await clearEditingLocal(this.partition.userId, {
-        projectId: this.partition.projectId,
-        objectId: this.partition.objectId,
-      });
+      await clearEditingLocal(
+        this.partition.userId,
+        {
+          tenantId: this.partition.tenantId,
+          projectId: this.partition.projectId,
+          objectId: this.partition.objectId,
+        },
+        this.appSessionId,
+      );
     } catch (error) {
       this.publish({ phase: "forbidden", storageError: asError(error) });
     }

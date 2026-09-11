@@ -114,10 +114,22 @@ async (page) => {
     await page.getByRole('button', { name: '片段设置', exact: true }).click();
     await page.getByRole('textbox', { name: '字幕时长（秒）', exact: true }).fill('1.000001');
     await until(async () => !(await read(workPath)).issues.some(i => i.code === 'SUBTITLE_OUT_OF_BOUNDS'), 'exact subtitle duration did not save');
-    const usages = await read(`${tenantPath}/assets/${voiceId}/usages`);
-    ok(usages.items.some(u => u.kind === 'cut_work_draft' && u.objectId === cutId && u.sceneId === scene.id), 'current usage location absent');
+    let usageCursor='',usageFound=false,usagePages=0;
+    do {
+      const usages = await read(`${tenantPath}/assets/${voiceId}/usages?limit=30${usageCursor?'&cursor='+encodeURIComponent(usageCursor):''}`);
+      usagePages++;
+      usageFound=usages.items.some(u => u.kind === 'cut_work_draft' && u.objectId === cutId && u.sceneId === scene.id);
+      usageCursor=usages.nextCursor??'';
+    } while(!usageFound&&usageCursor&&usagePages<100);
+    ok(usageFound, 'current usage location absent from paginated results');
     await page.goto(`http://127.0.0.1:4311/#/app/t/${tenant}/assets?asset=${voiceId}`);
     await page.getByText('有权查看的直接使用位置', { exact: true }).click();
+    await until(async()=>{
+      if(await page.locator(`a[href*="cut=${cutId}"]`).count())return true;
+      const more=page.getByRole('button',{name:'加载更多使用位置',exact:true});
+      if(await more.isVisible()&&await more.isEnabled())await more.click();
+      return false;
+    },'current usage link absent after loading additional pages');
     await page.locator(`a[href*="cut=${cutId}"]`).click();
     await page.getByText('对白、声音与字幕', { exact: true }).waitFor();
     ok(page.url().includes(`cut=${cutId}`) && page.url().includes('tool=dialogue'), 'usage link lost exact cut context');
@@ -132,6 +144,6 @@ async (page) => {
     work = await read(workPath);
     ok(work.document.dramaBindings.every(b => b.shotRevisionId === shot.specRevisionId), 'saved fixed source silently upgraded');
     ok(errors.length === 0, errors.join('; '));
-    return { productionBuild: true, sceneId: scene.id, cutId, shotId: shot.id, workRevision: work.revision, incompleteFormRecovered: true, fixedOldTextAndVoice: true, duplicateAudioDiagnosed: true, explicitMute: true, plannedSubtitleRequiresReview: true, manualAndAutomaticIssuesIndependent: true, exactSubtitleDuration: true, actualSourceDecoded: true, usageLink: true, smallViewportOverflow: false, pageErrors: errors.length };
+    return { productionBuild: true, sceneId: scene.id, cutId, shotId: shot.id, workRevision: work.revision, incompleteFormRecovered: true, fixedOldTextAndVoice: true, duplicateAudioDiagnosed: true, explicitMute: true, plannedSubtitleRequiresReview: true, manualAndAutomaticIssuesIndependent: true, exactSubtitleDuration: true, actualSourceDecoded: true, usageLink: true,usagePages, smallViewportOverflow: false, pageErrors: errors.length };
   } finally { page.off('pageerror', capture); }
 }
