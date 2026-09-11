@@ -70,3 +70,5 @@ Smoke 只向 CI 输出固定阶段名与退出码，原始日志、临时配置�
 修复 `74096ec` 与 `a4317bc` 已由主任务整合进视频主线上的 `3ee2865d931b53460f9e62e0ade3acd4976545f6`。[PR 23 部署专项 CI 34628329976](https://github.com/exo-gravity/scenedesk/actions/runs/34628329976) 已全通过：部署类型与配置、数据库审计、三个新镜像，以及全自动 API/queue/真实 browser compiler smoke。常规完整 CI 与最终合并由主任务单独记录；部署专项通过不代表真实模型、真实登录或外部上线完成。
 
 最终本地运行使用 `a4317bc93e9b262f8897d816a3f4e613f8ee2d8f` 重新构建的三个镜像，完整自动 smoke exit 0，无人工浏览器关闭：40 条 migration、TLS/私有版本桶、生成归档授权、同源公开契约 GET/HEAD 与真实 Chrome 编译、网关限制、过期提示消费、异常提示停止和混队列拒绝均通过。结束后的项目 label 查询确认容器、卷与网络全空。硬件、镜像 digest、准确范围和日志哈希记录在[本地容器验收证据](../../deploy/smoke/evidence/integration-container-verification.json)；共享开发主机的运行时间不作为性能基准。本次证据更新只改变记录文字，不改变已验证的运行代码。
+
+2026-09-12 主任务核验：最终提交 `3ee2865d931b53460f9e62e0ade3acd4976545f6` 的标准 push/PR CI（34628325974／34628329987）各通过88单元、188数据库、73媒体，均零失败、取消或跳过；部署 push/PR CI（34628325885／34628329976）各通过4配置、6数据库审查及完整容器/浏览器 smoke。[PR #23](https://github.com/exo-gravity/scenedesk/pull/23) 于2026-09-11 17:46:57 UTC合入 `main`，合并提交 `27df7af2c5d6760fd6beaab2240c2e64879c19e2`。这些结果对应视频基线；随后音频整合将另行核验组合版本。
