@@ -1,0 +1,78 @@
+TAP version 13
+# Subtest: private paired recovery preserves fixed media, history, authority and unresolved generation without execution
+    # Subtest: a timed-out attached helper is actually stopped and removed from the daemon
+    ok 1 - a timed-out attached helper is actually stopped and removed from the daemon
+      ---
+      duration_ms: 4956.016375
+      type: 'test'
+      ...
+    # Subtest: backup seals a matched database and cold storage archive and keeps original writers stopped
+    ok 2 - backup seals a matched database and cold storage archive and keeps original writers stopped
+      ---
+      duration_ms: 20989.34575
+      type: 'test'
+      ...
+    # Subtest: rewriting both payload checksum and manifest cannot forge the independent seal
+    ok 3 - rewriting both payload checksum and manifest cannot forge the independent seal
+      ---
+      duration_ms: 527.296291
+      type: 'test'
+      ...
+    # Subtest: the seal key must remain outside the bundle even when its original signature is valid
+    ok 4 - the seal key must remain outside the bundle even when its original signature is valid
+      ---
+      duration_ms: 423.64975
+      type: 'test'
+      ...
+    # Subtest: a missing cold storage half cannot restore a database-only bundle
+    ok 5 - a missing cold storage half cannot restore a database-only bundle
+      ---
+      duration_ms: 373.731792
+      type: 'test'
+      ...
+    # Subtest: source container and volume identities cannot be restored in place
+    ok 6 - source container and volume identities cannot be restored in place
+      ---
+      duration_ms: 358.015625
+      type: 'test'
+      ...
+    # Subtest: a nonempty target is rejected before touching its marker or starting storage
+    ok 7 - a nonempty target is rejected before touching its marker or starting storage
+      ---
+      duration_ms: 1226.615458
+      type: 'test'
+      ...
+    # Subtest: a new target restores and verifies the original fixed identities without starting an executor
+    ok 8 - a new target restores and verifies the original fixed identities without starting an executor
+      ---
+      duration_ms: 33462.028542
+      type: 'test'
+      ...
+    # Subtest: restored restricted APIs expose exact original bytes and retained histories, keeping unknown and queued separate
+    ok 9 - restored restricted APIs expose exact original bytes and retained histories, keeping unknown and queued separate
+      ---
+      duration_ms: 1365.509875
+      type: 'test'
+      ...
+    # Subtest: loss of the referenced original version is detected despite a newer same-key version
+    ok 10 - loss of the referenced original version is detected despite a newer same-key version
+      ---
+      duration_ms: 38656.928708
+      type: 'test'
+      ...
+    1..10
+ok 1 - private paired recovery preserves fixed media, history, authority and unresolved generation without execution
+  ---
+  duration_ms: 169072.614167
+  type: 'test'
+  ...
+# Seeding only synthetic private resources through current APIs and restricted media/attempt functions
+1..1
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 169707.797041
