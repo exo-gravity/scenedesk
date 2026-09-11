@@ -1221,12 +1221,16 @@ function CanvasComposer({
             })}
             <Alert
               title={
-                node.kind === "image" ? "准备图片生成" : "生成服务尚未接入"
+                node.kind === "image"
+                  ? "准备图片生成"
+                  : node.kind === "video"
+                    ? "准备视频生成"
+                    : "生成服务尚未接入"
               }
             >
               <Text>
-                {node.kind === "image"
-                  ? "提示和参考会随画布保存。请在下方“画布图片生成与结果”中选择可执行能力，并核对固定计划后生成。"
+                {node.kind === "image" || node.kind === "video"
+                  ? "提示和参考会随画布保存。请在下方“画布生成与结果”中选择可执行能力，并核对固定计划后生成。"
                   : "提示和参考会随画布保存。接入实际模型后，在这里核对固定生成输入与结果。"}
               </Text>
             </Alert>
