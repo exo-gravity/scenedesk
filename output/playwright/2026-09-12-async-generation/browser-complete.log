@@ -1,0 +1,4 @@
+### Error
+TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: '确认执行分镜分析', exact: true })[22m

@@ -1,0 +1,609 @@
+### Result
+{"mode":"production build with controlled HTTP transport; no real provider","passed":true,"jobs":[{"id":"00004400-aabb-4ccd-8eef-112233445566","revision":2,"scope":"project","projectId":"00004091-aabb-4ccd-8eef-112233445566","planId":"00004300-aabb-4ccd-8eef-112233445566","status":"succeeded","providerJobId":"controlled-remote","mediaIds":[],"inputOutdated":false,"executionMode":"test_fixture","cancelStatus":"unsupported","cancelRequestedAt":"2026-09-11T20:37:21.448Z","assistanceArtifactId":"00004450-aabb-4ccd-8eef-112233445566"},{"id":"00004401-aabb-4ccd-8eef-112233445566","revision":2,"scope":"project","projectId":"00004091-aabb-4ccd-8eef-112233445566","planId":"00004301-aabb-4ccd-8eef-112233445566","status":"cancelled","mediaIds":[],"inputOutdated":false,"executionMode":"test_fixture","cancelStatus":"confirmed","cancelRequestedAt":"2026-09-11T20:37:24.701Z"},{"id":"00004402-aabb-4ccd-8eef-112233445566","revision":2,"scope":"project","projectId":"00004091-aabb-4ccd-8eef-112233445566","planId":"00004302-aabb-4ccd-8eef-112233445566","status":"cancel_requested","providerJobId":"controlled-remote","mediaIds":[],"inputOutdated":false,"executionMode":"test_fixture","cancelStatus":"requested","cancelRequestedAt":"2026-09-11T20:37:25.455Z"}],"cancelWrites":[{"path":"/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004400-aabb-4ccd-8eef-112233445566/cancel","method":"POST","key":"ff006ad8-818f-4a64-865f-832971022df3","body":null},{"path":"/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004401-aabb-4ccd-8eef-112233445566/cancel","method":"POST","key":"1e1b2c78-4e93-40ef-bbe2-03f0a3a2e9a1","body":null},{"path":"/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004401-aabb-4ccd-8eef-112233445566/cancel","method":"POST","key":"1e1b2c78-4e93-40ef-bbe2-03f0a3a2e9a1","body":null}],"executions":3,"lateReplyScopeIsolation":true,"queuedCancelThenNewPlan":true,"planCount":3,"readCount":156,"pageErrors":[]}
+### Ran Playwright code
+```js
+await (async (page) => {
+  await page.goto("about:blank");
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await page.context().unrouteAll({ behavior: "ignoreErrors" });
+  const id = (n) =>
+    `${String(n + 4000).padStart(8, "0")}-aabb-4ccd-8eef-112233445566`;
+  const tenant = id(90),
+    projectId = id(91),
+    actor = id(92),
+    session = id(93),
+    scene = id(94),
+    episode = id(95),
+    shotId = id(96),
+    oldRevision = id(97),
+    takeId = id(98),
+    mediaId = id(99),
+    reviewId = id(100),
+    commentId = id(101);
+  const base = `/v1/tenants/${tenant}`,
+    path = `${base}/projects/${projectId}`,
+    url = `http://127.0.0.1:4316/#/app/t/${tenant}/p/${projectId}/production?scene=${scene}&shot=${shotId}&take=${takeId}&mode=storyboard`;
+  const identity = {
+    id: session,
+    revision: 1,
+    userId: actor,
+    email: "controlled-feedback@example.test",
+    csrfToken: "explicit-controlled-transport-only",
+  };
+  const project = {
+    id: projectId,
+    tenantId: tenant,
+    revision: 1,
+    name: "异步进度与取消 · 受控传输验收",
+    kind: "drama",
+    status: "active",
+    leadMembershipId: id(102),
+    spec: {
+      width: 1080,
+      height: 1920,
+      fpsNum: 24,
+      fpsDen: 1,
+      language: "zh-CN",
+    },
+  };
+  const shot = {
+    id: shotId,
+    projectId,
+    sceneId: scene,
+    revision: 2,
+    label: "S01",
+    position: 0,
+    status: "active",
+    specRevisionId: id(103),
+    spec: { intent: "当前新版镜头要求", references: [], dialogue: [] },
+  };
+  const revision = {
+    id: oldRevision,
+    shotId,
+    number: 1,
+    spec: { intent: "原候选：近景手指接触钥匙", references: [], dialogue: [] },
+  };
+  const tree = {
+    projectId,
+    revision: 2,
+    episodes: [
+      {
+        id: episode,
+        projectId,
+        revision: 1,
+        title: "第一集",
+        position: 0,
+        status: "active",
+      },
+    ],
+    scenes: [
+      {
+        id: scene,
+        projectId,
+        episodeId: episode,
+        revision: 1,
+        title: "门边取钥匙",
+        position: 0,
+        status: "active",
+        summary: "固定候选反馈验证",
+        state: {},
+        defaultAssetRevisionIds: [],
+      },
+    ],
+    shots: [shot],
+  };
+  const take = {
+    id: takeId,
+    revision: 1,
+    shotId,
+    shotRevisionId: oldRevision,
+    mediaId,
+    range: { inUs: 0, outUs: 2000000 },
+    note: "旧要求的固定候选",
+    projectId,
+  };
+  const media = {
+    id: mediaId,
+    revision: 1,
+    scope: "project",
+    projectId,
+    kind: "video",
+    status: "ready",
+    displayName: "候选片段（受控传输）",
+    fileName: "controlled.mp4",
+    durationUs: 2000000,
+    width: 256,
+    height: 144,
+    fpsNum: 24,
+    fpsDen: 1,
+    hasAudio: false,
+    derivatives: [],
+  };
+  const text = {
+    id: id(104),
+    revision: 1,
+    connectionId: id(105),
+    purpose: "creative_assistance",
+    modelVersion: "受控异步助手",
+    mode: "text_fixture_v1",
+    enabled: true,
+    executionMode: "test_fixture",
+    supportedPurposes: [],
+  };
+  const target = {
+    ...text,
+    id: id(106),
+    purpose: "video",
+    modelVersion: "受控视频目标",
+    mode: "video_fixture_v1",
+    allowedResolutions: ["256x144"],
+    allowedAspectRatios: ["16:9"],
+    minDurationSeconds: 2,
+    maxDurationSeconds: 2,
+    audioOutput: false,
+    inputRules: [],
+  };
+  const secondShot = { ...shot, id: id(500), label: "S02", position: 1, specRevisionId: id(501), spec: { ...shot.spec, intent: "另一个镜头的独立输入" } };
+  tree.shots.push(secondShot);
+  let releaseCancel;
+  const script = {
+    id: id(200),
+    projectId,
+    number: 1,
+    revision: 1,
+    title: "异步测试剧本",
+    text: "她站在门边，轻轻拿起钥匙。",
+    status: "draft",
+  };
+  const scriptCap = {
+    ...text,
+    id: id(201),
+    purpose: "script_analysis",
+    modelVersion: "受控分镜助手",
+  };
+  const plans = new Map(),
+    jobs = new Map(),
+    writes = [],
+    reads = [],
+    errors = [];
+  let cancelMode = "accepted-lost",
+    denied = false;
+  const reply = (route, body, status = 200) =>
+    route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify(body),
+    });
+  const ensure = (value, message) => {
+    if (!value) throw Error(message);
+  };
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("dialog", (dialog) => dialog.accept());
+  await page
+    .context()
+    .route("**/health/**", (route) =>
+      reply(route, {
+        phase: "business",
+        identityMode: "local_test",
+        providerMode: "mock",
+      }),
+    );
+  await page.context().route("**/v1/**", async (route) => {
+    const req = route.request(),
+      query = Object.fromEntries((req.url().split("?")[1] ?? "").split("&").map(part => part.split("="))),
+      u = req.url().split("?")[0].replace(/^https?:\/\/[^/]+/, ""),
+      method = req.method();
+    if (method !== "GET")
+      writes.push({
+        path: u,
+        method,
+        key: req.headers()["idempotency-key"],
+        body: req.postData(),
+      });
+    else reads.push(u);
+    if (u === "/v1/session") return reply(route, identity);
+    if (u === "/v1/tenants")
+      return reply(route, {
+        items: [
+          {
+            id: tenant,
+            revision: 1,
+            name: "受控异步工作室",
+            ownerUserId: actor,
+            currency: "CNY",
+          },
+        ],
+      });
+    if (u === `${base}/members`)
+      return reply(route, {
+        items: [
+          {
+            id: id(102),
+            revision: 1,
+            userId: actor,
+            role: "owner",
+            status: "active",
+          },
+        ],
+      });
+    if (u === `${base}/projects`) return reply(route, { items: [project] });
+    if (u === path) return reply(route, project);
+    if (u === `${path}/content`)
+      return denied
+        ? reply(
+            route,
+            {
+              code: "FORBIDDEN",
+              message: "controlled revoked",
+              requestId: "controlled",
+            },
+            403,
+          )
+        : reply(route, tree);
+    if (u.endsWith("/events"))
+      return route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        body: ": controlled transport\n\n",
+      });
+    if (u.endsWith("/workspace-preference"))
+      return reply(route, {
+        sceneId: scene,
+        revision: 1,
+        mode: "storyboard",
+        viewport: { x: 0, y: 0, zoom: 1 },
+      });
+    if (u === `${path}/scenes/${scene}/canvas`)
+      return reply(
+        route,
+        {
+          code: "SCENE_CANVAS_NOT_CREATED",
+          message: "No canvas for this controlled test",
+          requestId: "controlled",
+        },
+        404,
+      );
+    if (u === `${path}/takes/${takeId}`) return reply(route, take);
+    if (u === `${path}/takes`) return reply(route, { items: query.shotId === secondShot.id ? [] : [take] });
+    if (u.includes(`/shots/${secondShot.id}/revisions/`)) return reply(route, { id: secondShot.specRevisionId, shotId: secondShot.id, number: 1, spec: secondShot.spec });
+    if (u.includes(`/shots/${shotId}/revisions/`))
+      return reply(
+        route,
+        u.endsWith(oldRevision)
+          ? revision
+          : { id: shot.specRevisionId, shotId, number: 2, spec: shot.spec },
+      );
+    if (u === `${path}/scripts`) return reply(route, { items: [script] });
+    if (u === `${base}/media/${mediaId}`) return reply(route, media);
+    if (u.endsWith(`/media/${mediaId}/access`)) {
+      ensure(req.headers()["idempotency-key"], "missing media key");
+      return reply(route, {
+        url: "http://127.0.0.1:4316/controlled.mp4",
+        expiresAt: "2099-01-01T00:00:00Z",
+      });
+    }
+    if (u === `${base}/capabilities`)
+      return reply(route, {
+        items: [text, target, scriptCap].filter(
+          (cap) =>
+            !!!query.purpose ||
+            cap.purpose === query.purpose,
+        ),
+      });
+    if (u === `${base}/generation-plans` && method === "POST") {
+      const input = req.postDataJSON();
+      const plan = {
+        id: id(300 + plans.size),
+        revision: 1,
+        input,
+        status: "ready",
+        inputHash: "controlled",
+        capabilityRevision: 1,
+        connectionVersionId: id(105),
+        expiresAt: "2099-01-01T00:00:00Z",
+        blockingReasons: [],
+        executionMode: "test_fixture",
+        resolvedInput: {
+          resolverVersion: "controlled",
+          prompt: input.prompt,
+          references: [],
+          shots: (input.shotSources ?? []).map((source) => ({
+            ...source,
+            spec: shot.spec,
+          })),
+          dependencies: [],
+          targetCapabilitySnapshot: target,
+          capabilitySnapshot: input.purpose === "video" ? target : text,
+          output: input.output,
+        },
+      };
+      plans.set(plan.id, plan);
+      return reply(route, plan, 201);
+    }
+    if (u.startsWith(`${base}/generation-plans/`))
+      return reply(route, plans.get(u.split("/").pop()));
+    if (u === `${base}/generation-jobs` && method === "POST") {
+      const { planId } = req.postDataJSON();
+      ensure(
+        ![...jobs.values()].some((job) => job.planId === planId),
+        "duplicate execution",
+      );
+      const job = {
+        id: id(400 + jobs.size),
+        revision: 1,
+        scope: "project",
+        projectId,
+        planId,
+        status: "provider_pending",
+        providerJobId: "controlled-remote",
+        mediaIds: [],
+        inputOutdated: false,
+        executionMode: "test_fixture",
+        cancelStatus: "not_requested",
+      };
+      jobs.set(job.id, job);
+      plans.get(planId).status = "consumed";
+      return reply(route, job, 202);
+    }
+    if (u.endsWith("/cancel")) {
+      const jobId = u.split("/").at(-2),
+        job = jobs.get(jobId);
+      ensure(
+        method === "POST" &&
+          req.postData() === null &&
+          !req.headers()["content-type"] &&
+          !req.headers()["if-match"] &&
+          req.headers()["idempotency-key"],
+        "cancel wire contract changed",
+      );
+      if (cancelMode === "not-delivered") return route.abort("failed");
+      job.cancelStatus = cancelMode === "confirmed" ? "confirmed" : "requested";
+      job.cancelRequestedAt = new Date().toISOString();
+      if (["provider_pending", "provider_running"].includes(job.status))
+        job.status = "cancel_requested";
+      if (cancelMode === "confirmed") job.status = "cancelled";
+      job.revision++;
+      if (cancelMode === "delayed") return await new Promise(resolve => { releaseCancel = async () => { await reply(route, job, 202); resolve(); }; });
+      return cancelMode === "accepted-lost"
+        ? route.abort("failed")
+        : reply(route, job, 202);
+    }
+    if (u === `${base}/generation-jobs`)
+      return reply(route, {
+        items: [...jobs.values()].filter(
+          (job) =>
+            !!!query.planId ||
+            job.planId === query.planId,
+        ),
+      });
+    if (u.startsWith(`${base}/generation-jobs/`))
+      return reply(route, jobs.get(u.split("/").pop()));
+    if (method !== "GET") throw Error(`Unexpected write ${method} ${u}`);
+    return reply(route, { items: [] });
+  });
+  await page.goto("http://127.0.0.1:4316/");
+  await page.evaluate(async (actor) => {
+    const open = indexedDB.open("scenedesk-assistant", 1);
+    open.onupgradeneeded = () => open.result.createObjectStore("sessions");
+    const db = await new Promise((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction("sessions", "readwrite"),
+        request = tx.objectStore("sessions").openCursor();
+      request.onsuccess = () => {
+        const row = request.result;
+        if (!row) return;
+        if (JSON.parse(row.key)[0] === actor) row.delete();
+        row.continue();
+      };
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  }, actor);
+  await page.setViewportSize({ width: 1512, height: 982 });
+  await page.goto(url);
+  const composer = page.locator('[aria-label="本次创作输入"]');
+  await composer
+    .getByRole("textbox", { name: "本次提示", exact: true })
+    .fill("异步任务期间保留的手工原文。");
+  await composer
+    .getByRole("button", { name: "AI 准备提示", exact: true })
+    .click();
+  await composer.getByRole("combobox", { name: "准备提示的模型", exact: true }).focus();
+  await composer.getByRole("combobox", { name: "准备提示的模型", exact: true }).press("ArrowDown");
+  await composer.getByRole("combobox", { name: "准备提示的模型", exact: true }).press("Enter");
+
+  await composer.getByRole("combobox", { name: "提示将用于哪项能力", exact: true }).focus();
+  await composer.getByRole("combobox", { name: "提示将用于哪项能力", exact: true }).press("ArrowDown");
+  await composer.getByRole("combobox", { name: "提示将用于哪项能力", exact: true }).press("Enter");
+
+  await composer
+    .getByRole("button", { name: "查看固定计划", exact: true })
+    .click();
+  await composer
+    .getByRole("button", { name: "明确执行提示准备", exact: true })
+    .click();
+  await composer.getByText("模型已接收", { exact: true }).waitFor();
+  const first = [...jobs.values()][0];
+  first.status = "provider_running";
+  // Allow the existing 4 second GET poll to display running; no manual request.
+  await composer
+    .getByText("正在生成", { exact: true })
+    .waitFor({ timeout: 10000 });
+  await composer
+    .getByRole("button", { name: "请求取消任务", exact: true })
+    .click();
+  await page
+    .getByRole("dialog", { name: "确认请求取消", exact: true })
+    .waitFor();
+  await page.screenshot({
+    path: "output/playwright/2026-09-12-async-generation/confirm-1512.png",
+    animations: "disabled",
+  });
+  await page.getByRole("button", { name: "确认请求取消", exact: true }).click();
+  await composer
+    .getByText("取消回执待核对。本机保留原请求，刷新只读取原任务。", {
+      exact: true,
+    })
+    .waitFor();
+  await page.reload();
+  await composer
+    .getByRole("button", { name: "AI 准备提示", exact: true })
+    .click();
+  await composer
+    .getByText("取消请求已记录，尚未确认取消。原任务仍会继续核对。", {
+      exact: true,
+    })
+    .waitFor();
+  ensure(
+    writes.filter((row) => row.path.endsWith("/cancel")).length === 1,
+    "reload repeated cancel",
+  );
+  first.cancelStatus = "unsupported";
+  first.status = "provider_running";
+  await composer
+    .getByRole("button", { name: "核对原任务", exact: true })
+    .click();
+  await composer
+    .getByText("当前模型不支持取消。原任务继续处理，完成后可取回结果。", {
+      exact: true,
+    })
+    .waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await composer
+    .getByText("当前模型不支持取消。原任务继续处理，完成后可取回结果。", {
+      exact: true,
+    })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "output/playwright/2026-09-12-async-generation/unsupported-390.png",
+    animations: "disabled",
+  });
+  first.status = "succeeded";
+  first.assistanceArtifactId = id(450);
+  await composer
+    .getByRole("button", { name: "核对原任务", exact: true })
+    .click();
+  await composer
+    .getByRole("button", { name: "打开提示建议", exact: true })
+    .waitFor();
+  ensure(
+    (await composer
+      .getByRole("textbox", { name: "本次提示", exact: true })
+      .inputValue()) === "异步任务期间保留的手工原文。",
+    "manual input changed",
+  );
+  await composer.getByRole("button", { name: "生成视频", exact: true }).click();
+  const video = composer.locator('[aria-label="生成单段视频"]');
+  await video.getByRole("combobox", { name: "视频生成模型", exact: true }).focus();
+  await video.getByRole("combobox", { name: "视频生成模型", exact: true }).press("ArrowDown");
+  await video.getByRole("combobox", { name: "视频生成模型", exact: true }).press("Enter");
+
+  await video
+    .getByRole("button", { name: "查看视频生成计划", exact: true })
+    .click();
+  await video
+    .getByRole("button", { name: "确认执行视频生成", exact: true })
+    .click();
+  await video.getByText("模型已接收", { exact: true }).waitFor();
+  const second = [...jobs.values()][1];
+  second.status = "submission_unknown";
+  delete second.providerJobId;
+  await video
+    .getByRole("button", { name: "核对视频任务", exact: true })
+    .click();
+  cancelMode = "not-delivered";
+  await video
+    .getByRole("button", { name: "请求取消任务", exact: true })
+    .click();
+  await page.getByRole("button", { name: "确认请求取消", exact: true }).click();
+  await video
+    .getByRole("button", { name: "恢复原取消请求", exact: true })
+    .waitFor();
+  await page.reload();
+  await composer.getByRole("button", { name: "生成视频", exact: true }).click();
+  await video
+    .getByRole("button", { name: "恢复原取消请求", exact: true })
+    .waitFor();
+  ensure(
+    writes.filter((row) => row.path.endsWith("/cancel")).length === 2,
+    "refresh cancelled automatically",
+  );
+  cancelMode = "confirmed";
+  second.status = "queued";
+  await video
+    .getByRole("button", { name: "恢复原取消请求", exact: true })
+    .click();
+  await page.getByRole("button", { name: "确认请求取消", exact: true }).click();
+  await video.getByText("已确认取消", { exact: true }).waitFor();
+  const cancelWrites = writes.filter((row) => row.path.endsWith("/cancel"));
+  ensure(
+    cancelWrites.length === 3 && cancelWrites[1].key === cancelWrites[2].key,
+    "restore changed original key",
+  );
+  await video.getByText("已确认取消", { exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "output/playwright/2026-09-12-async-generation/confirmed-390.png",
+    animations: "disabled",
+  });
+  ensure(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    "390 overflow",
+  );
+  await page.setViewportSize({ width: 1512, height: 982 });
+  ensure(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    "1512 overflow",
+  );
+  await video.getByRole("button", { name: "保留原任务，准备下一段视频", exact: true }).click();
+  await video.getByRole("button", { name: "查看视频生成计划", exact: true }).click();
+  await video.getByRole("button", { name: "确认执行视频生成", exact: true }).click();
+  await video.getByText("模型已接收", { exact: true }).waitFor();
+  const third = [...jobs.values()][2];
+  cancelMode = "delayed";
+  await video.getByRole("button", { name: "请求取消任务", exact: true }).click();
+  await page.getByRole("button", { name: "确认请求取消", exact: true }).click();
+  // This request is recorded but its 202 remains in flight while the user switches shot.
+  await page.waitForFunction(() => !document.querySelector('[role="dialog"]'));
+  while (!releaseCancel) await new Promise(resolve => setTimeout(resolve, 20));
+  await page.goto(url.replace(`shot=${shotId}`, `shot=${secondShot.id}`).replace(`&take=${takeId}`, ""));
+  await composer.getByRole("textbox", { name: "本次提示", exact: true }).fill("S02 独立手工输入。");
+  const response = page.waitForResponse(res => res.url().endsWith(`/${third.id}/cancel`));
+  await releaseCancel(); await response;
+  ensure(await composer.getByRole("textbox", { name: "本次提示", exact: true }).inputValue() === "S02 独立手工输入。", "late cancellation overwrote another shot");
+  ensure(await composer.getByRole("button", { name: "恢复原取消请求", exact: true }).count() === 0, "late cancellation appeared in another shot");
+  await page.screenshot({ path: "output/playwright/2026-09-12-async-generation/isolated-shot-1512.png", animations: "disabled" });
+  await page.goto(url);
+  await composer.getByRole("button", { name: "生成视频", exact: true }).click();
+  await video.getByText("取消请求已记录，尚未确认取消。原任务仍会继续核对。", { exact: true }).waitFor();
+  ensure(await composer.getByRole("textbox", { name: "本次提示", exact: true }).inputValue() === "异步任务期间保留的手工原文。", "original input not retained");
+  ensure(writes.filter(row => row.path.endsWith("/cancel")).length === 4, "scope switch repeated cancellation");
+  ensure(
+    writes.filter((row) => row.path === `${base}/generation-jobs`).length === 3,
+    "unexpected execution",
+  );
+  ensure(errors.length === 0, "page errors: " + errors.join(","));
+  return {
+    mode: "production build with controlled HTTP transport; no real provider",
+    passed: true,
+    jobs: [...jobs.values()],
+    cancelWrites,
+    executions: 3,
+    lateReplyScopeIsolation: true,
+    queuedCancelThenNewPlan: true,
+    planCount: plans.size,
+    readCount: reads.length,
+    pageErrors: errors,
+  };
+}
+)(page);
+```
+### Events
+- New console entries: .playwright-cli/console-2026-09-11T20-31-45-330Z.log#L33-L63
