@@ -1,0 +1,35 @@
+{
+  "recordedAtUtc": "2026-09-11T17:14:43.235806+00:00",
+  "status": "candidate_local_checks_passed_container_and_remote_ci_pending",
+  "sourceBaseline": "f3b7433f036261db8e36b01249fee5e242ed3886",
+  "deploymentBase": "a09cf873ba4ebb7528f71844ec9007cebdf164e9",
+  "checks": {
+    "rootCheck": {
+      "passed": 82
+    },
+    "deploymentTypes": "passed",
+    "configurationTests": {
+      "passed": 4
+    },
+    "databaseAudit": {
+      "passed": 6,
+      "fixtures": "relational_only_no_real_model_or_decoded_output"
+    },
+    "newHeadImages": "pending",
+    "sameOriginApiQueueBrowserSmoke": "pending",
+    "remoteDeploymentCi": "pending_parent_push",
+    "documentationCandidate": "passed"
+  },
+  "correction": "The first package incorrectly blocked /design/openapi.json, which the canvas recovery compiler needs. This candidate adds exact GET/HEAD access and original browser compiler smoke; prior unauthenticated screenshots did not cover this dependency.",
+  "generationExecutor": "unavailable",
+  "paidProvidersEnabled": false,
+  "externalDeployment": false,
+  "auditTestCleanup": "isolated PostgreSQL container removed",
+  "sha256": {
+    "rootCheck": "7ec796cab921ef11c5560fcbe87fdfca71f2d0a203ee05975ec14813b4fdaf92",
+    "deploymentCheck": "0cdc6acb408ae1e90e308a546720a47775dc07a0f9ff1cd8d92ff81fbe3ab8f9",
+    "databaseAudit": "4f1863f283fa711d5758f2b004671cceadb598989f16337e9b69ac75836df5d1",
+    "databaseCleanup": "9e2e3564a2ee6fc434eede347c990a6b8e49b10fdac5581b2b1b10eac0915359",
+    "documentationCandidate": "98d1a094ebe5d17494d6cff8481b383fde436cddd736f28147b9ff7e88cbb4cb"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "recordedAtUtc": "2026-09-11T16:37:18.459098+00:00",
+  "sourceBaseline": "c939900c4208cac75b0465f9a28e97682d66fac0",
+  "scope": "isolated_local_private_deployment_package",
+  "externalDeployment": false,
+  "realIdentityAcceptance": false,
+  "realProviderAcceptance": false,
+  "smokeExitCode": 0,
+  "result": {
+    "status": "passed",
+    "staticHttps": 200,
+    "sameOriginBusinessReady": true,
+    "unauthenticatedBusinessRequest": 401,
+    "oidcHandshakeSecureRedirect": 302,
+    "importWorkerReady": true,
+    "designBlocked": 404,
+    "postProductionWriteBlocked": 503,
+    "unsupportedQueueRejectedBeforeClaim": true,
+    "queueStateUnchanged": "created:0",
+    "runtimeMalformedHintStopsWorker": true,
+    "runtimeMalformedHintState": "retry:0",
+    "identity": "discovery_only_no_login",
+    "paidProvidersEnabled": false,
+    "productionReady": false
+  },
+  "database": {
+    "migrationsApplied": 28,
+    "transport": "TLS verify-full",
+    "runtimeRoles": "separate api/auth/media/scheduler"
+  },
+  "environment": {
+    "architecture": "arm64",
+    "node": "22.23.2",
+    "npm": "10.9.8",
+    "docker": "28.5.1",
+    "compose": "2.40.0",
+    "sharedDevelopmentHost": true,
+    "timingIsBenchmark": false
+  },
+  "checks": {
+    "rootCheckPassed": 60,
+    "deploymentConfigurationTestsPassed": 4,
+    "finalContainerDeploymentTypes": true,
+    "finalContainerProductionBuild": true,
+    "missingDecoderSocketRejected": true,
+    "documentation": {
+      "result": "PASS",
+      "operations": 152,
+      "paths": 118,
+      "schemas": 225,
+      "examples": 157,
+      "localLinks": 1296
+    }
+  },
+  "verificationOrder": "The full container smoke used the final entrypoints. Afterwards only rejection of duplicate sslmode URL parameters was tightened; the final three-image build reran deployment types and all four configuration boundary tests. Media smoke was not repeated for that input validation change.",
+  "cleanup": {
+    "containersRemoved": true,
+    "volumesRemoved": true,
+    "networkRemoved": true,
+    "projectLabelContainerAndVolumeQueriesEmpty": true,
+    "otherProjectsTouched": false
+  },
+  "browser": {
+    "identity": "discovery_only_no_login",
+    "desktopViewport": [
+      1365,
+      900
+    ],
+    "mobileViewport": [
+      375,
+      812
+    ],
+    "mobileScrollWidth": 375,
+    "expectedSession401": true,
+    "failedAssets": 0,
+    "certificateVerification": "Temporary self-signed certificate ignored only by browser; curl used the ephemeral CA with normal TLS verification.",
+    "capturedAtLocal": "2026-09-11T21:15:00+08:00"
+  },
+  "historicalFailureEvidence": "Earlier packaging failures and logs that overlapped host sleep are retained privately under .runtime; no cross-sleep elapsed time is used as performance evidence.",
+  "sha256": {
+    "smokeBuildLog": "4b032d1658bb6b3b36792806ef5f801288804d70bdc600093bdfaaad05b1d1e4",
+    "finalBuildLog": "76cf2ede357bc72dc5a91be653a614b564f58469765f1e2852e82d4cf55d038a",
+    "smokeRunLog": "5358ef74b6ba7244c4dc20f55c7eb4fe5363968ea363a01b39d6a816fce43c17",
+    "provisionLog": "e89b7677d510a54a017d0a800a43c9238d22f22ed5e782c68516bff44456e864",
+    "auditLog": "42689072d9293d6bb5b1014dfbff1aec4dd459c791e74806563747ad78d9adde",
+    "apiCheckLog": "f6a5a1a260e18edae410fcdb9047ab14f19d9c8bed7108ae435ec6aafe27012f",
+    "workerCheckLog": "7a1bf14230ca2640a3a1df33c5831b93afcf61b53d5639b95be3970e7b8e58cd",
+    "runtimeStopLog": "85ad7b4861710219c0ac100ca8f546d958dd865a639ab92fb388ee2c26c4d720",
+    "startupRejectionLog": "e568342817fb3b5c8ddec34d6f401f29a7213851b31bee1a31b5404be65ec262",
+    "cleanupLog": "ec600027e5f41fb1bee44a2ce3b66d1182f8415e49bbf4666c989dde58ebf412",
+    "finalConfigTestLog": "a6101d5bc194e1790358872b0f9e2fb27653676bb34738c7b0dd7f589449900f",
+    "missingDecoderSocketLog": "2bc3eafaf55deb7b064d3a9c8bacd4d763d4a2d30da75b1f9de5f6fb7be5c0d4",
+    "desktopScreenshot": "fa1cd057165fbf6dcae8cf77511fab892d436fe7a9fe1db0d0fd84dc1935bbd9",
+    "mobileScreenshot": "ef10085f439b9a00f00523bf09b917e3f30e1da1099b011c2bcfdfbc4b0d667b",
+    "documentationCheckLog": "537a67d8e8563aea05e511b7eecfbef8d205414c9f4a9be1bf0722e4af9c0bf1"
+  }
+}

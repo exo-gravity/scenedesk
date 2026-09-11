@@ -1,0 +1,12 @@
+{
+  "databaseUrl": "postgresql://scenedesk_media:REPLACE_WITH_MEDIA_SECRET@database.example.invalid/scenedesk?sslmode=verify-full",
+  "schedulerDatabaseUrl": "postgresql://scenedesk_scheduler:REPLACE_WITH_SCHEDULER_SECRET@database.example.invalid/scenedesk?sslmode=verify-full",
+  "exclusiveImportQueue": false,
+  "dedicatedDecoderHost": false,
+  "media": {
+    "region": "YOUR_STORAGE_REGION",
+    "bucket": "your-private-versioned-media-bucket",
+    "accessKeyId": "REPLACE_WITH_WORKER_STORAGE_KEY",
+    "secretAccessKey": "REPLACE_WITH_WORKER_STORAGE_SECRET"
+  }
+}
