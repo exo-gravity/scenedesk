@@ -1,0 +1,117 @@
+TAP version 13
+# Subtest: restricted runtime cannot misrepresent fixed shot snapshots
+    # Subtest: an unchanged fixed snapshot remains legal
+    ok 1 - an unchanged fixed snapshot remains legal
+      ---
+      duration_ms: 235.717667
+      type: 'test'
+      ...
+    # Subtest: rejects an additional unselected shot
+    not ok 2 - rejects an additional unselected shot
+      ---
+      duration_ms: 398.463458
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:1:2638'
+      failureType: 'testCodeFailure'
+      error: 'Missing expected rejection.'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      stack: |-
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:59:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:56:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: rejects another shot identity
+    not ok 3 - rejects another shot identity
+      ---
+      duration_ms: 244.777458
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:1:2638'
+      failureType: 'testCodeFailure'
+      error: 'Missing expected rejection.'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      stack: |-
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:59:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:56:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: rejects another shot revision
+    not ok 4 - rejects another shot revision
+      ---
+      duration_ms: 334.890292
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:1:2638'
+      failureType: 'testCodeFailure'
+      error: 'Missing expected rejection.'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      stack: |-
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:59:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:56:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: rejects invented entry state
+    not ok 5 - rejects invented entry state
+      ---
+      duration_ms: 200.429042
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:1:2638'
+      failureType: 'testCodeFailure'
+      error: 'Missing expected rejection.'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      stack: |-
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:59:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:56:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: rejects invented exit state
+    not ok 6 - rejects invented exit state
+      ---
+      duration_ms: 298.561125
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:1:2638'
+      failureType: 'testCodeFailure'
+      error: 'Missing expected rejection.'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      stack: |-
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:59:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:56:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    1..6
+not ok 1 - restricted runtime cannot misrepresent fixed shot snapshots
+  ---
+  duration_ms: 47200.106542
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/.runtime/agent-worktrees/ai-backend/tests/integration/canvas-fixed-shot-sources.test.ts:1:285'
+  failureType: 'subtestsFailed'
+  error: '5 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 7
+# suites 0
+# pass 1
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48579.569083

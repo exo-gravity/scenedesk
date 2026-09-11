@@ -1,0 +1,83 @@
+TAP version 13
+# Subtest: restricted runtime cannot misrepresent fixed shot snapshots
+    # Subtest: an unchanged fixed snapshot remains legal
+    ok 1 - an unchanged fixed snapshot remains legal
+      ---
+      duration_ms: 388.172333
+      type: 'test'
+      ...
+    # Subtest: rejects an additional unselected shot
+    ok 2 - rejects an additional unselected shot
+      ---
+      duration_ms: 163.128667
+      type: 'test'
+      ...
+    # Subtest: rejects another shot identity
+    ok 3 - rejects another shot identity
+      ---
+      duration_ms: 217.3685
+      type: 'test'
+      ...
+    # Subtest: rejects another shot revision
+    ok 4 - rejects another shot revision
+      ---
+      duration_ms: 236.56025
+      type: 'test'
+      ...
+    # Subtest: rejects invented entry state
+    ok 5 - rejects invented entry state
+      ---
+      duration_ms: 253.398917
+      type: 'test'
+      ...
+    # Subtest: rejects invented exit state
+    ok 6 - rejects invented exit state
+      ---
+      duration_ms: 349.765334
+      type: 'test'
+      ...
+    # Subtest: rejects a missing shot array
+    ok 7 - rejects a missing shot array
+      ---
+      duration_ms: 298.651875
+      type: 'test'
+      ...
+    # Subtest: rejects a null shot array
+    ok 8 - rejects a null shot array
+      ---
+      duration_ms: 92.485
+      type: 'test'
+      ...
+    # Subtest: rejects an omitted selected shot
+    ok 9 - rejects an omitted selected shot
+      ---
+      duration_ms: 64.377375
+      type: 'test'
+      ...
+    # Subtest: rejects a missing continuity state
+    ok 10 - rejects a missing continuity state
+      ---
+      duration_ms: 135.090791
+      type: 'test'
+      ...
+    # Subtest: rejects reordered shot identities with identical specs
+    ok 11 - rejects reordered shot identities with identical specs
+      ---
+      duration_ms: 92.86225
+      type: 'test'
+      ...
+    1..11
+ok 1 - restricted runtime cannot misrepresent fixed shot snapshots
+  ---
+  duration_ms: 72481.242875
+  type: 'test'
+  ...
+1..1
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 74848.465875
