@@ -1,0 +1,168 @@
+{
+  "testPreviewOriginAlias": "4317→4311",
+  "checks": [
+    {
+      "label": "projects-1512",
+      "layout": {
+        "width": 1512,
+        "documentWidth": 1512,
+        "shellWidth": 1512,
+        "shellClient": 1512,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 1512
+          },
+          {
+            "tag": "ASIDE",
+            "left": 36,
+            "right": 256
+          },
+          {
+            "tag": "MAIN",
+            "left": 256,
+            "right": 1476
+          }
+        ]
+      }
+    },
+    {
+      "label": "single-workspace-default-and-search",
+      "passed": true
+    },
+    {
+      "label": "empty-content-390",
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 24,
+            "right": 359
+          }
+        ]
+      }
+    },
+    {
+      "label": "settings-390",
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          }
+        ]
+      }
+    },
+    {
+      "label": "actual-create-default-path-and-pinned-archive-conflict",
+      "passed": true,
+      "projectId": "cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f"
+    },
+    {
+      "label": "deferred-route",
+      "path": "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/members",
+      "passed": true
+    },
+    {
+      "label": "deferred-route",
+      "path": "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/billing",
+      "passed": true
+    },
+    {
+      "label": "deferred-route",
+      "path": "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f/editing",
+      "passed": true
+    },
+    {
+      "label": "deferred-route",
+      "path": "#/app/t/b128e444-cd57-4087-bcfe-c403051bbd8f/p/cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f/delivery",
+      "passed": true
+    },
+    {
+      "label": "release-fallback",
+      "path": "#/journey/?variant=recommendation",
+      "passed": true
+    },
+    {
+      "label": "release-fallback",
+      "path": "#/settings",
+      "passed": true
+    },
+    {
+      "label": "release-fallback",
+      "path": "#/register",
+      "passed": true
+    },
+    {
+      "label": "release-fallback",
+      "path": "#/appish",
+      "passed": true
+    },
+    {
+      "label": "projects-390",
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          }
+        ]
+      }
+    }
+  ],
+  "pageErrors": [],
+  "localFixture": true,
+  "projectId": "cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f",
+  "tenantId": "b128e444-cd57-4087-bcfe-c403051bbd8f",
+  "stage": "Actual workflow before final wording and explicit conflict-recovery button; final-results.json verifies the final UI."
+}
