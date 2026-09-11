@@ -1,0 +1,578 @@
+{
+  "300-baseline": {
+    "entry": {
+      "n": 20,
+      "p50": 1348.7,
+      "p95": 1409.2,
+      "max": 1438.5
+    },
+    "select": {
+      "n": 40,
+      "p50": 28.1,
+      "p95": 39.1,
+      "max": 56.5
+    },
+    "edit": {
+      "n": 40,
+      "p50": 68.4,
+      "p95": 79.1,
+      "max": 93.5
+    },
+    "search": {
+      "n": 20,
+      "p50": 11.8,
+      "p95": 17.1,
+      "max": 22.6
+    },
+    "focus": {
+      "n": 20,
+      "p50": 40.1,
+      "p95": 63,
+      "max": 70.7
+    },
+    "frames": [
+      {
+        "n": 240,
+        "p50": 8.3,
+        "p95": 9.9,
+        "max": 10.4,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 59,
+        "transformChanges": 240,
+        "durationMs": 2006.2
+      },
+      {
+        "n": 245,
+        "p50": 8.3,
+        "p95": 10.1,
+        "max": 10.3,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 59,
+        "transformChanges": 240,
+        "durationMs": 2047.0
+      },
+      {
+        "n": 241,
+        "p50": 8.3,
+        "p95": 9.8,
+        "max": 10.3,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 59,
+        "transformChanges": 240,
+        "durationMs": 2014.5
+      },
+      {
+        "n": 340,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 118.6,
+        "kind": "zoom",
+        "longTasks": 4,
+        "renderedNodes": 2,
+        "renderedEdges": 25,
+        "transformChanges": 50,
+        "durationMs": 3260.2
+      },
+      {
+        "n": 334,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 51.1,
+        "kind": "zoom",
+        "longTasks": 1,
+        "renderedNodes": 2,
+        "renderedEdges": 25,
+        "transformChanges": 54,
+        "durationMs": 3023.2
+      },
+      {
+        "n": 339,
+        "p50": 8.3,
+        "p95": 10.4,
+        "max": 99.5,
+        "kind": "zoom",
+        "longTasks": 3,
+        "renderedNodes": 2,
+        "renderedEdges": 25,
+        "transformChanges": 54,
+        "durationMs": 3185.5
+      }
+    ],
+    "overview": [
+      {
+        "n": 575,
+        "p50": 9.3,
+        "p95": 33.5,
+        "max": 43.5,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 300,
+        "renderedEdges": 500,
+        "transformChanges": 240,
+        "durationMs": 9316.4
+      },
+      {
+        "n": 563,
+        "p50": 9.5,
+        "p95": 33.1,
+        "max": 134.1,
+        "kind": "pan",
+        "longTasks": 1,
+        "renderedNodes": 300,
+        "renderedEdges": 500,
+        "transformChanges": 240,
+        "durationMs": 9192.7
+      },
+      {
+        "n": 566,
+        "p50": 9.3,
+        "p95": 33.7,
+        "max": 42.8,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 300,
+        "renderedEdges": 500,
+        "transformChanges": 240,
+        "durationMs": 9341.7
+      }
+    ]
+  },
+  "300-optimized": {
+    "entry": {
+      "n": 20,
+      "p50": 919.1,
+      "p95": 1421.5,
+      "max": 1436.7
+    },
+    "select": {
+      "n": 40,
+      "p50": 18.8,
+      "p95": 23.6,
+      "max": 35.6
+    },
+    "edit": {
+      "n": 40,
+      "p50": 26.2,
+      "p95": 30.7,
+      "max": 39.2
+    },
+    "search": {
+      "n": 20,
+      "p50": 11.8,
+      "p95": 16.5,
+      "max": 40.1
+    },
+    "focus": {
+      "n": 20,
+      "p50": 39.5,
+      "p95": 58.9,
+      "max": 102.8
+    },
+    "frames": [
+      {
+        "n": 241,
+        "p50": 8.3,
+        "p95": 9.6,
+        "max": 10.2,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 59,
+        "transformChanges": 240,
+        "durationMs": 2016.5
+      },
+      {
+        "n": 241,
+        "p50": 8.3,
+        "p95": 9.9,
+        "max": 10.3,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 59,
+        "transformChanges": 240,
+        "durationMs": 2013.8
+      },
+      {
+        "n": 243,
+        "p50": 8.3,
+        "p95": 10,
+        "max": 10.3,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 59,
+        "transformChanges": 240,
+        "durationMs": 2029.8
+      },
+      {
+        "n": 331,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 74.9,
+        "kind": "zoom",
+        "longTasks": 3,
+        "renderedNodes": 2,
+        "renderedEdges": 25,
+        "transformChanges": 50,
+        "durationMs": 3037.8
+      },
+      {
+        "n": 339,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 49.6,
+        "kind": "zoom",
+        "longTasks": 0,
+        "renderedNodes": 2,
+        "renderedEdges": 25,
+        "transformChanges": 54,
+        "durationMs": 3048.1
+      },
+      {
+        "n": 340,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 48.9,
+        "kind": "zoom",
+        "longTasks": 2,
+        "renderedNodes": 2,
+        "renderedEdges": 25,
+        "transformChanges": 54,
+        "durationMs": 3078.7
+      }
+    ],
+    "overview": [
+      {
+        "n": 547,
+        "p50": 9.6,
+        "p95": 32.5,
+        "max": 41.5,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 300,
+        "renderedEdges": 500,
+        "transformChanges": 240,
+        "durationMs": 8711.6
+      },
+      {
+        "n": 540,
+        "p50": 9.4,
+        "p95": 26.5,
+        "max": 59,
+        "kind": "pan",
+        "longTasks": 1,
+        "renderedNodes": 300,
+        "renderedEdges": 500,
+        "transformChanges": 240,
+        "durationMs": 8611.4
+      },
+      {
+        "n": 546,
+        "p50": 9.4,
+        "p95": 26.9,
+        "max": 42.8,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 300,
+        "renderedEdges": 500,
+        "transformChanges": 240,
+        "durationMs": 8679.6
+      }
+    ]
+  },
+  "2000-baseline": {
+    "entry": {
+      "n": 20,
+      "p50": 2317.4,
+      "p95": 2771,
+      "max": 3317.2
+    },
+    "select": {
+      "n": 40,
+      "p50": 91.9,
+      "p95": 110.4,
+      "max": 126.9
+    },
+    "edit": {
+      "n": 40,
+      "p50": 561.2,
+      "p95": 785.9,
+      "max": 817.8
+    },
+    "search": {
+      "n": 20,
+      "p50": 41.9,
+      "p95": 47,
+      "max": 59.1
+    },
+    "focus": {
+      "n": 20,
+      "p50": 130.4,
+      "p95": 176,
+      "max": 246.8
+    },
+    "frames": [
+      {
+        "n": 248,
+        "p50": 8.3,
+        "p95": 9.9,
+        "max": 10.4,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 94,
+        "transformChanges": 240,
+        "durationMs": 2074.0
+      },
+      {
+        "n": 250,
+        "p50": 8.3,
+        "p95": 10.2,
+        "max": 10.4,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 94,
+        "transformChanges": 240,
+        "durationMs": 2095.9
+      },
+      {
+        "n": 242,
+        "p50": 8.3,
+        "p95": 9.9,
+        "max": 10.3,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 94,
+        "transformChanges": 240,
+        "durationMs": 2022.6
+      },
+      {
+        "n": 332,
+        "p50": 8.3,
+        "p95": 16.8,
+        "max": 142.9,
+        "kind": "zoom",
+        "longTasks": 10,
+        "renderedNodes": 2,
+        "renderedEdges": 41,
+        "transformChanges": 50,
+        "durationMs": 3588.2
+      },
+      {
+        "n": 340,
+        "p50": 8.3,
+        "p95": 10.2,
+        "max": 68.3,
+        "kind": "zoom",
+        "longTasks": 3,
+        "renderedNodes": 2,
+        "renderedEdges": 41,
+        "transformChanges": 54,
+        "durationMs": 3155.3
+      },
+      {
+        "n": 333,
+        "p50": 8.3,
+        "p95": 15.1,
+        "max": 809.7,
+        "kind": "zoom",
+        "longTasks": 4,
+        "renderedNodes": 2,
+        "renderedEdges": 41,
+        "transformChanges": 54,
+        "durationMs": 3930.3
+      }
+    ],
+    "overview": [
+      {
+        "n": 665,
+        "p50": 9.2,
+        "p95": 84.8,
+        "max": 975,
+        "kind": "pan",
+        "longTasks": 245,
+        "renderedNodes": 440,
+        "renderedEdges": 1240,
+        "transformChanges": 240,
+        "durationMs": 23098.5
+      },
+      {
+        "n": 640,
+        "p50": 9.1,
+        "p95": 83.8,
+        "max": 933.2,
+        "kind": "pan",
+        "longTasks": 242,
+        "renderedNodes": 440,
+        "renderedEdges": 1240,
+        "transformChanges": 240,
+        "durationMs": 22922.0
+      },
+      {
+        "n": 587,
+        "p50": 9.3,
+        "p95": 83.3,
+        "max": 833.4,
+        "kind": "pan",
+        "longTasks": 241,
+        "renderedNodes": 440,
+        "renderedEdges": 1240,
+        "transformChanges": 240,
+        "durationMs": 20877.8
+      }
+    ]
+  },
+  "2000-optimized": {
+    "entry": {
+      "n": 20,
+      "p50": 1443.6,
+      "p95": 1514.8,
+      "max": 1592.2
+    },
+    "select": {
+      "n": 40,
+      "p50": 37.7,
+      "p95": 72.7,
+      "max": 79.3
+    },
+    "edit": {
+      "n": 40,
+      "p50": 215.3,
+      "p95": 269.1,
+      "max": 338.9
+    },
+    "search": {
+      "n": 20,
+      "p50": 20.9,
+      "p95": 26.7,
+      "max": 28.8
+    },
+    "focus": {
+      "n": 20,
+      "p50": 73,
+      "p95": 156.7,
+      "max": 163.5
+    },
+    "frames": [
+      {
+        "n": 242,
+        "p50": 8.3,
+        "p95": 10,
+        "max": 10.3,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 94,
+        "transformChanges": 240,
+        "durationMs": 2024.2
+      },
+      {
+        "n": 246,
+        "p50": 8.3,
+        "p95": 9.9,
+        "max": 10.4,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 94,
+        "transformChanges": 240,
+        "durationMs": 2055.5
+      },
+      {
+        "n": 240,
+        "p50": 8.3,
+        "p95": 9.8,
+        "max": 10.4,
+        "kind": "pan",
+        "longTasks": 0,
+        "renderedNodes": 15,
+        "renderedEdges": 94,
+        "transformChanges": 240,
+        "durationMs": 2012.5
+      },
+      {
+        "n": 333,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 100,
+        "kind": "zoom",
+        "longTasks": 4,
+        "renderedNodes": 2,
+        "renderedEdges": 41,
+        "transformChanges": 50,
+        "durationMs": 3163.0
+      },
+      {
+        "n": 346,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 58.5,
+        "kind": "zoom",
+        "longTasks": 3,
+        "renderedNodes": 2,
+        "renderedEdges": 41,
+        "transformChanges": 54,
+        "durationMs": 3151.7
+      },
+      {
+        "n": 345,
+        "p50": 8.3,
+        "p95": 10.3,
+        "max": 225.8,
+        "kind": "zoom",
+        "longTasks": 5,
+        "renderedNodes": 2,
+        "renderedEdges": 41,
+        "transformChanges": 54,
+        "durationMs": 3430.4
+      }
+    ],
+    "overview": [
+      {
+        "n": 584,
+        "p50": 9.3,
+        "p95": 83.6,
+        "max": 359.1,
+        "kind": "pan",
+        "longTasks": 241,
+        "renderedNodes": 440,
+        "renderedEdges": 1240,
+        "transformChanges": 240,
+        "durationMs": 20884.6
+      },
+      {
+        "n": 578,
+        "p50": 9.1,
+        "p95": 81.9,
+        "max": 357.5,
+        "kind": "pan",
+        "longTasks": 241,
+        "renderedNodes": 440,
+        "renderedEdges": 1240,
+        "transformChanges": 240,
+        "durationMs": 19933.1
+      },
+      {
+        "n": 577,
+        "p50": 9.3,
+        "p95": 82.6,
+        "max": 390.4,
+        "kind": "pan",
+        "longTasks": 242,
+        "renderedNodes": 440,
+        "renderedEdges": 1240,
+        "transformChanges": 240,
+        "durationMs": 20182.5
+      }
+    ]
+  }
+}

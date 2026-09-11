@@ -211,7 +211,9 @@ export function CanvasBoard({
   const [hand, setHand] = useState(false),
     [playing, setPlaying] = useState<string | null>(null),
     [error, setError] = useState<Error | null>(null),
-    [query, setQuery] = useState("");
+    [query, setQuery] = useState(""),
+    [listExpanded, setListExpanded] = useState(false),
+    [groupsExpanded, setGroupsExpanded] = useState(false);
   const [localFocus, setLocalFocus] = useState(focusRequest);
   useEffect(() => setLocalFocus(focusRequest), [focusRequest]);
   const finishFocus = useCallback(
@@ -242,6 +244,12 @@ export function CanvasBoard({
   }, [document.nodes, uploads?.rows]);
   const narrow = useMediaQuery("(max-width: 760px)"),
     flow = useRef<ReactFlowInstance<FlowNode> | null>(null);
+  const showNodeList = narrow || listExpanded;
+  const showGroups =
+    groupsExpanded ||
+    Object.keys(controller.getSnapshot().local?.buffers ?? {}).some((key) =>
+      key.startsWith("group:"),
+    );
   const play = useCallback(
     (id: string) => setPlaying((old) => (old === id ? null : id)),
     [],
@@ -737,111 +745,119 @@ export function CanvasBoard({
         </Group>
       </Group>
       <div className={classes.toolbar}>
-        <details open={narrow || undefined}>
+        <details
+          open={showNodeList}
+          onToggle={(event) => setListExpanded(event.currentTarget.open)}
+        >
           <summary>节点列表与键盘定位</summary>
-          <TextInput
-            label="查找节点"
-            value={query}
-            onChange={(e) => setQuery(e.currentTarget.value)}
-          />
-          <Text size="xs" c="dimmed">
-            按住 Shift 点击可多选，再共同作为参考。
-          </Text>
-          <div className={classes.nodeList}>
-            {document.nodes
-              .filter((n) =>
-                `${n.title} ${n.content.type === "text" ? n.content.text : n.content.type === "draft" ? n.content.prompt : ""}`.includes(
-                  query,
-                ),
-              )
-              .map((n) => (
-                <Button
-                  key={n.id}
-                  variant={selectedSet.has(n.id) ? "filled" : "subtle"}
-                  onClick={(event) =>
-                    focus(
-                      event.shiftKey
-                        ? selectedSet.has(n.id)
-                          ? selected.filter((id) => id !== n.id)
-                          : [...selected, n.id]
-                        : [n.id],
-                    )
-                  }
-                >
-                  {n.title}
-                </Button>
-              ))}
-          </div>
+          {showNodeList && (
+            <>
+              <TextInput
+                label="查找节点"
+                value={query}
+                onChange={(e) => setQuery(e.currentTarget.value)}
+              />
+              <Text size="xs" c="dimmed">
+                按住 Shift 点击可多选，再共同作为参考。
+              </Text>
+              <div className={classes.nodeList}>
+                {document.nodes
+                  .filter((n) =>
+                    `${n.title} ${n.content.type === "text" ? n.content.text : n.content.type === "draft" ? n.content.prompt : ""}`.includes(
+                      query,
+                    ),
+                  )
+                  .map((n) => (
+                    <Button
+                      key={n.id}
+                      variant={selectedSet.has(n.id) ? "filled" : "subtle"}
+                      onClick={(event) =>
+                        focus(
+                          event.shiftKey
+                            ? selectedSet.has(n.id)
+                              ? selected.filter((id) => id !== n.id)
+                              : [...selected, n.id]
+                            : [n.id],
+                        )
+                      }
+                    >
+                      {n.title}
+                    </Button>
+                  ))}
+              </div>
+            </>
+          )}
         </details>
       </div>
       {!!document.groups.length && (
         <details
           className={classes.toolbar}
-          open={
-            Object.keys(controller.getSnapshot().local?.buffers ?? {}).some(
-              (k) => k.startsWith("group:"),
-            ) || undefined
-          }
+          open={showGroups}
+          onToggle={(event) => setGroupsExpanded(event.currentTarget.open)}
         >
           <summary>管理分组</summary>
-          <Stack gap="xs">
-            {document.groups.map((group) => (
-              <Group key={group.id} align="end">
-                <TextInput
-                  label="分组名称"
-                  value={
-                    controller.getSnapshot().local?.buffers[
-                      `group:${group.id}:title`
-                    ]?.value ?? group.title
-                  }
-                  error={
-                    controller.getSnapshot().local?.buffers[
-                      `group:${group.id}:title`
-                    ]
-                      ? "请填写分组名称；原输入已保留"
-                      : undefined
-                  }
-                  disabled={readOnly}
-                  maxLength={160}
-                  onChange={(e) => {
-                    const title = e.currentTarget.value,
-                      key = `group:${group.id}:title`;
-                    const buffers = {
-                      ...controller.getSnapshot().local?.buffers,
-                    };
-                    if (!title) buffers[key] = { value: title, valid: false };
-                    else delete buffers[key];
-                    controller.change(
-                      {
+          {showGroups && (
+            <Stack gap="xs">
+              {document.groups.map((group) => (
+                <Group key={group.id} align="end">
+                  <TextInput
+                    label="分组名称"
+                    value={
+                      controller.getSnapshot().local?.buffers[
+                        `group:${group.id}:title`
+                      ]?.value ?? group.title
+                    }
+                    error={
+                      controller.getSnapshot().local?.buffers[
+                        `group:${group.id}:title`
+                      ]
+                        ? "请填写分组名称；原输入已保留"
+                        : undefined
+                    }
+                    disabled={readOnly}
+                    maxLength={160}
+                    onChange={(e) => {
+                      const title = e.currentTarget.value,
+                        key = `group:${group.id}:title`;
+                      const buffers = {
+                        ...controller.getSnapshot().local?.buffers,
+                      };
+                      if (!title) buffers[key] = { value: title, valid: false };
+                      else delete buffers[key];
+                      controller.change(
+                        {
+                          ...document,
+                          groups: document.groups.map((g) =>
+                            g.id === group.id && title ? { ...g, title } : g,
+                          ),
+                        },
+                        `group:${group.id}`,
+                        buffers,
+                      );
+                    }}
+                  />
+                  <Button
+                    disabled={readOnly}
+                    onClick={() =>
+                      change({
                         ...document,
-                        groups: document.groups.map((g) =>
-                          g.id === group.id && title ? { ...g, title } : g,
+                        groups: document.groups.filter(
+                          (g) => g.id !== group.id,
                         ),
-                      },
-                      `group:${group.id}`,
-                      buffers,
-                    );
-                  }}
-                />
-                <Button
-                  disabled={readOnly}
-                  onClick={() =>
-                    change({
-                      ...document,
-                      groups: document.groups.filter((g) => g.id !== group.id),
-                      nodes: document.nodes.map((n) => {
-                        if (n.groupId !== group.id) return n;
-                        const { groupId: _group, ...node } = n;
-                        return node;
-                      }),
-                    })
-                  }
-                >
-                  解散分组
-                </Button>
-              </Group>
-            ))}
-          </Stack>
+                        nodes: document.nodes.map((n) => {
+                          if (n.groupId !== group.id) return n;
+                          const { groupId: _group, ...node } = n;
+                          return node;
+                        }),
+                      })
+                    }
+                  >
+                    解散分组
+                  </Button>
+                </Group>
+              ))}
+            </Stack>
+          )}
         </details>
       )}
       {active && (

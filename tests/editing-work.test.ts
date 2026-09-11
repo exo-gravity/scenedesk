@@ -110,6 +110,47 @@ print(json.dumps([{'hash': hashlib.sha256(c['canonical'].encode('utf-8')).hexdig
   );
 });
 
+test("editing canonical keeps scalar ordering across BMP, astral keys and shared prefixes", () => {
+  // Frozen codepoint order: default UTF-16 sorting would put supplementary
+  // characters before the BMP private-use keys. Prefixes must still sort first.
+  const keys = [
+    "",
+    "a",
+    "aa",
+    "a\ue000",
+    "a𐀀",
+    "a💡",
+    "z",
+    "\ud7ff",
+    "\ue000",
+    "\ufffd",
+    "𐀀",
+    "𐀀a",
+    "😀",
+    "😀a",
+  ];
+  const expected = `{${keys.map((key, index) => `${JSON.stringify(key)}:${index}`).join(",")}}`;
+  for (const order of [
+    keys,
+    [...keys].reverse(),
+    [...keys.slice(7), ...keys.slice(0, 7)],
+  ]) {
+    assert.equal(
+      editingCanonical(
+        Object.fromEntries(order.map((key) => [key, keys.indexOf(key)])),
+      ),
+      expected,
+    );
+  }
+  // A malformed scalar is still rejected even when encountered in key sorting.
+  for (const key of ["\ud800", "\udfff", "a\ud800z", "😀\udfff"]) {
+    assert.throws(
+      () => editingCanonical({ [key]: 1, "\ue000": 2, "😀": 3 }),
+      TypeError,
+    );
+  }
+});
+
 test("unfinished edits save structurally while diagnostics remain live and leave input unchanged", () => {
   const work = document(),
     first = video(0, 250001, 1000001),

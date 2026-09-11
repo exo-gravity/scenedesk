@@ -10,11 +10,19 @@ function scalarString(value: string) {
   return JSON.stringify(value);
 }
 function compareCodePoints(a: string, b: string): number {
-  const left = Array.from(a, (c) => c.codePointAt(0)!),
-    right = Array.from(b, (c) => c.codePointAt(0)!);
-  for (let i = 0; i < Math.min(left.length, right.length); i++)
-    if (left[i] !== right[i]) return left[i]! - right[i]!;
-  return left.length - right.length;
+  // Advance through UTF-16 by scalar width without allocating two arrays for
+  // every sort comparison. codePointAt also preserves Array.from's treatment
+  // of lone surrogates; scalarString rejects those during encoding as before.
+  let left = 0,
+    right = 0;
+  while (left < a.length && right < b.length) {
+    const leftPoint = a.codePointAt(left)!,
+      rightPoint = b.codePointAt(right)!;
+    if (leftPoint !== rightPoint) return leftPoint - rightPoint;
+    left += leftPoint > 0xffff ? 2 : 1;
+    right += rightPoint > 0xffff ? 2 : 1;
+  }
+  return left < a.length ? 1 : right < b.length ? -1 : 0;
 }
 
 /** The result is browser/server portable; SHA-256 is applied to its UTF-8 bytes. */

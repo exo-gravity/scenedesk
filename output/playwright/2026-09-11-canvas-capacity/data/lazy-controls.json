@@ -1,0 +1,27 @@
+{
+  "closed": [
+    {
+      "summary": "节点列表与键盘定位",
+      "open": false,
+      "buttons": 0,
+      "inputs": 0
+    },
+    {
+      "summary": "管理分组",
+      "open": false,
+      "buttons": 0,
+      "inputs": 0
+    }
+  ],
+  "searchUnmounted": true,
+  "queryRestored": "CAP2000",
+  "explicitRecovery": true,
+  "invalidRecovered": true,
+  "narrow": {
+    "width": 390,
+    "docWidth": 390,
+    "flow": 0,
+    "notice": true,
+    "query": "CAP2000"
+  }
+}
