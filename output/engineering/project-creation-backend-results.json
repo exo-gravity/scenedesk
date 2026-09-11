@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-09-11T18:48:30.958498+00:00",
+  "baseCommit": "279d59c49aa70bcb76faf5b570a0aec87ac79ec5",
+  "branch": "feat/project-creation-backend",
+  "scope": "Optional permanent project creation identity, current authorized recovery and legacy HTTP receipt compatibility. No UI, services, provider or other creation routes changed.",
+  "migrations": [
+    {
+      "file": "0087_project_creation_requests.sql",
+      "sha256": "10b212ed988a85ea3f2abc988d0d9976897a2d64f3d131b9d15f751e0c1fee31",
+      "status": "Applied in isolated PostgreSQL fixtures and frozen; integration must apply the migration and regrant runtime access."
+    }
+  ],
+  "checks": [
+    {
+      "name": "initial_public_api_regression",
+      "result": "expected_failure_before_implementation",
+      "logSha256": "e60c4f0e4b6c810b2084e81376803dff2607b5becb2cb5a15ceed3e299f7c1a4",
+      "observed": "The new valid creationRequestId was rejected with 422 INVALID_REQUEST instead of 201."
+    },
+    {
+      "name": "repository_check",
+      "result": "passed",
+      "logSha256": "ab29151e20ed7943f817dbf328828fdb962f63561706b64f8e730d0dfd5fda6d",
+      "tests": 99,
+      "pass": 99,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 1976.4905
+    },
+    {
+      "name": "related_postgresql_regression",
+      "result": "passed",
+      "logSha256": "f4880d34658bf890e5d41c5c7251272e4d5cbdfcfea3ad76df05aac13842ba88",
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 12322.442
+    },
+    {
+      "name": "documentation_validation",
+      "result": "PASS",
+      "operations": 152,
+      "paths": 118,
+      "schemas": 225,
+      "examples": 157,
+      "localLinks": 1353,
+      "logSha256": "26ec17382927cd56fe8c1feb3456e41eaf4b4f83405985d11ad02ea10d6cb117",
+      "manifestSha256": "af122f5ffd95e9d7978c6cfd74c2b21de6c239519340eba756fa5fdb94708841"
+    }
+  ],
+  "observedBehavior": [
+    "Four concurrent distinct HTTP keys with one original actor, tenant, creation UUID and body create one project and one lead, production and content root.",
+    "Original fixed requests recover the same current project and ETag after renaming, archival, HTTP receipt expiry or deletion. No saved project ID is required in the recovery request.",
+    "A valid HTTP key with any different raw body retains 409 IDEMPOTENCY_CONFLICT; a new or expired HTTP key with changed durable body returns 409 PROJECT_CREATION_CONFLICT.",
+    "Same valid HTTP key recovery reads the current representation without rewriting its cache or extending its original deadline. Different HTTP keys accept equivalent UUID casing and JSON property order for durable binding comparison.",
+    "Original lead handover and suspension do not block an existing binding; a fresh request with that inactive lead remains rejected.",
+    "Current owner/admin authorization precedes cache and binding access. Actor and tenant scope are isolated; revoked callers receive no cached project.",
+    "Forced row security, exact INSERT/SELECT grants and the immutable trigger prevent runtime mutation or forged actor binding. Injected binding insertion failure rolls back all business roots and the HTTP receipt.",
+    "Legacy clients without creationRequestId retain their existing finite HTTP cache behavior and receive no retroactive permanent binding."
+  ],
+  "isolation": "Existing businessFixture uses random PostgreSQL schemas and restricted runtime roles with cleanup. Expiry/deletion and injected failure touch only the test fixture. No continuous runtime data or local services were modified.",
+  "limitations": [
+    "Actual browser loss/refresh recovery and final integrated CI are handled by the parent task.",
+    "Legacy clients without creationRequestId still have only the existing 24-hour HTTP cache guarantee."
+  ],
+  "review": "Reviewed actual kernel, action, migration, grants, generated contracts and tests. Independent release_entry review found no remaining blocker. No unresolved test failures."
+}

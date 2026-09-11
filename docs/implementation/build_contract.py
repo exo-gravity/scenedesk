@@ -47,7 +47,7 @@ entity("Invitation", {"email": string(format="email"), "role": enum("admin", "me
 schema("Invite", {"email": string(format="email"), "role": enum("admin", "member")}, ["email", "role"])
 schema("AcceptInvite", {"token": string(minLength=20, maxLength=512)}, ["token"])
 entity("Project", {"tenantId": ID, "name": NAME, "kind": enum("drama"), "leadMembershipId": ID, "status": enum("active", "archived"), "spec": ref("Spec")}, ["tenantId", "name", "kind", "leadMembershipId", "status", "spec"])
-schema("CreateProject", {"name": NAME, "leadMembershipId": ID, "spec": ref("Spec")}, ["name", "leadMembershipId", "spec"])
+schema("CreateProject", {"name": NAME, "leadMembershipId": ID, "spec": ref("Spec"), "creationRequestId": {**ID, "description": "可选的持久创建身份。新客户端发送固定 UUID；同租户及原用户以相同正文恢复时返回同一项目的当前表示，不受通用 HTTP 回执过期影响。"}}, ["name", "leadMembershipId", "spec"])
 schema("ProjectChange", {"name": NAME, "spec": ref("Spec")}, ["name", "spec"])
 schema("LeadChange", {"membershipId": ID}, ["membershipId"])
 schema("ProjectMemberChange", {"membershipId": ID}, ["membershipId"])

@@ -2682,6 +2682,11 @@ export interface components {
             /** Format: uuid */
             leadMembershipId: string;
             spec: components["schemas"]["Spec"];
+            /**
+             * Format: uuid
+             * @description 可选的持久创建身份。新客户端发送固定 UUID；同租户及原用户以相同正文恢复时返回同一项目的当前表示，不受通用 HTTP 回执过期影响。
+             */
+            creationRequestId?: string;
         };
         ProjectChange: {
             name: string;
