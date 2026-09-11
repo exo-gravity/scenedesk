@@ -117,6 +117,18 @@ export async function grantRuntimeAccess(
   );
   await client.query(`GRANT USAGE ON SCHEMA ${scope} TO ${target}`);
   await client.query(
+    `GRANT SELECT ON ${scope}.reviews,${scope}.review_comments,${scope}.review_comment_revisions TO ${target}`,
+  );
+  await client.query(
+    `GRANT INSERT(id,tenant_id,project_id,take_id,number,opened_by) ON ${scope}.reviews TO ${target}`,
+  );
+  await client.query(
+    `GRANT INSERT(id,tenant_id,project_id,review_id,author_id,body,start_us,end_us,parent_comment_id) ON ${scope}.review_comments TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(body,resolved,revision) ON ${scope}.review_comments TO ${target}`,
+  );
+  await client.query(
     `GRANT SELECT ON ${scope}.project_creation_requests TO ${target}`,
   );
   await client.query(
@@ -360,6 +372,12 @@ export async function hardenAuthorizationFunctions(
     `GRANT INSERT ON ${scope}.memberships,${scope}.project_memberships TO ${target}`,
   );
   await client.query(
+    `GRANT INSERT ON ${scope}.review_comment_revisions TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.reviews,${scope}.review_comments,${scope}.review_comment_revisions,${scope}.takes TO ${target}`,
+  );
+  await client.query(
     `GRANT SELECT ON ${["media_processing_state", "upload_intents", "media", "media_derivatives"].map((table) => `${scope}.${table}`).join(",")} TO ${target}`,
   );
   // Row locks in trusted context resolution require UPDATE, without a public mutation function.
@@ -437,6 +455,7 @@ export async function hardenAuthorizationFunctions(
     ...productionFunctions,
     ...presenceFunctions,
     "record_project_invalidation()",
+    "snapshot_review_comment()",
     "guard_canvas_upload_node_identity()",
     "relay_project_events(uuid)",
     "enforce_tenant_owner()",

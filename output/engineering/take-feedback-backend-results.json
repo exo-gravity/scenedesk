@@ -1,0 +1,73 @@
+{
+  "recordedAt": "2026-09-11T19:29:36.508237+00:00",
+  "baseCommit": "9ef870c4270fe2418472c3b010fd164cf80e349a",
+  "branch": "feat/take-feedback-backend",
+  "scope": "Existing Take review and comment APIs, immutable comment history and exact feedback resolver. No Cut decision, approval, closure or generation executor is added in this commit.",
+  "migration": {
+    "file": "0088_take_feedback.sql",
+    "sha256": "76593a639838c04092a6173985c4bdeeff2a1bc7c11ce3d72bd2fa05c0e5f1f2",
+    "status": "Applied in isolated DB fixtures and frozen. Integration must migrate and regrant/harden authorization functions."
+  },
+  "checks": [
+    {
+      "name": "take_feedback_postgresql",
+      "result": "passed",
+      "logSha256": "9a32e931d03d758e2dc36114fb889baec8f0e362d95a37520f3819213292d152",
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 3848.9895
+    },
+    {
+      "name": "contract_tests",
+      "result": "passed",
+      "logSha256": "6ad2bd0763609ca68f5a0d7ab9c4b271281b9a335fa7fe43b4ca7f8298483daa",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 482.586334
+    },
+    {
+      "name": "typecheck",
+      "result": "passed",
+      "logSha256": "6dffc077223dac921ef78ebd7b7d0312d5fdafa681c519112854e7a39a37193b"
+    },
+    {
+      "name": "generated_contract_consistency",
+      "result": "passed",
+      "logSha256": "b04b4c6d92f9736941dc80ea8ebb1e039f31fe3129fa3dfdaebaefabe4cc5f54"
+    }
+  ],
+  "documentation": {
+    "result": "PASS",
+    "operations": 152,
+    "paths": 118,
+    "schemas": 225,
+    "examples": 163,
+    "localLinks": 1364,
+    "versions": {
+      "openapi-spec-validator": "0.9.0",
+      "jsonschema": "4.26.0"
+    }
+  },
+  "observedBehavior": [
+    "Fixed Take review identity, one open round under the immutable subject lock, same-key recovery and rejection of duplicate open rounds after cache expiry.",
+    "Only Take feedback is implemented; Cut, formal decisions and nonempty rework closure inputs are rejected.",
+    "Comments accept optional Take-local points/ranges, constrain parent comments to the same review and retain exact author and target.",
+    "Concurrent CAS edits produce one succeeding revision and one 412 conflict. Authors edit text; currently authorized project members resolve or reopen, each change appending immutable history.",
+    "Fixed feedback reads the requested original comment revision without silently using its current text; current head and resolved state are returned separately for generation freshness checks.",
+    "Runtime grants, forced RLS, guarded root mutation and a hardened NOLOGIN history trigger prevent direct SQL identity/author/time/history forgery.",
+    "Revoked members cannot replay cached comments, read history sources or mutate text; archived project feedback remains readable but cannot be edited. Standard API audit remains attributable."
+  ],
+  "limitations": [
+    "CreateReview and createComment use the existing finite 24-hour HTTP receipt; comments have no permanent creation identity. Unknown clients must stop POST replay at expiry and preserve the original text for manual verification. Identical text does not prove creation success.",
+    "Exact history is exposed internally through resolveTakeFeedback; there is no new public comment history API.",
+    "Generation plan freshness, prepare_rework fixture execution and artifact handling are delivered by the parallel generation slice. Its existing prompt integration negative case must be updated for the required commentRevision.",
+    "No full-suite, browser, media decoding or real provider acceptance is claimed; parent performs integrated checks and actual browser verification."
+  ],
+  "isolation": "Relational video rows exist only in isolated test schemas; existing media decoding acceptance is separate. No continuous runtime data or local services were changed."
+}
