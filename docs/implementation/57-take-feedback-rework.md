@@ -30,3 +30,9 @@
 评论创建没有永久恢复身份，24小时外的未知结果仍需只读人工核对；公开API尚不单独列出评论历史，固定历史用于计划与产物追溯。首期页面输入为正文，没有新增时间标注或回复树；服务端继续约束可选局部时间与父评论。本片没有恢复Cut审阅、正式批准或后期闭环。新视频计划的实际生成／解码沿已交付媒体链路，本轮不重复计算其验收。
 
 真实服务、凭据、花费授权和模型效果仍按 [38](38-first-release-scope-review.md) 及 [20](20-external-validation-and-launch-plan.md) 单列。受控fixture及本机部署不能代表外部上线或真实用户试点。
+
+## 首轮远端验证与镜像源恢复
+
+PR #28 首个候选 `975c1ec` 的 push／PR 标准检查均通过121项单元、232项数据库测试，随后在媒体准备阶段被Docker Hub拒绝拉取固定MinIO镜像；两组部署检查的7项配置、12项数据库与HTTPS检查及三个镜像构建通过，但基础设施启动失败，未进入应用smoke。首次失败不是完整通过记录。
+
+采用MinIO上游发布的Quay源恢复测试镜像获取，仅修改两个运行常量及两个smoke镜像地址的registry前缀。固定server/client版本及完整SHA256不变；匿名manifest读取确认两个摘要相同并包含linux/amd64与linux/arm64。官方出处为[server容器文档](https://github.com/minio/minio/blob/master/docs/docker/README.md)与[client发布脚本](https://github.com/minio/mc/blob/master/docker-buildx.sh)。未更换存储实现或增加重试；最终远端结果以PR记录为准。
