@@ -30,6 +30,8 @@
   grid-template-columns: 220px minmax(0, 1fr);
 }
 .sidebar {
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: var(--mantine-spacing-xl) var(--mantine-spacing-lg);
   border-right: 1px solid var(--ws-border);
   display: flex;
@@ -78,6 +80,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--mantine-spacing-xl);
+  overflow-wrap: anywhere;
 }
 .error {
   background: var(--ws-panel);

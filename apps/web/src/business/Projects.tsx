@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Badge,
   Button,
@@ -9,18 +9,16 @@ import {
   Stack,
   Text,
   TextInput,
-  Textarea,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { Plus, ArrowLeft, FilmSlate } from "@phosphor-icons/react";
-import { useCommand, useList, useResource, type Schema } from "./api";
+import { ApiError, useCommand, useList, useResource, type Schema } from "./api";
 import {
   Empty,
   ErrorNotice,
   SectionHeading,
   projectPath,
   tenantPath,
-  roleName,
 } from "./common";
 import classes from "./workbench.module.css";
 import { ContentWorkspace } from "./ContentWorkspace";
@@ -55,6 +53,9 @@ export function Projects({
   const [creating, setCreating] = useState(false),
     [search, setSearch] = useState("");
   const projects = useList<Project>(`${tenantPath(tenantId)}/projects`);
+  useEffect(() => {
+    if (!projectId) document.title = "项目 · 幕序 SceneDesk";
+  }, [projectId]);
   if (projectId && contentView)
     return (
       <ContentWorkspace
@@ -72,13 +73,16 @@ export function Projects({
         tenantId={tenantId}
         projectId={projectId}
         own={own}
-        members={members}
       />
     );
+  const visibleProjects =
+    projects.data?.filter((p) =>
+      p.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
+    ) ?? [];
   return (
     <>
       <SectionHeading
-        title="工作室项目"
+        title="项目"
         description="从一个项目开始组织创作。"
         action={
           manager && (
@@ -107,42 +111,54 @@ export function Projects({
         <Loader aria-label="正在读取项目" />
       ) : (
         <div className={classes.rows}>
-          {projects.data
-            ?.filter((p) => p.name.includes(search))
-            .map((p) => (
-              <article key={p.id} className={classes.row}>
-                <Group>
-                  <FilmSlate size={28} />
-                  <div>
-                    <Text fw={600} size="lg">
-                      {p.name}
-                    </Text>
-                    <Text c="dimmed" mt="xs">
-                      写实短剧 · {p.spec.width} × {p.spec.height} ·{" "}
-                      {p.spec.fpsNum}/{p.spec.fpsDen} fps
-                    </Text>
-                  </div>
-                </Group>
-                <Group>
-                  <Badge>{p.status === "active" ? "进行中" : "已归档"}</Badge>
-                  <Button component="a" href={`#/app/t/${tenantId}/p/${p.id}`}>
-                    进入项目
-                  </Button>
-                </Group>
-              </article>
-            ))}
+          {visibleProjects.map((p) => (
+            <article key={p.id} className={classes.row}>
+              <Group>
+                <FilmSlate size={28} />
+                <div>
+                  <Text fw={600} size="lg">
+                    {p.name}
+                  </Text>
+                  <Text c="dimmed" mt="xs">
+                    写实短剧 · {p.spec.width} × {p.spec.height} ·{" "}
+                    {p.spec.fpsNum}/{p.spec.fpsDen} fps
+                  </Text>
+                </div>
+              </Group>
+              <Group>
+                <Badge>{p.status === "active" ? "进行中" : "已归档"}</Badge>
+                <Button
+                  component="a"
+                  href={`#/app/t/${tenantId}/p/${p.id}/content`}
+                >
+                  进入项目
+                </Button>
+              </Group>
+            </article>
+          ))}
         </div>
       )}
-      {!projects.isPending && !projects.data?.length && (
+      {!projects.isPending && !projects.isError && !projects.data?.length && (
         <Empty>
           <Text>还没有项目。</Text>
           <Text mt="sm">
             {manager
-              ? "创建项目并指定一位负责人。"
+              ? "创建项目，然后添加剧本、场次与参考素材。"
               : "负责人将你加入项目后，项目会显示在这里。"}
           </Text>
         </Empty>
       )}
+      {!projects.isPending &&
+        !projects.isError &&
+        !!projects.data?.length &&
+        !visibleProjects.length && (
+          <Empty>
+            <Text>没有找到符合“{search}”的项目。</Text>
+            <Button mt="md" onClick={() => setSearch("")}>
+              清空搜索
+            </Button>
+          </Empty>
+        )}
       <Modal
         opened={creating}
         onClose={() => setCreating(false)}
@@ -152,10 +168,9 @@ export function Projects({
         <CreateProject
           tenantId={tenantId}
           own={own}
-          members={members}
           onCreated={(id) => {
             setCreating(false);
-            location.hash = `/app/t/${tenantId}/p/${id}`;
+            location.hash = `/app/t/${tenantId}/p/${id}/content`;
           }}
         />
       </Modal>
@@ -165,12 +180,10 @@ export function Projects({
 function CreateProject({
   tenantId,
   own,
-  members,
   onCreated,
 }: {
   tenantId: string;
   own: Member;
-  members: Member[];
   onCreated: (id: string) => void;
 }) {
   const command = useCommand<Project>();
@@ -212,13 +225,6 @@ function CreateProject({
       })}
     >
       <TextInput required label="项目名称" {...form.getInputProps("name")} />
-      <Select
-        label="项目负责人"
-        data={members
-          .filter((m) => m.status === "active")
-          .map((m) => ({ value: m.id, label: m.email ?? m.userId }))}
-        {...form.getInputProps("leadMembershipId")}
-      />
       <div className={classes.grid}>
         <Select
           label="画幅"
@@ -242,12 +248,10 @@ function ProjectDetails({
   tenantId,
   projectId,
   own,
-  members,
 }: {
   tenantId: string;
   projectId: string;
   own: Member;
-  members: Member[];
 }) {
   const path = projectPath(tenantId, projectId),
     project = useResource<Project>(path),
@@ -257,12 +261,14 @@ function ProjectDetails({
   const lead = participants.data?.some(
     (m) => m.membershipId === own.id && m.role === "lead",
   );
-  const [action, setAction] = useState<"archive" | "restore" | "lead" | null>(
-      null,
-    ),
-    [nextMember, setNextMember] = useState<string | null>(null);
-  const command = useCommand<Project>(),
-    memberCommand = useCommand<Schema<"ProjectMember">>();
+  const [action, setAction] = useState<{
+    kind: "archive" | "restore";
+    project: Project;
+  } | null>(null);
+  const command = useCommand<Project>();
+  useEffect(() => {
+    if (project.data) document.title = `${project.data.name} · 项目设定 · 幕序`;
+  }, [project.data?.name]);
   if (project.isError)
     return (
       <ErrorNotice error={project.error} retry={() => void project.refetch()} />
@@ -283,39 +289,38 @@ function ProjectDetails({
       </Button>
       <SectionHeading
         title={p.name}
-        description={active ? "项目设定与参与成员" : "项目已归档，内容只读。"}
+        description={active ? "项目与剧目设定" : "项目已归档，内容只读。"}
         action={
           (manager || lead) && (
-            <Button onClick={() => setAction(active ? "archive" : "restore")}>
+            <Button
+              onClick={() =>
+                setAction({ kind: active ? "archive" : "restore", project: p })
+              }
+            >
               {active ? "归档项目" : "恢复项目"}
             </Button>
           )
         }
       />
-      <Button
-        component="a"
-        href={`#/app/t/${tenantId}/p/${projectId}/content`}
-        leftSection={<FilmSlate size={18} />}
-        variant="filled"
-        mb="xl"
-      >
-        进入剧本与集场镜
-      </Button>
-      <Button
-        component="a"
-        href={`#/app/t/${tenantId}/p/${projectId}/media`}
-        mb="xl"
-        ml="md"
-      >
-        项目素材
-      </Button>
-      <Button
-        component="a"
-        href={`#/app/t/${tenantId}/p/${projectId}/assets`}
-        mb="lg"
-      >
-        项目资产
-      </Button>
+      <Group mb="xl">
+        <Button
+          component="a"
+          href={`#/app/t/${tenantId}/p/${projectId}/content`}
+          leftSection={<FilmSlate size={18} />}
+          variant="filled"
+        >
+          进入剧本与集场镜
+        </Button>
+        <Button component="a" href={`#/app/t/${tenantId}/p/${projectId}/media`}>
+          项目素材
+        </Button>
+        <Button
+          component="a"
+          href={`#/app/t/${tenantId}/p/${projectId}/assets`}
+        >
+          项目资产
+        </Button>
+      </Group>
       {manager || lead ? (
         <ProjectSettings key={p.id} project={p} path={path} active={active} />
       ) : (
@@ -343,82 +348,6 @@ function ProjectDetails({
           active={active}
         />
       )}
-      <hr className={classes.divider} />
-      <SectionHeading
-        title="项目成员"
-        level={2}
-        description="工作室所有者与管理员可以管理全部项目。"
-        action={
-          manager &&
-          active && (
-            <Button
-              onClick={() => {
-                setNextMember(p.leadMembershipId);
-                setAction("lead");
-              }}
-            >
-              交接负责人
-            </Button>
-          )
-        }
-      />
-      <ErrorNotice error={participants.error} />
-      <ErrorNotice error={memberCommand.error} />
-      <div className={classes.rows}>
-        {participants.data?.map((member) => (
-          <div key={member.id} className={classes.row}>
-            <div>
-              <Text fw={500}>
-                {members.find((m) => m.id === member.membershipId)?.email ??
-                  member.membershipId}
-              </Text>
-              <Text c="dimmed">{roleName[member.role]}</Text>
-            </div>
-            {(manager || lead) && active && member.role === "collaborator" && (
-              <Button
-                onClick={() =>
-                  memberCommand.mutate({
-                    path: `${path}/members/${member.membershipId}`,
-                    method: "DELETE",
-                    version: member.revision,
-                  })
-                }
-              >
-                移出项目
-              </Button>
-            )}
-          </div>
-        ))}
-      </div>
-      {(manager || lead) && active && (
-        <Group mt="xl" align="flex-end">
-          <Select
-            label="添加协作者"
-            placeholder="选择工作室成员"
-            value={nextMember}
-            onChange={setNextMember}
-            data={members
-              .filter(
-                (m) =>
-                  m.status === "active" &&
-                  !participants.data?.some((p) => p.membershipId === m.id),
-              )
-              .map((m) => ({ value: m.id, label: m.email ?? m.userId }))}
-          />
-          <Button
-            disabled={!nextMember}
-            loading={memberCommand.isPending}
-            onClick={() =>
-              memberCommand.mutate(
-                { path: `${path}/members`, body: { membershipId: nextMember } },
-                { onSuccess: () => setNextMember(null) },
-              )
-            }
-          >
-            添加到项目
-          </Button>
-        </Group>
-      )}
       <Modal
         opened={action !== null}
         onClose={() => {
@@ -427,56 +356,47 @@ function ProjectDetails({
             command.reset();
           }
         }}
-        title={
-          action === "lead"
-            ? "交接项目负责人"
-            : action === "archive"
-              ? "归档项目"
-              : "恢复项目"
-        }
+        title={action?.kind === "archive" ? "归档项目" : "恢复项目"}
       >
         <Stack>
           <Text>
-            {action === "lead"
-              ? "原负责人保留协作者身份。新负责人可组织项目与成员。"
-              : action === "archive"
-                ? "归档后项目内容只读，可以随时恢复。"
-                : "恢复后可继续编辑项目。"}
+            {action?.kind === "archive"
+              ? `归档“${action.project.name}”后项目内容只读，可以随时恢复。`
+              : `恢复“${action?.project.name ?? ""}”后可继续编辑项目。`}
           </Text>
-          {action === "lead" && (
-            <Select
-              label="新负责人"
-              value={nextMember}
-              onChange={setNextMember}
-              data={members
-                .filter((m) => m.status === "active")
-                .map((m) => ({ value: m.id, label: m.email ?? m.userId }))}
-            />
-          )}
           <ErrorNotice error={command.error} />
+          {command.error instanceof ApiError &&
+            command.error.status === 412 && (
+              <>
+                <Text size="sm">
+                  本次确认仍对应打开时的项目版本。请关闭后核对最新项目，再重新发起。
+                </Text>
+                <Button
+                  onClick={() => {
+                    setAction(null);
+                    command.reset();
+                    void project.refetch();
+                  }}
+                >
+                  关闭并核对最新项目
+                </Button>
+              </>
+            )}
           <Button
             variant="filled"
             loading={command.isPending}
-            disabled={action === "lead" && !nextMember}
-            onClick={() =>
+            onClick={() => {
+              if (!action) return;
               command.mutate(
                 {
-                  path: `${path}/${action}`,
-                  version: p.revision,
-                  ...(action === "lead"
-                    ? { body: { membershipId: nextMember } }
-                    : {}),
+                  path: `${path}/${action.kind}`,
+                  version: action.project.revision,
                 },
                 { onSuccess: () => setAction(null) },
-              )
-            }
+              );
+            }}
           >
-            确认
-            {action === "lead"
-              ? "交接"
-              : action === "archive"
-                ? "归档"
-                : "恢复"}
+            {action?.kind === "archive" ? "确认归档" : "确认恢复"}
           </Button>
         </Stack>
       </Modal>

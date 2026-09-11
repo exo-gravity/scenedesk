@@ -1,7 +1,12 @@
 import { lazy, Suspense, useSyncExternalStore } from "react";
 import { MantineProvider } from "@mantine/core";
 import { theme, cssVariablesResolver } from "./theme/theme";
-import App from "./App";
+// Design studies stay available for an explicit review build. Normal builds
+// never route visitors into in-memory prototype production facts.
+const DesignApp =
+  import.meta.env.VITE_ENABLE_DESIGN_PREVIEWS === "true"
+    ? lazy(() => import("./App"))
+    : null;
 
 const BusinessApp = lazy(() => import("./business/BusinessApp"));
 const subscribe = (changed: () => void) => {
@@ -10,8 +15,10 @@ const subscribe = (changed: () => void) => {
 };
 export default function Root() {
   const hash = useSyncExternalStore(subscribe, () => location.hash);
-  const business =
-    !hash || hash.startsWith("#/app") || hash.startsWith("#/invitation");
+  const businessRoute =
+    /^#\/app(?:[/?]|$)/.test(hash) || /^#\/invitation(?:[?]|$)/.test(hash);
+  const business = !DesignApp || !hash || businessRoute;
+  const businessHash = businessRoute ? hash : "#/app";
   return (
     <MantineProvider
       theme={theme}
@@ -19,11 +26,13 @@ export default function Root() {
       forceColorScheme={business ? "light" : "dark"}
     >
       {business ? (
-        <Suspense fallback={<p>正在打开工作室…</p>}>
-          <BusinessApp hash={hash} />
+        <Suspense fallback={<p>正在打开创作工作台…</p>}>
+          <BusinessApp hash={businessHash} />
         </Suspense>
       ) : (
-        <App />
+        <Suspense fallback={<p>正在打开设计评审…</p>}>
+          {DesignApp && <DesignApp />}
+        </Suspense>
       )}
     </MantineProvider>
   );

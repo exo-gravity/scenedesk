@@ -1,0 +1,241 @@
+{
+  "checks": [
+    {
+      "label": "archive-conflict-1366",
+      "measured": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "shellWidth": 1359,
+        "shellClient": 1359,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 1359
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 220
+          },
+          {
+            "tag": "MAIN",
+            "left": 220,
+            "right": 1359
+          },
+          {
+            "tag": "SECTION",
+            "left": 463,
+            "right": 903
+          },
+          {
+            "tag": "HEADER",
+            "left": 464,
+            "right": 902
+          }
+        ]
+      }
+    },
+    {
+      "label": "real-conflict-explicit-recovery-and-reopen",
+      "passed": true,
+      "projectId": "cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f"
+    },
+    {
+      "label": "settings-390",
+      "measured": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          }
+        ]
+      }
+    },
+    {
+      "label": "empty-content-390",
+      "measured": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 24,
+            "right": 359
+          }
+        ]
+      }
+    },
+    {
+      "label": "projects-390",
+      "measured": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          }
+        ]
+      }
+    },
+    {
+      "label": "projects-1512",
+      "measured": {
+        "width": 1512,
+        "documentWidth": 1512,
+        "shellWidth": 1512,
+        "shellClient": 1512,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 1512
+          },
+          {
+            "tag": "ASIDE",
+            "left": 36,
+            "right": 256
+          },
+          {
+            "tag": "MAIN",
+            "left": 256,
+            "right": 1476
+          }
+        ]
+      }
+    },
+    {
+      "label": "deferred-entry-390",
+      "measured": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          }
+        ]
+      }
+    },
+    {
+      "label": "no-workspace-fixture-390",
+      "measured": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 383,
+        "shellClient": 383,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "ASIDE",
+            "left": 0,
+            "right": 383
+          },
+          {
+            "tag": "MAIN",
+            "left": 0,
+            "right": 383
+          }
+        ]
+      }
+    },
+    {
+      "label": "signed-out-fixture-390",
+      "measured": {
+        "width": 390,
+        "documentWidth": 390,
+        "shellWidth": 390,
+        "shellClient": 390,
+        "rects": [
+          {
+            "tag": "HEADER",
+            "left": 0,
+            "right": 390
+          }
+        ]
+      }
+    },
+    {
+      "label": "presentation-fixtures",
+      "noWorkspaceReads": 2,
+      "signedOutFixture": true,
+      "actualSessionRestored": true
+    }
+  ],
+  "pageErrors": [],
+  "writes": [
+    {
+      "method": "PATCH",
+      "path": "/v1/tenants/b128e444-cd57-4087-bcfe-c403051bbd8f/projects/cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/tenants/b128e444-cd57-4087-bcfe-c403051bbd8f/projects/cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f/archive"
+    }
+  ],
+  "testPreviewOriginAlias": "4317→4311 via actual forwarded response",
+  "fixtureProject": "cc5f1072-ffbc-46a5-bbe0-61d8a83b5f4f"
+}

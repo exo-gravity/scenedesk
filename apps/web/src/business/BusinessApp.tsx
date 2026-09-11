@@ -15,9 +15,7 @@ import {
   Select,
   Stack,
   Text,
-  TextInput,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
 import {
   QueryClient,
   QueryClientProvider,
@@ -25,11 +23,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  Plus,
   SignOut,
   Buildings,
   FolderSimple,
-  Users,
   Images,
   Archive,
 } from "@phosphor-icons/react";
@@ -45,7 +41,6 @@ import {
 } from "./api";
 import { ErrorNotice, SectionHeading, Empty, tenantPath } from "./common";
 import { Projects } from "./Projects";
-import { Members } from "./Members";
 import {
   clearUserEditing,
   suspendEditingAccess,
@@ -57,7 +52,6 @@ const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
 const SceneProductionWorkspace = lazy(
   () => import("./SceneProductionWorkspace"),
 );
-const CutWorkspace = lazy(() => import("./CutWorkspace"));
 const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
 import { ProjectUpdates } from "./ProjectUpdates";
@@ -188,7 +182,9 @@ function AuthenticatedApp({ hash }: { hash: string }) {
   const health = useQuery({
     queryKey: ["health"],
     queryFn: () =>
-      api<{ phase: string; identityMode?: string }>("/health/live"),
+      api<{ phase: string; identityMode?: string; providerMode?: string }>(
+        "/health/live",
+      ),
   });
   useEffect(() => {
     const prior = previousSession.current;
@@ -228,7 +224,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
     }
   }, [session.data, session.error, session.isError, cache, runEditingCleanup]);
   useEffect(() => {
-    document.title = "工作室 · 幕序 SceneDesk";
+    document.title = "创作工作台 · 幕序 SceneDesk";
   }, []);
   return (
     <div className={classes.shell} ref={shell}>
@@ -252,7 +248,8 @@ function AuthenticatedApp({ hash }: { hash: string }) {
           </Text>
         </Anchor>
         <Group gap="sm">
-          <Badge>导入素材模式</Badge>
+          <Badge>导入素材可用</Badge>
+          {health.data?.providerMode === "mock" && <Badge>未连接真实模型</Badge>}
           {health.data?.identityMode === "local_test" && (
             <Badge>本地测试身份</Badge>
           )}
@@ -266,8 +263,8 @@ function AuthenticatedApp({ hash }: { hash: string }) {
         <div className={classes.welcome}>
           <Stack gap="xl">
             <SectionHeading
-              title="进入你的工作室"
-              description="从项目与团队开始，把每一场戏落到实处。"
+              title="进入创作工作台"
+              description="整理剧本与参考，在分镜和画布中完成每一场创作。"
             />
             {session.error instanceof ApiError &&
             session.error.status === 401 ? (
@@ -290,9 +287,9 @@ function AuthenticatedApp({ hash }: { hash: string }) {
                 本地业务服务尚未启动。请运行项目的业务启动命令后重试。
               </Text>
             )}
-            <Anchor href="#/journey/?variant=recommendation&screen=production&mode=storyboard&tone=light&assistant=off">
-              查看已确认的场次设计
-            </Anchor>
+            <Text size="sm" c="dimmed">
+              当前为私有工作台，仅对已开通访问的账号开放。
+            </Text>
           </Stack>
         </div>
       ) : (
@@ -310,7 +307,16 @@ function Workspace({ hash }: { hash: string }) {
   const tenants = useList<Schema<"Tenant">>("/v1/tenants");
   const segments = hash.split("?")[0]!.split("/");
   const tenantId = segments[2] === "t" ? segments[3] : undefined;
-  const [createStudio, setCreateStudio] = useState(false);
+  useEffect(() => {
+    if (
+      !tenantId &&
+      !tenants.isError &&
+      tenants.data?.length === 1 &&
+      !hash.startsWith("#/invitation")
+    ) {
+      location.replace(`#/app/t/${tenants.data[0]!.id}`);
+    }
+  }, [tenantId, tenants.data, tenants.isError, hash]);
   const [logoutCommitted, setLogoutCommitted] = useState(false),
     [cleanupError, setCleanupError] = useState<Error | null>(null);
   const finishLogout = async () => {
@@ -349,9 +355,7 @@ function Workspace({ hash }: { hash: string }) {
     <>
       <div
         className={classes.layout}
-        data-production={
-          ["production", "editing"].includes(segments[6] ?? "") || undefined
-        }
+        data-production={segments[6] === "production" || undefined}
       >
         <aside className={classes.sidebar} aria-label="工作室导航">
           <Select
@@ -394,23 +398,6 @@ function Workspace({ hash }: { hash: string }) {
               共享资产
             </Button>
           )}
-          {tenantId && (
-            <Button
-              leftSection={<Users size={18} />}
-              variant="subtle"
-              component="a"
-              href={`#/app/t/${tenantId}/members`}
-            >
-              成员与设置
-            </Button>
-          )}
-          <Button
-            leftSection={<Plus size={18} />}
-            variant="subtle"
-            onClick={() => setCreateStudio(true)}
-          >
-            新建工作室
-          </Button>
           <Text size="xs" c="dimmed" mt="xl">
             {session.email}
           </Text>
@@ -438,39 +425,36 @@ function Workspace({ hash }: { hash: string }) {
           />
           {tenants.isPending ? (
             <Loader aria-label="正在读取工作室" />
-          ) : createStudio || !tenantId ? (
+          ) : tenants.isError ? null : !tenantId ? (
             <>
               <SectionHeading
-                title="你的工作室"
-                description="项目、制作成员和素材各自归属于一个工作室。"
+                title="选择创作空间"
+                description="进入已为你开通的工作室，继续项目创作。"
               />
-              {!createStudio && !!tenants.data?.length && (
+              {tenants.data?.length ? (
                 <div className={classes.rows}>
                   {tenants.data.map((t) => (
-                    <div key={t.id} className={classes.row}>
+                    <article key={t.id} className={classes.row}>
                       <Group>
                         <Buildings size={24} />
                         <Text fw={600}>{t.name}</Text>
                       </Group>
                       <Button component="a" href={`#/app/t/${t.id}`}>
-                        进入工作室
+                        查看项目
                       </Button>
-                    </div>
+                    </article>
                   ))}
                 </div>
-              )}
-              {(createStudio || !tenants.data?.length) && (
-                <CreateTenant
-                  onCreated={(id) => {
-                    setCreateStudio(false);
-                    location.hash = `/app/t/${id}`;
-                  }}
-                  onCancel={
-                    tenants.data?.length
-                      ? () => setCreateStudio(false)
-                      : undefined
-                  }
-                />
+              ) : (
+                <Empty>
+                  <Text>你的账号尚未开通创作空间。</Text>
+                  <Text mt="sm">
+                    请联系工作台负责人配置访问；开通后刷新即可进入项目。
+                  </Text>
+                  <Button mt="lg" onClick={() => void tenants.refetch()}>
+                    刷新访问
+                  </Button>
+                </Empty>
               )}
             </>
           ) : (
@@ -487,7 +471,7 @@ function Workspace({ hash }: { hash: string }) {
                 mediaView={segments[6] === "media"}
                 assetView={segments[6] === "assets"}
                 productionView={segments[6] === "production"}
-                editingView={segments[6] === "editing"}
+                projectSection={segments[6]}
               />
             </ProjectUpdates>
           )}
@@ -504,7 +488,7 @@ function TenantArea({
   mediaView,
   assetView,
   productionView,
-  editingView,
+  projectSection,
 }: {
   tenantId: string;
   section?: string | undefined;
@@ -513,7 +497,7 @@ function TenantArea({
   mediaView?: boolean | undefined;
   assetView?: boolean | undefined;
   productionView?: boolean | undefined;
-  editingView?: boolean | undefined;
+  projectSection?: string | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -533,11 +517,29 @@ function TenantArea({
         <SceneProductionWorkspace tenantId={tenantId} projectId={projectId} />
       </Suspense>
     );
-  if (projectId && editingView)
+  if (
+    (projectId &&
+      projectSection &&
+      !["content", "media", "assets", "production"].includes(projectSection)) ||
+    (!projectId && section && !["media", "assets"].includes(section))
+  )
     return (
-      <Suspense fallback={<Loader aria-label="正在加载剪辑" />}>
-        <CutWorkspace tenantId={tenantId} projectId={projectId} />
-      </Suspense>
+      <Stack gap="lg">
+        <SectionHeading
+          title="此入口暂未开放"
+          description="当前版本提供剧本、分镜、自由画布与素材创作。"
+        />
+        <Button
+          component="a"
+          href={
+            projectId
+              ? `#/app/t/${tenantId}/p/${projectId}/content`
+              : `#/app/t/${tenantId}`
+          }
+        >
+          {projectId ? "返回剧本与集场镜" : "返回项目"}
+        </Button>
+      </Stack>
     );
   if (section === "media" || (projectId && mediaView))
     return (
@@ -551,9 +553,7 @@ function TenantArea({
         <AssetWorkspace tenantId={tenantId} own={own} projectId={projectId} />
       </Suspense>
     );
-  return section === "members" ? (
-    <Members tenantId={tenantId} own={own} members={members.data} />
-  ) : (
+  return (
     <Projects
       tenantId={tenantId}
       own={own}
@@ -561,58 +561,6 @@ function TenantArea({
       projectId={projectId}
       contentView={contentView}
     />
-  );
-}
-function CreateTenant({
-  onCreated,
-  onCancel,
-}: {
-  onCreated: (id: string) => void;
-  onCancel?: (() => void) | undefined;
-}) {
-  const create = useCommand<Schema<"Tenant">>();
-  const form = useForm({
-    initialValues: { name: "", currency: "CNY" },
-    validate: {
-      name: (v) =>
-        v.trim().length > 0 && v.length <= 160
-          ? null
-          : "请输入 1–160 字的工作室名称。",
-    },
-  });
-  return (
-    <form
-      className={classes.form}
-      onSubmit={form.onSubmit((values) =>
-        create.mutate(
-          {
-            path: "/v1/tenants",
-            body: { ...values, name: values.name.trim() },
-          },
-          { onSuccess: (result) => onCreated(result.id) },
-        ),
-      )}
-    >
-      <TextInput required label="工作室名称" {...form.getInputProps("name")} />
-      <Select
-        label="记账币种"
-        data={[
-          { value: "CNY", label: "人民币 CNY" },
-          { value: "USD", label: "美元 USD" },
-        ]}
-        {...form.getInputProps("currency")}
-      />
-      <Text c="dimmed">
-        创建后你将成为工作室所有者，可以邀请成员、分配项目负责人。
-      </Text>
-      <ErrorNotice error={create.error} />
-      <Group>
-        <Button type="submit" variant="filled" loading={create.isPending}>
-          创建工作室
-        </Button>
-        {onCancel && <Button onClick={onCancel}>返回</Button>}
-      </Group>
-    </form>
   );
 }
 function Invitation({ hash }: { hash: string }) {
