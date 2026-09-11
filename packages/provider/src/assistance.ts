@@ -11,15 +11,51 @@ export type AssistanceSubmission = {
   resolvedInput: Schema<"ResolvedInput">;
   executionMode: "test_fixture" | "verified_provider";
 };
-export type AssistanceReceipt =
+export type AssistanceSubmissionReceipt =
   | {
       kind: "completed";
       output: unknown;
       correlation: string;
+      providerJobId?: string;
       usage?: Record<string, number>;
     }
   | { kind: "rejected"; correlation: string; code: string }
-  | { kind: "unknown"; correlation: string };
+  | { kind: "unknown"; correlation: string }
+  | { kind: "accepted"; correlation: string; providerJobId: string };
+
+/** A known provider task belongs to the original attempt and connection forever. */
+export type AssistanceProviderTask = AssistanceSubmission & {
+  providerJobId: string;
+};
+export type AssistanceQueryReceipt =
+  | {
+      kind: "pending" | "running" | "cancelled";
+      correlation: string;
+      providerJobId: string;
+    }
+  | {
+      kind: "completed";
+      correlation: string;
+      providerJobId: string;
+      output: unknown;
+      usage?: Record<string, number>;
+    }
+  | {
+      kind: "failed" | "unavailable";
+      correlation: string;
+      providerJobId: string;
+      code: string;
+    };
+export type AssistanceCancelReceipt = {
+  kind:
+    "cancel_requested" | "cancel_unsupported" | "cancel_unknown" | "cancelled";
+  correlation: string;
+  providerJobId: string;
+};
+export type AssistanceReceipt =
+  | AssistanceSubmissionReceipt
+  | AssistanceQueryReceipt
+  | AssistanceCancelReceipt;
 
 /** Fixed-plan transport boundary; synchronous responses have no fabricated providerJobId.
  * Submission is never retried here. Text prepares durable proposals or assistance artifacts;
@@ -32,11 +68,21 @@ export interface AssistanceAdapter {
   submitOnce(
     submission: AssistanceSubmission,
     signal: AbortSignal,
-  ): Promise<AssistanceReceipt>;
+  ): Promise<AssistanceSubmissionReceipt>;
   recoverSubmission(
     submission: AssistanceSubmission,
     signal: AbortSignal,
-  ): Promise<AssistanceReceipt | null>;
+  ): Promise<AssistanceSubmissionReceipt | null>;
+  /** Read the saved provider ID. A failed query never permits another submit. */
+  query?(
+    task: AssistanceProviderTask,
+    signal: AbortSignal,
+  ): Promise<AssistanceQueryReceipt>;
+  /** The worker durably claims this action before calling it, including unknown replies. */
+  requestCancel?(
+    task: AssistanceProviderTask,
+    signal: AbortSignal,
+  ): Promise<AssistanceCancelReceipt>;
 }
 
 /** Explicit dependency injection for integration tests; never registered by application startup. */
@@ -45,14 +91,16 @@ export function createAssistanceFixture(
   execute: (
     submission: AssistanceSubmission,
     signal: AbortSignal,
-  ) => Promise<AssistanceReceipt>,
+  ) => Promise<AssistanceSubmissionReceipt>,
   recover: AssistanceAdapter["recoverSubmission"] = async () => null,
+  lifecycle: Pick<AssistanceAdapter, "query" | "requestCancel"> = {},
 ): AssistanceAdapter {
   return {
     executionMode: "test_fixture",
     connectionVersionId,
     submitOnce: execute,
     recoverSubmission: recover,
+    ...lifecycle,
   };
 }
 

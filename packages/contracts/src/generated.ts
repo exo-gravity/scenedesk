@@ -3314,6 +3314,10 @@ export interface components {
             assistanceArtifactId?: string;
             /** @enum {string} */
             executionMode?: "test_fixture" | "verified_provider";
+            /** @enum {string} */
+            cancelStatus?: "not_requested" | "requested" | "unsupported" | "unknown" | "confirmed";
+            /** Format: date-time */
+            cancelRequestedAt?: string;
         } & (unknown & unknown & unknown);
         Take: {
             /** Format: uuid */

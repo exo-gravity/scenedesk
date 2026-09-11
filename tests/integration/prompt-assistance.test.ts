@@ -394,11 +394,11 @@ test("fixed prompt assistance preserves shot sources and immutable human-editabl
       await worker.reconcile(j.id);
       assert.equal(calls, before + 1);
       assert.equal(recoverCalls, 1);
-      assert.equal(
-        (await request("POST", `${base}/generation-jobs/${j.id}/cancel`))
-          .statusCode,
-        409,
-      );
+      const cancellation = await request("POST", `${base}/generation-jobs/${j.id}/cancel`);
+      assert.equal(cancellation.statusCode, 202, cancellation.body);
+      assert.equal(cancellation.json().status, "submission_unknown");
+      assert.equal(cancellation.json().cancelStatus, "requested");
+      assert.equal(cancellation.json().reservationStatus, "held");
       behavior = "success";
       await worker.reconcile(j.id);
       const done = await result(j.id);

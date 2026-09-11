@@ -1,0 +1,100 @@
+{
+  "mode": "production build with controlled HTTP transport; no real provider",
+  "passed": true,
+  "jobs": [
+    {
+      "id": "00004400-aabb-4ccd-8eef-112233445566",
+      "revision": 2,
+      "scope": "project",
+      "projectId": "00004091-aabb-4ccd-8eef-112233445566",
+      "planId": "00004300-aabb-4ccd-8eef-112233445566",
+      "status": "succeeded",
+      "providerJobId": "controlled-remote",
+      "mediaIds": [],
+      "inputOutdated": false,
+      "executionMode": "test_fixture",
+      "cancelStatus": "unsupported",
+      "cancelRequestedAt": "2026-09-11T20:39:51.188Z",
+      "assistanceArtifactId": "00004450-aabb-4ccd-8eef-112233445566"
+    },
+    {
+      "id": "00004401-aabb-4ccd-8eef-112233445566",
+      "revision": 2,
+      "scope": "project",
+      "projectId": "00004091-aabb-4ccd-8eef-112233445566",
+      "planId": "00004301-aabb-4ccd-8eef-112233445566",
+      "status": "cancelled",
+      "mediaIds": [],
+      "inputOutdated": false,
+      "executionMode": "test_fixture",
+      "cancelStatus": "confirmed",
+      "cancelRequestedAt": "2026-09-11T20:39:54.519Z"
+    },
+    {
+      "id": "00004402-aabb-4ccd-8eef-112233445566",
+      "revision": 2,
+      "scope": "project",
+      "projectId": "00004091-aabb-4ccd-8eef-112233445566",
+      "planId": "00004302-aabb-4ccd-8eef-112233445566",
+      "status": "cancel_requested",
+      "providerJobId": "controlled-remote",
+      "mediaIds": [],
+      "inputOutdated": false,
+      "executionMode": "test_fixture",
+      "cancelStatus": "requested",
+      "cancelRequestedAt": "2026-09-11T20:39:55.272Z"
+    },
+    {
+      "id": "00004403-aabb-4ccd-8eef-112233445566",
+      "revision": 2,
+      "scope": "project",
+      "projectId": "00004091-aabb-4ccd-8eef-112233445566",
+      "planId": "00004303-aabb-4ccd-8eef-112233445566",
+      "status": "submission_unknown",
+      "mediaIds": [],
+      "inputOutdated": false,
+      "executionMode": "test_fixture",
+      "cancelStatus": "requested",
+      "cancelRequestedAt": "2026-09-11T20:39:56.753Z"
+    }
+  ],
+  "cancelWrites": [
+    {
+      "path": "/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004400-aabb-4ccd-8eef-112233445566/cancel",
+      "method": "POST",
+      "key": "044eed14-8f3a-4e0f-ba1d-c2c7e3becb53",
+      "body": null
+    },
+    {
+      "path": "/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004401-aabb-4ccd-8eef-112233445566/cancel",
+      "method": "POST",
+      "key": "9135dad9-f04c-43c5-88dd-616b93a34bdf",
+      "body": null
+    },
+    {
+      "path": "/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004401-aabb-4ccd-8eef-112233445566/cancel",
+      "method": "POST",
+      "key": "9135dad9-f04c-43c5-88dd-616b93a34bdf",
+      "body": null
+    },
+    {
+      "path": "/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004402-aabb-4ccd-8eef-112233445566/cancel",
+      "method": "POST",
+      "key": "84c34b62-d805-4bcd-ba46-c20034337b34",
+      "body": null
+    },
+    {
+      "path": "/v1/tenants/00004090-aabb-4ccd-8eef-112233445566/generation-jobs/00004403-aabb-4ccd-8eef-112233445566/cancel",
+      "method": "POST",
+      "key": "1324a2fb-7cf1-418e-92a4-177103470341",
+      "body": null
+    }
+  ],
+  "executions": 4,
+  "scriptSubmissionUnknownRetained": true,
+  "lateReplyScopeIsolation": true,
+  "queuedCancelThenNewPlan": true,
+  "planCount": 4,
+  "readCount": 177,
+  "pageErrors": []
+}

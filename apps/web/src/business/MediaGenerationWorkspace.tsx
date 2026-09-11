@@ -1,3 +1,4 @@
+import { GenerationJobControls } from "./GenerationJobControls";
 import { reworkScope } from "./prompt-draft";
 import { useEffect, useState } from "react";
 import {
@@ -646,6 +647,18 @@ function GenerationWorkspace({
               {`核对${label}任务`}
             </Button>
           </Group>
+          {job && (
+            <GenerationJobControls
+              job={job}
+              cancellation={record.cancellation}
+              active={active && state.access === "ready"}
+              busy={state.busy}
+              label={`本次${label}任务`}
+              requestCancellation={(target) =>
+                controller.requestCancellation(target)
+              }
+            />
+          )}
           {(!job ||
             ["submission_unknown", "reconciliation_required"].includes(
               job.status,

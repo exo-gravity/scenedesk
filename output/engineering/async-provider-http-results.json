@@ -1,0 +1,45 @@
+{
+  "scope": "SceneDesk-controlled loopback HTTP protocol and test_fixture adapter; not a real provider API",
+  "base": "932103ff082968eac3a0b52f6632592189592e42",
+  "dependencies": [
+    "f4e5f6a3b902d49564f7dd37fb38863e48aeed08",
+    "1aa151b19312b44a0591f352b5d3b31dddfdefd5",
+    "48097d1"
+  ],
+  "environment": {
+    "node": "v22.22.2",
+    "platform": "darwin arm64",
+    "database": "Fresh private PostgreSQL 16.15-alpine container, dedicated drama_async_http database, randomized schemas and restricted worker logins",
+    "http": "127.0.0.1 random port; no vendor service, credentials or paid call",
+    "cleanup": "All fixture HTTP servers and child processes closed; no scenedesk-async-http containers remained"
+  },
+  "checks": {
+    "typescript": "npx tsc -p tsconfig.json --noEmit: PASS",
+    "integration": "node --import tsx --test --test-concurrency=1 tests/integration/async-provider-http.test.ts: 6/6 PASS",
+    "integrationDurationMs": 17569.305708,
+    "diffCheck": "PASS"
+  },
+  "verified": [
+    "One HTTP create POST accepts the fixed input; pending and running queries lead to a persisted, publicly readable analysis proposal without adopting shots.",
+    "The service accepts before dropping the creation socket. A fresh Node worker reads the original attempt and recovers the same providerJobId; no second create POST.",
+    "Cancellation intent causes one HTTP cancel POST despite two workers and a lost reply. A fresh Node process queries and preserves the completed result; cancelStatus remains unknown rather than falsely confirmed.",
+    "HTTP 503, a completed reply with the wrong correlation, and a completed reply with another providerJobId all preserve the pending original job. Concurrent workers query once; a new worker respects the persisted backoff.",
+    "Two distinct Node worker processes concurrently consume the same job and cause one HTTP create. After both exit, two further fresh processes query the original ID through running and completed states.",
+    "A fresh process can recover an already-completed lost submission through only the original-attempt lookup: HTTP operations are exactly submit then recover."
+  ],
+  "method": {
+    "providerDeduplication": "None: every received create POST deliberately creates another provider job, so fixture deduplication cannot hide retries. Each of the six cases asserts one create POST and one remote job.",
+    "persistence": "Real public API plans/jobs/results and the original restricted database worker functions; no mock database or replacement worker.",
+    "timeControl": "Fixture administrator advances only the current test job's next_observation_at; leases, business status, attempts and receipts remain untouched. Backoff is separately checked without advancing the timer.",
+    "faultInjection": "Actual HTTP sockets are destroyed after acceptance/cancel receipt; HTTP 503 and mismatched result identities travel through the real client transport."
+  },
+  "retainedFailure": {
+    "firstCancellationCase": "Test incorrectly expected HTTP 200 from the existing 202 cancel contract. Corrected only the assertion; the rerun passed. No production defect or code change was inferred."
+  },
+  "limits": [
+    "No specific vendor API, real account, production deployment, model quality or paid execution was accepted by this test.",
+    "The asynchronous output here is a real persisted text proposal. Image/video/audio decoding and archive regression remain separate checks.",
+    "Root integration owns the combined npm check, broader database regression and remote CI. This evidence does not claim they were run by this slice.",
+    "No production code, SQL migration, production queue, user business database or existing fixture was modified."
+  ]
+}

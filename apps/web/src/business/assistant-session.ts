@@ -1,4 +1,11 @@
 import type { components } from "@drama/contracts";
+import {
+  assertCancellationJob,
+  canRequestCancellation,
+  type CancellationRequest,
+  type CancellationTarget,
+  type AsyncGenerationJob,
+} from "./generation-lifecycle.js";
 type Schema<T extends keyof components["schemas"]> = components["schemas"][T];
 
 export type AssistantDraft = {
@@ -24,6 +31,7 @@ export type AssistantRecord<
   planRequest?: { key: string; input: Request };
   planId?: string;
   execution?: { key: string; planId: string; jobId?: string };
+  cancellation?: CancellationRequest;
   previous: { planId: string; jobId?: string }[];
 };
 export type AssistantState<
@@ -43,6 +51,7 @@ export type AssistantTransport<Request = Schema<"PlanInput">> = {
   createPlan(input: Request, key: string): Promise<Schema<"GenerationPlan">>;
   getPlan(id: string): Promise<Schema<"GenerationPlan">>;
   execute(planId: string, key: string): Promise<Schema<"GenerationJob">>;
+  cancelJob(jobId: string, key: string): Promise<AsyncGenerationJob>;
   getJob(id: string): Promise<Schema<"GenerationJob">>;
   findJob(planId: string): Promise<Schema<"GenerationJob"> | undefined>;
 };
@@ -65,7 +74,7 @@ export const jobStatusLabel: Record<Schema<"GenerationJob">["status"], string> =
     archive_failed: "结果保存需恢复",
     succeeded: "分镜提案可用",
     failed: "生成失败",
-    cancel_requested: "正在请求取消",
+    cancel_requested: "原任务结果待核对",
     cancelled: "已取消",
     reconciliation_required: "需要核对结果",
   };
@@ -506,6 +515,49 @@ export class AssistantSession<
         { ...record, execution: { ...record.execution, jobId: job.id } },
         epoch,
       );
+    });
+  }
+  requestCancellation(target: CancellationTarget) {
+    return this.action(async (epoch) => {
+      await this.queue;
+      this.assertCurrent(epoch);
+      const record = this.state.record;
+      if (
+        !record?.execution ||
+        record.execution.jobId !== target.jobId ||
+        record.execution.planId !== target.planId
+      )
+        throw new Error("当前任务已改变，原取消确认不能用于其他任务。");
+      await this.transport.checkAccess();
+      this.assertCurrent(epoch);
+      const current = await this.transport.getJob(target.jobId);
+      this.assertCurrent(epoch);
+      assertCancellationJob(current, target);
+      this.publish({ job: current });
+      if (!canRequestCancellation(current)) return;
+      const cancellation = record.cancellation ?? {
+        ...target,
+        key: crypto.randomUUID(),
+      };
+      if (
+        cancellation.jobId !== target.jobId ||
+        cancellation.planId !== target.planId
+      )
+        throw new Error("已保存的取消请求属于其他任务，请保留原记录并核对。");
+      await this.persist({ ...record, cancellation }, epoch);
+      this.assertCurrent(epoch);
+      const result = await this.transport.cancelJob(
+        cancellation.jobId,
+        cancellation.key,
+      );
+      this.assertCurrent(epoch);
+      assertCancellationJob(result, target);
+      if (
+        (!result.cancelStatus || result.cancelStatus === "not_requested") &&
+        !jobFinished(result)
+      )
+        throw new Error("取消回执尚未确认，请读取原任务核对。");
+      this.publish({ job: result });
     });
   }
   private async recoverExecution(epoch: number) {

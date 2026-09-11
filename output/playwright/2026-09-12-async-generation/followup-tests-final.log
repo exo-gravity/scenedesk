@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: accepted and running jobs advance by GET; success after cancellation still preserves results and manual input
+ok 1 - accepted and running jobs advance by GET; success after cancellation still preserves results and manual input
+  ---
+  duration_ms: 2.235584
+  type: 'test'
+  ...
+# Subtest: lost cancellation receipt survives reload and known cancellation facts never repeat POST
+ok 2 - lost cancellation receipt survives reload and known cancellation facts never repeat POST
+  ---
+  duration_ms: 0.811625
+  type: 'test'
+  ...
+# Subtest: not-delivered cancellation waits for explicit recovery of the same job and key after reload
+ok 3 - not-delivered cancellation waits for explicit recovery of the same job and key after reload
+  ---
+  duration_ms: 1.591709
+  type: 'test'
+  ...
+# Subtest: cancel storage failure prevents POST and preserves the original input
+ok 4 - cancel storage failure prevents POST and preserves the original input
+  ---
+  duration_ms: 0.2405
+  type: 'test'
+  ...
+# Subtest: opened cancellation cannot retarget another job and a completed job is only read
+ok 5 - opened cancellation cannot retarget another job and a completed job is only read
+  ---
+  duration_ms: 0.259125
+  type: 'test'
+  ...
+# Subtest: malformed or wrong-target cancellation replies retain an unresolved fixed intent
+ok 6 - malformed or wrong-target cancellation replies retain an unresolved fixed intent
+  ---
+  duration_ms: 0.717708
+  type: 'test'
+  ...
+# Subtest: permission recheck precedes cancellation; confirmed revocation hides and clears local recovery
+ok 7 - permission recheck precedes cancellation; confirmed revocation hides and clears local recovery
+  ---
+  duration_ms: 0.225584
+  type: 'test'
+  ...
+# Subtest: late cancellation reply cannot revive a retired session or its durable intent
+ok 8 - late cancellation reply cannot revive a retired session or its durable intent
+  ---
+  duration_ms: 0.180208
+  type: 'test'
+  ...
+# Subtest: SQL cancel_requested with unsupported or unknown continues reads; terminal results supersede processing text
+ok 9 - SQL cancel_requested with unsupported or unknown continues reads; terminal results supersede processing text
+  ---
+  duration_ms: 1.414
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 411.605209

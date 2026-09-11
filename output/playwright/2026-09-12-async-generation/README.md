@@ -1,0 +1,32 @@
+# 异步生成进度与取消恢复 · 前端证据
+
+日期：2026-09-12。基线 `932103f`，产品提交 `6532d20`。本记录使用生产构建、独立 4316 浏览器及受控 HTTP transport；IndexedDB 与页面交互真实运行。它不是实际供应商、数据库或 worker 验收，不作真实模型质量或取消成功率承诺。后端及真实 API 的整合由主任务独立验证。
+
+三处既有助手／生成工作区复用同一个取消控件与 AssistantSession。分镜助手、普通／意见修改提示助手、镜头／画布媒体生成沿原作用域，不新增并行任务。原 4 秒 GET 轮询展示真实阶段，无虚构进度百分比。取消确认固定 jobId 与 planId；发送前严格持久保存原 job、HTTP key，使用原无正文 POST（CSRF、Idempotency-Key，无 Content-Type 或 If-Match）。每次显式恢复先查当前访问与原任务，再决定是否重放原请求。
+
+取消事实独立于生成阶段。`requested`、`unsupported`、`unknown` 不等于已取消；分派／提交未知不会因此伪装为已知供应商任务。收到终态先完成的结果仍按既有入口取回。刷新、模式或对象切换不自动提交取消或执行；GET 仍为 not_requested 时，用户可以明确恢复同 key 的原取消请求。服务端已有取消事实时只读核对，不再发客户端取消 POST。
+
+## 验证
+
+- `check.log`：合同、UI、类型、生产构建及全部单元 129/129 通过。新增 `tests/generation-cancellation.test.ts` 的 8 项公开行为覆盖阶段推进／成功竞态、丢 202 刷新、原 key 显式恢复、存储失败零发送、固定确认目标、异常回包、当前权限核对及旧会话迟到回包清理。原助手、提示与图片相关回归共 40/40，包含这些新例。首轮类型检查发现 Node ESM 导入需要 `.js` 后已修正，完整 check 为修正后结果。
+- `verify-async.js`、`browser-complete-final.log`、`result.json`：最终生产浏览器完整通过，4 个受控计划、4 次执行、5 次取消 HTTP 请求（其中一组未送达后显式恢复使用完全相同的 key）。没有隐式新生成。
+- 提示助手：pending → 原 4 秒 GET 自动展示 running；取消已被服务接受但丢 202 → 刷新仅 GET 恢复 requested；随后 unsupported 保持原任务运行；成功后仍有建议入口，手工原文不变。
+- 视频工作区：submission_unknown 时取消未送达；刷新零取消 POST；原任务成为 queued 后，用户明确以原 key 恢复，确认 cancelled；之后可明确另开计划。新任务取消已持久但 202 仍在途时切到 S02 并输入独立文字，释放晚回包后新镜头没有旧取消任务或输入污染；回 S01 只读恢复原取消事实与原文字。
+- 分镜助手：真实页面选择固定剧本、准备并执行受控计划；提交未知时请求取消，页面同时保留“提交待核对”和“取消请求已记录”，不将原主阶段覆盖为取消完成。
+- 1512 与 390 像素无横向溢出，`pageErrors=[]`。已人工目视确认对话框、取消未支持／已确认、S02 独立输入、分镜提交未知截图。取消失败、未创建画布 404、未播放的受控视频地址不构成媒体或后端验收；控制台的预期网络错误不描述为零网络错误。
+
+## 过程记录与范围
+
+`browser-first.log` 是 CLI 函数字符串末尾分号解析问题；`browser-second.log` 是该 CLI 沙箱没有 URL 构造器；修正纯测试脚本。`browser-third.log` 记录既有下拉浮层滚动时隐藏导致点击超时；测试改走同一公开控件的键盘选择并核对后续固定计划，未强制点击隐藏元素或改产品。`browser-fourth.log` 为核心取消流程通过，`browser-final.log` 追加 queued 下一次和晚回包跨镜头通过。`browser-complete.log` 是分镜测试能力的按钮实际文案为“确认执行测试计划”，修正语义定位后最终完整通过；未放宽任何业务断言。
+
+本片没有改画布 Board/controller、采用、Take、媒体归档或供应商实现。通用取消控件及 transport 已接入三类工作区；本轮浏览器实际覆盖分镜、普通提示与视频镜头入口，图片／音频／画布／意见修改复用相同通用代码和原作用域，未另重跑已经验收的媒体／结果放置套件。服务端新增可选取消字段由后端生成器独占；本分支以等价交叉类型兼容旧 DTO，主任务整合新合同后可收敛为其直接别名。
+
+## 新 SQL 状态组合复审
+
+整合后只读核对 0092/0093 与 observation worker，发现取消 unsupported/unknown 后 SQL 的主状态仍为 `cancel_requested`（不恢复成 provider_running），此前受控浏览器的 unsupported 设置没有覆盖此组合。最小修正把该主状态改述为“原任务结果待核对”；取消说明在 succeeded/failed/archiving/archive_failed 下展示已经发生的结果事实，不再说任务继续处理。没有改变 API、轮询、可取消判定或原输入。
+
+新增公开行为验证真实 SQL 组合：requested/unsupported/unknown 均继续 GET 且不允许再次取消，随后成功仍取回原结果、失败没有结果暗示、归档说明准确、原输入不变。`followup-check-first.log` 的类型和 UI 检查通过，新组合通过；旧成功竞态用例仍匹配旧文案“待核对”，更新为明确历史回执“仍未确定”后，`followup-tests-final.log` 取消行为 9/9 通过。未重跑完整套件或媒体。`verify-async.js` 同步使用实际 SQL 组合供根任务实际浏览器验证；本目录原截图与 `browser-complete-final.log` 保留前次生产验证事实，没有替换成未运行的新截图。
+
+## 窄屏助手吸顶标题
+
+主任务实际 `completed-390.png` 显示模式标签覆盖“AI 创作助手／收起”。根因是 SegmentedControl 标签的相对定位 z-index:2 与 dockHeading 的 sticky z-index:2 处于同一外部层叠环境，后绘制的内容可覆盖标题。只为 `.panel` 增加 `isolation:isolate`，把助手内部控件层级限制在内容内；标题仍沿原定位、背景和 z-index，不改变滚动几何或主要布局。`dock-stacking-check.log` 记录 UI、类型及生产构建通过，主任务在原真实会话补拍修正后画面。本变更不声称解决另行定位中的实际 modal 截图问题，也未改 Modal。
