@@ -48,6 +48,7 @@ import {
   retireEditingSession,
 } from "./use-cut-work";
 import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
+import "./assistant-lifecycle";
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
 const SceneProductionWorkspace = lazy(
   () => import("./SceneProductionWorkspace"),

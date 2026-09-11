@@ -48,6 +48,14 @@ const productionFunctions = [
   "yield_media_production(uuid,uuid,text)",
   "recover_media_production(uuid,uuid,text)",
 ] as const;
+const generationFunctions = [
+  "generation_worker_login()",
+  "scan_generation_work(integer)",
+  "claim_generation_job(uuid,uuid)",
+  "record_generation_evidence(uuid,uuid,jsonb)",
+  "read_generation_evidence(uuid)",
+  "finish_generation_job(uuid,uuid,jsonb,text)",
+] as const;
 const productionTables = [
   "media_production_copies",
   "media_production_sources",
@@ -72,6 +80,22 @@ export async function grantRuntimeAccess(
 ) {
   const scope = sqlIdentifier(schema),
     target = sqlIdentifier(role);
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.generation_worker_login(),${scope}.generation_submission_allowed(uuid),${scope}.request_generation_reconciliation(uuid) TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.generation_capabilities TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_plans,${scope}.generation_jobs TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(status,revision,updated_at) ON ${scope}.generation_plans TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(status,error_code,revision,updated_at,recovery_epoch) ON ${scope}.generation_jobs TO ${target}`,
+  );
+  await client.query(`GRANT INSERT ON ${scope}.generation_work TO ${target}`);
   await client.query(`GRANT USAGE ON SCHEMA ${scope} TO ${target}`);
   await client.query(
     `GRANT SELECT, INSERT ON ${["tenants", "memberships", "invitations", "projects", "project_memberships", "productions", "project_content_versions", "idempotency_records", "script_revisions", "episodes", "scenes", "shots", "shot_revisions", "shot_source_shots", "shot_source_scripts", "dialogue_lines", "analysis_proposals", "analysis_proposal_revisions", "proposal_applications", "creative_subjects", "creative_basis_revisions", "creative_confirmations", "creative_current_confirmations", "production_tasks", "production_task_revisions"].map((t) => `${scope}.${t}`).join(", ")} TO ${target}`,
@@ -336,8 +360,29 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT SELECT,INSERT,UPDATE,DELETE ON ${scope}.project_event_outbox,${scope}.project_event_heads,${scope}.project_events TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT ON ${["generation_capabilities", "generation_plans", "generation_jobs"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(enabled) ON ${scope}.generation_capabilities TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(status,proposal_id,error_code,revision,updated_at) ON ${scope}.generation_jobs TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT,DELETE ON ${scope}.generation_work TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${["generation_attempts", "generation_submission_evidence", "analysis_proposals", "analysis_proposal_revisions"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.generation_runtime_identity TO ${target}`,
+  );
   for (const signature of [
     ...authorizationFunctions,
+    ...generationFunctions,
+    "generation_submission_allowed(uuid)",
+    "request_generation_reconciliation(uuid)",
     ...mediaAuthorizationFunctions,
     ...productionFunctions,
     ...presenceFunctions,
@@ -430,4 +475,42 @@ export async function grantMediaWorkerAccess(
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.scan_media_production(integer) TO ${scheduler}`,
   );
+}
+
+/** Isolated text worker receives function access only, never API/session or arbitrary project reads. */
+export async function grantGenerationWorkerAccess(
+  client: PoolClient,
+  schema: string,
+  role: string,
+) {
+  const scope = sqlIdentifier(schema),
+    target = sqlIdentifier(role);
+  const found = await client.query(
+    "SELECT rolcanlogin,rolsuper,rolbypassrls,rolcreaterole,rolcreatedb FROM pg_roles WHERE rolname=$1",
+    [role],
+  );
+  if (
+    !found.rows[0]?.rolcanlogin ||
+    found.rows[0].rolsuper ||
+    found.rows[0].rolbypassrls ||
+    found.rows[0].rolcreaterole ||
+    found.rows[0].rolcreatedb
+  )
+    throw new Error("Generation worker requires a restricted login");
+  await client.query(`GRANT USAGE ON SCHEMA ${scope} TO ${target}`);
+  await client.query(
+    `INSERT INTO ${scope}.generation_runtime_identity(singleton,worker_role) VALUES(true,$1) ON CONFLICT(singleton) DO NOTHING`,
+    [role],
+  );
+  const identity = await client.query(
+    `SELECT worker_role FROM ${scope}.generation_runtime_identity WHERE singleton`,
+  );
+  if (identity.rows[0]?.worker_role !== role)
+    throw new Error(
+      "An existing generation worker identity cannot be replaced without explicit recovery",
+    );
+  for (const signature of generationFunctions)
+    await client.query(
+      `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,
+    );
 }

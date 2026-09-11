@@ -3202,6 +3202,8 @@ export interface components {
             cancelSupported?: boolean;
             recoverySupported?: boolean;
             notes?: string;
+            /** @enum {string} */
+            executionMode?: "test_fixture" | "verified_provider";
         };
         OutputOptions: {
             aspectRatio?: string;
@@ -3262,6 +3264,8 @@ export interface components {
             costEstimate?: components["schemas"]["CostEstimate"];
             /** Format: uuid */
             connectionVersionId: string;
+            /** @enum {string} */
+            executionMode?: "test_fixture" | "verified_provider";
         } & unknown;
         ExecutePlan: {
             /** Format: uuid */
@@ -3303,6 +3307,8 @@ export interface components {
             recoveryEpoch: number;
             /** Format: uuid */
             assistanceArtifactId?: string;
+            /** @enum {string} */
+            executionMode?: "test_fixture" | "verified_provider";
         } & (unknown & unknown & unknown);
         Take: {
             /** Format: uuid */
@@ -7568,6 +7574,7 @@ export interface operations {
                 projectId?: string;
                 scope?: "project" | "shared";
                 status?: "queued" | "dispatching" | "submission_unknown" | "provider_pending" | "provider_running" | "archiving" | "archive_failed" | "succeeded" | "failed" | "cancel_requested" | "cancelled" | "reconciliation_required";
+                planId?: string;
             };
             header?: never;
             path: {

@@ -1,0 +1,20 @@
+{
+  "verification": "Controlled AI transport with actual read-only project/script/canvas context; no provider or database proposal write",
+  "draftAcrossModes": true,
+  "fixedExplicitContext": true,
+  "lostExecutionReceipt": true,
+  "reloadAndModeNeverResubmit": true,
+  "proposalEditedAndExplicitlyAdopted": true,
+  "noModelDisabled": true,
+  "assistantWithoutCanvas": true,
+  "viewports": [
+    1512,
+    1366,
+    390
+  ],
+  "planPosts": 1,
+  "executePosts": 1,
+  "editPosts": 1,
+  "applyPosts": 1,
+  "pageErrors": 0
+}

@@ -1,0 +1,23 @@
+.panel {
+  min-width: 0;
+}
+.panel[hidden] {
+  display: none;
+}
+.result {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  padding-block: var(--mantine-spacing-sm);
+  border-block: 1px solid var(--ws-border);
+}
+.selection {
+  padding: var(--mantine-spacing-sm);
+  background: var(--ws-canvas);
+  border-radius: var(--ws-card-radius);
+  max-height: 180px;
+  overflow: auto;
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

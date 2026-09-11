@@ -24,7 +24,7 @@ import { csvProposal } from "./csv.js";
 
 type Proposal = Schema<"Proposal">;
 type Operation = Schema<"ProposalOperation">;
-const select = `SELECT p.id,p.project_id,r.number AS revision,p.source_kind,p.source_hash,p.status,p.created_at,p.updated_at,r.base_content_revision,r.target,r.operations FROM analysis_proposals p JOIN analysis_proposal_revisions r ON r.proposal_id=p.id`;
+const select = `SELECT p.id,p.project_id,r.number AS revision,p.source_kind,p.source_hash,p.source_script_revision_id,p.script_range,p.status,p.created_at,p.updated_at,r.base_content_revision,r.target,r.operations FROM analysis_proposals p JOIN analysis_proposal_revisions r ON r.proposal_id=p.id`;
 function proposalRecord(row: Record<string, unknown>): Proposal {
   return contentRecord<Proposal>({
     ...row,
@@ -450,11 +450,21 @@ export function proposalRoutes(app: FastifyInstance, context: ApiContext) {
     // A new baseline is accepted only when explicitly provided, and must be current.
     await contentVersion(tx, body.baseContentRevision);
     await validateGraph(tx, body.operations, body.target, previous);
-    const hash = fingerprint(
-      previous.sourceHash,
-      body.target,
-      body.baseContentRevision,
-    );
+    const hash =
+      previous.sourceKind === "ai_analysis"
+        ? digest(
+            canonical([
+              previous.id,
+              previous.sourceHash,
+              body.target,
+              body.baseContentRevision,
+            ]),
+          )
+        : fingerprint(
+            previous.sourceHash,
+            body.target,
+            body.baseContentRevision,
+          );
     const duplicate = await tx.sql.query(
       "SELECT id FROM analysis_proposals WHERE tenant_id=$1 AND project_id=$2 AND import_fingerprint=$3 AND id<>$4",
       [tx.tenantId, tx.projectId, hash, previous.id],

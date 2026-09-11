@@ -1,3 +1,4 @@
+import { generationRoutes } from "./modules/generation/routes.js";
 import Fastify from "fastify";
 import type { Pool } from "pg";
 import { readFileSync } from "node:fs";
@@ -61,6 +62,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     invitationRoutes(app, context);
     projectRoutes(app, context);
     contentRoutes(app, context);
+    generationRoutes(app, context);
     proposalRoutes(app, context);
     creativeRoutes(app, context);
     taskRoutes(app, context);

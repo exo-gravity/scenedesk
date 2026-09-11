@@ -6306,6 +6306,14 @@
                 "reconciliation_required"
               ]
             }
+          },
+          {
+            "name": "planId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -16799,6 +16807,13 @@
           "notes": {
             "type": "string",
             "maxLength": 20000
+          },
+          "executionMode": {
+            "type": "string",
+            "enum": [
+              "test_fixture",
+              "verified_provider"
+            ]
           }
         },
         "required": [
@@ -17212,6 +17227,13 @@
           "connectionVersionId": {
             "type": "string",
             "format": "uuid"
+          },
+          "executionMode": {
+            "type": "string",
+            "enum": [
+              "test_fixture",
+              "verified_provider"
+            ]
           }
         },
         "required": [
@@ -17376,6 +17398,13 @@
           "assistanceArtifactId": {
             "type": "string",
             "format": "uuid"
+          },
+          "executionMode": {
+            "type": "string",
+            "enum": [
+              "test_fixture",
+              "verified_provider"
+            ]
           }
         },
         "required": [
