@@ -10,8 +10,9 @@ import {
   Text,
 } from "@mantine/core";
 import { ArrowSquareOut } from "@phosphor-icons/react";
-import { api, useResource, useSession, type Schema } from "./api";
+import { useResource, useSession, type Schema } from "./api";
 import { ErrorNotice, tenantPath } from "./common";
+import { mediaPost } from "./media-imports";
 import classes from "./image-generation.module.css";
 export function GeneratedImageResult({
   tenantId,
@@ -43,15 +44,12 @@ export function GeneratedImageResult({
     staleTime: 240000,
     retry: false,
     queryFn: ({ signal }) =>
-      api<Schema<"AccessGrant">>(`${path}/media/${mediaId}/access`, {
-        method: "POST",
+      mediaPost<Schema<"AccessGrant">>(
+        session,
+        `${path}/media/${mediaId}/access`,
+        { variant, disposition: "inline" },
         signal,
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": session.csrfToken,
-        },
-        body: JSON.stringify({ variant, disposition: "inline" }),
-      }),
+      ),
   });
   if (media.error)
     return (

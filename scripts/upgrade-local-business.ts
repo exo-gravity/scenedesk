@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import {
   grantGenerationWorkerAccess,
+  grantMediaWorkerAccess,
   grantRuntimeAccess,
   hardenAuthorizationFunctions,
   migrate,
@@ -52,6 +53,19 @@ try {
         sql,
         "drama",
         generation.rows[0].worker_role,
+      );
+    const media = await sql.query<{
+      worker_role: string | null;
+      scheduler_role: string | null;
+    }>(
+      "SELECT worker_role,scheduler_role FROM drama.media_processing_state WHERE singleton",
+    );
+    if (media.rows[0]?.worker_role && media.rows[0].scheduler_role)
+      await grantMediaWorkerAccess(
+        sql,
+        "drama",
+        media.rows[0].worker_role,
+        media.rows[0].scheduler_role,
       );
     await sql.query("COMMIT");
   } catch (error) {
