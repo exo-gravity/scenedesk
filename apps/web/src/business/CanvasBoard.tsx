@@ -2,6 +2,7 @@ import {
   CANVAS_MIN_ZOOM,
   CANVAS_MAX_ZOOM,
   canvasZoomLabel,
+  constrainCanvasViewport,
 } from "./canvas-viewport";
 import {
   memo,
@@ -667,7 +668,16 @@ export function CanvasBoard({
             defaultViewport={preference.viewport}
             minZoom={CANVAS_MIN_ZOOM}
             maxZoom={CANVAS_MAX_ZOOM}
-            onMoveEnd={(_, viewport) => changePreference({ viewport })}
+            onMoveEnd={(_, viewport) => {
+              const legal = constrainCanvasViewport(viewport);
+              if (legal !== viewport) {
+                // setViewport emits the final, legal onMoveEnd. Persist only
+                // that event so the saved view matches the visible position.
+                void flow.current?.setViewport(legal, { duration: 0 });
+                return;
+              }
+              changePreference({ viewport });
+            }}
             onNodesChange={onNodesChange}
             onNodeDragStop={() => void controller.save()}
             onConnect={connect}

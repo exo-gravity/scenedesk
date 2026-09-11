@@ -4,6 +4,21 @@
  * clamp cropping distant nodes. Keep aligned with CanvasViewport and SQL. */
 export const CANVAS_MIN_ZOOM = 0.00001;
 export const CANVAS_MAX_ZOOM = 4;
+const MAX_VIEWPORT_COORDINATE = 1_000_000;
+
+/** Centering a node at the negative coordinate boundary can move the viewport
+ * just beyond its own legal range. Keep the visible and persisted view equal. */
+export function constrainCanvasViewport<T extends { x: number; y: number }>(
+  viewport: T,
+): T {
+  const limit = (value: number) =>
+    Math.max(-MAX_VIEWPORT_COORDINATE, Math.min(MAX_VIEWPORT_COORDINATE, value));
+  const x = limit(viewport.x),
+    y = limit(viewport.y);
+  return x === viewport.x && y === viewport.y
+    ? viewport
+    : { ...viewport, x, y };
+}
 
 export function canvasZoomLabel(zoom: number) {
   const percent = zoom * 100;
