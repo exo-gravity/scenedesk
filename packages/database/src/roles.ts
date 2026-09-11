@@ -96,6 +96,15 @@ export async function grantRuntimeAccess(
     `GRANT UPDATE(status,error_code,revision,updated_at,recovery_epoch) ON ${scope}.generation_jobs TO ${target}`,
   );
   await client.query(`GRANT INSERT ON ${scope}.generation_work TO ${target}`);
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_plan_shots,${scope}.assistance_artifact_revisions,${scope}.assistance_revision_refs TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.assistance_artifacts TO ${target}`,
+  );
+  await client.query(
+    `GRANT UPDATE(revision,updated_at) ON ${scope}.assistance_artifacts TO ${target}`,
+  );
   await client.query(`GRANT USAGE ON SCHEMA ${scope} TO ${target}`);
   await client.query(
     `GRANT SELECT, INSERT ON ${["tenants", "memberships", "invitations", "projects", "project_memberships", "productions", "project_content_versions", "idempotency_records", "script_revisions", "episodes", "scenes", "shots", "shot_revisions", "shot_source_shots", "shot_source_scripts", "dialogue_lines", "analysis_proposals", "analysis_proposal_revisions", "proposal_applications", "creative_subjects", "creative_basis_revisions", "creative_confirmations", "creative_current_confirmations", "production_tasks", "production_task_revisions"].map((t) => `${scope}.${t}`).join(", ")} TO ${target}`,
@@ -367,7 +376,7 @@ export async function hardenAuthorizationFunctions(
     `GRANT UPDATE(enabled) ON ${scope}.generation_capabilities TO ${target}`,
   );
   await client.query(
-    `GRANT UPDATE(status,proposal_id,error_code,revision,updated_at) ON ${scope}.generation_jobs TO ${target}`,
+    `GRANT UPDATE(status,proposal_id,assistance_artifact_id,error_code,revision,updated_at) ON ${scope}.generation_jobs TO ${target}`,
   );
   await client.query(
     `GRANT SELECT,INSERT,DELETE ON ${scope}.generation_work TO ${target}`,
@@ -378,11 +387,15 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT SELECT ON ${scope}.generation_runtime_identity TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.assistance_artifacts,${scope}.assistance_artifact_revisions,${scope}.assistance_revision_refs TO ${target}`,
+  );
   for (const signature of [
     ...authorizationFunctions,
     ...generationFunctions,
     "generation_submission_allowed(uuid)",
     "request_generation_reconciliation(uuid)",
+    "finish_script_analysis_job(uuid,uuid,jsonb,text)",
     ...mediaAuthorizationFunctions,
     ...productionFunctions,
     ...presenceFunctions,

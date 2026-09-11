@@ -17098,6 +17098,16 @@
                     "required": [
                       "proposalTarget"
                     ]
+                  },
+                  {
+                    "required": [
+                      "sourceScriptRevisionId"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "scriptRange"
+                    ]
                   }
                 ]
               }
@@ -20205,6 +20215,13 @@
               "format": "uuid"
             },
             "uniqueItems": true
+          },
+          "targetCapabilitySnapshot": {
+            "$ref": "#/components/schemas/Capability"
+          },
+          "targetConnectionVersionId": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "required": [
@@ -21665,7 +21682,8 @@
               "production",
               "scene",
               "shot_revision",
-              "asset_revision"
+              "asset_revision",
+              "canvas_draft"
             ]
           },
           "objectId": {
@@ -21782,21 +21800,24 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Reference"
-            }
+            },
+            "maxItems": 100
           },
           "retain": {
             "type": "array",
             "items": {
               "type": "string",
               "maxLength": 20000
-            }
+            },
+            "maxItems": 100
           },
           "change": {
             "type": "array",
             "items": {
               "type": "string",
               "maxLength": 20000
-            }
+            },
+            "maxItems": 100
           },
           "notes": {
             "type": "string",
@@ -21862,6 +21883,13 @@
           },
           "inputOutdated": {
             "type": "boolean"
+          },
+          "executionMode": {
+            "type": "string",
+            "enum": [
+              "test_fixture",
+              "verified_provider"
+            ]
           }
         },
         "required": [

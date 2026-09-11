@@ -1,0 +1,68 @@
+{
+  "recordedAt": "2026-09-11T12:09:21.307786+00:00",
+  "baseCommit": "1ee0a8db3d231e281a4b74b8c7c1e2827d379b9a",
+  "branch": "feat/ai-prompt-assistance",
+  "executionMode": "test_fixture",
+  "realProviderCalls": 0,
+  "paidProviderCalls": 0,
+  "productionAcceptance": false,
+  "browserAcceptance": "pending parent integration",
+  "migrations": [
+    "0030",
+    "0031",
+    "0032",
+    "0033"
+  ],
+  "checks": [
+    {
+      "name": "complete_check",
+      "result": "passed",
+      "tests": 48,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "694405c6a2d5a6ab38ec06e3c5c1b3066c29ef681d391d03e5cbdaed1f0d3578"
+    },
+    {
+      "name": "complete_database_regression",
+      "result": "passed",
+      "tests": 164,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "ee39abaf982622fe914e655d1d167a5de71ad8f07f55b50051e1c356c6f58546"
+    },
+    {
+      "name": "prompt_assistance_database",
+      "result": "passed",
+      "tests": 12,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "cacb8d30089b70bcb9077004f101efbd80bcacb0cb61c87f120bf3159e2557f1"
+    },
+    {
+      "name": "documentation_contract_check",
+      "result": "passed",
+      "operations": 148,
+      "paths": 114,
+      "schemas": 222,
+      "examples": 157,
+      "localLinks": 1285,
+      "logSha256": "60457d5b3b23766aaf2052e4bb31c3aa8d5a41eefdd303b18ff2d25a8927f325"
+    }
+  ],
+  "implemented": [
+    "prepare_prompt fixed shot sources and target capability snapshots",
+    "selected canvas draft semantic dependencies",
+    "durable unique job and attempt producing immutable AssistanceArtifact",
+    "current-authority reads and CAS human revision history",
+    "reference provenance, current authorization and archived-reference retention",
+    "unknown recovery and conflicting late evidence retain original artifact"
+  ],
+  "unavailable": [
+    "prepare_rework: actual review/comment/fixed CutRevision entities unavailable",
+    "real provider transport and authorized paid execution",
+    "media generation and artifact-source media-plan application"
+  ]
+}

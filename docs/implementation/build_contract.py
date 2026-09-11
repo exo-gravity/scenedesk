@@ -558,6 +558,17 @@ for methods in paths.values():
 
 register_canvas_routes(route, paths)
 register_editing_routes(route, paths)
+# A selected canvas draft uses its existing semantic input identity, never an arbitrary note/media node.
+S["ContextSourceInput"]["properties"]["kind"]["enum"].append("canvas_draft")
+extend("ResolvedInput", {"targetCapabilitySnapshot": ref("Capability"), "targetConnectionVersionId": ID})
+extend("AssistanceArtifact", {"executionMode": enum("test_fixture", "verified_provider")})
+S["AssistanceBody"]["properties"]["referenceSuggestions"]["maxItems"] = 100
+S["AssistanceBody"]["properties"]["retain"]["maxItems"] = 100
+S["AssistanceBody"]["properties"]["change"]["maxItems"] = 100
+# Prompt preparation has no implicit script excerpt or proposal/advice-source input.
+for rule in S["PlanInput"]["allOf"]:
+    if rule.get("if", {}).get("properties", {}).get("purpose", {}).get("const") == "creative_assistance":
+        rule["then"]["not"]["anyOf"] += [{"required": ["sourceScriptRevisionId"]}, {"required": ["scriptRange"]}]
 # Execution evidence must visibly distinguish explicit fixtures from verified providers.
 for entity_name in ["Capability", "GenerationPlan", "GenerationJob"]:
     extend(entity_name, {"executionMode": enum("test_fixture", "verified_provider")})

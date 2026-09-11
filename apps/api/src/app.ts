@@ -1,3 +1,4 @@
+import { assistanceArtifactRoutes } from "./modules/generation/artifacts.js";
 import { generationRoutes } from "./modules/generation/routes.js";
 import Fastify from "fastify";
 import type { Pool } from "pg";
@@ -63,6 +64,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     projectRoutes(app, context);
     contentRoutes(app, context);
     generationRoutes(app, context);
+    assistanceArtifactRoutes(app, context);
     proposalRoutes(app, context);
     creativeRoutes(app, context);
     taskRoutes(app, context);

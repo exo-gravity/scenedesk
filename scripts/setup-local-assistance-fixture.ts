@@ -44,23 +44,38 @@ try {
     `CREATE ROLE ${sqlIdentifier(role)} LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOINHERIT PASSWORD '${password}'`,
   );
   await grantGenerationWorkerAccess(client, schema, role);
-  await client.query(
-    `INSERT INTO ${scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'test_fixture',true,2,100)`,
-    [
-      capabilityId,
-      tenantId,
-      connectionId,
-      connectionVersionId,
-      {
-        purpose: "script_analysis",
-        modelVersion: "本地测试适配器（无真实模型）",
-        mode: "structured_text_fixture",
-        supportedPurposes: [],
-        notes:
-          "仅验证计划、耐久任务、建议与人工采纳；不代表真实 AI 质量或调用验收。",
-      },
-    ],
-  );
+  for (const purpose of ["script_analysis", "creative_assistance", "image"])
+    await client.query(
+      `INSERT INTO ${scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'test_fixture',true,2,100)`,
+      [
+        purpose === "script_analysis" ? capabilityId : randomUUID(),
+        tenantId,
+        connectionId,
+        connectionVersionId,
+        {
+          purpose,
+          modelVersion: "本地测试适配器（无真实模型）",
+          mode: "structured_text_fixture",
+          supportedPurposes:
+            purpose === "image"
+              ? [
+                  "identity",
+                  "look",
+                  "location",
+                  "action",
+                  "composition",
+                  "style",
+                  "voice",
+                  "start_frame",
+                  "end_frame",
+                  "prop",
+                ]
+              : [],
+          notes:
+            "仅验证计划、耐久任务、建议与人工采纳；不代表真实 AI 质量或调用验收。",
+        },
+      ],
+    );
   await writeFile(file, config, { encoding: "utf8", mode: 0o600, flag: "wx" });
   wrote = true;
   await client.query("COMMIT");
