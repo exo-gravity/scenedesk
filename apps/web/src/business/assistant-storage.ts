@@ -3,6 +3,7 @@ import type {
   AssistantRecord,
   AssistantStorage,
 } from "./assistant-session";
+import type { Schema } from "./api";
 import { tabIdentity } from "./content-drafts";
 let connection: Promise<IDBDatabase> | undefined;
 function database() {
@@ -15,17 +16,20 @@ function database() {
       reject(new Error("助手的本机恢复存储不可用，请勿关闭当前输入。"));
   }));
 }
-export function assistantStorage<Draft = AssistantDraft>(
+export function assistantStorage<
+  Draft = AssistantDraft,
+  Request = Schema<"PlanInput">,
+>(
   userId: string,
   path: string,
   sessionId: string,
-): AssistantStorage<Draft> {
+): AssistantStorage<Draft, Request> {
   const key = tabIdentity().then((tab) =>
     JSON.stringify([userId, path, tab, sessionId]),
   );
   async function access(
-    change?: { record: AssistantRecord<Draft> } | { remove: true },
-  ): Promise<AssistantRecord<Draft> | undefined> {
+    change?: { record: AssistantRecord<Draft, Request> } | { remove: true },
+  ): Promise<AssistantRecord<Draft, Request> | undefined> {
     const [db, id] = await Promise.all([database(), key]);
     return new Promise((resolve, reject) => {
       const tx = db.transaction("sessions", change ? "readwrite" : "readonly"),
