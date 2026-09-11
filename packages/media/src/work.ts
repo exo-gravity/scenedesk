@@ -300,6 +300,8 @@ export async function createMediaProcessor(
   return async (envelope, { signal }) => {
     signal.throwIfAborted();
     const step = parseEnvelope(envelope);
+    if (step.taskKind === "media_production")
+      throw new Error("Production jobs require the production dispatcher");
     const active = await claim(step);
     if (!active) return;
     let directory: string | undefined;

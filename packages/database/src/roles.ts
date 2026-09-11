@@ -23,6 +23,33 @@ const mediaPolicyFunctions = [
   "media_worker_login()",
   "media_worker_row(uuid,uuid,text)",
 ] as const;
+const productionFunctions = [
+  "request_media_production(uuid,uuid,text)",
+  "claim_media_production(uuid,bigint,bigint,uuid,uuid)",
+  "assert_media_production_lease(uuid,uuid)",
+  "heartbeat_media_production(uuid,uuid)",
+  "reserve_media_production_artifact(uuid,uuid,text,bigint,text)",
+  "journal_media_production(uuid,uuid,uuid,text,jsonb)",
+  "finish_media_production(uuid,uuid,text)",
+  "reserve_media_production_resource(uuid,uuid,text)",
+  "release_media_production_resource(uuid,uuid)",
+  "claim_media_production_cleanup(uuid,uuid,integer)",
+  "assert_media_production_cleanup(uuid,uuid)",
+  "finish_media_production_cleanup(uuid,uuid)",
+  "read_media_production(uuid,uuid)",
+  "scan_media_production(integer)",
+  "yield_media_production(uuid,uuid,text)",
+  "recover_media_production(uuid,uuid,text)",
+] as const;
+const productionTables = [
+  "media_production_copies",
+  "media_production_sources",
+  "media_production_attempts",
+  "media_production_artifacts",
+  "media_production_parts",
+  "media_production_resources",
+  "media_production_cleanup",
+];
 
 export function sqlIdentifier(value: string): string {
   if (!/^[a-z][a-z0-9_]{0,62}$/.test(value))
@@ -150,6 +177,15 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.work_media_items(jsonb) TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT ON ${scope}.media_production_copies,${scope}.media_production_sources TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.request_media_production(uuid,uuid,text) TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.recover_media_production(uuid,uuid,text) TO ${target}`,
+  );
 }
 
 export async function grantAuthAccess(
@@ -238,9 +274,17 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT UPDATE(epoch) ON ${scope}.media_processing_state TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT,UPDATE ON ${productionTables.map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.edit_history_media_refs TO ${target}`,
+  );
+  await client.query(`GRANT UPDATE(updated_at) ON ${scope}.media TO ${target}`);
   for (const signature of [
     ...authorizationFunctions,
     ...mediaAuthorizationFunctions,
+    ...productionFunctions,
     "enforce_tenant_owner()",
     "enforce_project_lead()",
   ]) {
@@ -314,5 +358,17 @@ export async function grantMediaWorkerAccess(
     );
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.scan_media_work(integer) TO ${scheduler}`,
+  );
+  for (const signature of productionFunctions.filter(
+    (s) =>
+      !s.startsWith("request_") &&
+      !s.startsWith("scan_") &&
+      !s.startsWith("recover_"),
+  ))
+    await client.query(
+      `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${worker}`,
+    );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.scan_media_production(integer) TO ${scheduler}`,
   );
 }

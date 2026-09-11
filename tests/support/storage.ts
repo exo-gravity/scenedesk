@@ -224,6 +224,11 @@ export async function storageFixture(t: TestContext) {
     productionApi,
     workerClient,
     productionBucket,
+    productionConfiguration: {
+      ...config,
+      bucket: productionBucket,
+      credentials: worker,
+    },
     admin,
     config,
   };
