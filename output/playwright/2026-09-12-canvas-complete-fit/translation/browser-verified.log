@@ -1,0 +1,40 @@
+### Result
+{"actualApiAndPostgres":true,"productionBuild":true,"results":[{"position":{"x":-1000000,"y":-1000000},"focused":{"view":{"x":41,"y":283.6953125,"width":1423,"height":307},"node":{"x":592.5,"y":393.1953125,"width":320,"height":88.4921875},"anchor":{"x":752.5,"y":437.44140625},"transform":"translate(1.00055e+06px, 1.00011e+06px) scale(1)"},"zoomed":{"view":{"x":41,"y":283.6953125,"width":1423,"height":307},"node":{"x":112.5,"y":261.1953125,"width":1280,"height":354},"anchor":{"x":752.5,"y":438.1953125},"transform":"translate(4.00007e+06px, 3.99998e+06px) scale(4)"},"savedViewport":{"x":4000071.499999999,"y":3999977.4999999995,"zoom":4},"restored":{"view":{"x":41,"y":283.6953125,"width":1423,"height":307},"node":{"x":112.5,"y":261.1953125,"width":1280,"height":354},"anchor":{"x":752.5,"y":438.1953125},"transform":"translate(4.00007e+06px, 3.99998e+06px) scale(4)"},"heldBeyondDebounce":true},{"position":{"x":1000000,"y":1000000},"focused":{"view":{"x":41,"y":283.6953125,"width":1423,"height":307},"node":{"x":592.5,"y":346.6953125,"width":320,"height":180.6953125},"anchor":{"x":752.5,"y":437.04296875},"transform":"translate(-999448px, -999937px) scale(1)"},"zoomed":{"view":{"x":41,"y":283.6953125,"width":1423,"height":307},"node":{"x":112.5,"y":75.1953125,"width":1280,"height":722.75},"anchor":{"x":752.5,"y":436.5703125},"transform":"translate(-3.99993e+06px, -4.00021e+06px) scale(4)"},"savedViewport":{"x":-3999928.4999999995,"y":-4000208.499999999,"zoom":4},"restored":{"view":{"x":41,"y":283.6953125,"width":1423,"height":307},"node":{"x":112.5,"y":75.1953125,"width":1280,"height":722.75},"anchor":{"x":752.5,"y":436.5703125},"transform":"translate(-3.99993e+06px, -4.00021e+06px) scale(4)"},"heldBeyondDebounce":true}],"responses":[{"status":200,"body":{"mode":"canvas","viewport":{"x":1000551.5,"y":1000109.5,"zoom":1},"assistantOpen":false,"assetPanelOpen":false,"selectedShotId":null,"selectedNodeIds":["e1833156-d274-49bb-9b1d-73daddea4f3c"]}},{"status":200,"body":{"mode":"canvas","viewport":{"x":4000071.499999999,"y":3999977.4999999995,"zoom":4},"assistantOpen":false,"assetPanelOpen":false,"selectedShotId":null,"selectedNodeIds":["e1833156-d274-49bb-9b1d-73daddea4f3c"]}},{"status":200,"body":{"mode":"canvas","viewport":{"x":-999448.5,"y":-999937,"zoom":1},"assistantOpen":false,"assetPanelOpen":false,"selectedShotId":null,"selectedNodeIds":["f3deacdb-9834-4904-9782-cbc7a02f7f6c"]}},{"status":200,"body":{"mode":"canvas","viewport":{"x":-3999928.4999999995,"y":-4000208.499999999,"zoom":4},"assistantOpen":false,"assetPanelOpen":false,"selectedShotId":null,"selectedNodeIds":["f3deacdb-9834-4904-9782-cbc7a02f7f6c"]}}],"errors":[],"fitStillContainsBoth":true}
+### Ran Playwright code
+```js
+await (async (page) => {
+ const config={"path": "/v1/tenants/8d98d311-abe3-4c93-a6fb-91100b39bdc1/projects/7d7795b0-6fd9-4487-b448-ac4edc311e02", "sceneId": "ea48c238-dd50-4192-a368-6eb38d140fd7", "url": "http://127.0.0.1:4316/#/app/t/8d98d311-abe3-4c93-a6fb-91100b39bdc1/p/7d7795b0-6fd9-4487-b448-ac4edc311e02/production?scene=ea48c238-dd50-4192-a368-6eb38d140fd7&mode=canvas", "nodes": [{"id": "e1833156-d274-49bb-9b1d-73daddea4f3c", "title": "左上合法边界", "position": {"x": -1000000, "y": -1000000}, "width": 320}, {"id": "f3deacdb-9834-4904-9782-cbc7a02f7f6c", "title": "右下合法边界", "position": {"x": 1000000, "y": 1000000}, "width": 320}], "out": "output/playwright/2026-09-12-canvas-complete-fit/translation"};
+
+ const ensure=(ok,msg)=>{if(!ok)throw Error(msg)};const results=[],errors=[],responses=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('response',r=>{if(r.request().method()==='PUT'&&r.url().endsWith('/workspace-preference'))responses.push({status:r.status(),body:r.request().postDataJSON()})});
+ const prefPath=config.path+'/scenes/'+config.sceneId+'/workspace-preference';
+ const read=()=>page.evaluate(async path=>(await fetch(path,{cache:'no-store'})).json(),prefPath);
+ const rect=id=>page.evaluate(id=>{const p=document.querySelector('.react-flow').getBoundingClientRect();const n=document.querySelector('.react-flow__node[data-id="'+id+'"]');if(!n)return null;const r=n.getBoundingClientRect();return {view:{x:p.x,y:p.y,width:p.width,height:p.height},node:{x:r.x,y:r.y,width:r.width,height:r.height},anchor:{x:r.x+r.width/2,y:r.y+r.height/2},transform:document.querySelector('.react-flow__viewport').style.transform}},id);
+ const inside=g=>g&&g.anchor.x>=g.view.x-1&&g.anchor.y>=g.view.y-1&&g.anchor.x<=g.view.x+g.view.width+1&&g.anchor.y<=g.view.y+g.view.height+1;
+ const waitSaved=async(id,zoom)=>{const due=Date.now()+20000;while(Date.now()<due){const p=await read();if(p.selectedNodeIds.length===1&&p.selectedNodeIds[0]===id&&p.viewport.zoom===zoom)return p;await page.waitForTimeout(100)}throw Error('preference not saved '+id+' '+zoom)};
+ await page.setViewportSize({width:1512,height:982});
+ for(const node of config.nodes){
+   await page.goto(config.url);await page.reload();await page.getByRole('button',{name:'适应内容',exact:true}).waitFor();
+   await page.getByText('节点列表与键盘定位',{exact:true}).click();
+   await page.getByRole('button',{name:node.title,exact:true}).click();
+   await waitSaved(node.id,1);
+   const focused=await rect(node.id);ensure(inside(focused),'focused anchor outside');
+   for(let i=0;i<8;i++)await page.getByRole('button',{name:'放大画布',exact:true}).click();
+   await page.waitForFunction(()=>document.querySelector('.react-flow__viewport')?.style.transform.includes('scale(4)'));
+   const zoomed=await rect(node.id);ensure(inside(zoomed),'400% anchor outside');
+   const saved=await waitSaved(node.id,4);ensure(Math.abs(saved.viewport.x)>1e6&&Math.abs(saved.viewport.x)<8e6,'not proving expanded translation');
+   await page.waitForTimeout(1100);
+   await page.screenshot({path:config.out+'/zoom4-'+(node.position.x<0?'negative':'positive')+'-1512.png',animations:'disabled'});
+   await page.reload();await page.getByRole('button',{name:'适应内容',exact:true}).waitFor();
+   await page.waitForFunction(id=>document.querySelector('.react-flow__node[data-id="'+id+'"]'),node.id);
+   const restored=await rect(node.id);ensure(inside(restored),'restored anchor outside');ensure(restored.transform.includes('scale(4)'),'restored zoom not 4');
+   const reread=await read();ensure(JSON.stringify(reread.viewport)===JSON.stringify(saved.viewport),'GET changed viewport');
+   results.push({position:node.position,focused,zoomed,savedViewport:saved.viewport,restored,heldBeyondDebounce:true});
+ }
+ await page.getByRole('button',{name:'适应内容',exact:true}).click();
+ await page.waitForFunction(()=>{const p=document.querySelector('.react-flow').getBoundingClientRect(),nodes=[...document.querySelectorAll('.react-flow__node')];return nodes.length===2&&nodes.every(n=>{const r=n.getBoundingClientRect();return r.x>=p.x-1&&r.y>=p.y-1&&r.right<=p.right+1&&r.bottom<=p.bottom+1})});
+ ensure(responses.every(r=>r.status===200)&&responses.some(r=>r.body.viewport.zoom===4&&r.body.viewport.x>1e6)&&responses.some(r=>r.body.viewport.zoom===4&&r.body.viewport.x< -1e6),'invalid preference request '+JSON.stringify(responses));ensure(errors.length===0,'page errors');
+ return {actualApiAndPostgres:true,productionBuild:true,results,responses,errors,fitStillContainsBoth:true};
+})(page);
+```

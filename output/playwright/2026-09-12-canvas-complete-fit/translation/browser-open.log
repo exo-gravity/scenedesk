@@ -1,0 +1,10 @@
+### Browser `scenedesk-ai-ui` opened with pid 9456.
+### Ran Playwright code
+```js
+await page.goto('http://127.0.0.1:4316/__fit_fixture/login');
+```
+### Page
+- Page URL: http://127.0.0.1:4316/#/app/t/8d98d311-abe3-4c93-a6fb-91100b39bdc1/p/7d7795b0-6fd9-4487-b448-ac4edc311e02/production?scene=ea48c238-dd50-4192-a368-6eb38d140fd7&mode=canvas
+- Page Title: 幕序 · SceneDesk
+### Snapshot
+- [Snapshot](.playwright-cli/page-2026-09-11T22-15-40-046Z.yml)

@@ -1,4 +1,10 @@
 import {
+  CANVAS_MIN_ZOOM,
+  CANVAS_MAX_ZOOM,
+  canvasZoomLabel,
+  constrainCanvasViewport,
+} from "./canvas-viewport";
+import {
   memo,
   useCallback,
   useEffect,
@@ -610,7 +616,11 @@ export function CanvasBoard({
             size="xs"
             leftSection={<CornersOut size={16} />}
             onClick={() =>
-              void flow.current?.fitView({ padding: 0.2, maxZoom: 1 })
+              void flow.current?.fitView({
+                padding: 0.2,
+                minZoom: CANVAS_MIN_ZOOM,
+                maxZoom: 1,
+              })
             }
           >
             适应内容
@@ -656,9 +666,18 @@ export function CanvasBoard({
               flow.current = instance;
             }}
             defaultViewport={preference.viewport}
-            minZoom={0.1}
-            maxZoom={4}
-            onMoveEnd={(_, viewport) => changePreference({ viewport })}
+            minZoom={CANVAS_MIN_ZOOM}
+            maxZoom={CANVAS_MAX_ZOOM}
+            onMoveEnd={(_, viewport) => {
+              const legal = constrainCanvasViewport(viewport);
+              if (legal !== viewport) {
+                // setViewport emits the final, legal onMoveEnd. Persist only
+                // that event so the saved view matches the visible position.
+                void flow.current?.setViewport(legal, { duration: 0 });
+                return;
+              }
+              changePreference({ viewport });
+            }}
             onNodesChange={onNodesChange}
             onNodeDragStop={() => void controller.save()}
             onConnect={connect}
@@ -695,7 +714,7 @@ export function CanvasBoard({
       <Group className={classes.toolbar} justify="space-between">
         <Text size="xs">
           {document.nodes.length} / 2,000 节点 · {document.edges.length} / 5,000
-          引用 · 缩放 {Math.round(preference.viewport.zoom * 100)}%
+          引用 · 缩放 {canvasZoomLabel(preference.viewport.zoom)}
         </Text>
         <Group gap="xs">
           <CanvasContinueCreation
@@ -903,6 +922,7 @@ function MeasuredCanvasFocus({
         void fitView({
           nodes: request.ids.map((id) => ({ id })),
           padding: 0.3,
+          minZoom: CANVAS_MIN_ZOOM,
           maxZoom: 1,
         }).then((ok) => {
           if (ok) {

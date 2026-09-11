@@ -23184,17 +23184,17 @@
         "properties": {
           "x": {
             "type": "number",
-            "minimum": -1000000,
-            "maximum": 1000000
+            "minimum": -8000000,
+            "maximum": 8000000
           },
           "y": {
             "type": "number",
-            "minimum": -1000000,
-            "maximum": 1000000
+            "minimum": -8000000,
+            "maximum": 8000000
           },
           "zoom": {
             "type": "number",
-            "minimum": 0.1,
+            "minimum": 1e-05,
             "maximum": 4
           }
         },

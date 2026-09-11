@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: fit encloses legal opposite-corner nodes in the smallest editing viewport, including negative coordinates
+ok 1 - fit encloses legal opposite-corner nodes in the smallest editing viewport, including negative coordinates
+  ---
+  duration_ms: 0.749917
+  type: 'test'
+  ...
+# Subtest: fit encloses the existing 20-by-100 capacity layout and still fits small selections normally
+ok 2 - fit encloses the existing 20-by-100 capacity layout and still fits small selections normally
+  ---
+  duration_ms: 0.109542
+  type: 'test'
+  ...
+# Subtest: viewport contract and UI share positive bounds, and low overviews never show zero percent
+ok 3 - viewport contract and UI share positive bounds, and low overviews never show zero percent
+  ---
+  duration_ms: 0.084291
+  type: 'test'
+  ...
+# Subtest: single-node focus at legal coordinate boundaries remains visible and persistable
+ok 4 - single-node focus at legal coordinate boundaries remains visible and persistable
+  ---
+  duration_ms: 0.362417
+  type: 'test'
+  ...
+# Subtest: screen-space viewport retains extreme node anchors at 400% without extending node coordinates
+ok 5 - screen-space viewport retains extreme node anchors at 400% without extending node coordinates
+  ---
+  duration_ms: 0.904416
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 545.13625

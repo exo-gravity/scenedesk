@@ -1,0 +1,971 @@
+
+> drama-platform@0.0.0 check
+> npm run contracts:check && npm run ui:check && npm run build && npm test
+
+
+> drama-platform@0.0.0 contracts:check
+> node scripts/check-generated.mjs
+
+Generated TypeScript matches the design contract.
+
+> drama-platform@0.0.0 ui:check
+> node --import tsx scripts/check-ui.ts
+
+{
+  "passed": true,
+  "scope": "Migrated source rules and selected opaque color pairs; browser interaction and composed media checked separately.",
+  "files": 132,
+  "contrastChecks": [
+    {
+      "name": "light primary",
+      "ratio": 15.41,
+      "minimum": 4.5
+    },
+    {
+      "name": "light secondary",
+      "ratio": 5.58,
+      "minimum": 4.5
+    },
+    {
+      "name": "light action",
+      "ratio": 12.11,
+      "minimum": 4.5
+    },
+    {
+      "name": "light input border",
+      "ratio": 3.48,
+      "minimum": 3
+    },
+    {
+      "name": "light focus",
+      "ratio": 5.5,
+      "minimum": 3
+    },
+    {
+      "name": "dark primary",
+      "ratio": 11.77,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark secondary",
+      "ratio": 6.23,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark action",
+      "ratio": 11.48,
+      "minimum": 4.5
+    },
+    {
+      "name": "dark input border",
+      "ratio": 3.13,
+      "minimum": 3
+    },
+    {
+      "name": "dark focus",
+      "ratio": 8,
+      "minimum": 3
+    },
+    {
+      "name": "primary on raised",
+      "ratio": 12.9,
+      "minimum": 4.5
+    },
+    {
+      "name": "secondary on raised",
+      "ratio": 7.83,
+      "minimum": 4.5
+    },
+    {
+      "name": "muted on raised",
+      "ratio": 5.65,
+      "minimum": 4.5
+    },
+    {
+      "name": "success on raised",
+      "ratio": 8.74,
+      "minimum": 4.5
+    },
+    {
+      "name": "warning on raised",
+      "ratio": 8.73,
+      "minimum": 4.5
+    },
+    {
+      "name": "danger on raised",
+      "ratio": 8.19,
+      "minimum": 4.5
+    },
+    {
+      "name": "info on raised",
+      "ratio": 8.84,
+      "minimum": 4.5
+    },
+    {
+      "name": "focus on raised",
+      "ratio": 9.61,
+      "minimum": 4.5
+    },
+    {
+      "name": "filled button",
+      "ratio": 9.62,
+      "minimum": 4.5
+    },
+    {
+      "name": "input border",
+      "ratio": 3.27,
+      "minimum": 3
+    }
+  ],
+  "failures": []
+}
+
+> drama-platform@0.0.0 build
+> npm run typecheck && npm run build --workspace @drama/web
+
+
+> drama-platform@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json
+
+
+> @drama/web@0.0.0 build
+> vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 6011 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                      0.86 kB │ gzip:   0.46 kB
+dist/assets/MediaPlayer-DwTNH-SH.css                 0.37 kB │ gzip:   0.21 kB
+dist/assets/BusinessApp-D4c7y_cB.css                10.15 kB │ gzip:   2.12 kB
+dist/assets/SceneProductionWorkspace-xp-FlmF1.css   30.40 kB │ gzip:   5.59 kB
+dist/assets/index-BBzDpB5V.css                      69.26 kB │ gzip:  14.99 kB
+dist/assets/mantine-ui-C9RRYpjM.css                237.54 kB │ gzip:  34.99 kB
+dist/assets/index-DN__9TJT.js                        8.96 kB │ gzip:   3.88 kB
+dist/assets/MediaWorkspace-BA2tutKD.js              22.41 kB │ gzip:   7.89 kB
+dist/assets/AssetWorkspace-CQ9rIKv3.js              28.13 kB │ gzip:   8.69 kB
+dist/assets/MediaPlayer-DLjLxIhM.js                191.41 kB │ gzip:  46.19 kB
+dist/assets/react-runtime-CKhiqiYO.js              192.94 kB │ gzip:  60.48 kB
+dist/assets/mantine-ui-CCKwLco6.js                 312.22 kB │ gzip:  97.47 kB
+dist/assets/BusinessApp-CINkKvcX.js                405.82 kB │ gzip: 121.03 kB
+dist/assets/SceneProductionWorkspace-CDaXEzlk.js   420.79 kB │ gzip: 130.29 kB
+✓ built in 7.65s
+
+> drama-platform@0.0.0 test
+> node --import tsx --test tests/*.test.ts
+
+TAP version 13
+# Subtest: health distinguishes a runnable process from business or database readiness
+ok 1 - health distinguishes a runnable process from business or database readiness
+  ---
+  duration_ms: 163.564833
+  type: 'test'
+  ...
+# Subtest: script selections convert UTF-16 boundaries to exact Unicode code point ranges
+ok 2 - script selections convert UTF-16 boundaries to exact Unicode code point ranges
+  ---
+  duration_ms: 1.610125
+  type: 'test'
+  ...
+# Subtest: execution is stored before submission and refresh never executes an unknown job again
+ok 3 - execution is stored before submission and refresh never executes an unknown job again
+  ---
+  duration_ms: 1.769208
+  type: 'test'
+  ...
+# Subtest: lost execution receipt recovers the original job by fixed plan without another POST
+ok 4 - lost execution receipt recovers the original job by fixed plan without another POST
+  ---
+  duration_ms: 0.557125
+  type: 'test'
+  ...
+# Subtest: no matching job is unresolved evidence, not permission to submit or discard intent
+ok 5 - no matching job is unresolved evidence, not permission to submit or discard intent
+  ---
+  duration_ms: 0.454583
+  type: 'test'
+  ...
+# Subtest: storage failure blocks paid execution before any request
+ok 6 - storage failure blocks paid execution before any request
+  ---
+  duration_ms: 0.32825
+  type: 'test'
+  ...
+# Subtest: lost plan receipt reuses its exact input and request key across reload
+ok 7 - lost plan receipt reuses its exact input and request key across reload
+  ---
+  duration_ms: 4.500375
+  type: 'test'
+  ...
+# Subtest: failed initial storage read is retryable without creating a plan or job
+ok 8 - failed initial storage read is retryable without creating a plan or job
+  ---
+  duration_ms: 0.183333
+  type: 'test'
+  ...
+# Subtest: explicit continuation uses the original execution intent after checking the plan and job
+ok 9 - explicit continuation uses the original execution intent after checking the plan and job
+  ---
+  duration_ms: 0.419333
+  type: 'test'
+  ...
+# Subtest: revocation hides content immediately and a late execution result cannot recreate the cleared record
+ok 10 - revocation hides content immediately and a late execution result cannot recreate the cleared record
+  ---
+  duration_ms: 1.094625
+  type: 'test'
+  ...
+# Subtest: retirement waits for an in-flight storage write and removes its late data
+ok 11 - retirement waits for an in-flight storage write and removes its late data
+  ---
+  duration_ms: 0.890125
+  type: 'test'
+  ...
+# Subtest: network uncertainty hides the recovered draft, retains it, and restores it only after current authorization
+ok 12 - network uncertainty hides the recovered draft, retains it, and restores it only after current authorization
+  ---
+  duration_ms: 0.984334
+  type: 'test'
+  ...
+# Subtest: revocation cleanup failure keeps content hidden and can retry cleanup
+ok 13 - revocation cleanup failure keeps content hidden and can retry cleanup
+  ---
+  duration_ms: 4.774167
+  type: 'test'
+  ...
+# Subtest: asynchronous and cancellation facts preserve old GenerationJob responses
+ok 14 - asynchronous and cancellation facts preserve old GenerationJob responses
+  ---
+  duration_ms: 18.05425
+  type: 'test'
+  ...
+# Subtest: audio execution requires a distinct executable audio capability
+ok 15 - audio execution requires a distinct executable audio capability
+  ---
+  duration_ms: 1.177042
+  type: 'test'
+  ...
+# Subtest: audio output validates integer duration and rejects visual or withAudio fields instead of silently dropping them
+ok 16 - audio output validates integer duration and rejects visual or withAudio fields instead of silently dropping them
+  ---
+  duration_ms: 0.361042
+  type: 'test'
+  ...
+# Subtest: audio plan fixes the selected shot and voice references without adding dialogue bindings or following later edits
+ok 17 - audio plan fixes the selected shot and voice references without adding dialogue bindings or following later edits
+  ---
+  duration_ms: 0.220959
+  type: 'test'
+  ...
+# Subtest: canvas ambience is independent of a shot and fixes a saved audio draft
+ok 18 - canvas ambience is independent of a shot and fixes a saved audio draft
+  ---
+  duration_ms: 0.190333
+  type: 'test'
+  ...
+# Subtest: audio uses decoded samples while explicit final presentation duration removes only known padding
+ok 19 - audio uses decoded samples while explicit final presentation duration removes only known padding
+  ---
+  duration_ms: 1.6335
+  type: 'test'
+  ...
+# Subtest: coarse timestamps share one clock phase without adding per-frame silence or cumulative tolerance
+ok 20 - coarse timestamps share one clock phase without adding per-frame silence or cumulative tolerance
+  ---
+  duration_ms: 0.348667
+  type: 'test'
+  ...
+# Subtest: video zero, internal gaps and fractional negative cropping use exact rational sample positions
+ok 21 - video zero, internal gaps and fractional negative cropping use exact rational sample positions
+  ---
+  duration_ms: 0.432875
+  type: 'test'
+  ...
+# Subtest: missing, duplicate, overlapping, excessive and ambiguous sample intervals fail
+ok 22 - missing, duplicate, overlapping, excessive and ambiguous sample intervals fail
+  ---
+  duration_ms: 0.236458
+  type: 'test'
+  ...
+# Subtest: a following PTS bounds a declared packet gap without stretching decoded samples
+ok 23 - a following PTS bounds a declared packet gap without stretching decoded samples
+  ---
+  duration_ms: 0.175833
+  type: 'test'
+  ...
+# Subtest: an invitation secret never enters the OIDC login return URL
+ok 24 - an invitation secret never enters the OIDC login return URL
+  ---
+  duration_ms: 2.823167
+  type: 'test'
+  ...
+# Subtest: candidate source timestamps round-trip decimal seconds without floating point loss
+ok 25 - candidate source timestamps round-trip decimal seconds without floating point loss
+  ---
+  duration_ms: 0.743125
+  type: 'test'
+  ...
+# Subtest: continuing creates one independent draft with ordered explicit sources and retains originals
+ok 26 - continuing creates one independent draft with ordered explicit sources and retains originals
+  ---
+  duration_ms: 3.860833
+  type: 'test'
+  ...
+# Subtest: source selection is pinned while unrelated layout/content can advance
+ok 27 - source selection is pinned while unrelated layout/content can advance
+  ---
+  duration_ms: 0.326042
+  type: 'test'
+  ...
+# Subtest: unfinished outputs and canvas capacity cannot be bypassed by continued creation
+ok 28 - unfinished outputs and canvas capacity cannot be bypassed by continued creation
+  ---
+  duration_ms: 10.852916
+  type: 'test'
+  ...
+# Subtest: explicit reference append preserves each draft's fixed input order and rejects duplicates
+ok 29 - explicit reference append preserves each draft's fixed input order and rejects duplicates
+  ---
+  duration_ms: 0.807375
+  type: 'test'
+  ...
+# Subtest: canvas replay changes only selected objects and preserves peer additions and input order
+ok 30 - canvas replay changes only selected objects and preserves peer additions and input order
+  ---
+  duration_ms: 14.2685
+  type: 'test'
+  ...
+# Subtest: canvas node and group removal requires explicit related reference choices
+ok 31 - canvas node and group removal requires explicit related reference choices
+  ---
+  duration_ms: 1.350917
+  type: 'test'
+  ...
+# Subtest: fit encloses legal opposite-corner nodes in the smallest editing viewport, including negative coordinates
+ok 32 - fit encloses legal opposite-corner nodes in the smallest editing viewport, including negative coordinates
+  ---
+  duration_ms: 0.77125
+  type: 'test'
+  ...
+# Subtest: fit encloses the existing 20-by-100 capacity layout and still fits small selections normally
+ok 33 - fit encloses the existing 20-by-100 capacity layout and still fits small selections normally
+  ---
+  duration_ms: 0.096792
+  type: 'test'
+  ...
+# Subtest: viewport contract and UI share positive bounds, and low overviews never show zero percent
+ok 34 - viewport contract and UI share positive bounds, and low overviews never show zero percent
+  ---
+  duration_ms: 0.078333
+  type: 'test'
+  ...
+# Subtest: canvas accepts incomplete drafts and uses stable portable document hashes
+ok 35 - canvas accepts incomplete drafts and uses stable portable document hashes
+  ---
+  duration_ms: 3.720083
+  type: 'test'
+  ...
+# Subtest: canvas rejects nonfinite coordinates and measures UTF-8 capacity without interpreting plain text
+ok 36 - canvas rejects nonfinite coordinates and measures UTF-8 capacity without interpreting plain text
+  ---
+  duration_ms: 75.32275
+  type: 'test'
+  ...
+# Subtest: lost creation response and reload replay the durable original request exactly once despite newer content
+ok 37 - lost creation response and reload replay the durable original request exactly once despite newer content
+  ---
+  duration_ms: 1.697458
+  type: 'test'
+  ...
+# Subtest: failed local persistence or a departed editor never sends a creation request
+ok 38 - failed local persistence or a departed editor never sends a creation request
+  ---
+  duration_ms: 0.111167
+  type: 'test'
+  ...
+# Subtest: only a known first-send rejection permits editing; an unknown replay 412 preserves its original identity
+ok 39 - only a known first-send rejection permits editing; an unknown replay 412 preserves its original identity
+  ---
+  duration_ms: 0.145584
+  type: 'test'
+  ...
+# Subtest: recovery keeps permission checks and cannot change the request target
+ok 40 - recovery keeps permission checks and cannot change the request target
+  ---
+  duration_ms: 0.168458
+  type: 'test'
+  ...
+# Subtest: reviewing concurrent look changes keeps the selected look and its fixed parent as one choice
+ok 41 - reviewing concurrent look changes keeps the selected look and its fixed parent as one choice
+  ---
+  duration_ms: 1.269875
+  type: 'test'
+  ...
+# Subtest: reviewed content rebase retains local look edits, remote voice edits and independent dialogue changes
+ok 42 - reviewed content rebase retains local look edits, remote voice edits and independent dialogue changes
+  ---
+  duration_ms: 0.333208
+  type: 'test'
+  ...
+# Subtest: explicit removals and null holder survive rebase, while untouched remote removal is respected
+ok 43 - explicit removals and null holder survive rebase, while untouched remote removal is respected
+  ---
+  duration_ms: 0.222625
+  type: 'test'
+  ...
+# Subtest: OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation
+ok 44 - OpenAPI 3.1 samples validate with the runtime 2020-12 dialect without mutation
+  ---
+  duration_ms: 658.854125
+  type: 'test'
+  ...
+# Subtest: the published CSV template becomes an additive proposal graph with exact duration and no inferred assets
+ok 45 - the published CSV template becomes an additive proposal graph with exact duration and no inferred assets
+  ---
+  duration_ms: 121.619834
+  type: 'test'
+  ...
+# Subtest: CSV quoting, BOM, line breaks and decimal microseconds are retained without executing text
+ok 46 - CSV quoting, BOM, line breaks and decimal microseconds are retained without executing text
+  ---
+  duration_ms: 14.0225
+  type: 'test'
+  ...
+# Subtest: CSV errors reject the whole input instead of skipping rows or guessing a mapping
+ok 47 - CSV errors reject the whole input instead of skipping rows or guessing a mapping
+  ---
+  duration_ms: 18.392167
+  type: 'test'
+  ...
+# Subtest: append mode names a real target and refuses a CSV with several source scenes
+ok 48 - append mode names a real target and refuses a CSV with several source scenes
+  ---
+  duration_ms: 4.31275
+  type: 'test'
+  ...
+# Subtest: known dialogue overlap uses fixed source ranges, actual placement, and independent audible clips
+ok 49 - known dialogue overlap uses fixed source ranges, actual placement, and independent audible clips
+  ---
+  duration_ms: 12.395292
+  type: 'test'
+  ...
+# Subtest: overlap diagnostics find all participating clips without quadratic pair expansion
+ok 50 - overlap diagnostics find all participating clips without quadratic pair expansion
+  ---
+  duration_ms: 42.558542
+  type: 'test'
+  ...
+# Subtest: binding application preserves explicit original-sound choices and unfinished decisions
+ok 51 - binding application preserves explicit original-sound choices and unfinished decisions
+  ---
+  duration_ms: 2.780833
+  type: 'test'
+  ...
+# Subtest: presence advice expires individual pages using server time, then becomes unknown
+ok 52 - presence advice expires individual pages using server time, then becomes unknown
+  ---
+  duration_ms: 1.22925
+  type: 'test'
+  ...
+# Subtest: explicit work replay preserves unselected peer clips, new entries and independent order
+ok 53 - explicit work replay preserves unselected peer clips, new entries and independent order
+  ---
+  duration_ms: 22.327125
+  type: 'test'
+  ...
+# Subtest: track deletion and insertion require explicit related clip choices
+ok 54 - track deletion and insertion require explicit related clip choices
+  ---
+  duration_ms: 1.131375
+  type: 'test'
+  ...
+# Subtest: editing canonical JSON agrees with frozen scalar/number fixtures and Python UTF-8 hashes
+ok 55 - editing canonical JSON agrees with frozen scalar/number fixtures and Python UTF-8 hashes
+  ---
+  duration_ms: 126.751375
+  type: 'test'
+  ...
+# Subtest: editing canonical keeps scalar ordering across BMP, astral keys and shared prefixes
+ok 56 - editing canonical keeps scalar ordering across BMP, astral keys and shared prefixes
+  ---
+  duration_ms: 2.330208
+  type: 'test'
+  ...
+# Subtest: unfinished edits save structurally while diagnostics remain live and leave input unchanged
+ok 57 - unfinished edits save structurally while diagnostics remain live and leave input unchanged
+  ---
+  duration_ms: 53.262875
+  type: 'test'
+  ...
+# Subtest: work-wide validation rejects reversed intervals, duplicate identity and missing exact sources
+ok 58 - work-wide validation rejects reversed intervals, duplicate identity and missing exact sources
+  ---
+  duration_ms: 0.787791
+  type: 'test'
+  ...
+# Subtest: diagnostics preserve exact microseconds at large integer boundaries
+ok 59 - diagnostics preserve exact microseconds at large integer boundaries
+  ---
+  duration_ms: 4.640666
+  type: 'test'
+  ...
+# Subtest: document limits count all tracks and canonical UTF-8 bytes
+ok 60 - document limits count all tracks and canonical UTF-8 bytes
+  ---
+  duration_ms: 346.602291
+  type: 'test'
+  ...
+# Subtest: history retains real recent revisions, UTC checkpoints and protected bodies within deduplicated budget
+ok 61 - history retains real recent revisions, UTC checkpoints and protected bodies within deduplicated budget
+  ---
+  duration_ms: 3.118834
+  type: 'test'
+  ...
+# Subtest: generated video preserves actual integer timing and allows no more than one decoded frame of container quantization
+ok 62 - generated video preserves actual integer timing and allows no more than one decoded frame of container quantization
+  ---
+  duration_ms: 0.7165
+  type: 'test'
+  ...
+# Subtest: generated video rejects missing audio, frame evidence and wrong output kind or dimensions
+ok 63 - generated video rejects missing audio, frame evidence and wrong output kind or dimensions
+  ---
+  duration_ms: 0.207333
+  type: 'test'
+  ...
+# Subtest: generated audio retains exact sample timing without any video dimensions or track toggle
+ok 64 - generated audio retains exact sample timing without any video dimensions or track toggle
+  ---
+  duration_ms: 0.095583
+  type: 'test'
+  ...
+# Subtest: accepted and running jobs advance by GET; success after cancellation still preserves results and manual input
+ok 65 - accepted and running jobs advance by GET; success after cancellation still preserves results and manual input
+  ---
+  duration_ms: 2.294709
+  type: 'test'
+  ...
+# Subtest: lost cancellation receipt survives reload and known cancellation facts never repeat POST
+ok 66 - lost cancellation receipt survives reload and known cancellation facts never repeat POST
+  ---
+  duration_ms: 0.579166
+  type: 'test'
+  ...
+# Subtest: not-delivered cancellation waits for explicit recovery of the same job and key after reload
+ok 67 - not-delivered cancellation waits for explicit recovery of the same job and key after reload
+  ---
+  duration_ms: 0.396708
+  type: 'test'
+  ...
+# Subtest: cancel storage failure prevents POST and preserves the original input
+ok 68 - cancel storage failure prevents POST and preserves the original input
+  ---
+  duration_ms: 0.158583
+  type: 'test'
+  ...
+# Subtest: opened cancellation cannot retarget another job and a completed job is only read
+ok 69 - opened cancellation cannot retarget another job and a completed job is only read
+  ---
+  duration_ms: 2.761542
+  type: 'test'
+  ...
+# Subtest: malformed or wrong-target cancellation replies retain an unresolved fixed intent
+ok 70 - malformed or wrong-target cancellation replies retain an unresolved fixed intent
+  ---
+  duration_ms: 1.855708
+  type: 'test'
+  ...
+# Subtest: permission recheck precedes cancellation; confirmed revocation hides and clears local recovery
+ok 71 - permission recheck precedes cancellation; confirmed revocation hides and clears local recovery
+  ---
+  duration_ms: 1.095042
+  type: 'test'
+  ...
+# Subtest: late cancellation reply cannot revive a retired session or its durable intent
+ok 72 - late cancellation reply cannot revive a retired session or its durable intent
+  ---
+  duration_ms: 0.306708
+  type: 'test'
+  ...
+# Subtest: SQL cancel_requested with unsupported or unknown continues reads; terminal results supersede processing text
+ok 73 - SQL cancel_requested with unsupported or unknown continues reads; terminal results supersede processing text
+  ---
+  duration_ms: 2.7505
+  type: 'test'
+  ...
+# Subtest: target descriptions and unverified image capabilities cannot become executable choices
+ok 74 - target descriptions and unverified image capabilities cannot become executable choices
+  ---
+  duration_ms: 1.410167
+  type: 'test'
+  ...
+# Subtest: image plan fixes manual text, references and assistance provenance without using suggestion body
+ok 75 - image plan fixes manual text, references and assistance provenance without using suggestion body
+  ---
+  duration_ms: 0.23525
+  type: 'test'
+  ...
+# Subtest: single-image output validates model dimensions, aspect ratio and prohibited duration/audio
+ok 76 - single-image output validates model dimensions, aspect ratio and prohibited duration/audio
+  ---
+  duration_ms: 0.120167
+  type: 'test'
+  ...
+# Subtest: canvas prepare fixes the saved canvas revision and selects no implicit shot
+ok 77 - canvas prepare fixes the saved canvas revision and selects no implicit shot
+  ---
+  duration_ms: 0.137958
+  type: 'test'
+  ...
+# Subtest: a late canvas save cannot start plan preparation after the session is retired
+ok 78 - a late canvas save cannot start plan preparation after the session is retired
+  ---
+  duration_ms: 0.408333
+  type: 'test'
+  ...
+# Subtest: late command follow-up cannot perform another side effect after an access epoch changes
+ok 79 - late command follow-up cannot perform another side effect after an access epoch changes
+  ---
+  duration_ms: 0.226916
+  type: 'test'
+  ...
+# Subtest: opening an existing image task and refreshing performs reads without executing again
+ok 80 - opening an existing image task and refreshing performs reads without executing again
+  ---
+  duration_ms: 0.3485
+  type: 'test'
+  ...
+# Subtest: lost materialization result retains its exact operation identity across refresh with no POST
+ok 81 - lost materialization result retains its exact operation identity across refresh with no POST
+  ---
+  duration_ms: 0.288208
+  type: 'test'
+  ...
+# Subtest: materialization acknowledgement is durable before a parent view can unmount
+ok 82 - materialization acknowledgement is durable before a parent view can unmount
+  ---
+  duration_ms: 4.113167
+  type: 'test'
+  ...
+# Subtest: project creation commits once after lost response, reload and expired HTTP receipt, preserving its durable original identity
+ok 83 - project creation commits once after lost response, reload and expired HTTP receipt, preserving its durable original identity
+  ---
+  duration_ms: 6.513292
+  type: 'test'
+  ...
+# Subtest: unreadable recovery cannot overwrite an existing request; write failure never submits
+ok 84 - unreadable recovery cannot overwrite an existing request; write failure never submits
+  ---
+  duration_ms: 0.374041
+  type: 'test'
+  ...
+# Subtest: only a complete trusted first business rejection permits editing; proxy and identity conflicts remain unresolved
+ok 85 - only a complete trusted first business rejection permits editing; proxy and identity conflicts remain unresolved
+  ---
+  duration_ms: 3.647542
+  type: 'test'
+  ...
+# Subtest: a later complete rejection cannot release a previously unknown project request
+ok 86 - a later complete rejection cannot release a previously unknown project request
+  ---
+  duration_ms: 0.660417
+  type: 'test'
+  ...
+# Subtest: malformed or foreign Project success never clears the original identity
+ok 87 - malformed or foreign Project success never clears the original identity
+  ---
+  duration_ms: 2.025959
+  type: 'test'
+  ...
+# Subtest: confirmed result persists before cleanup; storage failures recover locally without another POST
+ok 88 - confirmed result persists before cleanup; storage failures recover locally without another POST
+  ---
+  duration_ms: 0.229083
+  type: 'test'
+  ...
+# Subtest: confirmed cleanup recovery rechecks current authority and retains the receipt when denied
+ok 89 - confirmed cleanup recovery rechecks current authority and retains the receipt when denied
+  ---
+  duration_ms: 0.243666
+  type: 'test'
+  ...
+# Subtest: closing while submission is in flight never navigates or clears a successor's request
+ok 90 - closing while submission is in flight never navigates or clears a successor's request
+  ---
+  duration_ms: 0.213625
+  type: 'test'
+  ...
+# Subtest: accepted text writes register before close so a serial slot can drain them before reopening
+ok 91 - accepted text writes register before close so a serial slot can drain them before reopening
+  ---
+  duration_ms: 0.374625
+  type: 'test'
+  ...
+# Subtest: prepare prompt fixes shot and target capability revision without implicit scene context
+ok 92 - prepare prompt fixes shot and target capability revision without implicit scene context
+  ---
+  duration_ms: 3.561292
+  type: 'test'
+  ...
+# Subtest: explicit apply preserves manual text, fixed references and artifact revision; repeat cannot duplicate
+ok 93 - explicit apply preserves manual text, fixed references and artifact revision; repeat cannot duplicate
+  ---
+  duration_ms: 46.440292
+  type: 'test'
+  ...
+# Subtest: unknown edit recovery confirms matching new revision with reordered body keys; unchanged base only permits explicit retry
+ok 94 - unknown edit recovery confirms matching new revision with reordered body keys; unchanged base only permits explicit retry
+  ---
+  duration_ms: 0.14875
+  type: 'test'
+  ...
+# Subtest: manual draft editing after a fixed plan does not change prepared model input
+ok 95 - manual draft editing after a fixed plan does not change prepared model input
+  ---
+  duration_ms: 0.677042
+  type: 'test'
+  ...
+# Subtest: confirmation against older manual input rejects before application or remote read
+ok 96 - confirmation against older manual input rejects before application or remote read
+  ---
+  duration_ms: 0.245709
+  type: 'test'
+  ...
+# Subtest: save intent is durable before request; losing response preserves exact edit for refresh
+ok 97 - save intent is durable before request; losing response preserves exact edit for refresh
+  ---
+  duration_ms: 0.414959
+  type: 'test'
+  ...
+# Subtest: late artifact result cannot repopulate draft or storage after session retirement
+ok 98 - late artifact result cannot repopulate draft or storage after session retirement
+  ---
+  duration_ms: 24.68775
+  type: 'test'
+  ...
+# Subtest: new creation input retains the previous manual prompt and fixed artifact source
+ok 99 - new creation input retains the previous manual prompt and fixed artifact source
+  ---
+  duration_ms: 0.206458
+  type: 'test'
+  ...
+# Subtest: reading a concurrently changed artifact never silently rebases dirty manual edits
+ok 100 - reading a concurrently changed artifact never silently rebases dirty manual edits
+  ---
+  duration_ms: 0.218875
+  type: 'test'
+  ...
+# Subtest: an unapplied prompt can explicitly advance its fixed shot while retaining input and completed task through reload
+ok 101 - an unapplied prompt can explicitly advance its fixed shot while retaining input and completed task through reload
+  ---
+  duration_ms: 2.084458
+  type: 'test'
+  ...
+# Subtest: advancing an unapplied prompt cannot abandon an unknown task
+ok 102 - advancing an unapplied prompt cannot abandon an unknown task
+  ---
+  duration_ms: 0.342542
+  type: 'test'
+  ...
+# Subtest: NTSC inward range keeps exact source frame bounds
+ok 103 - NTSC inward range keeps exact source frame bounds
+  ---
+  duration_ms: 1.174833
+  type: 'test'
+  ...
+# Subtest: invalid or shorter-than-frame intervals are rejected
+ok 104 - invalid or shorter-than-frame intervals are rejected
+  ---
+  duration_ms: 0.214792
+  type: 'test'
+  ...
+# Subtest: audio length is derived from global frame boundaries, not per-clip rounded sums
+ok 105 - audio length is derived from global frame boundaries, not per-clip rounded sums
+  ---
+  duration_ms: 0.096959
+  type: 'test'
+  ...
+# Subtest: mock accepted: repeated scheduling cannot submit twice
+ok 106 - mock accepted: repeated scheduling cannot submit twice
+  ---
+  duration_ms: 0.147917
+  type: 'test'
+  ...
+# Subtest: mock rejected: repeated scheduling cannot submit twice
+ok 107 - mock rejected: repeated scheduling cannot submit twice
+  ---
+  duration_ms: 0.04
+  type: 'test'
+  ...
+# Subtest: mock lost_reply: repeated scheduling cannot submit twice
+ok 108 - mock lost_reply: repeated scheduling cannot submit twice
+  ---
+  duration_ms: 0.031791
+  type: 'test'
+  ...
+# Subtest: lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved
+ok 109 - lost reply can accept late evidence without a new purchase; conflicting receipts stay unresolved
+  ---
+  duration_ms: 0.104833
+  type: 'test'
+  ...
+# Subtest: source mapping uses presentation intervals, exact joints and a verified final end
+ok 110 - source mapping uses presentation intervals, exact joints and a verified final end
+  ---
+  duration_ms: 2.572
+  type: 'test'
+  ...
+# Subtest: large and negative source PTS retain exact relative coordinates
+ok 111 - large and negative source PTS retain exact relative coordinates
+  ---
+  duration_ms: 0.174666
+  type: 'test'
+  ...
+# Subtest: ambiguous timing, missing final duration, subframe media and unsafe profiles fail explicitly
+ok 112 - ambiguous timing, missing final duration, subframe media and unsafe profiles fail explicitly
+  ---
+  duration_ms: 0.3955
+  type: 'test'
+  ...
+# Subtest: storage fixture waits through explicit S3 startup after health is available
+ok 113 - storage fixture waits through explicit S3 startup after health is available
+  ---
+  duration_ms: 257.380208
+  type: 'test'
+  ...
+# Subtest: storage fixture startup wait has a finite deadline
+ok 114 - storage fixture startup wait has a finite deadline
+  ---
+  duration_ms: 27.771875
+  type: 'test'
+  ...
+# Subtest: storage fixture never retries authorization, network or unrelated service failures
+ok 115 - storage fixture never retries authorization, network or unrelated service failures
+  ---
+  duration_ms: 0.772
+  type: 'test'
+  ...
+# Subtest: storage readiness reaches its deadline when transport has no referenced handles
+ok 116 - storage readiness reaches its deadline when transport has no referenced handles
+  ---
+  duration_ms: 315.447708
+  type: 'test'
+  ...
+# Subtest: storage readiness reports status and releases a successful attempt's deadline
+ok 117 - storage readiness reports status and releases a successful attempt's deadline
+  ---
+  duration_ms: 233.718666
+  type: 'test'
+  ...
+# Subtest: only rework assistance requires the exact opened comment revision
+ok 118 - only rework assistance requires the exact opened comment revision
+  ---
+  duration_ms: 7.36
+  type: 'test'
+  ...
+# Subtest: Take review and comment each require an explicit fixed request; response loss refresh never writes
+ok 119 - Take review and comment each require an explicit fixed request; response loss refresh never writes
+  ---
+  duration_ms: 2.608041
+  type: 'test'
+  ...
+# Subtest: expired create is read-only, same-text lists do not confirm it or release its identity
+ok 120 - expired create is read-only, same-text lists do not confirm it or release its identity
+  ---
+  duration_ms: 0.288292
+  type: 'test'
+  ...
+# Subtest: storage failure before send prevents mutation; confirmed local cleanup failure only retries cleanup
+ok 121 - storage failure before send prevents mutation; confirmed local cleanup failure only retries cleanup
+  ---
+  duration_ms: 0.419166
+  type: 'test'
+  ...
+# Subtest: malformed/proxy rejection is unknown; only full first business rejection permits editing
+ok 122 - malformed/proxy rejection is unknown; only full first business rejection permits editing
+  ---
+  duration_ms: 1.981417
+  type: 'test'
+  ...
+# Subtest: comment receipt must be by original actor; no-op changes accept original revision and preserve unrelated input
+ok 123 - comment receipt must be by original actor; no-op changes accept original revision and preserve unrelated input
+  ---
+  duration_ms: 0.821
+  type: 'test'
+  ...
+# Subtest: comment CAS response loss reconciles via read only; conflict retains original input before explicit current-head editing
+ok 124 - comment CAS response loss reconciles via read only; conflict retains original input before explicit current-head editing
+  ---
+  duration_ms: 0.566625
+  type: 'test'
+  ...
+# Subtest: fixed opinion confirmation rejects later head/resolution; previous selection remains readable
+ok 125 - fixed opinion confirmation rejects later head/resolution; previous selection remains readable
+  ---
+  duration_ms: 0.388833
+  type: 'test'
+  ...
+# Subtest: temporary access failure hides recovery; confirmed denial clears it and late command cannot revive it
+ok 126 - temporary access failure hides recovery; confirmed denial clears it and late command cannot revive it
+  ---
+  duration_ms: 3.376084
+  type: 'test'
+  ...
+# Subtest: accepted last text drains through view close; failed initial read cannot overwrite an unread draft
+ok 127 - accepted last text drains through view close; failed initial read cannot overwrite an unread draft
+  ---
+  duration_ms: 2.066583
+  type: 'test'
+  ...
+# Subtest: rework plan and next input preserve old Take shot and opinion revision; normal draft/media scope stays distinct
+ok 128 - rework plan and next input preserve old Take shot and opinion revision; normal draft/media scope stays distinct
+  ---
+  duration_ms: 12.920833
+  type: 'test'
+  ...
+# Subtest: a slow durable write cannot extend the original 24-hour create retry window
+ok 129 - a slow durable write cannot extend the original 24-hour create retry window
+  ---
+  duration_ms: 0.313958
+  type: 'test'
+  ...
+# Subtest: altered 201 creation facts never clear the original Take opinion request
+ok 130 - altered 201 creation facts never clear the original Take opinion request
+  ---
+  duration_ms: 0.492709
+  type: 'test'
+  ...
+# Subtest: video execution requires its own executable capability, never an image or target profile
+ok 131 - video execution requires its own executable capability, never an image or target profile
+  ---
+  duration_ms: 1.184542
+  type: 'test'
+  ...
+# Subtest: video output fixes integer duration, supported geometry and explicitly selected audio
+ok 132 - video output fixes integer duration, supported geometry and explicitly selected audio
+  ---
+  duration_ms: 0.470333
+  type: 'test'
+  ...
+# Subtest: video plan preserves manual text, fixed references and historical assistance source
+ok 133 - video plan preserves manual text, fixed references and historical assistance source
+  ---
+  duration_ms: 0.215958
+  type: 'test'
+  ...
+# Subtest: canvas video preparation binds the saved draft version and rejects an image source
+ok 134 - canvas video preparation binds the saved draft version and rejects an image source
+  ---
+  duration_ms: 0.241042
+  type: 'test'
+  ...
+1..134
+# tests 134
+# suites 0
+# pass 134
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3294.691834

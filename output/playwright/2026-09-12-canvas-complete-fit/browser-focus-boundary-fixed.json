@@ -1,0 +1,72 @@
+{
+  "status": 200,
+  "request": {
+    "mode": "canvas",
+    "viewport": {
+      "x": 1000000,
+      "y": 1000000,
+      "zoom": 1
+    },
+    "assistantOpen": false,
+    "assetPanelOpen": false,
+    "selectedShotId": null,
+    "selectedNodeIds": [
+      "dd387e77-d6c6-4531-b374-36e527c94ae2"
+    ]
+  },
+  "response": {
+    "sceneId": "d484ea13-209a-4eb4-af3d-80864219225c",
+    "revision": 4,
+    "mode": "canvas",
+    "viewport": {
+      "x": 1000000,
+      "y": 1000000,
+      "zoom": 1
+    },
+    "assistantOpen": false,
+    "assetPanelOpen": false,
+    "selectedShotId": null,
+    "selectedNodeIds": [
+      "dd387e77-d6c6-4531-b374-36e527c94ae2"
+    ]
+  },
+  "before": {
+    "sceneId": "d484ea13-209a-4eb4-af3d-80864219225c",
+    "revision": 3,
+    "mode": "canvas",
+    "viewport": {
+      "x": 711.462883359056,
+      "y": 300.97900589996607,
+      "zoom": 0.00023197900589996606
+    },
+    "assistantOpen": false,
+    "assetPanelOpen": false,
+    "selectedShotId": null,
+    "selectedNodeIds": [
+      "dd387e77-d6c6-4531-b374-36e527c94ae2",
+      "95718d6c-7f7b-483d-8842-f1ac27ee1daf"
+    ]
+  },
+  "after": {
+    "sceneId": "d484ea13-209a-4eb4-af3d-80864219225c",
+    "revision": 4,
+    "mode": "canvas",
+    "viewport": {
+      "x": 1000000,
+      "y": 1000000,
+      "zoom": 1
+    },
+    "assistantOpen": false,
+    "assetPanelOpen": false,
+    "selectedShotId": null,
+    "selectedNodeIds": [
+      "dd387e77-d6c6-4531-b374-36e527c94ae2"
+    ]
+  },
+  "transform": "translate(1e+06px, 1e+06px) scale(1)",
+  "restored": {
+    "transform": "translate(1e+06px, 1e+06px) scale(1)",
+    "inside": true
+  },
+  "heldBeyondDebounce": true
+}

@@ -1,0 +1,12 @@
+Generated 152 operations, 118 paths, 225 schemas.
+
+> drama-platform@0.0.0 contracts:generate
+> openapi-typescript docs/implementation/openapi.json -o packages/contracts/src/generated.ts
+
+✨ openapi-typescript 7.13.0
+🚀 docs/implementation/openapi.json → packages/contracts/src/generated.ts [520.1ms]
+
+> drama-platform@0.0.0 contracts:check
+> node scripts/check-generated.mjs
+
+Generated TypeScript matches the design contract.
