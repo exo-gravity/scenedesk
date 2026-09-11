@@ -15,6 +15,7 @@ import { sqlIdentifier, verifyRuntimeRole } from "@drama/database";
 import { validateContract } from "@drama/contracts/validation";
 import type {
   AssistanceAdapter,
+  AssistanceProviderTask,
   AssistanceReceipt,
   AssistanceSubmission,
 } from "@drama/provider";
@@ -22,7 +23,13 @@ import type { Schema } from "../content/model.js";
 
 type Saved = AssistanceSubmission & {
   status: Schema<"GenerationJob">["status"];
+  providerJobId?: string;
+  observationFailures?: number;
   evidence: { id: string; body: AssistanceReceipt }[];
+};
+type Observation = Saved & {
+  action: "query" | "recover" | "cancel";
+  leaseToken: string;
 };
 /** Decode a constrained model result. It cannot inject IDs, references, target changes or actions. */
 export function analysisOperations(
@@ -158,9 +165,12 @@ export async function createAssistanceWorker(options: {
     ).rows[0]?.state as Saved | null;
     if (!state) return;
     if (["succeeded", "failed", "cancelled"].includes(state.status)) return;
-    const terminal = state.evidence.filter((e) => e.body.kind !== "unknown"),
-      selected = terminal[0] ?? state.evidence[0];
-    if (!selected) return;
+    // Every observation is evidence. Only a completed receipt contains creative output;
+    // accepted/running/cancellation acknowledgements must never be decoded as results.
+    // SQL projects evidence monotonically and detects conflicting terminal receipts.
+    for (const selected of state.evidence) await project(state, selected);
+  }
+  async function project(state: Saved, selected: Saved["evidence"][number]) {
     let ops:
         | Schema<"ProposalOperation">[]
         | Schema<"AssistanceBody">
@@ -195,7 +205,7 @@ export async function createAssistanceWorker(options: {
     try {
       await sql.query("BEGIN");
       await sql.query(`SELECT ${scope}.finish_generation_job($1,$2,$3,$4)`, [
-        jobId,
+        state.jobId,
         selected.id,
         ops ? JSON.stringify(ops) : null,
         failure,
@@ -204,7 +214,7 @@ export async function createAssistanceWorker(options: {
         const envelope = (
           await sql.query(
             `SELECT ${scope}.read_generation_archive_envelope($1) AS envelope`,
-            [jobId],
+            [state.jobId],
           )
         ).rows[0]?.envelope;
         if (envelope) {
@@ -261,23 +271,104 @@ export async function createAssistanceWorker(options: {
   }
   async function reconcile(jobId: string, signal = AbortSignal.timeout(30000)) {
     await finish(jobId);
+    const token = randomUUID();
     const state = (
-      await query(`SELECT ${scope}.read_generation_evidence($1) AS state`, [
-        jobId,
-      ])
-    ).rows[0]?.state as Saved | null;
-    if (
-      !state ||
-      !["submission_unknown", "reconciliation_required"].includes(state.status)
-    )
-      return;
+      await query(
+        `SELECT ${scope}.claim_generation_observation($1,$2) AS state`,
+        [jobId, token],
+      )
+    ).rows[0]?.state as Observation | null;
+    if (!state) return;
+    if (state.leaseToken !== token)
+      throw new Error("OBSERVATION_LEASE_MISMATCH");
     const adapter = adapters.get(state.connectionVersionId);
-    if (!adapter || adapter.executionMode !== state.executionMode) return;
-    // recoverSubmission may query the original identity. It is never submitOnce.
-    const receipt = await adapter.recoverSubmission(state, signal);
-    if (receipt) {
-      await save(state.attemptId, receipt);
-      await finish(jobId);
+    const configured = adapter?.executionMode === state.executionMode;
+    const task: AssistanceProviderTask | undefined = state.providerJobId
+      ? { ...state, providerJobId: state.providerJobId }
+      : undefined;
+    const boundedSignal = AbortSignal.any([signal, AbortSignal.timeout(30000)]);
+    let failed = true;
+    try {
+      if (!["query", "recover", "cancel"].includes(state.action))
+        throw new Error("INVALID_OBSERVATION_ACTION");
+      if (state.action !== "recover" && !task)
+        throw new Error("PROVIDER_TASK_ID_REQUIRED");
+      let receipt: AssistanceReceipt | null;
+      try {
+        if (state.action === "recover") {
+          // Recovery is a read of the original submission, never another submitOnce.
+          receipt = configured
+            ? await adapter!.recoverSubmission(state, boundedSignal)
+            : null;
+        } else if (state.action === "query") {
+          if (!task) throw new Error("PROVIDER_TASK_ID_REQUIRED");
+          receipt =
+            configured && adapter!.query
+              ? await adapter!.query(task, boundedSignal)
+              : {
+                  kind: "unavailable",
+                  correlation: state.attemptId,
+                  providerJobId: task.providerJobId,
+                  code: "QUERY_ADAPTER_NOT_CONFIGURED",
+                };
+        } else if (state.action === "cancel") {
+          if (!task) throw new Error("PROVIDER_TASK_ID_REQUIRED");
+          // This action has already been durably marked as attempted. Even a crash or
+          // lost response cannot authorize a second cancellation call.
+          receipt =
+            configured && adapter!.requestCancel
+              ? await adapter!.requestCancel(task, boundedSignal)
+              : {
+                  kind: configured ? "cancel_unsupported" : "cancel_unknown",
+                  correlation: state.attemptId,
+                  providerJobId: task.providerJobId,
+                };
+        } else throw new Error("INVALID_OBSERVATION_ACTION");
+      } catch {
+        receipt =
+          state.action === "recover" || !task
+            ? { kind: "unknown", correlation: state.attemptId }
+            : state.action === "cancel"
+              ? {
+                  kind: "cancel_unknown",
+                  correlation: state.attemptId,
+                  providerJobId: task.providerJobId,
+                }
+              : {
+                  kind: "unavailable",
+                  correlation: state.attemptId,
+                  providerJobId: task.providerJobId,
+                  code: "PROVIDER_QUERY_UNAVAILABLE",
+                };
+      }
+      if (receipt) {
+        await save(state.attemptId, receipt);
+        await finish(jobId);
+        failed = ["unknown", "unavailable", "cancel_unknown"].includes(
+          receipt.kind,
+        );
+      }
+    } finally {
+      // Failures survive process restarts in SQL. Read-only queries back off with jitter;
+      // neither the timer nor releasing a lease can put an attempt back into queued.
+      const failures = Number.isSafeInteger(state.observationFailures)
+        ? Math.max(0, state.observationFailures!)
+        : 0;
+      const delay = failed
+        ? Math.max(
+            1,
+            Math.min(
+              300,
+              Math.ceil(
+                5 * 2 ** Math.min(failures, 6) * (0.8 + Math.random() * 0.4),
+              ),
+            ),
+          )
+        : 5;
+      await query(
+        `SELECT ${scope}.release_generation_observation($1,$2,$3,$4)`,
+        [jobId, token, delay, failed],
+      );
     }
   }
   return {

@@ -203,7 +203,9 @@ export async function imageGenerationFixture(
     },
     unknown = false,
     queueFailure = false;
-  const receipt = (submission: AssistanceSubmission): AssistanceSubmissionReceipt =>
+  const receipt = (
+    submission: AssistanceSubmission,
+  ): AssistanceSubmissionReceipt =>
     unknown
       ? { kind: "unknown", correlation: submission.attemptId }
       : { kind: "completed", correlation: submission.attemptId, output };

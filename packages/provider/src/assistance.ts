@@ -48,10 +48,7 @@ export type AssistanceQueryReceipt =
     };
 export type AssistanceCancelReceipt = {
   kind:
-    | "cancel_requested"
-    | "cancel_unsupported"
-    | "cancel_unknown"
-    | "cancelled";
+    "cancel_requested" | "cancel_unsupported" | "cancel_unknown" | "cancelled";
   correlation: string;
   providerJobId: string;
 };
