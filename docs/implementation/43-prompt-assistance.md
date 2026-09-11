@@ -53,7 +53,7 @@ node --env-file=.env --import tsx scripts/extend-local-prompt-fixture.ts <tenant
 
 ## 明确剩余工作
 
-前后端已在主线程整合并通过[实际生产网页与受限 worker 闭环](../../output/playwright/2026-09-11-prompt-integrated/verification.md)：真实回执丢失后仅通过 GET 恢复同一任务与人工修订，原镜头未改变，明确追加保留手工原文和固定来源。完整检查 69 单元、172 数据库通过，0034 加强后的提示专项 13 项通过；远端 CI／合并待完成。
+前后端已在主线程整合并通过[实际生产网页与受限 worker 闭环](../../output/playwright/2026-09-11-prompt-integrated/verification.md)：真实回执丢失后仅通过 GET 恢复同一任务与人工修订，原镜头未改变，明确追加保留手工原文和固定来源。完整检查 69 单元、172 数据库通过，0034 加强后的提示专项 13 项通过；[PR #19](https://github.com/exo-gravity/scenedesk/pull/19) 已于 2026-09-11 合入 main（ff5bb6a）；精确提交 bc4cd830 的两组 CI（34599727920、34599759473）均通过 69 单元／173 数据库／61 媒体，无失败、取消或跳过。
 
 `prepare_rework` 需要真实 review、comment 和固定 CutRevision 等来源实体；当前没有对应持久化业务，合法形状的请求返回 `503 REWORK_FEEDBACK_UNAVAILABLE`。现有 Take 不足以构造原意见来源。不能用自由文本、伪造 ID 或恢复后期编辑作为首发捷径。
 

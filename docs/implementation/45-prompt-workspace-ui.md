@@ -25,7 +25,7 @@
 
 ## 整合边界和未完成部分
 
-主线程已在合法同源 4311 完成[实际 API／PostgreSQL／受限 worker 验证](../../output/playwright/2026-09-11-prompt-integrated/verification.md)：固定计划与实际提示建议、真实执行和人工保存回执丢失后 GET 恢复、原始 r1 与 r2、明确追加保留原文、刷新和双模式恢复。计划／执行／建议编辑各 1 次，原镜头不变，三种宽度与四张最终截图通过检查。该记录独立于上述受控传输；没有真实模型或付费调用。整合完整检查 69 单元、172 数据库通过，追加数据库约束后专项 13 项通过，远端 CI／合并待完成。
+主线程已在合法同源 4311 完成[实际 API／PostgreSQL／受限 worker 验证](../../output/playwright/2026-09-11-prompt-integrated/verification.md)：固定计划与实际提示建议、真实执行和人工保存回执丢失后 GET 恢复、原始 r1 与 r2、明确追加保留原文、刷新和双模式恢复。计划／执行／建议编辑各 1 次，原镜头不变，三种宽度与四张最终截图通过检查。该记录独立于上述受控传输；没有真实模型或付费调用。整合完整检查 69 单元、172 数据库通过，追加数据库约束后专项 13 项通过，[PR #19](https://github.com/exo-gravity/scenedesk/pull/19) 已于 2026-09-11 合入 main（ff5bb6a）；精确提交 bc4cd830 的两组 CI（34599727920、34599759473）均通过 69 单元／173 数据库／61 媒体，无失败、取消或跳过。
 
 本切片不修改 BusinessApp、CanvasBoard、SQL、生成器或 provider。复用上一片已要求的 BusinessApp 全局 `assistant-lifecycle` 加载挂点。仅需按实际差异合并 SceneAssistant 与 CandidateWorkspace。
 
