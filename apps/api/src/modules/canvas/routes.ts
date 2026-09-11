@@ -9,10 +9,15 @@ import {
   canvasRoot,
   readCanvas,
   appendCanvas,
-  sceneCanvasId,
   historyPage,
   readPreference,
 } from "./model.js";
+
+import {
+  readSceneCanvas,
+  bindSceneNode,
+  unbindSceneNode,
+} from "./scene-bindings.js";
 
 export function canvasRoutes(app: FastifyInstance, context: ApiContext) {
   registerAction(app, context, "ensureSceneCanvas", async (tx, input) => {
@@ -39,21 +44,41 @@ export function canvasRoutes(app: FastifyInstance, context: ApiContext) {
         [tx.tenantId, tx.projectId, sceneId, id],
       );
     }
-    const canvas = await readCanvas(tx, id);
+    const result = await readSceneCanvas(tx, sceneId);
     return {
-      body: { sceneId, canvas, bindings: [] } satisfies Schema<"SceneCanvas">,
-      etag: canvas.revision,
+      body: result,
+      etag: result.canvas.revision,
       auditObjectId: id,
     };
   });
   registerAction(app, context, "getSceneCanvas", async (tx, input) => {
     const sceneId = input.params.sceneId!;
     await findContent(tx, "scenes", sceneId);
-    const canvas = await readCanvas(tx, await sceneCanvasId(tx, sceneId));
+    const result = await readSceneCanvas(tx, sceneId);
     return {
-      body: { sceneId, canvas, bindings: [] } satisfies Schema<"SceneCanvas">,
-      etag: canvas.revision,
+      body: result,
+      etag: result.canvas.revision,
     };
+  });
+  registerAction(app, context, "bindSceneCanvasNode", async (tx, input) => {
+    const body = await bindSceneNode(
+      tx,
+      input.params.sceneId!,
+      input.params.nodeId!,
+      input.version,
+      input.body as Schema<"BindCanvasNode">,
+    );
+    return { body, etag: body.canvas.revision, auditObjectId: body.canvas.id };
+  });
+  registerAction(app, context, "unbindSceneCanvasNode", async (tx, input) => {
+    const body = await unbindSceneNode(
+      tx,
+      input.params.sceneId!,
+      input.params.nodeId!,
+      input.params.bindingId!,
+      input.version,
+    );
+    return { body, etag: body.canvas.revision, auditObjectId: body.canvas.id };
   });
   registerAction(app, context, "getCanvas", async (tx, input) => {
     const canvas = await readCanvas(tx, input.params.canvasId!);

@@ -103,5 +103,43 @@
     "blankNamePreservedAcrossModeAndReload": true,
     "restoredFocusedNode": true,
     "correctedAndSaved": true
+  },
+  "shotBindings": {
+    "canvasId": "379e96ec-f6a0-4cd2-8c85-5204065a7859",
+    "revision": 72,
+    "rawRangeModeAndReload": true,
+    "unknownCommittedPosts": 1,
+    "candidateId": "fd9a9ec7-35f2-498a-b343-7d059ce3078b",
+    "staleUnlinkBlocked": true,
+    "unlinkRetainsCandidate": true,
+    "undoOnlyChangesDocument": true,
+    "copyDoesNotInheritBinding": true,
+    "existingCandidatePlacement": true,
+    "placementInputsSurviveReload": true,
+    "focusedMediaContained": true,
+    "layouts": [
+      {
+        "width": 1512,
+        "height": 982,
+        "horizontalOverflow": false,
+        "bindingTargetStaysVisible": true,
+        "explicitFocusContainsMedia": true
+      },
+      {
+        "width": 1366,
+        "height": 900,
+        "horizontalOverflow": false,
+        "bindingTargetStaysVisible": true,
+        "explicitFocusContainsMedia": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": false,
+        "bindingTargetStaysVisible": true
+      }
+    ],
+    "pageErrors": 0,
+    "scope": "production browser and real local API/PostgreSQL with imported technical video; no real model or user acceptance"
   }
 }

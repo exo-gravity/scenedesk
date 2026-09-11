@@ -119,6 +119,16 @@
   display: grid;
   gap: var(--mantine-spacing-sm);
 }
+.dockHeading {
+  position: sticky;
+  top: calc(-1 * var(--mantine-spacing-lg));
+  z-index: 2;
+  background: var(--ws-panel);
+  margin: calc(-1 * var(--mantine-spacing-lg));
+  margin-bottom: 0;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--ws-border);
+}
 .nodeList {
   max-height: 400px;
   overflow: auto;

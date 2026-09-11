@@ -201,6 +201,9 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.validate_canvas_shape(jsonb),${scope}.validate_canvas_current_references(uuid) TO ${target}`,
   );
+  await client.query(
+    `GRANT SELECT,INSERT,DELETE ON ${scope}.node_shot_bindings TO ${target}`,
+  );
 }
 
 export async function grantAuthAccess(

@@ -95,6 +95,10 @@ export async function appendCanvas(
     "INSERT INTO canvas_revisions(tenant_id,project_id,canvas_id,revision,body_hash,updated_by) VALUES($1,$2,$3,$4,$5,$6)",
     [tx.tenantId, tx.projectId, id, revision, hash, tx.session.userId],
   );
+  await pruneCanvasHistory(tx, id);
+  return readCanvas(tx, id);
+}
+export async function pruneCanvasHistory(tx: Transaction, id: string) {
   const history = await canvasHistory(tx, id);
   const expired = history.rows
     .filter((r) => !history.retained.has(Number(r.revision)))
@@ -109,7 +113,6 @@ export async function appendCanvas(
     AND NOT EXISTS(SELECT 1 FROM canvas_revisions r WHERE r.canvas_id=b.canvas_id AND r.body_hash=b.hash)`,
     [tx.tenantId, tx.projectId, id],
   );
-  return readCanvas(tx, id);
 }
 export async function sceneCanvasId(tx: Transaction, sceneId: string) {
   const result = await tx.sql.query(

@@ -1,6 +1,16 @@
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Background,
+  useNodesInitialized,
+  useReactFlow,
   Handle,
   Position,
   ReactFlow,
@@ -160,6 +170,8 @@ export function CanvasBoard({
   mediaPath,
   readOnly,
   addMedia,
+  nodeActions,
+  focusRequest,
 }: {
   controller: CanvasController;
   document: CanvasDocument;
@@ -168,11 +180,29 @@ export function CanvasBoard({
   mediaPath: string;
   readOnly: boolean;
   addMedia: () => void;
+  nodeActions?: ReactNode;
+  focusRequest?: { ids: string[]; nonce: number } | undefined;
 }) {
   const [hand, setHand] = useState(false),
     [playing, setPlaying] = useState<string | null>(null),
     [error, setError] = useState<Error | null>(null),
     [query, setQuery] = useState("");
+  const [localFocus, setLocalFocus] = useState(focusRequest);
+  useEffect(() => setLocalFocus(focusRequest), [focusRequest]);
+  // React Flow requires measured dimensions on controlled nodes. Keep them in
+  // this view only; selection must not reset measurement or write layout facts.
+  const [measurements, setMeasurements] = useState<
+    Record<string, { width: number; height: number }>
+  >({});
+  useEffect(() => {
+    const ids = new Set(document.nodes.map((node) => node.id));
+    setMeasurements((current) => {
+      if (Object.keys(current).every((id) => ids.has(id))) return current;
+      return Object.fromEntries(
+        Object.entries(current).filter(([id]) => ids.has(id)),
+      );
+    });
+  }, [document.nodes]);
   const narrow = useMediaQuery("(max-width: 760px)"),
     flow = useRef<ReactFlowInstance<FlowNode> | null>(null);
   const play = useCallback(
@@ -195,11 +225,19 @@ export function CanvasBoard({
         data: { node, mediaPath, playing: playing === node.id, play },
         position: node.position,
         width: node.width,
+        ...(measurements[node.id] ? { measured: measurements[node.id] } : {}),
         selected: preference.selectedNodeIds.includes(node.id),
         dragHandle: ".canvas-drag-handle",
         ariaLabel: node.title,
       })),
-    [document.nodes, mediaPath, playing, play, preference.selectedNodeIds],
+    [
+      document.nodes,
+      mediaPath,
+      playing,
+      play,
+      preference.selectedNodeIds,
+      measurements,
+    ],
   );
   const edges = useMemo(
     () =>
@@ -253,6 +291,22 @@ export function CanvasBoard({
     changePreference({ selectedNodeIds: [node.id] });
   }
   const onNodesChange = (changes: NodeChange<FlowNode>[]) => {
+    const dimensions = changes.filter((c) => c.type === "dimensions");
+    if (dimensions.length)
+      setMeasurements((current) => {
+        let next = current;
+        for (const { id, dimensions: size } of dimensions) {
+          if (
+            !size ||
+            (current[id]?.width === size.width &&
+              current[id]?.height === size.height)
+          )
+            continue;
+          if (next === current) next = { ...current };
+          next[id] = size;
+        }
+        return next;
+      });
     const selection = new Set(preference.selectedNodeIds);
     let selecting = false;
     for (const c of changes)
@@ -350,11 +404,7 @@ export function CanvasBoard({
   };
   const focus = (ids: string[]) => {
     changePreference({ selectedNodeIds: ids });
-    void flow.current?.fitView({
-      nodes: ids.map((id) => ({ id })),
-      padding: 0.5,
-      maxZoom: 1,
-    });
+    setLocalFocus({ ids, nonce: Date.now() });
   };
   return (
     <div
@@ -526,6 +576,7 @@ export function CanvasBoard({
               "controls.fitView.ariaLabel": "适应全部内容",
             }}
           >
+            <MeasuredCanvasFocus request={localFocus} />
             <Background color="var(--ws-border)" gap={24} size={1} />
           </ReactFlow>
         </div>
@@ -683,6 +734,7 @@ export function CanvasBoard({
           composing={(value) => controller.setComposing(value)}
           change={change}
           focus={focus}
+          nodeActions={nodeActions}
         />
       )}
       {!document.nodes.length && (
@@ -696,6 +748,37 @@ export function CanvasBoard({
     </div>
   );
 }
+/** Fit only after node measurement and selection-driven layout have settled. */
+function MeasuredCanvasFocus({
+  request,
+}: {
+  request: { ids: string[]; nonce: number } | undefined;
+}) {
+  const initialized = useNodesInitialized(),
+    { fitView } = useReactFlow();
+  const handled = useRef<typeof request>(undefined);
+  useEffect(() => {
+    if (!request || !initialized || handled.current === request) return;
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => {
+        void fitView({
+          nodes: request.ids.map((id) => ({ id })),
+          padding: 0.3,
+          maxZoom: 1,
+        }).then((ok) => {
+          if (ok) handled.current = request;
+        });
+      });
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [request, initialized, fitView]);
+  return null;
+}
+
 function CanvasComposer({
   node,
   controller,
@@ -704,6 +787,7 @@ function CanvasComposer({
   change,
   composing,
   focus,
+  nodeActions,
 }: {
   node: CanvasNode;
   controller: CanvasController;
@@ -712,6 +796,7 @@ function CanvasComposer({
   change: (doc: CanvasDocument, group?: string) => void;
   composing: (value: boolean) => void;
   focus: (ids: string[]) => void;
+  nodeActions?: ReactNode;
 }) {
   const [reference, setReference] = useState<string | null>(null);
   const [referenceError, setReferenceError] = useState<Error | null>(null);
@@ -733,6 +818,7 @@ function CanvasComposer({
             {node.content.type === "draft" ? "独立创作草稿" : "画布节点"}
           </Text>
         </Group>
+        {nodeActions}
         <TextInput
           label="节点名称"
           maxLength={160}
