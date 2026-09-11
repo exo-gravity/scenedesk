@@ -6,3 +6,5 @@ export { createMediaProcessor } from "./work.js";
 export { repairMediaWork } from "./repair.js";
 export { mediaStoreFromEnvironment } from "./environment.js";
 export { mediaStoragePolicy } from "./storage-policy.js";
+export * from "./source-timing.js";
+export * from "./video-production.js";

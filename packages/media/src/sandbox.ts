@@ -2,14 +2,18 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import { chmod, lstat, realpath, rm } from "node:fs/promises";
-import { Transform } from "node:stream";
+import { Readable, Transform, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { FFMPEG_IMAGE, MEDIA_LIMITS, MediaFailure } from "./policy.js";
 
 type Execution = {
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
   timeoutMs?: number;
   outputFile?: string;
+  /** Internal worker streams only. A caller owns both ends and their cancellation. */
+  inputStream?: Readable;
+  outputStream?: Writable;
+  maxInputBytes?: number;
   maxBytes?: number;
   onCreated?: (containerName: string) => void;
 };
@@ -17,7 +21,7 @@ type Execution = {
 function docker(args: string[], options: Execution = {}): Promise<string> {
   return new Promise((resolve, reject) => {
     const process = spawn("docker", args, {
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: [options.inputStream ? "pipe" : "ignore", "pipe", "pipe"],
     });
     const maxBytes = options.maxBytes ?? MEDIA_LIMITS.processOutputBytes;
     const output: Buffer[] = [];
@@ -27,6 +31,8 @@ function docker(args: string[], options: Execution = {}): Promise<string> {
       created = false;
     const fail = (error: Error) => {
       failure ??= error;
+      options.inputStream?.destroy(error);
+      options.outputStream?.destroy(error);
       process.kill("SIGKILL");
     };
     const abort = () =>
@@ -47,7 +53,24 @@ function docker(args: string[], options: Execution = {}): Promise<string> {
         callback(null, chunk);
       },
     });
-    let finished: Promise<void> = Promise.resolve();
+    const pending: Promise<void>[] = [];
+    if (options.inputStream) {
+      let inputBytes = 0;
+      const inputLimiter = new Transform({
+        transform(chunk: Buffer, _encoding, callback) {
+          inputBytes += chunk.length;
+          callback(
+            inputBytes > options.maxInputBytes!
+              ? new MediaFailure("MEDIA_INPUT_LIMIT", "媒体处理输入超过限额。")
+              : null,
+            chunk,
+          );
+        },
+      });
+      pending.push(
+        pipeline(options.inputStream, inputLimiter, process.stdin!).catch(fail),
+      );
+    }
     if (options.outputFile) {
       const file = createWriteStream(options.outputFile, {
         flags: "wx",
@@ -56,13 +79,13 @@ function docker(args: string[], options: Execution = {}): Promise<string> {
       file.once("open", () => {
         created = true;
       });
-      finished = pipeline(process.stdout, limiter, file).catch(
-        (error: Error) => {
-          fail(error);
-        },
+      pending.push(pipeline(process.stdout!, limiter, file).catch(fail));
+    } else if (options.outputStream) {
+      pending.push(
+        pipeline(process.stdout!, limiter, options.outputStream).catch(fail),
       );
     } else {
-      process.stdout.on("data", (chunk: Buffer) => {
+      process.stdout!.on("data", (chunk: Buffer) => {
         bytes += chunk.length;
         if (bytes > maxBytes)
           fail(
@@ -72,7 +95,7 @@ function docker(args: string[], options: Execution = {}): Promise<string> {
       });
     }
     // Decoder diagnostics are untrusted content and are never returned to the API or job payload.
-    process.stderr.on("data", (chunk: Buffer) => {
+    process.stderr!.on("data", (chunk: Buffer) => {
       errorBytes += chunk.length;
       if (errorBytes > 512 * 1024)
         fail(new MediaFailure("MEDIA_OUTPUT_LIMIT", "媒体诊断输出超过限额。"));
@@ -81,9 +104,19 @@ function docker(args: string[], options: Execution = {}): Promise<string> {
       failure ??= error;
     });
     process.once("close", async (code) => {
+      // An encoder can exit before its upstream decoder does. Release that producer
+      // before waiting for the input pipeline, including on cancellation and EPIPE.
+      if (options.inputStream && !options.inputStream.readableEnded)
+        options.inputStream.destroy(
+          failure ??
+            new MediaFailure(
+              "MEDIA_INPUT_INCOMPLETE",
+              "媒体编码未消费完整输入。",
+            ),
+        );
+      await Promise.all(pending);
       clearTimeout(timer);
       options.signal?.removeEventListener("abort", abort);
-      await finished;
       if (failure || code !== 0) {
         if (created && options.outputFile)
           await rm(options.outputFile, { force: true });
@@ -106,6 +139,13 @@ export async function runMediaProcess(
   args: string[],
   options: Execution = {},
 ) {
+  if (options.outputFile && options.outputStream)
+    throw new Error("Media output must have exactly one destination");
+  if (
+    options.inputStream &&
+    (!Number.isSafeInteger(options.maxInputBytes) || options.maxInputBytes! < 1)
+  )
+    throw new Error("Stream input requires a positive safe integer byte limit");
   options.signal?.throwIfAborted();
   const name = `scenedesk-media-${randomUUID()}`;
   let input: string | undefined;
@@ -157,6 +197,7 @@ export async function runMediaProcess(
         "/tmp:rw,noexec,nosuid,nodev,size=16777216,mode=1777",
         "--log-driver",
         "none",
+        ...(options.inputStream ? ["--interactive"] : []),
         ...(input
           ? ["--mount", `type=bind,source=${input},target=/input,readonly`]
           : []),
@@ -170,7 +211,15 @@ export async function runMediaProcess(
     options.onCreated?.(name);
     options.signal?.throwIfAborted();
     try {
-      return await docker(["start", "--attach", name], options);
+      return await docker(
+        [
+          "start",
+          "--attach",
+          ...(options.inputStream ? ["--interactive"] : []),
+          name,
+        ],
+        options,
+      );
     } catch (error) {
       if (
         error instanceof MediaFailure &&
