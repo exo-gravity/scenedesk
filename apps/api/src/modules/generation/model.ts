@@ -293,6 +293,24 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
     totalReservation: zero,
     basisNote: "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。",
   };
+  // creative-rework/1 uses the database JSONB canonical representation, shared with
+  // its integrity guard. Earlier resolver hashes are deliberately unchanged.
+  const rework = input.assistance?.kind === "prepare_rework";
+  const inputHash = rework
+    ? (
+        await tx.sql.query(
+          "SELECT rework_input_hash($1::jsonb,$2::jsonb,$3::bigint,$4::uuid) AS hash",
+          [input, resolved, cap.revision, cap.connection_version_id],
+        )
+      ).rows[0].hash
+    : digest(
+        canonical({
+          input,
+          resolved,
+          capabilityRevision: Number(cap.revision),
+          connectionVersionId: cap.connection_version_id,
+        }),
+      );
   const row = (
     await tx.sql.query(
       `INSERT INTO generation_plans(id,tenant_id,project_id,capability_id,connection_version_id,created_by,input,resolved_input,input_hash,capability_revision,base_content_snapshot,cost_estimate,blocking_reasons,execution_mode,status,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,now()+interval '10 minutes') RETURNING *`,
@@ -305,14 +323,7 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
         tx.session.userId,
         input,
         resolved,
-        digest(
-          canonical({
-            input,
-            resolved,
-            capabilityRevision: Number(cap.revision),
-            connectionVersionId: cap.connection_version_id,
-          }),
-        ),
+        inputHash,
         cap.revision,
         snapshot,
         reasons.length ? null : estimate,
@@ -336,5 +347,23 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
     );
   if (["image", "video", "audio"].includes(input.purpose))
     await recordMediaOrigin(tx, row.id, resolved);
+  if (rework) {
+    const feedback = resolved.feedbackSnapshot!,
+      shot = resolved.shots[0]!;
+    await tx.sql.query(
+      "INSERT INTO generation_rework_inputs(tenant_id,project_id,plan_id,review_id,comment_id,comment_revision,take_id,shot_id,shot_revision_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+      [
+        tx.tenantId,
+        tx.projectId,
+        row.id,
+        feedback.reviewId,
+        feedback.commentId,
+        feedback.commentRevision,
+        feedback.subject.takeId,
+        shot.shotId,
+        shot.shotRevisionId,
+      ],
+    );
+  }
   return planRecord(row);
 }

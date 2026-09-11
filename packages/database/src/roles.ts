@@ -110,6 +110,12 @@ export async function grantRuntimeAccess(
     `GRANT SELECT,INSERT ON ${scope}.generation_plan_shots,${scope}.assistance_artifact_revisions,${scope}.assistance_revision_refs TO ${target}`,
   );
   await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_rework_inputs TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.rework_input_hash(jsonb,jsonb,bigint,uuid),${scope}.rework_source_current(uuid) TO ${target}`,
+  );
+  await client.query(
     `GRANT SELECT ON ${scope}.assistance_artifacts TO ${target}`,
   );
   await client.query(
@@ -411,6 +417,12 @@ export async function hardenAuthorizationFunctions(
   );
   await client.query(
     `GRANT SELECT ON ${["generation_capabilities", "generation_plans", "generation_jobs"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${scope}.generation_rework_inputs,${scope}.shots TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.rework_input_hash(jsonb,jsonb,bigint,uuid),${scope}.rework_source_current(uuid),${scope}.creative_canonical(jsonb) TO ${target}`,
   );
   await client.query(
     `GRANT UPDATE(enabled) ON ${scope}.generation_capabilities TO ${target}`,

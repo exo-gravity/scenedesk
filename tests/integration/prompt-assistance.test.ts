@@ -523,12 +523,16 @@ test("fixed prompt assistance preserves shot sources and immutable human-editabl
         assistance: {
           ...input().assistance,
           kind: "prepare_rework",
-          feedback: { reviewId: randomUUID(), commentId: randomUUID() },
+          feedback: {
+            reviewId: randomUUID(),
+            commentId: randomUUID(),
+            commentRevision: 1,
+          },
           sourceTakeId: randomUUID(),
         },
       });
-      assert.equal(rework.statusCode, 503, rework.body);
-      assert.equal(rework.json().code, "REWORK_FEEDBACK_UNAVAILABLE");
+      assert.equal(rework.statusCode, 404, rework.body);
+      assert.equal(rework.json().code, "NOT_FOUND");
       const foreign = await request("POST", `${base}/generation-plans`, {
         ...input(),
         shotSources: [{ shotId: randomUUID(), shotRevisionId: randomUUID() }],

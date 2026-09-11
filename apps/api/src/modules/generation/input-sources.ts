@@ -54,7 +54,7 @@ export async function resolveContext(
       } = row.spec;
       value = text;
     }
-  } else {
+  } else if (source.kind === "asset_revision") {
     row = (
       await tx.sql.query(
         "SELECT r.* FROM asset_revisions r WHERE r.tenant_id=$1 AND r.id=$2 AND asset_revision_usable($1,$3,r.id,false)",
@@ -69,6 +69,13 @@ export async function resolveContext(
       } = row.definition;
       value = text;
     }
+  } else {
+    requireThat(
+      false,
+      422,
+      "ASSISTANCE_CONTEXT_NOT_SUPPORTED",
+      "评论必须通过候选修改任务固定审阅和评论修订，不能作为其他上下文解析。",
+    );
   }
   requireThat(
     row,
