@@ -1,9 +1,11 @@
+import { services, type MediaContext } from "../media/model.js";
+import { parseEnvelope } from "@drama/queue";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { bindResourceProject } from "../../kernel/database.js";
 import { requireThat } from "../../kernel/errors.js";
 import { page, searchPattern } from "../../kernel/pages.js";
-import { registerAction, type ApiContext } from "../../kernel/routes.js";
+import { registerAction } from "../../kernel/routes.js";
 import {
   assertAnalysisCurrent,
   createPlan,
@@ -15,7 +17,7 @@ import {
   planRecord,
 } from "./model.js";
 
-export function generationRoutes(app: FastifyInstance, context: ApiContext) {
+export function generationRoutes(app: FastifyInstance, context: MediaContext) {
   registerAction(
     app,
     context,
@@ -54,7 +56,10 @@ export function generationRoutes(app: FastifyInstance, context: ApiContext) {
     app,
     context,
     "createGenerationPlan",
-    async (tx, input) => ({ body: await createPlan(tx, input.body) }),
+    async (tx, input) => {
+      if (input.body.purpose === "image") services(context);
+      return { body: await createPlan(tx, input.body) };
+    },
     { authorizeScope: generationScope("input", true) },
   );
   registerAction(
@@ -200,6 +205,30 @@ export function generationRoutes(app: FastifyInstance, context: ApiContext) {
           "任务已经开始或提交结果未知；当前文本服务不能确认取消，请保留并核对原任务。",
         );
       return { body: await serializeJob(tx, await getJob(tx, job.id)) };
+    },
+    { authorizeScope: generationScope("job", true) },
+  );
+  registerAction(
+    app,
+    context,
+    "recoverJobArchive",
+    async (tx, input) => {
+      await getJob(tx, input.params.jobId!);
+      const envelope = (
+        await tx.sql.query("SELECT recover_generated_archive($1) AS envelope", [
+          input.params.jobId,
+        ])
+      ).rows[0]?.envelope;
+      requireThat(
+        envelope,
+        409,
+        "ARCHIVE_RECOVERY_UNAVAILABLE",
+        "原文件归档不可恢复或不需要重试；不会再次调用模型。",
+      );
+      await services(context).schedule(tx.sql, parseEnvelope(envelope));
+      return {
+        body: await serializeJob(tx, await getJob(tx, input.params.jobId!)),
+      };
     },
     { authorizeScope: generationScope("job", true) },
   );

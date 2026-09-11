@@ -80,4 +80,4 @@ CanvasBoard 在桌面折叠状态下不再挂载节点列表及分组表单；�
 
 在私有入口、已合入分镜助手和当前提示助手基础上整合 a6c0731，完整检查 70 单元／173 数据库通过，无失败、取消或跳过。生产构建使用合法同源 4311、实际 API 和同一技术项目，没有 Origin 别名或伪造响应。300 与 2000 两组都核对服务端节点／边数，验证桌面折叠不挂载控件、键盘展开、关闭重开保留搜索、定位末节点、390px 无横向溢出、实际视频 readyState 4／播放时间前进及切分镜后零播放器。两张整合截图已查看。
 
-本次是功能整合短流程，没有重做上述性能采样或扩展性能结论。首次脚本误把 SceneCanvas 包装当作 Canvas 文档读取，第二次错误推断 canvasId 字段产生一个 422；依据既有契约改为读取 `SceneCanvas.canvas` 后完整第三轮通过。两次失败均未改业务文档，不计为通过。[实际脚本](../../output/playwright/2026-09-11-canvas-capacity/verify-integrated.js)与[结果及日志散列](../../output/playwright/2026-09-11-canvas-capacity/integrated-results.json)保留最终证据，远端 CI／合并待完成。
+本次是功能整合短流程，没有重做上述性能采样或扩展性能结论。首次脚本误把 SceneCanvas 包装当作 Canvas 文档读取，第二次错误推断 canvasId 字段产生一个 422；依据既有契约改为读取 `SceneCanvas.canvas` 后完整第三轮通过。两次失败均未改业务文档，不计为通过。[实际脚本](../../output/playwright/2026-09-11-canvas-capacity/verify-integrated.js)与[结果及日志散列](../../output/playwright/2026-09-11-canvas-capacity/integrated-results.json)保留最终证据，[PR #20](https://github.com/exo-gravity/scenedesk/pull/20) 已于 2026-09-11 合入 main（77faa34）；精确提交 1a429346 的两组 CI（34600598828、34600626278）均通过 70 单元／173 数据库／61 媒体，无失败、取消或跳过。

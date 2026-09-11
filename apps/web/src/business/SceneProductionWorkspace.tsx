@@ -40,6 +40,7 @@ import { CanvasEntryDetails } from "./CanvasEntryDetails";
 import { CanvasRecovery, canvasSaveLabel } from "./CanvasRecovery";
 import { MediaPreview } from "./MediaPreview";
 import type { CanvasController } from "./canvas-controller";
+import { CanvasImageGeneration } from "./CanvasImageGeneration";
 import classes from "./canvas.module.css";
 
 type Preference = Schema<"SaveSceneWorkspacePreference">;
@@ -507,6 +508,21 @@ function SceneCanvasSession({
                   tenantId={tenantId}
                   projectId={projectId}
                   embedded
+                />
+              )}
+              {preference.mode === "canvas" && !assistantProposalId && (
+                <CanvasImageGeneration
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  sceneId={sceneId}
+                  controller={controller}
+                  selectedNodeId={
+                    preference.selectedNodeIds.length === 1
+                      ? preference.selectedNodeIds[0]
+                      : undefined
+                  }
+                  readOnly={readOnly}
+                  focus={focusNodes}
                 />
               )}
             </div>

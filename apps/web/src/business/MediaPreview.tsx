@@ -49,14 +49,20 @@ export function MediaPreview({
     [reloadKey, setReloadKey] = useState(0);
   const time = useRef(0),
     renewedUrl = useRef("");
-  const variant =
+  const preferredVariant =
     media.kind === "image" || (thumbnail && media.kind === "video")
       ? "poster"
       : "proxy";
-  const derivative = media.derivatives.find((item) => item.kind === variant);
+  const derivative = media.derivatives.find(
+    (item) => item.kind === preferredVariant,
+  );
+  const variant =
+    media.kind === "image" && derivative?.status !== "ready"
+      ? "original"
+      : preferredVariant;
   const enabled =
     ["ready", "archived"].includes(media.status) &&
-    derivative?.status === "ready" &&
+    (variant === "original" || derivative?.status === "ready") &&
     media.kind !== "document" &&
     !(thumbnail && media.kind === "audio");
   const access = useQuery({
@@ -150,7 +156,7 @@ export function MediaPreview({
     );
   return (
     <div className={thumbnail ? classes.thumbnail : classes.viewport}>
-      {variant === "poster" ? (
+      {media.kind === "image" || variant === "poster" ? (
         <img
           key={reloadKey}
           src={access.data.url}

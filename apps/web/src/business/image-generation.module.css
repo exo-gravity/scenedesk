@@ -1,0 +1,33 @@
+.panel {
+  min-width: 0;
+}
+.result {
+  min-width: 0;
+  padding-block: var(--mantine-spacing-sm);
+  border-block: 1px solid var(--ws-border);
+}
+.preview {
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  background: var(--ws-canvas);
+  border-radius: var(--ws-card-radius);
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.composer {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+  background: var(--ws-panel);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-card-radius);
+}
+
+.canvasBody {
+  max-height: min(480px, 60dvh);
+  overflow: auto;
+}

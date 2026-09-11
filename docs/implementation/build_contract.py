@@ -569,6 +569,7 @@ S["AssistanceBody"]["properties"]["change"]["maxItems"] = 100
 for rule in S["PlanInput"]["allOf"]:
     if rule.get("if", {}).get("properties", {}).get("purpose", {}).get("const") == "creative_assistance":
         rule["then"]["not"]["anyOf"] += [{"required": ["sourceScriptRevisionId"]}, {"required": ["scriptRange"]}]
+extend("ResolvedInput", {"capabilitySnapshot": ref("Capability"), "output": ref("OutputOptions")})
 # Execution evidence must visibly distinguish explicit fixtures from verified providers.
 for entity_name in ["Capability", "GenerationPlan", "GenerationJob"]:
     extend(entity_name, {"executionMode": enum("test_fixture", "verified_provider")})

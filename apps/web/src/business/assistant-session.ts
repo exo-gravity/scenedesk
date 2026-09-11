@@ -15,16 +15,22 @@ export type AssistantDraft = {
     text: string;
   }[];
 };
-export type AssistantRecord<Draft = AssistantDraft> = {
+export type AssistantRecord<
+  Draft = AssistantDraft,
+  Request = Schema<"PlanInput">,
+> = {
   schemaVersion: 1;
   draft: Draft;
-  planRequest?: { key: string; input: Schema<"PlanInput"> };
+  planRequest?: { key: string; input: Request };
   planId?: string;
   execution?: { key: string; planId: string; jobId?: string };
   previous: { planId: string; jobId?: string }[];
 };
-export type AssistantState<Draft = AssistantDraft> = {
-  record?: AssistantRecord<Draft> | undefined;
+export type AssistantState<
+  Draft = AssistantDraft,
+  Request = Schema<"PlanInput">,
+> = {
+  record?: AssistantRecord<Draft, Request> | undefined;
   plan?: Schema<"GenerationPlan"> | undefined;
   job?: Schema<"GenerationJob"> | undefined;
   busy: boolean;
@@ -32,20 +38,20 @@ export type AssistantState<Draft = AssistantDraft> = {
   access: "checking" | "ready" | "error" | "forbidden";
   error?: string | undefined;
 };
-export type AssistantTransport = {
+export type AssistantTransport<Request = Schema<"PlanInput">> = {
   checkAccess(): Promise<void>;
-  createPlan(
-    input: Schema<"PlanInput">,
-    key: string,
-  ): Promise<Schema<"GenerationPlan">>;
+  createPlan(input: Request, key: string): Promise<Schema<"GenerationPlan">>;
   getPlan(id: string): Promise<Schema<"GenerationPlan">>;
   execute(planId: string, key: string): Promise<Schema<"GenerationJob">>;
   getJob(id: string): Promise<Schema<"GenerationJob">>;
   findJob(planId: string): Promise<Schema<"GenerationJob"> | undefined>;
 };
-export type AssistantStorage<Draft = AssistantDraft> = {
-  read(): Promise<AssistantRecord<Draft> | undefined>;
-  write(record: AssistantRecord<Draft>): Promise<void>;
+export type AssistantStorage<
+  Draft = AssistantDraft,
+  Request = Schema<"PlanInput">,
+> = {
+  read(): Promise<AssistantRecord<Draft, Request> | undefined>;
+  write(record: AssistantRecord<Draft, Request>): Promise<void>;
   clear(): Promise<void>;
 };
 export const jobStatusLabel: Record<Schema<"GenerationJob">["status"], string> =
@@ -112,8 +118,11 @@ export function planForDraft(
 }
 
 /** One scene's durable intent. Recovery reads never purchase a new job. */
-export class AssistantSession<Draft = AssistantDraft> {
-  private state: AssistantState<Draft> = {
+export class AssistantSession<
+  Draft = AssistantDraft,
+  Request = Schema<"PlanInput">,
+> {
+  private state: AssistantState<Draft, Request> = {
     busy: false,
     draftSaved: false,
     access: "checking",
@@ -124,10 +133,10 @@ export class AssistantSession<Draft = AssistantDraft> {
   private epoch = 0;
   private initial?: Draft;
   private retired = false;
-  private hiddenRecord?: AssistantRecord<Draft> | undefined;
+  private hiddenRecord?: AssistantRecord<Draft, Request> | undefined;
   constructor(
-    private storage: AssistantStorage<Draft>,
-    private transport: AssistantTransport,
+    private storage: AssistantStorage<Draft, Request>,
+    private transport: AssistantTransport<Request>,
   ) {}
   getSnapshot = () => this.state;
   subscribe = (listener: () => void) => {
@@ -136,7 +145,7 @@ export class AssistantSession<Draft = AssistantDraft> {
       this.listeners.delete(listener);
     };
   };
-  private publish(change: Partial<AssistantState<Draft>>) {
+  private publish(change: Partial<AssistantState<Draft, Request>>) {
     this.state = { ...this.state, ...change };
     this.listeners.forEach((listener) => listener());
   }
@@ -144,7 +153,10 @@ export class AssistantSession<Draft = AssistantDraft> {
     if (epoch !== this.epoch || this.retired)
       throw new Error("ASSISTANT_SESSION_RETIRED");
   }
-  private async persist(record: AssistantRecord<Draft>, epoch: number) {
+  private async persist(
+    record: AssistantRecord<Draft, Request>,
+    epoch: number,
+  ) {
     this.assertCurrent(epoch);
     const write = this.queue.then(async () => {
       this.assertCurrent(epoch);
@@ -352,7 +364,7 @@ export class AssistantSession<Draft = AssistantDraft> {
   commitDraft(
     expected: Draft,
     next: Draft,
-    finish?: (prepared: Draft) => Promise<Draft>,
+    finish?: (prepared: Draft, checkCurrent: () => void) => Promise<Draft>,
   ) {
     return this.action(async (epoch) => {
       await this.queue;
@@ -362,28 +374,93 @@ export class AssistantSession<Draft = AssistantDraft> {
         throw new Error("输入已改变，请重新核对本次操作。");
       await this.persist({ ...record, draft: next }, epoch);
       if (finish) {
-        const completed = await finish(structuredClone(next));
+        const completed = await finish(structuredClone(next), () =>
+          this.assertCurrent(epoch),
+        );
         this.assertCurrent(epoch);
         await this.persist({ ...record, draft: completed }, epoch);
       }
     });
   }
-  prepare(input: Schema<"PlanInput">) {
+  private async prepareCurrent(input: Request, epoch: number) {
+    await this.queue;
+    this.assertCurrent(epoch);
+    const record = this.state.record;
+    if (!record || record.execution || record.planId) return;
+    const request = record.planRequest ?? {
+      key: crypto.randomUUID(),
+      input: structuredClone(input),
+    };
+    await this.persist({ ...record, planRequest: request }, epoch);
+    this.assertCurrent(epoch);
+    const plan = await this.transport.createPlan(request.input, request.key);
+    this.assertCurrent(epoch);
+    this.publish({ plan });
+    await this.persist({ ...record, planId: plan.id }, epoch);
+  }
+  prepare(input: Request) {
+    return this.action((epoch) => this.prepareCurrent(input, epoch));
+  }
+  prepareFrom(expected: Draft, resolve: () => Promise<Request>) {
+    return this.action(async (epoch) => {
+      await this.queue;
+      this.assertCurrent(epoch);
+      if (
+        !this.state.record ||
+        JSON.stringify(this.state.record.draft) !== JSON.stringify(expected)
+      )
+        throw new Error("输入已改变，请重新核对本次操作。");
+      const request = this.state.record.planRequest?.input ?? (await resolve());
+      this.assertCurrent(epoch);
+      await this.prepareCurrent(request, epoch);
+    });
+  }
+  openExisting(
+    planId: string,
+    validate: (plan: Schema<"GenerationPlan">) => void,
+  ) {
     return this.action(async (epoch) => {
       await this.queue;
       this.assertCurrent(epoch);
       const record = this.state.record;
-      if (!record || record.execution || record.planId) return;
-      const request = record.planRequest ?? {
-        key: crypto.randomUUID(),
-        input: structuredClone(input),
-      };
-      await this.persist({ ...record, planRequest: request }, epoch);
+      if (!record) return;
+      if (record.planId === planId) {
+        await this.recoverExecution(epoch);
+        return;
+      }
+      if (record.execution && !jobFinished(this.state.job))
+        throw new Error("请先核对当前任务，再打开其他任务。");
+      const plan = await this.transport.getPlan(planId);
       this.assertCurrent(epoch);
-      const plan = await this.transport.createPlan(request.input, request.key);
+      validate(plan);
+      const job = await this.transport.findJob(planId);
       this.assertCurrent(epoch);
-      this.publish({ plan });
-      await this.persist({ ...record, planId: plan.id }, epoch);
+      const previous =
+        record.planId &&
+        !record.previous.some((item) => item.planId === record.planId)
+          ? [
+              ...record.previous,
+              {
+                planId: record.planId,
+                ...(record.execution?.jobId
+                  ? { jobId: record.execution.jobId }
+                  : {}),
+              },
+            ]
+          : record.previous;
+      await this.persist(
+        {
+          schemaVersion: 1,
+          draft: record.draft,
+          planId,
+          previous,
+          ...(job
+            ? { execution: { planId, jobId: job.id, key: crypto.randomUUID() } }
+            : {}),
+        },
+        epoch,
+      );
+      this.publish({ plan, job });
     });
   }
   execute() {

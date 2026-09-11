@@ -1,3 +1,5 @@
+import { processingIssue, type Issue } from "./issues.js";
+import { generatedMediaProcessor } from "./generation-work.js";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -9,59 +11,22 @@ import {
   type StepEnvelope,
   type StepHandler,
 } from "@drama/queue";
-import {
-  MediaFailure,
-  type ProbeResult,
-  type VerifiedObject,
-} from "./policy.js";
+import { type ProbeResult, type VerifiedObject } from "./policy.js";
 import { probeMedia, makeDerivative } from "./probe.js";
 import { verifyMediaRuntime } from "./sandbox.js";
 import type { MediaStore } from "./storage.js";
 
-type Issue = { code: string; message: string; retryable: boolean };
 type Row = Record<string, any>;
-type Options = {
+export type MediaProcessorOptions = {
   pool: Pool;
   schema?: string;
   store: MediaStore;
   schedule(sql: PoolClient, step: StepEnvelope): Promise<unknown>;
 };
 type Claim = { row: Row; revision: number; context: Row };
-function processingIssue(error: unknown): Issue {
-  if (
-    error instanceof Error &&
-    ["NoSuchVersion", "NoSuchKey"].includes(error.name)
-  )
-    return {
-      code: "MEDIA_SOURCE_MISSING",
-      message: "已固定的源文件版本不存在，请重新导入。",
-      retryable: false,
-    };
-  if (error instanceof MediaFailure) {
-    const transient = new Set([
-      "STORAGE_VERSION_REQUIRED",
-      "STORAGE_INTEGRITY_MISMATCH",
-      "MEDIA_SANDBOX_UNAVAILABLE",
-      "MEDIA_SANDBOX_CLEANUP_FAILED",
-      "MEDIA_CANCELLED",
-      "MEDIA_BUILD_MISMATCH",
-    ]);
-    return {
-      code: error.code,
-      message: error.message,
-      retryable: transient.has(error.code),
-    };
-  }
-  return {
-    code: "MEDIA_SERVICE_UNAVAILABLE",
-    message: "处理服务暂未完成，请稍后重试。",
-    retryable: true,
-  };
-}
-
 /** Internal media writes share real root locks and CAS, never the queue's notion of success. */
 export async function createMediaProcessor(
-  options: Options,
+  options: MediaProcessorOptions,
 ): Promise<StepHandler> {
   const scope = sqlIdentifier(options.schema ?? "drama");
   const check = await options.pool.connect();
@@ -77,6 +42,7 @@ export async function createMediaProcessor(
   }
   await options.store.verify();
   await verifyMediaRuntime();
+  const generated = generatedMediaProcessor(options);
 
   async function transaction<T>(
     step: StepEnvelope,
@@ -297,9 +263,11 @@ export async function createMediaProcessor(
       );
     });
   }
-  return async (envelope, { signal }) => {
+  return async (envelope, { signal, queueJobId }) => {
     signal.throwIfAborted();
     const step = parseEnvelope(envelope);
+    if (step.taskKind === "media_generation")
+      return generated(step, { signal, queueJobId });
     if (step.taskKind === "media_production")
       throw new Error("Production jobs require the production dispatcher");
     const active = await claim(step);

@@ -1,3 +1,8 @@
+import {
+  resolveImage,
+  assertImageCurrent,
+  recordImageOrigin,
+} from "./image-input.js";
 import { resolvePrompt, assertPromptCurrent } from "./prompt-input.js";
 import { safeText, resolveContext } from "./input-sources.js";
 import { randomUUID } from "node:crypto";
@@ -46,7 +51,7 @@ function jobRecord(
     projectId: row.project_id,
     planId: row.plan_id,
     status: row.status,
-    mediaIds: [],
+    mediaIds: row.result_media_id ? [row.result_media_id] : [],
     reservationStatus: terminal ? "released" : "held",
     inputOutdated,
     connectionVersionId: row.connection_version_id,
@@ -207,6 +212,7 @@ export async function assertAnalysisCurrent(
   tx: Transaction,
   plan: Record<string, any>,
 ) {
+  if (plan.input.purpose === "image") return assertImageCurrent(tx, plan);
   if (plan.input.purpose === "creative_assistance")
     return assertPromptCurrent(tx, plan);
   const input = plan.input as Schema<"PlanInput">,
@@ -265,9 +271,11 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
   ).rows[0];
   requireThat(cap, 503, "MODEL_NOT_CONFIGURED", "尚未配置并验证此模型能力。");
   const { resolved, snapshot } =
-    input.purpose === "creative_assistance"
-      ? await resolvePrompt(tx, input)
-      : await resolveAnalysis(tx, input);
+    input.purpose === "image"
+      ? await resolveImage(tx, input, cap)
+      : input.purpose === "creative_assistance"
+        ? await resolvePrompt(tx, input)
+        : await resolveAnalysis(tx, input);
   const reasons: string[] = [];
   if (!cap.enabled) reasons.push("MODEL_DISABLED");
   // No unverified real provider or implicit paid path can become ready.
@@ -324,5 +332,6 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
         source.shotRevisionId,
       ],
     );
+  if (input.purpose === "image") await recordImageOrigin(tx, row.id, resolved);
   return planRecord(row);
 }

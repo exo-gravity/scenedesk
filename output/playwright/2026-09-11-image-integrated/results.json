@@ -1,0 +1,48 @@
+{
+  "shot": {
+    "actualApiDatabaseWorkerStorage": true,
+    "explicitTechnicalFixture": true,
+    "realModelAcceptance": false,
+    "planId": "07ec2420-3f99-4fb5-80b8-e0d17794efab",
+    "jobId": "2cee077e-5f19-49d4-b35e-d65b5abef5c0",
+    "mediaId": "2cee077e-5f19-49d4-b35e-d65b5abef5c0",
+    "creationPosts": 0,
+    "accessPosts": 1,
+    "recoveredOriginalJob": true,
+    "adviceRevision": 2,
+    "manualInputPreserved": true,
+    "shotUnchanged": true,
+    "image": {
+      "width": 256,
+      "height": 256,
+      "status": "ready"
+    },
+    "viewports": [
+      1512,
+      390
+    ],
+    "errors": [],
+    "failures": []
+  },
+  "canvas": {
+    "actualApiDatabaseWorkerStorage": true,
+    "explicitTechnicalFixture": true,
+    "realModelAcceptance": false,
+    "planId": "eb772dd4-6ef3-48e6-a9b8-74deff58548e",
+    "jobId": "d72d51d8-4658-4572-b5b9-eed03df36fb3",
+    "mediaId": "d72d51d8-4658-4572-b5b9-eed03df36fb3",
+    "nodeId": "d2f80587-064b-4d37-9b81-e86799dfaeff",
+    "resultId": "7805c443-8a0d-4d62-b6c0-04d80d5f52b9",
+    "planPosts": 1,
+    "executePosts": 1,
+    "placementPosts": 2,
+    "lostExecute202Recovered": true,
+    "lostPlacement201Recovered": true,
+    "samePlacementKey": true,
+    "draftPreservedBeforeExplicitRemoval": true,
+    "deletedSourceHistoryRecovered": true,
+    "canvasResultDecoded": true,
+    "errors": [],
+    "failures": []
+  }
+}

@@ -32,6 +32,7 @@ import {
 } from "./prompt-draft";
 import { usePromptSession } from "./use-prompt-session";
 import classes from "./assistant.module.css";
+import { ImageGenerationWorkspace } from "./ImageGenerationWorkspace";
 type Execution = { executionMode?: "test_fixture" | "verified_provider" };
 export function ShotPromptComposer(props: {
   tenantId: string;
@@ -253,9 +254,23 @@ function PromptContent({
           {draft.references.map((r) => r.note ?? r.purpose).join("、")}
         </Text>
       )}
-      <Text size="xs" c="dimmed">
-        此处保存创作输入。媒体生成执行尚未接入本入口。
-      </Text>
+      {!assistantOnly && draft && (
+        <Accordion>
+          <Accordion.Item value="image">
+            <Accordion.Control icon={<Sparkle size={16} />}>
+              生成图片
+            </Accordion.Control>
+            <Accordion.Panel>
+              <ImageGenerationWorkspace
+                tenantId={tenantId}
+                projectId={projectId}
+                source={{ kind: "shot", creation: draft }}
+                active={active}
+              />
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      )}
       {!assistantOnly && draft?.assistanceSource && (
         <Button
           variant="subtle"

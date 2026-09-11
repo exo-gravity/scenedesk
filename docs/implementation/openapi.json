@@ -20222,6 +20222,12 @@
           "targetConnectionVersionId": {
             "type": "string",
             "format": "uuid"
+          },
+          "capabilitySnapshot": {
+            "$ref": "#/components/schemas/Capability"
+          },
+          "output": {
+            "$ref": "#/components/schemas/OutputOptions"
           }
         },
         "required": [

@@ -236,7 +236,7 @@ export function mediaRoutes(app: FastifyInstance, context: MediaContext) {
         "listMedia",
         query,
         `${mediaSelect} WHERE m.tenant_id=$1 AND ($2::uuid IS NULL OR m.project_id=$2) AND ($3::text IS NULL OR m.scope=$3)
-      AND ($4::text IS NULL OR m.kind=$4) AND ($5::text IS NULL OR m.status=$5) AND $6::uuid IS NULL
+      AND ($4::text IS NULL OR m.kind=$4) AND ($5::text IS NULL OR m.status=$5) AND ($6::uuid IS NULL OR m.source_job_id=$6)
       AND (m.display_name ILIKE $7 OR m.safe_original_file_name ILIKE $7 OR array_to_string(m.tags,' ') ILIKE $7)`,
         [
           tx.tenantId,
