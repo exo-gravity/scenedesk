@@ -30,7 +30,7 @@ export function ParentLabel({
 }
 export function ShotPreview({ spec }: { spec: Schema<"ShotSpec"> }) {
   return (
-    <Stack gap="xs" mt="sm">
+    <Stack gap="xs" mt="sm" className={classes.preview}>
       <Text className={classes.prose}>{spec.intent}</Text>
       {spec.action && (
         <Text className={classes.prose}>动作：{spec.action}</Text>
