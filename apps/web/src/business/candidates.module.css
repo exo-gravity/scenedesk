@@ -338,7 +338,9 @@
   min-height: 0;
   justify-content: center;
   padding-inline: 20px;
-  gap: 20px;
+  gap: 60px;
+  align-items: center;
+  container-type: size;
 }
 .previewStage .hero {
   flex: 1;
@@ -361,11 +363,13 @@
 }
 .hero :global(media-control-bar) {
   flex-shrink: 0;
-  max-width: 560px;
+  max-width: 100%;
+  --media-control-padding: 6px;
+  --media-control-height: 18px;
 }
 .nearReference {
   flex: 0 0 auto;
-  align-self: flex-end;
+  align-self: center;
   max-height: 100%;
   overflow: auto;
   padding-bottom: 10px;
@@ -415,9 +419,35 @@
 }
 .previewStage .hero {
   flex: 0 1 560px;
+  min-width: 0;
+  container-type: inline-size;
+  container-name: candidate-media;
 }
-.hero > div {
-  max-width: 560px;
+.previewStage .hero[data-ratio] {
+  flex: 0 1 auto;
+  width: calc(100cqh * var(--ws-media-aspect));
+  max-width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: var(--ws-media-aspect);
+}
+.hero :global(media-time-range) {
+  min-width: 0;
+}
+@container candidate-media (max-width: 280px) {
+  .hero :global(media-time-display) {
+    display: none;
+  }
+  .hero :global(media-control-bar) {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    --media-control-padding: 4px;
+  }
+  .hero :global(media-time-range) {
+    flex-basis: 100%;
+    order: -1;
+    --media-control-height: 10px;
+  }
 }
 
 .promptBody > * {

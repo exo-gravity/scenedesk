@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   Alert,
   Badge,
@@ -311,9 +311,7 @@ function ShotProduction({
             {shot.label} · {shot.spec.intent}
           </Text>
           <StatusLabel>
-            {shot.currentTakeId
-              ? "当前采用"
-              : "尚未采用"}
+            {shot.currentTakeId ? "当前采用" : "尚未采用"}
           </StatusLabel>
         </Group>
         <Group>
@@ -383,7 +381,20 @@ function ShotProduction({
           ) : take ? (
             <div className={classes.takeView}>
               <div className={classes.previewStage}>
-                <div className={classes.hero}>
+                <div
+                  className={classes.hero}
+                  data-ratio={
+                    media.data?.width && media.data.height ? true : undefined
+                  }
+                  style={
+                    media.data?.width && media.data.height
+                      ? ({
+                          "--ws-media-aspect":
+                            media.data.width / media.data.height,
+                        } as CSSProperties)
+                      : undefined
+                  }
+                >
                   {media.data ? (
                     <MediaPreview
                       key={take.id}
@@ -407,9 +418,7 @@ function ShotProduction({
               </div>
               <Group justify="space-between" className={classes.previewCaption}>
                 <div>
-                  <Text fw={600}>
-                    {media.data?.displayName ?? "当前候选"}
-                  </Text>
+                  <Text fw={600}>{media.data?.displayName ?? "当前候选"}</Text>
                   <Text size="sm">
                     {sourceSeconds(take.range.inUs)}–
                     {sourceSeconds(take.range.outUs)} 秒 · 连续区间{" "}

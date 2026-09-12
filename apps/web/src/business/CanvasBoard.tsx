@@ -33,6 +33,7 @@ import {
   Button,
   FileButton,
   Group,
+  Menu,
   NumberInput,
   Select,
   Stack,
@@ -45,6 +46,7 @@ import {
   ArrowCounterClockwise,
   ArrowClockwise,
   CornersOut,
+  Crosshair,
   Hand,
   Cursor,
   TextT,
@@ -54,6 +56,7 @@ import {
   Copy,
   Trash,
   SelectionAll,
+  Plus,
 } from "@phosphor-icons/react";
 import {
   inspectCanvasDocument,
@@ -490,6 +493,150 @@ export function CanvasBoard({
     changePreference({ selectedNodeIds: ids });
     setLocalFocus({ ids, nonce: Date.now() });
   };
+  const viewportTools = (
+    <Group
+      className={classes.viewportTools}
+      gap={4}
+      wrap="nowrap"
+      aria-label="画布视口工具"
+    >
+      <Group gap="xs">
+        <Button
+          size="xs"
+          aria-label="撤销画布编辑"
+          disabled={readOnly || !controller.canUndo}
+          onClick={() => controller.undo()}
+        >
+          <ArrowCounterClockwise size={16} />
+        </Button>
+        <Button
+          size="xs"
+          aria-label="重做画布编辑"
+          disabled={readOnly || !controller.canRedo}
+          onClick={() => controller.redo()}
+        >
+          <ArrowClockwise size={16} />
+        </Button>
+        <Button
+          size="xs"
+          aria-pressed={hand}
+          onClick={() => setHand(!hand)}
+          aria-label={hand ? "手形" : "选择"}
+          title={hand ? "手形" : "选择"}
+        >
+          {hand ? <Hand size={16} /> : <Cursor size={16} />}
+        </Button>
+        <Button
+          size="xs"
+          aria-label="缩小画布"
+          onClick={() => void flow.current?.zoomOut()}
+        >
+          −
+        </Button>
+        <Button
+          size="xs"
+          aria-label="画布缩放到百分之百"
+          onClick={() => void flow.current?.zoomTo(1)}
+        >
+          100%
+        </Button>
+        <Button
+          size="xs"
+          aria-label="放大画布"
+          onClick={() => void flow.current?.zoomIn()}
+        >
+          ＋
+        </Button>
+        <Button
+          size="xs"
+          disabled={!selected.length}
+          onClick={() => focus(selected)}
+          aria-label="定位当前内容"
+          title="定位当前内容"
+        >
+          <Crosshair size={16} />
+        </Button>
+        <Button
+          size="xs"
+          aria-label="适应内容"
+          title="适应内容"
+          onClick={() =>
+            void flow.current?.fitView({
+              padding: 0.2,
+              minZoom: CANVAS_MIN_ZOOM,
+              maxZoom: 1,
+            })
+          }
+        >
+          <CornersOut size={16} />
+        </Button>
+      </Group>
+      <Menu position="top-start" keepMounted>
+        <Menu.Target>
+          <Button size="xs" leftSection={<Plus size={16} />}>
+            添加
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            leftSection={<TextT size={16} />}
+            disabled={readOnly}
+            onClick={() => add("text")}
+          >
+            文字
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<ImageSquare size={16} />}
+            disabled={readOnly}
+            onClick={() => add("image")}
+          >
+            图片草稿
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<FilmStrip size={16} />}
+            disabled={readOnly}
+            onClick={() => add("video")}
+          >
+            视频草稿
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<MusicNotes size={16} />}
+            disabled={readOnly}
+            onClick={() => add("audio")}
+          >
+            声音草稿
+          </Menu.Item>
+          <Menu.Item disabled={readOnly} onClick={addMedia}>
+            添加素材
+          </Menu.Item>
+          {uploads && (
+            <FileButton
+              multiple
+              accept={importAccept}
+              onChange={(files) =>
+                uploads.begin(
+                  files,
+                  flow.current?.screenToFlowPosition({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                  }) ?? { x: 80, y: 80 },
+                )
+              }
+            >
+              {(props) => (
+                <Menu.Item
+                  {...props}
+                  disabled={readOnly || uploads.readOnly || uploads.busy}
+                >
+                  上传文件
+                </Menu.Item>
+              )}
+            </FileButton>
+          )}
+        </Menu.Dropdown>
+      </Menu>
+    </Group>
+  );
   return (
     <div
       className={classes.board}
@@ -512,141 +659,11 @@ export function CanvasBoard({
         }
       }}
     >
-      <Group className={classes.toolbar} justify="space-between" gap="xs">
-        <Group gap="xs">
-          <Button
-            size="xs"
-            leftSection={<TextT size={16} />}
-            disabled={readOnly}
-            onClick={() => add("text")}
-          >
-            文字
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<ImageSquare size={16} />}
-            disabled={readOnly}
-            onClick={() => add("image")}
-          >
-            图片草稿
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<FilmStrip size={16} />}
-            disabled={readOnly}
-            onClick={() => add("video")}
-          >
-            视频草稿
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<MusicNotes size={16} />}
-            disabled={readOnly}
-            onClick={() => add("audio")}
-          >
-            声音草稿
-          </Button>
-          <Button size="xs" disabled={readOnly} onClick={addMedia}>
-            添加素材
-          </Button>
-          {uploads && (
-            <FileButton
-              multiple
-              accept={importAccept}
-              onChange={(files) =>
-                uploads.begin(
-                  files,
-                  flow.current?.screenToFlowPosition({
-                    x: window.innerWidth / 2,
-                    y: window.innerHeight / 2,
-                  }) ?? { x: 80, y: 80 },
-                )
-              }
-            >
-              {(props) => (
-                <Button
-                  {...props}
-                  size="xs"
-                  disabled={readOnly || uploads.readOnly || uploads.busy}
-                >
-                  上传文件
-                </Button>
-              )}
-            </FileButton>
-          )}
-        </Group>
-        <Group gap="xs">
-          <Button
-            size="xs"
-            aria-label="撤销画布编辑"
-            disabled={readOnly || !controller.canUndo}
-            onClick={() => controller.undo()}
-          >
-            <ArrowCounterClockwise size={16} />
-          </Button>
-          <Button
-            size="xs"
-            aria-label="重做画布编辑"
-            disabled={readOnly || !controller.canRedo}
-            onClick={() => controller.redo()}
-          >
-            <ArrowClockwise size={16} />
-          </Button>
-          <Button
-            size="xs"
-            aria-pressed={hand}
-            onClick={() => setHand(!hand)}
-            leftSection={hand ? <Hand size={16} /> : <Cursor size={16} />}
-          >
-            {hand ? "手形" : "选择"}
-          </Button>
-          <Button
-            size="xs"
-            aria-label="缩小画布"
-            onClick={() => void flow.current?.zoomOut()}
-          >
-            −
-          </Button>
-          <Button
-            size="xs"
-            aria-label="画布缩放到百分之百"
-            onClick={() => void flow.current?.zoomTo(1)}
-          >
-            100%
-          </Button>
-          <Button
-            size="xs"
-            aria-label="放大画布"
-            onClick={() => void flow.current?.zoomIn()}
-          >
-            ＋
-          </Button>
-          <Button
-            size="xs"
-            disabled={!selected.length}
-            onClick={() => focus(selected)}
-          >
-            定位当前内容
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<CornersOut size={16} />}
-            onClick={() =>
-              void flow.current?.fitView({
-                padding: 0.2,
-                minZoom: CANVAS_MIN_ZOOM,
-                maxZoom: 1,
-              })
-            }
-          >
-            适应内容
-          </Button>
-        </Group>
-      </Group>
       <ErrorNotice error={error} />
       {narrow ? (
         <div className={classes.empty}>
           <Text>窄屏以列表查看内容；完整空间制作请使用桌面宽度。</Text>
+          {viewportTools}
         </div>
       ) : (
         <div
@@ -725,6 +742,7 @@ export function CanvasBoard({
             <MeasuredCanvasFocus request={localFocus} complete={finishFocus} />
             <Background color="var(--ws-canvas-dot)" gap={24} size={1} />
           </ReactFlow>
+          {viewportTools}
         </div>
       )}
       <Group className={classes.toolbar} justify="space-between">

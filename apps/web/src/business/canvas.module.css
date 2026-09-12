@@ -422,3 +422,42 @@
 .nodeMedia > div:first-child {
   height: min(640px, var(--ws-node-media-height));
 }
+.flow {
+  position: relative;
+}
+.viewportTools {
+  position: absolute;
+  left: 20px;
+  bottom: 12px;
+  z-index: 5;
+  max-width: calc(100% - 40px);
+  padding: 5px;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-floating-radius, var(--ws-card-radius));
+  background: var(--ws-panel);
+  box-shadow: var(--mantine-shadow-xs);
+}
+.viewportTools > :global(.mantine-Group-root) {
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+.viewportTools button {
+  height: 28px;
+  padding-inline: 8px;
+}
+.utilities,
+.groupMenu {
+  top: 12px;
+}
+@media (max-width: 760px) {
+  .viewportTools {
+    position: static;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .viewportTools > :global(.mantine-Group-root) {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
