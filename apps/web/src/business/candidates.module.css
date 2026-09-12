@@ -444,7 +444,11 @@
     --media-control-padding: 4px;
   }
   .hero :global(media-time-range) {
-    flex-basis: 100%;
+    /* Media Chrome's slotted range defaults to min-height: 100%. In a wrapped
+       bar that would fill both rows before the playback buttons are laid out. */
+    min-height: 0;
+    height: 18px;
+    flex: 0 0 100%;
     order: -1;
     --media-control-height: 10px;
   }
