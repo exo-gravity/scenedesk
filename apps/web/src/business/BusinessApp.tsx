@@ -8,7 +8,12 @@ import {
 } from "react";
 import {
   Anchor,
-  Badge,
+  ActionIcon,
+  Menu,
+  Tooltip,
+  UnstyledButton,
+  useMantineColorScheme,
+  useComputedColorScheme,
   Button,
   Group,
   Loader,
@@ -28,6 +33,14 @@ import {
   FolderSimple,
   Images,
   Archive,
+  CheckSquare,
+  FilmSlate,
+  FileText,
+  GearSix,
+  CaretRight,
+  Moon,
+  Sun,
+  UserCircle,
 } from "@phosphor-icons/react";
 import {
   api,
@@ -35,11 +48,18 @@ import {
   SessionContext,
   useCommand,
   useList,
+  useResource,
   useSession,
   type Schema,
   type Session,
 } from "./api";
-import { ErrorNotice, SectionHeading, Empty, tenantPath } from "./common";
+import {
+  ErrorNotice,
+  SectionHeading,
+  Empty,
+  tenantPath,
+  projectPath,
+} from "./common";
 import { Projects } from "./Projects";
 import {
   clearUserEditing,
@@ -49,6 +69,7 @@ import {
 } from "./use-cut-work";
 import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
 import "./assistant-lifecycle";
+const MyWork = lazy(() => import("./MyWork"));
 const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
 const SceneProductionWorkspace = lazy(
   () => import("./SceneProductionWorkspace"),
@@ -87,6 +108,8 @@ export default function BusinessApp({ hash }: { hash: string }) {
 }
 function AuthenticatedApp({ hash }: { hash: string }) {
   const shell = useRef<HTMLDivElement>(null);
+  const { setColorScheme } = useMantineColorScheme();
+  const colorScheme = useComputedColorScheme("light");
   const previousSession = useRef<{ id: string; userId: string } | undefined>(
     undefined,
   );
@@ -248,12 +271,29 @@ function AuthenticatedApp({ hash }: { hash: string }) {
             SceneDesk
           </Text>
         </Anchor>
-        <Group gap="sm">
-          <Badge>导入素材可用</Badge>
-          {health.data?.providerMode === "mock" && <Badge>未连接真实模型</Badge>}
-          {health.data?.identityMode === "local_test" && (
-            <Badge>本地测试身份</Badge>
+        <Group gap="lg" wrap="nowrap" className={classes.headerStatus}>
+          {health.data?.providerMode === "mock" && (
+            <Text size="xs" c="dimmed">
+              未连接真实模型
+            </Text>
           )}
+          {health.data?.identityMode === "local_test" && (
+            <Text size="xs" c="dimmed">
+              本地测试身份
+            </Text>
+          )}
+          <Tooltip label={colorScheme === "light" ? "切换深色" : "切换浅色"}>
+            <ActionIcon
+              variant="subtle"
+              size="xs"
+              aria-label={colorScheme === "light" ? "切换深色" : "切换浅色"}
+              onClick={() =>
+                setColorScheme(colorScheme === "light" ? "dark" : "light")
+              }
+            >
+              {colorScheme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+            </ActionIcon>
+          </Tooltip>
         </Group>
       </header>
       {session.isPending || checkingSession ? (
@@ -308,6 +348,15 @@ function Workspace({ hash }: { hash: string }) {
   const tenants = useList<Schema<"Tenant">>("/v1/tenants");
   const segments = hash.split("?")[0]!.split("/");
   const tenantId = segments[2] === "t" ? segments[3] : undefined;
+  const projectId = segments[4] === "p" ? segments[5] : undefined;
+  const production = !!projectId && segments[6] === "production";
+  const projectSection = segments[6];
+  const section = projectId ? "projects" : (segments[4] ?? "projects");
+  const studio = tenants.data?.find((tenant) => tenant.id === tenantId);
+  const main = useRef<HTMLElement>(null);
+  useEffect(() => {
+    main.current?.scrollTo({ top: 0 });
+  }, [tenantId, projectId, projectSection, section]);
   useEffect(() => {
     if (
       !tenantId &&
@@ -356,129 +405,307 @@ function Workspace({ hash }: { hash: string }) {
     <>
       <div
         className={classes.layout}
-        data-production={segments[6] === "production" || undefined}
+        data-production={production || undefined}
+        data-project={(!!projectId && !production) || undefined}
       >
-        <aside className={classes.sidebar} aria-label="工作室导航">
-          <Select
-            label="当前工作室"
-            placeholder="选择工作室"
-            value={tenantId ?? null}
-            data={(tenants.data ?? []).map((t) => ({
-              value: t.id,
-              label: t.name,
-            }))}
-            onChange={(id) => {
-              if (id) location.hash = `/app/t/${id}`;
-            }}
-          />
-          <Button
-            leftSection={<FolderSimple size={18} />}
-            variant="subtle"
+        <nav className={classes.sidebar} aria-label="工作室导航">
+          <Menu position="right-start" width={240}>
+            <Menu.Target>
+              <UnstyledButton
+                className={classes.studioSwitch}
+                aria-label="切换工作室"
+                title={studio?.name ?? "选择工作室"}
+              >
+                <Buildings size={25} />
+                <span>{studio?.name ?? "工作室"}</span>
+              </UnstyledButton>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>当前工作室</Menu.Label>
+              {(tenants.data ?? []).map((tenant) => (
+                <Menu.Item
+                  key={tenant.id}
+                  component="a"
+                  href={`#/app/t/${tenant.id}`}
+                  leftSection={<Buildings size={16} />}
+                >
+                  {tenant.name}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
+          <UnstyledButton
             component="a"
+            className={classes.railItem}
+            data-active={section === "projects" || undefined}
+            aria-current={section === "projects" ? "page" : undefined}
             href={tenantId ? `#/app/t/${tenantId}` : "#/app"}
           >
-            项目
-          </Button>
+            <FolderSimple size={22} />
+            <span>项目</span>
+          </UnstyledButton>
           {tenantId && (
-            <Button
-              leftSection={<Images size={18} />}
-              variant="subtle"
-              component="a"
-              href={`#/app/t/${tenantId}/media`}
-            >
-              共享素材
-            </Button>
+            <>
+              <UnstyledButton
+                component="a"
+                className={classes.railItem}
+                data-active={section === "work" || undefined}
+                aria-current={section === "work" ? "page" : undefined}
+                href={`#/app/t/${tenantId}/work`}
+              >
+                <CheckSquare size={22} />
+                <span>我的工作</span>
+              </UnstyledButton>
+              <UnstyledButton
+                component="a"
+                className={classes.railItem}
+                data-active={["assets", "media"].includes(section) || undefined}
+                aria-current={
+                  ["assets", "media"].includes(section) ? "page" : undefined
+                }
+                href={`#/app/t/${tenantId}/assets`}
+              >
+                <Archive size={22} />
+                <span>资产</span>
+              </UnstyledButton>
+            </>
           )}
-          {tenantId && (
+          <div className={classes.railFooter}>
+            <Menu position="right-end" width={260}>
+              <Menu.Target>
+                <ActionIcon variant="subtle" aria-label="账号与退出登录">
+                  <UserCircle size={24} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>{session.email}</Menu.Label>
+                <Menu.Item
+                  leftSection={<SignOut size={16} />}
+                  disabled={logout.isPending}
+                  onClick={() =>
+                    logout.mutate(
+                      { path: "/v1/session/logout" },
+                      { onCommitted: () => void finishLogout() },
+                    )
+                  }
+                >
+                  退出登录
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </div>
+        </nav>
+        {tenantId && projectId && !production && (
+          <ProjectDirectory
+            tenantId={tenantId}
+            projectId={projectId}
+            section={projectSection}
+          />
+        )}
+        <section className={classes.content}>
+          {!production && (
+            <WorkspaceContext
+              tenantId={tenantId}
+              projectId={projectId}
+              section={projectSection}
+              studioName={studio?.name}
+              studioSection={section}
+            />
+          )}
+          <main
+            className={classes.main}
+            ref={main}
+            id="workspace-content"
+            tabIndex={-1}
+          >
+            <ErrorNotice error={logout.error} />
+            <ErrorNotice
+              error={tenants.error}
+              retry={() => void tenants.refetch()}
+            />
+            {tenants.isPending ? (
+              <Loader aria-label="正在读取工作室" />
+            ) : tenants.isError ? null : !tenantId ? (
+              <>
+                <SectionHeading
+                  title="选择创作空间"
+                  description="进入已为你开通的工作室，继续项目创作。"
+                />
+                {tenants.data?.length ? (
+                  <div className={classes.rows}>
+                    {tenants.data.map((t) => (
+                      <article key={t.id} className={classes.row}>
+                        <Group>
+                          <Buildings size={24} />
+                          <Text fw={600}>{t.name}</Text>
+                        </Group>
+                        <Button component="a" href={`#/app/t/${t.id}`}>
+                          查看项目
+                        </Button>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <Empty>
+                    <Text>你的账号尚未开通创作空间。</Text>
+                    <Text mt="sm">
+                      请联系工作台负责人配置访问；开通后刷新即可进入项目。
+                    </Text>
+                    <Button mt="lg" onClick={() => void tenants.refetch()}>
+                      刷新访问
+                    </Button>
+                  </Empty>
+                )}
+              </>
+            ) : (
+              <ProjectUpdates
+                tenantId={tenantId}
+                projectId={segments[4] === "p" ? segments[5] : undefined}
+              >
+                <TenantArea
+                  key={tenantId}
+                  tenantId={tenantId}
+                  section={segments[4]}
+                  projectId={segments[4] === "p" ? segments[5] : undefined}
+                  contentView={segments[6] === "content"}
+                  scriptView={segments[6] === "script"}
+                  mediaView={segments[6] === "media"}
+                  assetView={segments[6] === "assets"}
+                  productionView={segments[6] === "production"}
+                  projectSection={segments[6]}
+                />
+              </ProjectUpdates>
+            )}
+          </main>
+        </section>
+      </div>
+    </>
+  );
+}
+const projectSections = [
+  { id: "content", label: "场次", Icon: FilmSlate },
+  { id: "script", label: "剧本与设定", Icon: FileText },
+  { id: "assets", label: "项目资产", Icon: Archive },
+] as const;
+function ProjectDirectory({
+  tenantId,
+  projectId,
+  section,
+}: {
+  tenantId: string;
+  projectId: string;
+  section: string | undefined;
+}) {
+  const project = useResource<Schema<"Project">>(
+    projectPath(tenantId, projectId),
+  );
+  const base = `#/app/t/${tenantId}/p/${projectId}`;
+  return (
+    <nav className={classes.projectNav} aria-label="项目目录">
+      <Text fw={600} className={classes.projectName}>
+        {project.data?.name ?? "项目"}
+      </Text>
+      {projectSections.map(({ id, label, Icon }) => (
+        <UnstyledButton
+          key={id}
+          component="a"
+          href={`${base}/${id}`}
+          className={classes.projectLink}
+          data-active={
+            section === id ||
+            (id === "assets" && section === "media") ||
+            undefined
+          }
+          aria-current={section === id ? "page" : undefined}
+        >
+          <Icon size={17} />
+          <span>{label}</span>
+        </UnstyledButton>
+      ))}
+      <UnstyledButton
+        component="a"
+        href={`${base}/media`}
+        className={`${classes.projectLink} ${classes.projectSubLink}`}
+        aria-current={section === "media" ? "page" : undefined}
+        data-active={section === "media" || undefined}
+      >
+        <Images size={16} />
+        <span>素材库</span>
+      </UnstyledButton>
+      <UnstyledButton
+        component="a"
+        href={base}
+        className={`${classes.projectLink} ${classes.projectSettings}`}
+        aria-current={!section ? "page" : undefined}
+        data-active={!section || undefined}
+      >
+        <GearSix size={17} />
+        <span>项目设置</span>
+      </UnstyledButton>
+    </nav>
+  );
+}
+function WorkspaceContext({
+  tenantId,
+  projectId,
+  section,
+  studioName,
+  studioSection,
+}: {
+  tenantId: string | undefined;
+  projectId: string | undefined;
+  section: string | undefined;
+  studioName: string | undefined;
+  studioSection: string;
+}) {
+  const project = useResource<Schema<"Project">>(
+    tenantId && projectId ? projectPath(tenantId, projectId) : "",
+    !!tenantId && !!projectId,
+  );
+  const title = projectId
+    ? (projectSections.find((item) => item.id === section)?.label ??
+      (section === "media" ? "素材库" : "项目设置"))
+    : ({ projects: "项目", work: "我的工作", assets: "资产", media: "素材库" }[
+        studioSection
+      ] ?? "工作室");
+  return (
+    <header className={classes.contextHeader}>
+      <nav className={classes.breadcrumb} aria-label="当前位置">
+        <Anchor href={tenantId ? `#/app/t/${tenantId}` : "#/app"}>
+          {studioName ?? "工作室"}
+        </Anchor>
+        <CaretRight size={14} />
+        {projectId && (
+          <>
+            <Anchor href={`#/app/t/${tenantId}/p/${projectId}/content`}>
+              {project.data?.name ?? "项目"}
+            </Anchor>
+            <CaretRight size={14} />
+          </>
+        )}
+        <Text size="sm">{title}</Text>
+      </nav>
+      {!projectId &&
+        tenantId &&
+        ["assets", "media"].includes(studioSection) && (
+          <Group gap="xs">
             <Button
-              leftSection={<Archive size={18} />}
-              variant="subtle"
+              variant={studioSection === "assets" ? "default" : "subtle"}
               component="a"
               href={`#/app/t/${tenantId}/assets`}
             >
-              共享资产
+              资产
             </Button>
-          )}
-          <Text size="xs" c="dimmed" mt="xl">
-            {session.email}
-          </Text>
-          <Button
-            leftSection={<SignOut size={18} />}
-            variant="subtle"
-            loading={logout.isPending}
-            onClick={() =>
-              logout.mutate(
-                { path: "/v1/session/logout" },
-                {
-                  onCommitted: () => void finishLogout(),
-                },
-              )
-            }
-          >
-            退出登录
-          </Button>
-          <ErrorNotice error={logout.error} />
-        </aside>
-        <main className={classes.main}>
-          <ErrorNotice
-            error={tenants.error}
-            retry={() => void tenants.refetch()}
-          />
-          {tenants.isPending ? (
-            <Loader aria-label="正在读取工作室" />
-          ) : tenants.isError ? null : !tenantId ? (
-            <>
-              <SectionHeading
-                title="选择创作空间"
-                description="进入已为你开通的工作室，继续项目创作。"
-              />
-              {tenants.data?.length ? (
-                <div className={classes.rows}>
-                  {tenants.data.map((t) => (
-                    <article key={t.id} className={classes.row}>
-                      <Group>
-                        <Buildings size={24} />
-                        <Text fw={600}>{t.name}</Text>
-                      </Group>
-                      <Button component="a" href={`#/app/t/${t.id}`}>
-                        查看项目
-                      </Button>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <Empty>
-                  <Text>你的账号尚未开通创作空间。</Text>
-                  <Text mt="sm">
-                    请联系工作台负责人配置访问；开通后刷新即可进入项目。
-                  </Text>
-                  <Button mt="lg" onClick={() => void tenants.refetch()}>
-                    刷新访问
-                  </Button>
-                </Empty>
-              )}
-            </>
-          ) : (
-            <ProjectUpdates
-              tenantId={tenantId}
-              projectId={segments[4] === "p" ? segments[5] : undefined}
+            <Button
+              variant={studioSection === "media" ? "default" : "subtle"}
+              component="a"
+              href={`#/app/t/${tenantId}/media`}
             >
-              <TenantArea
-                key={tenantId}
-                tenantId={tenantId}
-                section={segments[4]}
-                projectId={segments[4] === "p" ? segments[5] : undefined}
-                contentView={segments[6] === "content"}
-                mediaView={segments[6] === "media"}
-                assetView={segments[6] === "assets"}
-                productionView={segments[6] === "production"}
-                projectSection={segments[6]}
-              />
-            </ProjectUpdates>
-          )}
-        </main>
-      </div>
-    </>
+              素材库
+            </Button>
+          </Group>
+        )}
+    </header>
   );
 }
 function TenantArea({
@@ -486,6 +713,7 @@ function TenantArea({
   section,
   projectId,
   contentView,
+  scriptView,
   mediaView,
   assetView,
   productionView,
@@ -495,6 +723,7 @@ function TenantArea({
   section?: string | undefined;
   projectId?: string | undefined;
   contentView?: boolean | undefined;
+  scriptView?: boolean | undefined;
   mediaView?: boolean | undefined;
   assetView?: boolean | undefined;
   productionView?: boolean | undefined;
@@ -521,8 +750,10 @@ function TenantArea({
   if (
     (projectId &&
       projectSection &&
-      !["content", "media", "assets", "production"].includes(projectSection)) ||
-    (!projectId && section && !["media", "assets"].includes(section))
+      !["content", "script", "media", "assets", "production"].includes(
+        projectSection,
+      )) ||
+    (!projectId && section && !["media", "assets", "work"].includes(section))
   )
     return (
       <Stack gap="lg">
@@ -541,6 +772,12 @@ function TenantArea({
           {projectId ? "返回剧本与集场镜" : "返回项目"}
         </Button>
       </Stack>
+    );
+  if (!projectId && section === "work")
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载我的工作" />}>
+        <MyWork tenantId={tenantId} own={own} />
+      </Suspense>
     );
   if (section === "media" || (projectId && mediaView))
     return (
@@ -561,6 +798,7 @@ function TenantArea({
       members={members.data}
       projectId={projectId}
       contentView={contentView}
+      scriptView={scriptView}
     />
   );
 }

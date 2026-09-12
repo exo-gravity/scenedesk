@@ -46,7 +46,7 @@ export function SectionHeading({
       <div>
         <Heading className={classes.title}>{title}</Heading>
         {description && (
-          <Text c="dimmed" mt="sm">
+          <Text size="sm" c="dimmed" mt="xs">
             {description}
           </Text>
         )}

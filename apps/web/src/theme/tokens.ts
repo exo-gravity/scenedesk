@@ -62,5 +62,8 @@ export const semanticVariables = {
   "--ws-control-form": `${tokens.control.form}px`,
   "--ws-radius": `${tokens.radius.control}px`,
   "--ws-card-radius": `${tokens.radius.content}px`,
+  "--ws-media-radius": "6px",
+  "--ws-tool-radius": "8px",
+  "--ws-floating-radius": "12px",
   "--ws-shadow": tokens.shadow,
 } as const;

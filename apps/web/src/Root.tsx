@@ -23,7 +23,8 @@ export default function Root() {
     <MantineProvider
       theme={theme}
       cssVariablesResolver={cssVariablesResolver}
-      forceColorScheme={business ? "light" : "dark"}
+      defaultColorScheme="light"
+      {...(!business ? { forceColorScheme: "dark" as const } : {})}
     >
       {business ? (
         <Suspense fallback={<p>正在打开创作工作台…</p>}>

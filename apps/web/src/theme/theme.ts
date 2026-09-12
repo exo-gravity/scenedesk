@@ -198,6 +198,7 @@ function scheme(tone: "light" | "dark") {
   const p = palettes[tone];
   return {
     "--ws-canvas": p.canvas,
+    "--ws-canvas-dot": p.dot,
     "--ws-panel": p.shell,
     "--ws-raised": p.surface,
     "--ws-hover": p.soft,
