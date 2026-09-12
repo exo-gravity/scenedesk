@@ -495,6 +495,15 @@ function Workspace({ hash }: { hash: string }) {
             </Menu>
           </div>
         </nav>
+        {!production && (
+          <WorkspaceContext
+            tenantId={tenantId}
+            projectId={projectId}
+            section={projectSection}
+            studioName={studio?.name}
+            studioSection={section}
+          />
+        )}
         {tenantId && projectId && !production && (
           <ProjectDirectory
             tenantId={tenantId}
@@ -503,15 +512,6 @@ function Workspace({ hash }: { hash: string }) {
           />
         )}
         <section className={classes.content}>
-          {!production && (
-            <WorkspaceContext
-              tenantId={tenantId}
-              projectId={projectId}
-              section={projectSection}
-              studioName={studio?.name}
-              studioSection={section}
-            />
-          )}
           <main
             className={classes.main}
             ref={main}
