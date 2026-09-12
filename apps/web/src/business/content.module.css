@@ -82,12 +82,18 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 410px;
   gap: 0;
-  min-height: calc(100dvh - 90px);
+  height: 100%;
+  min-height: 0;
   align-items: stretch;
 }
 .scriptMain,
 .document {
   min-width: 0;
+}
+.scriptMain,
+.scriptAssistant {
+  min-height: 0;
+  overflow-y: auto;
 }
 .scriptMain,
 .fullWorkspace {
@@ -126,9 +132,24 @@
   padding-block: var(--mantine-spacing-xl);
   border-top: 1px solid var(--ws-border);
 }
+@media (max-width: 1400px) {
+  .scriptWorkspace {
+    grid-template-columns: minmax(0, 1fr) 370px;
+  }
+  .scriptMain,
+  .fullWorkspace {
+    padding: var(--mantine-spacing-xl);
+  }
+}
 @media (max-width: 1000px) {
   .scriptWorkspace {
     grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 100%;
+  }
+  .scriptMain,
+  .scriptAssistant {
+    overflow-y: visible;
   }
   .scriptAssistant {
     padding: var(--mantine-spacing-xl);
