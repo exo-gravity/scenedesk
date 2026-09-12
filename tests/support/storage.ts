@@ -24,7 +24,10 @@ import {
 export { MINIO_TEST_IMAGE, MC_IMAGE };
 const exec = promisify(execFile);
 
-export async function storageFixture(t: TestContext) {
+export async function storageFixture(
+  t: TestContext,
+  options: { storageCapacityMiB?: 512 | 2048 } = {},
+) {
   const name = `scenedesk-storage-test-${randomUUID()}`;
   const root = {
     accessKeyId: randomBytes(12).toString("hex"),
@@ -63,7 +66,7 @@ export async function storageFixture(t: TestContext) {
       "--cpus",
       "2",
       "--tmpfs",
-      "/data:rw,nosuid,nodev,size=536870912,mode=0700",
+      `/data:rw,nosuid,nodev,size=${options.storageCapacityMiB ?? 512}m,mode=0700`,
       "--env",
       "MINIO_ROOT_USER",
       "--env",
