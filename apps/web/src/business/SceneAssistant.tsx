@@ -619,11 +619,11 @@ function SceneAssistantContent({
                   </Text>
                   <Button
                     component="a"
-                    href={`#/app/t/${tenantId}/p/${projectId}/content`}
+                    href={`#/app/t/${tenantId}/p/${projectId}/script`}
                     variant="subtle"
                     mt="sm"
                   >
-                    打开剧本与内容
+                    打开剧本
                   </Button>
                 </Alert>
               )}
