@@ -66,8 +66,17 @@ function AssistantModes(props: Parameters<typeof SceneAssistantContent>[0]) {
     ) ?? [];
   const shot = shots.find((s) => s.id === shotId);
   return (
-    <Stack gap="md" hidden={!props.visible} className={classes.panel}>
+    <Stack
+      gap="lg"
+      hidden={!props.visible}
+      className={`${classes.panel} ${classes.assistant}`}
+    >
       <SegmentedControl
+        classNames={{
+          root: classes.modeTabs,
+          indicator: classes.modeIndicator,
+          label: classes.modeLabel,
+        }}
         value={mode}
         onChange={setMode}
         data={[
@@ -341,13 +350,14 @@ function SceneAssistantContent({
     );
   return (
     <Stack gap="md" hidden={!visible} className={classes.panel}>
-      <Text size="sm">为当前场次准备可编辑的分镜建议</Text>
-      <Text size="sm" fw={600}>
-        追加目标：{scene?.title ?? "当前场次"}
-      </Text>
-      <Text size="xs" c="dimmed">
-        建议先保存为提案；由你选择并采纳新镜头。
-      </Text>
+      <div className={classes.introduction}>
+        <Text size="sm" fw={600}>
+          为{scene?.title ?? "当前场次"}准备分镜
+        </Text>
+        <Text size="xs" c="dimmed">
+          先编辑建议，再明确采纳为新镜头。
+        </Text>
+      </div>
       <ErrorNotice
         error={tree.error ?? scripts.error ?? capabilities.error}
         retry={() => {
@@ -632,61 +642,71 @@ function SceneAssistantContent({
                 }}
               />
               {source && (
-                <>
-                  <Textarea
-                    label="选择要分析的原文"
-                    description="拖选或用键盘选择片段，再点“使用选区”。"
-                    value={source.text}
-                    readOnly
-                    minRows={6}
-                    maxRows={10}
-                    autosize
-                    onSelect={(event) =>
-                      setSelection({
-                        start: event.currentTarget.selectionStart,
-                        end: event.currentTarget.selectionEnd,
-                      })
-                    }
-                  />
-                  <Group gap="xs">
-                    <Button
-                      size="xs"
-                      disabled={
-                        disabled ||
-                        !selection ||
-                        selection.end <= selection.start
+                <details
+                  className={classes.source}
+                  open={!record.draft.range || undefined}
+                >
+                  <summary>
+                    {record.draft.range
+                      ? "重新选择原文片段"
+                      : "选择要分析的原文"}
+                  </summary>
+                  <Stack gap="sm" mt="sm">
+                    <Textarea
+                      label="选择要分析的原文"
+                      description="拖选或用键盘选择片段，再点“使用选区”。"
+                      value={source.text}
+                      readOnly
+                      minRows={5}
+                      maxRows={9}
+                      autosize
+                      onSelect={(event) =>
+                        setSelection({
+                          start: event.currentTarget.selectionStart,
+                          end: event.currentTarget.selectionEnd,
+                        })
                       }
-                      onClick={() => {
-                        try {
-                          if (selection)
-                            update(
-                              selectedRange(
-                                source.text,
-                                selection.start,
-                                selection.end,
-                              ),
-                            );
-                        } catch (error) {
-                          setLocalError((error as Error).message);
+                    />
+                    <Group gap="xs">
+                      <Button
+                        size="xs"
+                        disabled={
+                          disabled ||
+                          !selection ||
+                          selection.end <= selection.start
                         }
-                      }}
-                    >
-                      使用选区
-                    </Button>
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      disabled={disabled || !source.text.trim()}
-                      onClick={() =>
-                        update(
-                          selectedRange(source.text, 0, source.text.length),
-                        )
-                      }
-                    >
-                      明确使用整篇
-                    </Button>
-                  </Group>
-                </>
+                        onClick={() => {
+                          try {
+                            if (selection)
+                              update(
+                                selectedRange(
+                                  source.text,
+                                  selection.start,
+                                  selection.end,
+                                ),
+                              );
+                          } catch (error) {
+                            setLocalError((error as Error).message);
+                          }
+                        }}
+                      >
+                        使用选区
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="subtle"
+                        disabled={disabled || !source.text.trim()}
+                        onClick={() =>
+                          update(
+                            selectedRange(source.text, 0, source.text.length),
+                          )
+                        }
+                      >
+                        明确使用整篇
+                      </Button>
+                    </Group>
+                  </Stack>
+                </details>
               )}
               {record.draft.range && (
                 <section className={classes.selection} aria-label="已选原文">
@@ -700,6 +720,7 @@ function SceneAssistantContent({
                 </section>
               )}
               <Textarea
+                classNames={{ input: classes.promptInput }}
                 label="分镜要求"
                 description="可说明镜头节奏、数量或重点。"
                 placeholder="例如：突出两个人的反应，保留原台词"
@@ -712,6 +733,7 @@ function SceneAssistantContent({
               />
               {scene && (
                 <Checkbox
+                  className={classes.contextOption}
                   label="附带本场摘要与连续性设定"
                   description="仅在勾选后发送当前场次的设定。"
                   checked={record.draft.context.some(
@@ -768,6 +790,7 @@ function SceneAssistantContent({
                 </Alert>
               )}
               <Select
+                className={classes.modelField}
                 label="分镜分析模型"
                 placeholder={
                   capabilities.isPending

@@ -33,7 +33,7 @@ export function AssetRevisionView({
     : references[0]?.mediaId;
   const media = useResource<Schema<"Media">>(`${path}/media/${id ?? ""}`, !!id);
   return (
-    <Stack gap="lg">
+    <Stack gap="md" className={classes.mediaMain}>
       {!!definition.looks?.length && (
         <Select
           label="查看身份或造型参考"
@@ -105,9 +105,25 @@ export function AssetRevisionView({
           </UnstyledButton>
         ))}
       </Group>
+    </Stack>
+  );
+}
+
+export function AssetRevisionDefinition({
+  revision,
+  path,
+}: {
+  revision: Schema<"AssetRevision">;
+  path: string;
+}) {
+  const definition = revision.definition;
+  return (
+    <Stack gap="md" className={classes.revisionDefinition}>
       <div>
-        <Text fw={600}>v{revision.number} 的固定设定</Text>
-        <Text mt="sm" className={classes.definition}>
+        <Text size="sm" fw={600}>
+          固定设定
+        </Text>
+        <Text size="sm" mt="xs" className={classes.definition}>
           {definition.description || "未填写设定说明"}
         </Text>
       </div>

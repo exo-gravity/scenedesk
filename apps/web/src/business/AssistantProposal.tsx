@@ -3,6 +3,7 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import { useResource, type Schema } from "./api";
 import { ErrorNotice } from "./common";
 import { ProposalDetail } from "./ProposalWorkspace";
+import classes from "./assistant.module.css";
 export function AssistantProposal({
   path,
   proposalId,
@@ -18,7 +19,7 @@ export function AssistantProposal({
 }) {
   const tree = useResource<Schema<"ContentTree">>(`${path}/content`);
   return (
-    <Stack gap="lg">
+    <Stack gap="lg" className={classes.proposal}>
       <Button
         leftSection={<ArrowLeft size={16} />}
         variant="subtle"

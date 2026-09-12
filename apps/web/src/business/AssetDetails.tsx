@@ -12,7 +12,10 @@ import {
 import { useCommand, useResource, type Schema } from "./api";
 import { Empty, ErrorNotice, projectPath, SectionHeading } from "./common";
 import { assetKinds, useAssetPages } from "./asset-queries";
-import { AssetRevisionView } from "./AssetRevisionView";
+import {
+  AssetRevisionView,
+  AssetRevisionDefinition,
+} from "./AssetRevisionView";
 import { AssetDefinitionEditor } from "./AssetDefinitionEditor";
 import { AssetMetadataEditor } from "./AssetMetadataEditor";
 import classes from "./assets.module.css";
@@ -83,6 +86,7 @@ export function AssetDetails({
         action={
           canWrite && (
             <Button
+              variant="subtle"
               onClick={() =>
                 setEditing(
                   editing?.kind === "metadata"
@@ -103,7 +107,7 @@ export function AssetDetails({
         </Alert>
       )}
       <div className={classes.detail}>
-        <Stack gap="lg">
+        <Stack gap="lg" className={classes.main}>
           <ErrorNotice
             error={selected.error}
             retry={() => void selected.refetch()}
@@ -131,7 +135,10 @@ export function AssetDetails({
             </Empty>
           )}
         </Stack>
-        <Stack gap="lg">
+        <Stack gap="md" className={classes.inspector}>
+          <Text component="h2" className={classes.inspectorTitle}>
+            设定版本
+          </Text>
           {selected.data &&
             !selected.isError &&
             selected.data.assetId === id && (
@@ -154,8 +161,9 @@ export function AssetDetails({
                     ? new Date(selected.data.createdAt).toLocaleString()
                     : ""}
                 </Text>
-                <Text size="sm">
-                  草稿版本可以用于试作。浏览其他版本不会自动替换镜头或项目的既有引用。
+                <AssetRevisionDefinition revision={selected.data} path={path} />
+                <Text size="xs" c="dimmed">
+                  草稿版本可以试作；浏览版本不会替换既有引用。
                 </Text>
                 {selected.data.id !== value.currentRevisionId && (
                   <Button component="a" href={href(id)}>
@@ -197,6 +205,7 @@ export function AssetDetails({
           )}
           <ErrorNotice error={current.error} />
           <details
+            className={classes.disclosure}
             onToggle={(event) => setHistoryOpen(event.currentTarget.open)}
           >
             <summary>固定版本历史</summary>
@@ -235,7 +244,10 @@ export function AssetDetails({
               )}
             </Stack>
           </details>
-          <details onToggle={(event) => setUsageOpen(event.currentTarget.open)}>
+          <details
+            className={classes.disclosure}
+            onToggle={(event) => setUsageOpen(event.currentTarget.open)}
+          >
             <summary>有权查看的直接使用位置</summary>
             <Stack mt="md" gap="sm">
               <ErrorNotice
@@ -289,7 +301,13 @@ export function AssetDetails({
             </div>
           )}
           {active && (
-            <Button onClick={() => setArchive(value)}>归档资产</Button>
+            <Button
+              variant="subtle"
+              className={classes.secondaryAction}
+              onClick={() => setArchive(value)}
+            >
+              归档资产
+            </Button>
           )}
         </Stack>
       </div>
