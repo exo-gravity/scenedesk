@@ -412,3 +412,13 @@
   fill: var(--ws-secondary);
   font-size: var(--mantine-font-size-xs);
 }
+.node[data-content="media"] .nodeHeader {
+  order: 0;
+  padding: 0 0 6px;
+}
+.node[data-content="media"][data-selected] {
+  border-color: var(--ws-accent);
+}
+.nodeMedia > div:first-child {
+  height: min(640px, var(--ws-node-media-height));
+}

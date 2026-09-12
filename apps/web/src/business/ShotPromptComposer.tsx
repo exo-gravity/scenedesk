@@ -299,7 +299,9 @@ function PromptContent({
         )}
         {!assistantOnly && (
           <Textarea
-            label="本次提示"
+            aria-label="本次提示"
+            label={rework ? "本次提示" : undefined}
+            placeholder="描述本次想要的画面、动作或声音"
             minRows={2}
             autosize
             maxRows={3}

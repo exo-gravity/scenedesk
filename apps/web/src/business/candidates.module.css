@@ -125,7 +125,7 @@
 }
 .promptComposer:has(.generationChoices [data-active]),
 .promptComposer:has(.inputHistory[open]) {
-  flex-basis: min(390px, 48dvh);
+  flex-basis: min(300px, 32dvh);
 }
 .promptBody {
   min-height: 0;
@@ -418,4 +418,33 @@
 }
 .hero > div {
   max-width: 560px;
+}
+
+.promptBody > * {
+  flex-shrink: 0;
+}
+.previewStage {
+  min-height: 120px;
+}
+.takeView {
+  min-height: 205px;
+}
+.shotText p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-height: 820px) {
+  .nearReference[data-open] {
+    width: 130px;
+  }
+  .referenceMedia {
+    height: 120px;
+  }
+  .nearReference {
+    padding-bottom: 0;
+  }
+  .nearReference > div {
+    gap: 4px;
+  }
 }

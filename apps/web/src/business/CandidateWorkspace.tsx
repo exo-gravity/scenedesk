@@ -210,13 +210,11 @@ export default function CandidateWorkspace({
               <Text fw={600}>
                 {s.label} {s.status === "archived" ? "· 已归档" : ""}
               </Text>
-              <Text size="sm" lineClamp={2}>
+              <Text size="sm" lineClamp={1}>
                 {s.spec.intent}
               </Text>
               <Text size="xs" c="dimmed">
-                {s.currentTakeId
-                  ? `当前采用 ${s.currentTakeId.slice(0, 8)}`
-                  : "尚未采用"}
+                {s.currentTakeId ? "当前采用" : "尚未采用"}
               </Text>
             </span>
           </UnstyledButton>
@@ -314,7 +312,7 @@ function ShotProduction({
           </Text>
           <StatusLabel>
             {shot.currentTakeId
-              ? `当前采用 ${shot.currentTakeId.slice(0, 8)}`
+              ? "当前采用"
               : "尚未采用"}
           </StatusLabel>
         </Group>
@@ -410,7 +408,7 @@ function ShotProduction({
               <Group justify="space-between" className={classes.previewCaption}>
                 <div>
                   <Text fw={600}>
-                    正在查看 {take.id.slice(0, 8)} · {media.data?.displayName}
+                    {media.data?.displayName ?? "当前候选"}
                   </Text>
                   <Text size="sm">
                     {sourceSeconds(take.range.inUs)}–
