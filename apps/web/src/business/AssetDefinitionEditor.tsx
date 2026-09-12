@@ -341,7 +341,7 @@ export function AssetDefinitionEditor({
               保存为新的固定版本
             </Button>
             <Button variant="subtle" onClick={() => done()}>
-              收起，保留本机草稿
+              返回预览，保留本机草稿
             </Button>
           </Group>
         </Stack>

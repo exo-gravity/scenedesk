@@ -11,7 +11,7 @@ import {
   Text,
 } from "@mantine/core";
 import { useCommand, useResource, type Schema } from "./api";
-import { Empty, ErrorNotice, projectPath, SectionHeading } from "./common";
+import { Empty, ErrorNotice, projectPath } from "./common";
 import { assetKinds, useAssetPages } from "./asset-queries";
 import {
   AssetRevisionView,
@@ -81,6 +81,9 @@ export function AssetDetails({
       <Empty>该资产不属于当前范围，请从所属项目或工作室共享区进入。</Empty>
     );
   const active = canWrite && value.status === "active";
+  const showEditor =
+    (editing?.kind === "definition" && active) ||
+    (editing?.kind === "metadata" && canWrite);
   return (
     <>
       <div className={classes.detail}>
@@ -102,57 +105,96 @@ export function AssetDetails({
               素材文件
             </Button>
           </Group>
-          <SectionHeading
-            title={value.name}
-            description={`${assetKinds[value.kind]} · ${value.scope === "shared" ? "工作室共享" : "项目资产"} · ${value.status === "archived" ? "已归档" : "使用中"}`}
-            action={
-              canWrite && (
-                <Button
-                  variant="subtle"
-                  onClick={() =>
-                    setEditing(
-                      editing?.kind === "metadata"
-                        ? undefined
-                        : { kind: "metadata" },
-                    )
-                  }
-                >
-                  修改检索信息
-                </Button>
-              )
-            }
-          />
+          <Group
+            justify="space-between"
+            align="center"
+            className={classes.assetHeading}
+          >
+            <div>
+              <Text size="xs" c="dimmed">
+                {assetKinds[value.kind]} ·{" "}
+                {value.scope === "shared" ? "工作室共享" : "项目资产"} ·{" "}
+                {value.status === "archived" ? "已归档" : "使用中"}
+              </Text>
+              <Text component="h1" className={classes.assetTitle}>
+                {value.name}
+              </Text>
+            </div>
+            {canWrite && (
+              <Button
+                variant="subtle"
+                onClick={() =>
+                  setEditing(
+                    editing?.kind === "metadata"
+                      ? undefined
+                      : { kind: "metadata" },
+                  )
+                }
+              >
+                修改检索信息
+              </Button>
+            )}
+          </Group>
           <ErrorNotice error={asset.error ?? command.error} />
           {value.status === "archived" && (
             <Alert title="资产已归档">
               固定版本与已有引用仍保留。不能新增版本或将其用于新引用。
             </Alert>
           )}
-          <ErrorNotice
-            error={selected.error}
-            retry={() => void selected.refetch()}
-          />
-          {selectedId ? (
-            selected.isPending ? (
-              <Loader aria-label="正在读取固定版本" />
-            ) : (
-              selected.data &&
-              !selected.isError &&
-              (selected.data.assetId === id ? (
-                <AssetRevisionView
-                  key={selected.data.id}
-                  path={path}
-                  tenantId={tenantId}
-                  revision={selected.data}
-                />
+          {editing?.kind === "definition" && active && (
+            <AssetDefinitionEditor
+              key={id}
+              asset={value}
+              current={current.data ?? editing.current}
+              currentReady={
+                !value.currentRevisionId ||
+                (!current.isError &&
+                  current.data?.id === value.currentRevisionId)
+              }
+              path={path}
+              done={(revision) => {
+                setEditing(undefined);
+                if (revision) location.hash = href(id, revision.id);
+              }}
+            />
+          )}
+          {editing?.kind === "metadata" && canWrite && (
+            <AssetMetadataEditor
+              key={id}
+              asset={value}
+              path={path}
+              done={() => setEditing(undefined)}
+            />
+          )}
+          {!showEditor && (
+            <>
+              <ErrorNotice
+                error={selected.error}
+                retry={() => void selected.refetch()}
+              />
+              {selectedId ? (
+                selected.isPending ? (
+                  <Loader aria-label="正在读取固定版本" />
+                ) : (
+                  selected.data &&
+                  !selected.isError &&
+                  (selected.data.assetId === id ? (
+                    <AssetRevisionView
+                      key={selected.data.id}
+                      path={path}
+                      tenantId={tenantId}
+                      revision={selected.data}
+                    />
+                  ) : (
+                    <Empty>指定版本不属于这项资产。</Empty>
+                  ))
+                )
               ) : (
-                <Empty>指定版本不属于这项资产。</Empty>
-              ))
-            )
-          ) : (
-            <Empty>
-              先建立第一个固定版本，保存设定和参考。资产名称与固定设定分别维护。
-            </Empty>
+                <Empty>
+                  先建立第一个固定版本，保存设定和参考。资产名称与固定设定分别维护。
+                </Empty>
+              )}
+            </>
           )}
         </Stack>
         <Stack gap="md" className={classes.inspector}>
@@ -331,30 +373,6 @@ export function AssetDetails({
           )}
         </Stack>
       </div>
-      {editing?.kind === "definition" && active && (
-        <AssetDefinitionEditor
-          key={id}
-          asset={value}
-          current={current.data ?? editing.current}
-          currentReady={
-            !value.currentRevisionId ||
-            (!current.isError && current.data?.id === value.currentRevisionId)
-          }
-          path={path}
-          done={(revision) => {
-            setEditing(undefined);
-            if (revision) location.hash = href(id, revision.id);
-          }}
-        />
-      )}
-      {editing?.kind === "metadata" && canWrite && (
-        <AssetMetadataEditor
-          key={id}
-          asset={value}
-          path={path}
-          done={() => setEditing(undefined)}
-        />
-      )}
       <Modal
         title="确认这份固定设定？"
         opened={!!confirm}

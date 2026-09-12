@@ -92,7 +92,7 @@
   padding: 28px 32px;
 }
 .mediaMain {
-  --ws-preview-height: clamp(320px, calc(100dvh - 330px), 720px);
+  --ws-preview-height: clamp(260px, calc(100dvh - 390px), 660px);
   --ws-preview-background: transparent;
 }
 .inspector {
@@ -183,4 +183,14 @@
   white-space: normal;
   text-align: left;
   overflow-wrap: anywhere;
+}
+
+.assetHeading {
+  min-width: 0;
+}
+.assetTitle {
+  margin: var(--mantine-spacing-xs) 0 0;
+  font-size: var(--mantine-font-size-lg);
+  font-weight: 600;
+  line-height: 1.4;
 }
