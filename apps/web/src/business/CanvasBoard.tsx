@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import {
   Background,
@@ -95,6 +96,7 @@ const CanvasNodeView = memo(function CanvasNodeView({
     <article
       className={classes.node}
       data-selected={selected || undefined}
+      data-content={node.content.type}
       aria-label={`${node.title} · ${node.kind}`}
     >
       <div className={`${classes.nodeHeader} canvas-drag-handle`}>
@@ -124,6 +126,7 @@ const CanvasNodeView = memo(function CanvasNodeView({
         </div>
       ) : (
         <NodeMedia
+          width={node.width}
           mediaId={node.content.mediaId}
           path={data.mediaPath}
           playing={data.playing}
@@ -142,11 +145,13 @@ const CanvasNodeView = memo(function CanvasNodeView({
   );
 });
 function NodeMedia({
+  width,
   mediaId,
   path,
   playing,
   play,
 }: {
+  width: number;
   mediaId: string;
   path: string;
   playing: boolean;
@@ -154,7 +159,14 @@ function NodeMedia({
 }) {
   const media = useResource<Schema<"Media">>(`${path}/media/${mediaId}`);
   return (
-    <div className={`${classes.nodeMedia} nodrag nopan`}>
+    <div
+      className={`${classes.nodeMedia} nodrag nopan`}
+      style={
+        {
+          "--ws-node-media-height": `${media.data?.width && media.data.height ? (width * media.data.height) / media.data.width : 180}px`,
+        } as CSSProperties
+      }
+    >
       {media.data ? (
         <>
           <MediaPreview media={media.data} path={path} thumbnail={!playing} />
@@ -199,6 +211,7 @@ export function CanvasBoard({
   readOnly,
   addMedia,
   nodeActions,
+  generation,
   focusRequest,
   focusCompleted,
 }: {
@@ -210,6 +223,7 @@ export function CanvasBoard({
   readOnly: boolean;
   addMedia: () => void;
   nodeActions?: ReactNode;
+  generation?: ReactNode;
   focusRequest?: { ids: string[]; nonce: number } | undefined;
   focusCompleted: (nonce: number) => void;
 }) {
@@ -292,20 +306,22 @@ export function CanvasBoard({
   );
   const displayedNodes: FlowNode[] = [
     ...nodes,
-    ...(uploads?.rows ?? []).map((row): UploadFlowNode => ({
-      id: `upload:${row.id}`,
-      type: "upload",
-      data: { row },
-      position: row.position,
-      width: 320,
-      ...(measurements[`upload:${row.id}`]
-        ? { measured: measurements[`upload:${row.id}`] }
-        : {}),
-      selectable: false,
-      draggable: false,
-      connectable: false,
-      focusable: false,
-    })),
+    ...(uploads?.rows ?? []).map(
+      (row): UploadFlowNode => ({
+        id: `upload:${row.id}`,
+        type: "upload",
+        data: { row },
+        position: row.position,
+        width: 320,
+        ...(measurements[`upload:${row.id}`]
+          ? { measured: measurements[`upload:${row.id}`] }
+          : {}),
+        selectable: false,
+        draggable: false,
+        connectable: false,
+        focusable: false,
+      }),
+    ),
   ];
   const edges = useMemo(
     () =>
@@ -496,7 +512,7 @@ export function CanvasBoard({
         }
       }}
     >
-      <Group className={classes.toolbar} justify="space-between">
+      <Group className={classes.toolbar} justify="space-between" gap="xs">
         <Group gap="xs">
           <Button
             size="xs"
@@ -707,7 +723,7 @@ export function CanvasBoard({
             }}
           >
             <MeasuredCanvasFocus request={localFocus} complete={finishFocus} />
-            <Background color="var(--ws-border)" gap={24} size={1} />
+            <Background color="var(--ws-canvas-dot)" gap={24} size={1} />
           </ReactFlow>
         </div>
       )}
@@ -763,7 +779,7 @@ export function CanvasBoard({
           )}
         </Group>
       </Group>
-      <div className={classes.toolbar}>
+      <div className={classes.utilities}>
         <details
           open={showNodeList}
           onToggle={(event) => setListExpanded(event.currentTarget.open)}
@@ -810,7 +826,7 @@ export function CanvasBoard({
       </div>
       {!!document.groups.length && (
         <details
-          className={classes.toolbar}
+          className={classes.groupMenu}
           open={showGroups}
           onToggle={(event) => setGroupsExpanded(event.currentTarget.open)}
         >
@@ -879,19 +895,22 @@ export function CanvasBoard({
           )}
         </details>
       )}
-      {active && (
-        <CanvasComposer
-          key={active.id}
-          node={active}
-          controller={controller}
-          document={document}
-          readOnly={readOnly}
-          composing={(value) => controller.setComposing(value)}
-          change={change}
-          focus={focus}
-          nodeActions={nodeActions}
-        />
-      )}
+      <div className={classes.localPanel} data-active={!!active || undefined}>
+        {active && (
+          <CanvasComposer
+            key={active.id}
+            node={active}
+            controller={controller}
+            document={document}
+            readOnly={readOnly}
+            composing={(value) => controller.setComposing(value)}
+            change={change}
+            focus={focus}
+            nodeActions={nodeActions}
+          />
+        )}
+        {generation}
+      </div>
       {!document.nodes.length && (
         <div className={classes.empty}>
           <Text fw={600}>从一个想法、一张参考开始</Text>
@@ -980,37 +999,6 @@ function CanvasComposer({
           </Text>
         </Group>
         {nodeActions}
-        <TextInput
-          label="节点名称"
-          maxLength={160}
-          value={
-            controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
-              ?.value ?? node.title
-          }
-          disabled={readOnly}
-          error={
-            controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
-              ? "请填写节点名称；原输入已保留"
-              : undefined
-          }
-          onChange={(e) => {
-            const title = e.currentTarget.value,
-              key = `node:${node.id}:title`;
-            const buffers = { ...controller.getSnapshot().local?.buffers };
-            if (!title) buffers[key] = { value: title, valid: false };
-            else delete buffers[key];
-            controller.change(
-              {
-                ...document,
-                nodes: document.nodes.map((n) =>
-                  n.id === node.id && title ? { ...n, title } : n,
-                ),
-              },
-              `title:${node.id}`,
-              buffers,
-            );
-          }}
-        />
         {node.content.type !== "media" && (
           <Textarea
             label={node.content.type === "text" ? "文字内容" : "本次提示词"}
@@ -1039,221 +1027,268 @@ function CanvasComposer({
             }
           />
         )}
-        <div className={classes.fields}>
-          {(
-            [
-              {
-                key: "x",
-                label: "横向位置",
-                value: node.position.x,
-                min: -1000000,
-                max: 1000000,
-              },
-              {
-                key: "y",
-                label: "纵向位置",
-                value: node.position.y,
-                min: -1000000,
-                max: 1000000,
-              },
-              {
-                key: "width",
-                label: "节点宽度",
-                value: node.width,
-                min: 120,
-                max: 1600,
-              },
-            ] as const
-          ).map((field) => {
-            const key = `node:${node.id}:${field.key}`,
-              buffer = controller.getSnapshot().local?.buffers[key];
-            return (
-              <NumberInput
-                key={key}
-                label={field.label}
-                value={buffer?.value ?? field.value}
-                min={field.min}
-                max={field.max}
-                clampBehavior="none"
-                disabled={readOnly}
-                error={buffer ? "请完成这个数值；原输入已保留" : undefined}
-                onChange={(v) => {
-                  const buffers = {
-                    ...controller.getSnapshot().local?.buffers,
-                  };
-                  const valid =
-                    typeof v === "number" &&
-                    Number.isFinite(v) &&
-                    v >= field.min &&
-                    v <= field.max;
-                  if (!valid) buffers[key] = { value: String(v), valid: false };
-                  else delete buffers[key];
-                  const next = valid
-                    ? field.key === "width"
-                      ? { ...node, width: v }
-                      : {
-                          ...node,
-                          position: { ...node.position, [field.key]: v },
-                        }
-                    : node;
-                  controller.change(
-                    {
-                      ...document,
-                      nodes: document.nodes.map((n) =>
-                        n.id === node.id ? next : n,
-                      ),
-                    },
-                    `number:${key}`,
-                    buffers,
-                  );
-                }}
-              />
-            );
-          })}
-        </div>
-        <Select
-          label="分组"
-          clearable
-          allowDeselect
-          placeholder="独立节点"
-          value={node.groupId ?? null}
-          data={document.groups.map((g) => ({ value: g.id, label: g.title }))}
-          disabled={readOnly}
-          onChange={(v) => {
-            const { groupId: _old, ...rest } = node;
-            edit(v ? { ...node, groupId: v } : rest);
-          }}
-        />
-        {node.groupId && (
-          <Button
-            variant="subtle"
-            onClick={() =>
-              focus(
-                document.nodes
-                  .filter((n) => n.groupId === node.groupId)
-                  .map((n) => n.id),
-              )
+        <details
+          className={classes.nodeSettings}
+          open={
+            Object.keys(controller.getSnapshot().local?.buffers ?? {}).some(
+              (key) => key.startsWith(`node:${node.id}:`),
+            ) || undefined
+          }
+        >
+          <summary>参考与节点设置 · {inbound.length} 项引用</summary>
+          <TextInput
+            label="节点名称"
+            maxLength={160}
+            value={
+              controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
+                ?.value ?? node.title
             }
-          >
-            选中并定位整组
-          </Button>
-        )}
-        {node.content.type === "draft" && (
-          <>
-            <Select
-              label="添加画布参考"
-              placeholder="选择文字或已导入素材"
-              searchable
-              clearable
-              value={reference}
-              onChange={setReference}
-              data={document.nodes
-                .filter((n) => n.content.type !== "draft")
-                .map((n) => ({ value: n.id, label: n.title }))}
-              disabled={readOnly}
-            />
-            <Button
-              disabled={!reference || readOnly}
-              onClick={() => {
-                const source = document.nodes.find((n) => n.id === reference);
-                if (!source) return;
-                try {
-                  change({
-                    ...document,
-                    edges: appendCanvasReference(document.edges, {
-                      id: crypto.randomUUID(),
-                      sourceNodeId: source.id,
-                      targetNodeId: node.id,
-                      enabled: true,
-                      purpose:
-                        source.kind === "text"
-                          ? "prompt"
-                          : source.kind === "audio"
-                            ? "voice"
-                            : "composition",
-                    }),
-                  });
-                  setReferenceError(null);
-                } catch (e) {
-                  setReferenceError(
-                    e instanceof Error ? e : new Error("引用未添加。"),
-                  );
-                }
-                setReference(null);
-              }}
-            >
-              添加所选参考
-            </Button>
-            <ErrorNotice error={referenceError} />
-            {inbound.map((edge) => {
-              const source = document.nodes.find(
-                (n) => n.id === edge.sourceNodeId,
-              )!;
+            disabled={readOnly}
+            error={
+              controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
+                ? "请填写节点名称；原输入已保留"
+                : undefined
+            }
+            onChange={(e) => {
+              const title = e.currentTarget.value,
+                key = `node:${node.id}:title`;
+              const buffers = { ...controller.getSnapshot().local?.buffers };
+              if (!title) buffers[key] = { value: title, valid: false };
+              else delete buffers[key];
+              controller.change(
+                {
+                  ...document,
+                  nodes: document.nodes.map((n) =>
+                    n.id === node.id && title ? { ...n, title } : n,
+                  ),
+                },
+                `title:${node.id}`,
+                buffers,
+              );
+            }}
+          />
+          <div className={classes.fields}>
+            {(
+              [
+                {
+                  key: "x",
+                  label: "横向位置",
+                  value: node.position.x,
+                  min: -1000000,
+                  max: 1000000,
+                },
+                {
+                  key: "y",
+                  label: "纵向位置",
+                  value: node.position.y,
+                  min: -1000000,
+                  max: 1000000,
+                },
+                {
+                  key: "width",
+                  label: "节点宽度",
+                  value: node.width,
+                  min: 120,
+                  max: 1600,
+                },
+              ] as const
+            ).map((field) => {
+              const key = `node:${node.id}:${field.key}`,
+                buffer = controller.getSnapshot().local?.buffers[key];
               return (
-                <Group key={edge.id} align="end">
-                  <Select
-                    label={`${source.title} · 用途`}
-                    allowDeselect={false}
-                    value={edge.purpose}
-                    data={
-                      source.kind === "text"
-                        ? [{ value: "prompt", label: "提示" }]
-                        : options(referencePurposes)
-                    }
-                    disabled={readOnly}
-                    onChange={(purpose) =>
-                      change({
+                <NumberInput
+                  key={key}
+                  label={field.label}
+                  value={buffer?.value ?? field.value}
+                  min={field.min}
+                  max={field.max}
+                  clampBehavior="none"
+                  disabled={readOnly}
+                  error={buffer ? "请完成这个数值；原输入已保留" : undefined}
+                  onChange={(v) => {
+                    const buffers = {
+                      ...controller.getSnapshot().local?.buffers,
+                    };
+                    const valid =
+                      typeof v === "number" &&
+                      Number.isFinite(v) &&
+                      v >= field.min &&
+                      v <= field.max;
+                    if (!valid)
+                      buffers[key] = { value: String(v), valid: false };
+                    else delete buffers[key];
+                    const next = valid
+                      ? field.key === "width"
+                        ? { ...node, width: v }
+                        : {
+                            ...node,
+                            position: { ...node.position, [field.key]: v },
+                          }
+                      : node;
+                    controller.change(
+                      {
                         ...document,
-                        edges: document.edges.map((e) =>
-                          e.id === edge.id
-                            ? { ...e, purpose: purpose as typeof edge.purpose }
-                            : e,
+                        nodes: document.nodes.map((n) =>
+                          n.id === node.id ? next : n,
                         ),
-                      })
-                    }
-                  />
-                  <Button
-                    disabled={readOnly}
-                    onClick={() =>
-                      change({
-                        ...document,
-                        edges: document.edges.map((e) =>
-                          e.id === edge.id ? { ...e, enabled: !e.enabled } : e,
-                        ),
-                      })
-                    }
-                  >
-                    {edge.enabled ? "停用" : "启用"}
-                  </Button>
-                  <Button
-                    disabled={readOnly}
-                    onClick={() =>
-                      change({
-                        ...document,
-                        edges: document.edges.filter((e) => e.id !== edge.id),
-                      })
-                    }
-                  >
-                    移除引用
-                  </Button>
-                </Group>
+                      },
+                      `number:${key}`,
+                      buffers,
+                    );
+                  }}
+                />
               );
             })}
-            <Alert
-              title={
-                node.kind === "image"
-                  ? "准备图片生成"
-                  : node.kind === "video"
-                    ? "准备视频生成"
-                    : "准备音频生成"
+          </div>
+          <Select
+            label="分组"
+            clearable
+            allowDeselect
+            placeholder="独立节点"
+            value={node.groupId ?? null}
+            data={document.groups.map((g) => ({ value: g.id, label: g.title }))}
+            disabled={readOnly}
+            onChange={(v) => {
+              const { groupId: _old, ...rest } = node;
+              edit(v ? { ...node, groupId: v } : rest);
+            }}
+          />
+          {node.groupId && (
+            <Button
+              variant="subtle"
+              onClick={() =>
+                focus(
+                  document.nodes
+                    .filter((n) => n.groupId === node.groupId)
+                    .map((n) => n.id),
+                )
               }
             >
-              <Text>
-                提示和参考会随画布保存。请在下方“画布生成与结果”中选择可执行能力，并核对固定计划后生成。
-              </Text>
-            </Alert>
-          </>
-        )}
+              选中并定位整组
+            </Button>
+          )}
+          {node.content.type === "draft" && (
+            <>
+              <Select
+                label="添加画布参考"
+                placeholder="选择文字或已导入素材"
+                searchable
+                clearable
+                value={reference}
+                onChange={setReference}
+                data={document.nodes
+                  .filter((n) => n.content.type !== "draft")
+                  .map((n) => ({ value: n.id, label: n.title }))}
+                disabled={readOnly}
+              />
+              <Button
+                disabled={!reference || readOnly}
+                onClick={() => {
+                  const source = document.nodes.find((n) => n.id === reference);
+                  if (!source) return;
+                  try {
+                    change({
+                      ...document,
+                      edges: appendCanvasReference(document.edges, {
+                        id: crypto.randomUUID(),
+                        sourceNodeId: source.id,
+                        targetNodeId: node.id,
+                        enabled: true,
+                        purpose:
+                          source.kind === "text"
+                            ? "prompt"
+                            : source.kind === "audio"
+                              ? "voice"
+                              : "composition",
+                      }),
+                    });
+                    setReferenceError(null);
+                  } catch (e) {
+                    setReferenceError(
+                      e instanceof Error ? e : new Error("引用未添加。"),
+                    );
+                  }
+                  setReference(null);
+                }}
+              >
+                添加所选参考
+              </Button>
+              <ErrorNotice error={referenceError} />
+              {inbound.map((edge) => {
+                const source = document.nodes.find(
+                  (n) => n.id === edge.sourceNodeId,
+                )!;
+                return (
+                  <Group key={edge.id} align="end">
+                    <Select
+                      label={`${source.title} · 用途`}
+                      allowDeselect={false}
+                      value={edge.purpose}
+                      data={
+                        source.kind === "text"
+                          ? [{ value: "prompt", label: "提示" }]
+                          : options(referencePurposes)
+                      }
+                      disabled={readOnly}
+                      onChange={(purpose) =>
+                        change({
+                          ...document,
+                          edges: document.edges.map((e) =>
+                            e.id === edge.id
+                              ? {
+                                  ...e,
+                                  purpose: purpose as typeof edge.purpose,
+                                }
+                              : e,
+                          ),
+                        })
+                      }
+                    />
+                    <Button
+                      disabled={readOnly}
+                      onClick={() =>
+                        change({
+                          ...document,
+                          edges: document.edges.map((e) =>
+                            e.id === edge.id
+                              ? { ...e, enabled: !e.enabled }
+                              : e,
+                          ),
+                        })
+                      }
+                    >
+                      {edge.enabled ? "停用" : "启用"}
+                    </Button>
+                    <Button
+                      disabled={readOnly}
+                      onClick={() =>
+                        change({
+                          ...document,
+                          edges: document.edges.filter((e) => e.id !== edge.id),
+                        })
+                      }
+                    >
+                      移除引用
+                    </Button>
+                  </Group>
+                );
+              })}
+              <Alert
+                title={
+                  node.kind === "image"
+                    ? "准备图片生成"
+                    : node.kind === "video"
+                      ? "准备视频生成"
+                      : "准备音频生成"
+                }
+              >
+                <Text>
+                  提示和参考会随画布保存。请在下方“画布生成与结果”中选择可执行能力，并核对固定计划后生成。
+                </Text>
+              </Alert>
+            </>
+          )}
+        </details>
       </div>
     </div>
   );

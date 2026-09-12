@@ -23,6 +23,7 @@ import { sourceSeconds } from "./candidate-time";
 import { useAssetPages } from "./asset-queries";
 import { StatusLabel } from "../components/workspace/cards";
 import classes from "./candidates.module.css";
+import { referencePurposes } from "./asset-queries";
 import { TakeFeedback } from "./TakeFeedback";
 import { ShotPromptComposer } from "./ShotPromptComposer";
 type Take = Schema<"Take">;
@@ -31,11 +32,16 @@ export default function CandidateWorkspace({
   tenantId,
   projectId,
   embedded = false,
+  externalDockOpen = false,
+  closeExternalDock,
 }: {
   tenantId: string;
   projectId: string;
   embedded?: boolean;
+  externalDockOpen?: boolean;
+  closeExternalDock?: () => void;
 }) {
+  const [overview, setOverview] = useState(false);
   const cache = useQueryClient(),
     session = useSession();
   const path = projectPath(tenantId, projectId),
@@ -74,7 +80,7 @@ export default function CandidateWorkspace({
     episode?.status === "active" &&
     scene?.status === "active";
   return (
-    <Stack gap="lg">
+    <div className={classes.production}>
       {!embedded && (
         <Group justify="space-between">
           <Group>
@@ -136,6 +142,8 @@ export default function CandidateWorkspace({
           shot={shot}
           active={active && shot.status === "active"}
           takeId={takeId}
+          externalDockOpen={externalDockOpen}
+          closeExternalDock={closeExternalDock}
           href={`${base}/production?scene=${scene.id}&shot=${shot.id}`}
           contentHref={`${base}/content?shot=${shot.id}`}
         />
@@ -148,6 +156,41 @@ export default function CandidateWorkspace({
           active={active && shot.status === "active"}
         />
       )}
+      {overview && (
+        <section className={classes.overview} aria-label="全场分镜总览">
+          <Group justify="space-between">
+            <Text fw={600}>全场分镜 · {shots.length} 镜</Text>
+            <Button
+              size="xs"
+              variant="subtle"
+              onClick={() => setOverview(false)}
+            >
+              返回当前镜头
+            </Button>
+          </Group>
+          <div className={classes.overviewGrid}>
+            {shots.map((s) => (
+              <UnstyledButton
+                key={s.id}
+                component="a"
+                href={`${base}/production?scene=${sceneId}&shot=${s.id}`}
+                onClick={() => setOverview(false)}
+                className={classes.overviewShot}
+              >
+                <ShotThumbnail
+                  path={path}
+                  mediaPath={mediaPath}
+                  takeId={s.currentTakeId}
+                />
+                <Text fw={600}>{s.label}</Text>
+                <Text size="sm" lineClamp={2}>
+                  {s.spec.intent}
+                </Text>
+              </UnstyledButton>
+            ))}
+          </div>
+        </section>
+      )}
       <nav className={classes.strip} aria-label="本场分镜顺序">
         {shots.map((s) => (
           <UnstyledButton
@@ -158,21 +201,36 @@ export default function CandidateWorkspace({
             data-selected={s.id === shot?.id || undefined}
             aria-current={s.id === shot?.id ? "true" : undefined}
           >
-            <Text fw={600}>
-              {s.label} {s.status === "archived" ? "· 已归档" : ""}
-            </Text>
-            <Text size="sm" lineClamp={2}>
-              {s.spec.intent}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {s.currentTakeId
-                ? `当前采用 ${s.currentTakeId.slice(0, 8)}`
-                : "尚未采用"}
-            </Text>
+            <ShotThumbnail
+              path={path}
+              mediaPath={mediaPath}
+              takeId={s.currentTakeId}
+            />
+            <span className={classes.shotText}>
+              <Text fw={600}>
+                {s.label} {s.status === "archived" ? "· 已归档" : ""}
+              </Text>
+              <Text size="sm" lineClamp={2}>
+                {s.spec.intent}
+              </Text>
+              <Text size="xs" c="dimmed">
+                {s.currentTakeId
+                  ? `当前采用 ${s.currentTakeId.slice(0, 8)}`
+                  : "尚未采用"}
+              </Text>
+            </span>
           </UnstyledButton>
         ))}
+        <Button
+          className={classes.allShots}
+          size="xs"
+          variant="subtle"
+          onClick={() => setOverview(!overview)}
+        >
+          全场总览
+        </Button>
       </nav>
-    </Stack>
+    </div>
   );
 }
 function ShotProduction({
@@ -185,6 +243,8 @@ function ShotProduction({
   takeId,
   href,
   contentHref,
+  externalDockOpen,
+  closeExternalDock,
 }: {
   tenantId: string;
   path: string;
@@ -195,15 +255,26 @@ function ShotProduction({
   takeId: string | null;
   href: string;
   contentHref: string;
+  externalDockOpen: boolean;
+  closeExternalDock?: (() => void) | undefined;
 }) {
   const takes = useList<Take>(`${path}/takes?shotId=${shot.id}`),
     history = useList<Schema<"Selection">>(
       `${path}/shots/${shot.id}/selections`,
     );
   const members = useList<Schema<"Membership">>(`${mediaPath}/members`);
-  const [dock, setDock] = useState<"candidates" | "media">("candidates"),
+  const [dock, setDock] = useState<"candidates" | "media" | "feedback" | null>(
+      null,
+    ),
     [editor, setEditor] = useState<{ mediaId: string; source?: Take }>(),
     [decision, setDecision] = useState<{ take?: Take }>();
+  useEffect(() => {
+    if (externalDockOpen) setDock(null);
+  }, [externalDockOpen]);
+  const openDock = (next: typeof dock) => {
+    if (next) closeExternalDock?.();
+    setDock(next);
+  };
   const take = takeId
     ? takes.data?.find((t) => t.id === takeId)
     : (takes.data?.find((t) => t.id === shot.currentTakeId) ?? takes.data?.[0]);
@@ -225,13 +296,13 @@ function ShotProduction({
     };
   }, []);
   return (
-    <>
+    <div className={classes.shotProduction}>
       {!active && (
         <Alert>
           此镜头或上级内容已归档，可查看历史。恢复后再建立候选或修改采用。
         </Alert>
       )}
-      <Group justify="space-between">
+      <Group justify="space-between" className={classes.previewHeader}>
         <Group>
           <Text
             component="h1"
@@ -248,19 +319,38 @@ function ShotProduction({
           </StatusLabel>
         </Group>
         <Group>
-          <Button component="a" href={contentHref}>
+          <Button
+            size="xs"
+            variant="subtle"
+            aria-pressed={dock === "candidates"}
+            onClick={() =>
+              openDock(dock === "candidates" ? null : "candidates")
+            }
+          >
+            候选与历史
+          </Button>
+          <Button
+            size="xs"
+            variant="subtle"
+            aria-pressed={dock === "feedback"}
+            disabled={!take}
+            onClick={() => openDock(dock === "feedback" ? null : "feedback")}
+          >
+            候选意见
+          </Button>
+          <Button size="xs" variant="subtle" component="a" href={contentHref}>
             镜头要求与历史
           </Button>
           <Button
             leftSection={<Plus size={16} />}
             disabled={!active}
-            onClick={() => setDock("media")}
+            onClick={() => openDock("media")}
           >
             从素材建候选
           </Button>
         </Group>
       </Group>
-      <div className={classes.workspace}>
+      <div className={classes.workspace} data-dock={dock || undefined}>
         <section className={classes.stage} aria-label="当前镜头制作">
           <ErrorNotice
             error={takes.error ?? media.error}
@@ -293,18 +383,31 @@ function ShotProduction({
               指定候选不存在或不属于当前镜头。请从候选列表重新选择。
             </Empty>
           ) : take ? (
-            <Stack gap="md">
-              {media.data ? (
-                <MediaPreview
-                  key={take.id}
-                  media={media.data}
-                  path={mediaPath}
-                  range={take.range}
-                />
-              ) : (
-                <Loader aria-label="正在读取候选预览" />
-              )}
-              <Group justify="space-between">
+            <div className={classes.takeView}>
+              <div className={classes.previewStage}>
+                <div className={classes.hero}>
+                  {media.data ? (
+                    <MediaPreview
+                      key={take.id}
+                      media={media.data}
+                      path={mediaPath}
+                      range={take.range}
+                    />
+                  ) : (
+                    <Loader aria-label="正在读取候选预览" />
+                  )}
+                </div>
+                {revision.data &&
+                  !revision.error &&
+                  revision.data.spec.references.length > 0 && (
+                    <FixedTakeReferences
+                      key={take.id}
+                      path={mediaPath}
+                      revision={revision.data}
+                    />
+                  )}
+              </div>
+              <Group justify="space-between" className={classes.previewCaption}>
                 <div>
                   <Text fw={600}>
                     正在查看 {take.id.slice(0, 8)} · {media.data?.displayName}
@@ -319,7 +422,7 @@ function ShotProduction({
                   {take.id === shot.currentTakeId ? "当前采用" : "未采用此候选"}
                 </Badge>
               </Group>
-              <Group>
+              <Group className={classes.previewActions}>
                 <Button
                   variant="filled"
                   disabled={
@@ -352,54 +455,7 @@ function ShotProduction({
                   清除当前采用
                 </Button>
               </Group>
-              <details>
-                <summary>
-                  候选要求、说明与来源
-                  {obsolete ? " · 旧要求，需核对沿用" : " · 当前要求"}
-                </summary>
-                <Stack mt="md">
-                  <Text size="xs" c="dimmed">
-                    代理播放用于核对；候选保留原视频区间。
-                  </Text>
-                  <ErrorNotice
-                    error={revision.error}
-                    retry={() => void revision.refetch()}
-                  />
-                  <Text size="sm">
-                    固定要求{" "}
-                    {revision.data
-                      ? `v${revision.data.number}：${revision.data.spec.intent}`
-                      : "读取中…"}
-                  </Text>
-                  {take.note && (
-                    <Text className={classes.prose}>{take.note}</Text>
-                  )}
-                  {take.sourceTakeId && (
-                    <SourceTake
-                      path={path}
-                      mediaPath={mediaPath}
-                      sourceId={take.sourceTakeId}
-                    />
-                  )}
-                  {obsolete && (
-                    <Alert title="这份候选对应旧镜头要求">
-                      当前要求：{shot.spec.intent}
-                      。确认仍适用后，可新建沿用关系再采用。
-                    </Alert>
-                  )}
-                </Stack>
-              </details>
-              {revision.data && !revision.isError && (
-                <TakeFeedback
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  take={take}
-                  shot={shot}
-                  revision={revision.data}
-                  active={active}
-                />
-              )}
-            </Stack>
+            </div>
           ) : takes.isPending ? (
             <Loader aria-label="正在读取候选" />
           ) : (
@@ -412,29 +468,98 @@ function ShotProduction({
               <Button
                 variant="filled"
                 disabled={!active}
-                onClick={() => setDock("media")}
+                onClick={() => openDock("media")}
               >
                 浏览可用视频
               </Button>
             </div>
           )}
         </section>
-        <aside className={classes.dock} aria-label="制作辅助面板">
+        <aside
+          className={classes.dock}
+          aria-label="制作辅助面板"
+          hidden={!dock}
+        >
+          <Group justify="space-between">
+            <Text fw={600}>
+              {dock === "media"
+                ? "素材浏览"
+                : dock === "feedback"
+                  ? "候选意见"
+                  : "候选与历史"}
+            </Text>
+            <Button size="xs" variant="subtle" onClick={() => openDock(null)}>
+              收起制作面板
+            </Button>
+          </Group>
           <Group grow>
             <Button
               variant={dock === "candidates" ? "filled" : "default"}
-              onClick={() => setDock("candidates")}
+              onClick={() => openDock("candidates")}
             >
               候选与历史
             </Button>
             <Button
               variant={dock === "media" ? "filled" : "default"}
-              onClick={() => setDock("media")}
+              onClick={() => openDock("media")}
             >
               素材浏览
             </Button>
           </Group>
-          {dock === "media" ? (
+          <div hidden={dock !== "feedback"}>
+            {take && (
+              <>
+                <details>
+                  <summary>
+                    候选要求、说明与来源
+                    {obsolete ? " · 旧要求，需核对沿用" : " · 当前要求"}
+                  </summary>
+                  <Stack mt="md">
+                    <Text size="xs" c="dimmed">
+                      代理播放用于核对；候选保留原视频区间。
+                    </Text>
+                    <ErrorNotice
+                      error={revision.error}
+                      retry={() => void revision.refetch()}
+                    />
+                    <Text size="sm">
+                      固定要求{" "}
+                      {revision.data
+                        ? `v${revision.data.number}：${revision.data.spec.intent}`
+                        : "读取中…"}
+                    </Text>
+                    {take.note && (
+                      <Text className={classes.prose}>{take.note}</Text>
+                    )}
+                    {take.sourceTakeId && (
+                      <SourceTake
+                        path={path}
+                        mediaPath={mediaPath}
+                        sourceId={take.sourceTakeId}
+                      />
+                    )}
+                    {obsolete && (
+                      <Alert title="这份候选对应旧镜头要求">
+                        当前要求：{shot.spec.intent}
+                        。确认仍适用后，可新建沿用关系再采用。
+                      </Alert>
+                    )}
+                  </Stack>
+                </details>
+                {revision.data && !revision.isError && (
+                  <TakeFeedback
+                    tenantId={tenantId}
+                    projectId={projectId}
+                    take={take}
+                    shot={shot}
+                    revision={revision.data}
+                    active={active}
+                  />
+                )}
+              </>
+            )}
+          </div>
+          {dock === "feedback" ? null : dock === "media" ? (
             <VideoBrowser
               path={mediaPath}
               projectId={projectId}
@@ -541,7 +666,7 @@ function ShotProduction({
           />
         )}
       </Modal>
-    </>
+    </div>
   );
 }
 function SourceTake({
@@ -645,5 +770,96 @@ function VideoBrowser({
         </Button>
       )}
     </Stack>
+  );
+}
+
+function ShotThumbnail({
+  path,
+  mediaPath,
+  takeId,
+}: {
+  path: string;
+  mediaPath: string;
+  takeId?: string | null | undefined;
+}) {
+  const take = useResource<Take>(`${path}/takes/${takeId ?? ""}`, !!takeId);
+  const media = useResource<Schema<"Media">>(
+    `${mediaPath}/media/${take.data?.mediaId ?? ""}`,
+    !!take.data,
+  );
+  return (
+    <span className={classes.shotThumbnail}>
+      {media.data ? (
+        <MediaPreview media={media.data} path={mediaPath} thumbnail />
+      ) : (
+        <FilmStrip size={18} aria-hidden />
+      )}
+    </span>
+  );
+}
+
+/** Preview exactly the references fixed by this Take, never the latest shot. */
+function FixedTakeReferences({
+  path,
+  revision,
+}: {
+  path: string;
+  revision: Schema<"ShotRevision">;
+}) {
+  const [index, setIndex] = useState(0),
+    [open, setOpen] = useState(true);
+  const reference =
+    revision.spec.references[index] ?? revision.spec.references[0]!;
+  const media = useResource<Schema<"Media">>(
+    `${path}/media/${reference.mediaId}`,
+  );
+  return (
+    <aside
+      className={classes.nearReference}
+      data-open={open || undefined}
+      aria-label="候选固定参考"
+    >
+      <Button size="xs" variant="subtle" onClick={() => setOpen(!open)}>
+        {open ? "收起参考" : `固定参考 · ${revision.spec.references.length}`}
+      </Button>
+      <div hidden={!open}>
+        <Text size="xs" c="dimmed">
+          固定要求 v{revision.number} · {referencePurposes[reference.purpose]}
+        </Text>
+        <div className={classes.referenceMedia}>
+          {media.data && !media.error ? (
+            <MediaPreview
+              key={reference.mediaId}
+              media={media.data}
+              path={path}
+              thumbnail
+            />
+          ) : (
+            <ErrorNotice
+              error={media.error}
+              retry={() => void media.refetch()}
+            />
+          )}
+        </div>
+        <Text size="xs" lineClamp={2}>
+          {reference.note || media.data?.displayName}
+        </Text>
+        {revision.spec.references.length > 1 && (
+          <Group gap={4} mt="xs">
+            {revision.spec.references.map((item, i) => (
+              <Button
+                key={`${item.mediaId}:${i}`}
+                size="compact-xs"
+                variant={index === i ? "light" : "subtle"}
+                aria-pressed={index === i}
+                onClick={() => setIndex(i)}
+              >
+                {referencePurposes[item.purpose]} {i + 1}
+              </Button>
+            ))}
+          </Group>
+        )}
+      </div>
+    </aside>
   );
 }
