@@ -77,6 +77,7 @@ export function Projects({
         projectId={projectId}
         own={own}
         members={members}
+        view={scriptView ? "script" : "scenes"}
       />
     );
   if (projectId)
