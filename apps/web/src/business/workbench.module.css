@@ -411,3 +411,8 @@
     grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   }
 }
+
+.main[data-asset-detail],
+.main[data-script-editor] {
+  padding: 0;
+}

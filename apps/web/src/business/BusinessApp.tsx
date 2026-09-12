@@ -17,7 +17,6 @@ import {
   Button,
   Group,
   Loader,
-  Select,
   Stack,
   Text,
 } from "@mantine/core";
@@ -351,6 +350,18 @@ function Workspace({ hash }: { hash: string }) {
   const projectId = segments[4] === "p" ? segments[5] : undefined;
   const production = !!projectId && segments[6] === "production";
   const projectSection = segments[6];
+  const assetDetail =
+    (projectSection === "assets" || (!projectId && segments[4] === "assets")) &&
+    new URLSearchParams(hash.split("?")[1]).has("asset");
+  const params = new URLSearchParams(hash.split("?")[1]);
+  const scriptEditing =
+    !!projectId &&
+    (projectSection === "script" ||
+      (projectSection === "content" &&
+        params.has("revision") &&
+        !params.has("shot")));
+  const projectDirectory =
+    !!projectId && !production && !assetDetail && !scriptEditing;
   const section = projectId ? "projects" : (segments[4] ?? "projects");
   const studio = tenants.data?.find((tenant) => tenant.id === tenantId);
   const main = useRef<HTMLElement>(null);
@@ -406,7 +417,7 @@ function Workspace({ hash }: { hash: string }) {
       <div
         className={classes.layout}
         data-production={production || undefined}
-        data-project={(!!projectId && !production) || undefined}
+        data-project={projectDirectory || undefined}
       >
         <nav className={classes.sidebar} aria-label="工作室导航">
           <Menu position="right-start" width={240}>
@@ -504,7 +515,7 @@ function Workspace({ hash }: { hash: string }) {
             studioSection={section}
           />
         )}
-        {tenantId && projectId && !production && (
+        {tenantId && projectId && projectDirectory && (
           <ProjectDirectory
             tenantId={tenantId}
             projectId={projectId}
@@ -514,6 +525,8 @@ function Workspace({ hash }: { hash: string }) {
         <section className={classes.content}>
           <main
             className={classes.main}
+            data-asset-detail={assetDetail || undefined}
+            data-script-editor={scriptEditing || undefined}
             ref={main}
             id="workspace-content"
             tabIndex={-1}
