@@ -1,0 +1,33 @@
+
+> drama-platform@0.0.0 build
+> npm run typecheck && npm run build --workspace @drama/web
+
+
+> drama-platform@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json
+
+
+> @drama/web@0.0.0 build
+> vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 6016 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                      0.86 kB │ gzip:   0.46 kB
+dist/assets/MediaPlayer-DwTNH-SH.css                 0.37 kB │ gzip:   0.21 kB
+dist/assets/BusinessApp-C42gsv1V.css                16.79 kB │ gzip:   3.24 kB
+dist/assets/SceneProductionWorkspace-T5WOMHis.css   40.49 kB │ gzip:   7.48 kB
+dist/assets/index-BBzDpB5V.css                      69.26 kB │ gzip:  14.99 kB
+dist/assets/mantine-ui-C9RRYpjM.css                237.54 kB │ gzip:  34.99 kB
+dist/assets/MyWork-Bj2-a4Bt.js                       5.99 kB │ gzip:   2.86 kB
+dist/assets/index-Hr9IOgT5.js                        9.07 kB │ gzip:   3.92 kB
+dist/assets/MediaWorkspace-BluGA9u7.js              22.43 kB │ gzip:   7.94 kB
+dist/assets/AssetWorkspace-CuzicAf5.js              28.46 kB │ gzip:   8.75 kB
+dist/assets/MediaPlayer-DLjLxIhM.js                191.41 kB │ gzip:  46.19 kB
+dist/assets/react-runtime-CKhiqiYO.js              192.94 kB │ gzip:  60.48 kB
+dist/assets/mantine-ui-qTkwNYY9.js                 334.10 kB │ gzip: 103.13 kB
+dist/assets/BusinessApp-ByvcAXT6.js                435.11 kB │ gzip: 128.29 kB
+dist/assets/SceneProductionWorkspace-s8cTFfSY.js   437.86 kB │ gzip: 135.10 kB
+✓ built in 13.75s

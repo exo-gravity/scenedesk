@@ -1,0 +1,322 @@
+TAP version 13
+# Subtest: script selections convert UTF-16 boundaries to exact Unicode code point ranges
+ok 1 - script selections convert UTF-16 boundaries to exact Unicode code point ranges
+  ---
+  duration_ms: 1.449667
+  type: 'test'
+  ...
+# Subtest: execution is stored before submission and refresh never executes an unknown job again
+ok 2 - execution is stored before submission and refresh never executes an unknown job again
+  ---
+  duration_ms: 0.923625
+  type: 'test'
+  ...
+# Subtest: lost execution receipt recovers the original job by fixed plan without another POST
+ok 3 - lost execution receipt recovers the original job by fixed plan without another POST
+  ---
+  duration_ms: 0.426375
+  type: 'test'
+  ...
+# Subtest: no matching job is unresolved evidence, not permission to submit or discard intent
+ok 4 - no matching job is unresolved evidence, not permission to submit or discard intent
+  ---
+  duration_ms: 0.364958
+  type: 'test'
+  ...
+# Subtest: storage failure blocks paid execution before any request
+ok 5 - storage failure blocks paid execution before any request
+  ---
+  duration_ms: 2.063041
+  type: 'test'
+  ...
+# Subtest: lost plan receipt reuses its exact input and request key across reload
+ok 6 - lost plan receipt reuses its exact input and request key across reload
+  ---
+  duration_ms: 0.482125
+  type: 'test'
+  ...
+# Subtest: failed initial storage read is retryable without creating a plan or job
+ok 7 - failed initial storage read is retryable without creating a plan or job
+  ---
+  duration_ms: 0.133708
+  type: 'test'
+  ...
+# Subtest: explicit continuation uses the original execution intent after checking the plan and job
+ok 8 - explicit continuation uses the original execution intent after checking the plan and job
+  ---
+  duration_ms: 0.323084
+  type: 'test'
+  ...
+# Subtest: revocation hides content immediately and a late execution result cannot recreate the cleared record
+ok 9 - revocation hides content immediately and a late execution result cannot recreate the cleared record
+  ---
+  duration_ms: 0.37075
+  type: 'test'
+  ...
+# Subtest: retirement waits for an in-flight storage write and removes its late data
+ok 10 - retirement waits for an in-flight storage write and removes its late data
+  ---
+  duration_ms: 0.4785
+  type: 'test'
+  ...
+# Subtest: network uncertainty hides the recovered draft, retains it, and restores it only after current authorization
+ok 11 - network uncertainty hides the recovered draft, retains it, and restores it only after current authorization
+  ---
+  duration_ms: 0.156166
+  type: 'test'
+  ...
+# Subtest: revocation cleanup failure keeps content hidden and can retry cleanup
+ok 12 - revocation cleanup failure keeps content hidden and can retry cleanup
+  ---
+  duration_ms: 0.209958
+  type: 'test'
+  ...
+# Subtest: candidate source timestamps round-trip decimal seconds without floating point loss
+ok 13 - candidate source timestamps round-trip decimal seconds without floating point loss
+  ---
+  duration_ms: 0.65025
+  type: 'test'
+  ...
+# Subtest: continuing creates one independent draft with ordered explicit sources and retains originals
+ok 14 - continuing creates one independent draft with ordered explicit sources and retains originals
+  ---
+  duration_ms: 2.134875
+  type: 'test'
+  ...
+# Subtest: source selection is pinned while unrelated layout/content can advance
+ok 15 - source selection is pinned while unrelated layout/content can advance
+  ---
+  duration_ms: 0.319542
+  type: 'test'
+  ...
+# Subtest: unfinished outputs and canvas capacity cannot be bypassed by continued creation
+ok 16 - unfinished outputs and canvas capacity cannot be bypassed by continued creation
+  ---
+  duration_ms: 2.313417
+  type: 'test'
+  ...
+# Subtest: canvas sources support independent creation and 100 ordered distinct fixed shots; replacement is explicit
+ok 17 - canvas sources support independent creation and 100 ordered distinct fixed shots; replacement is explicit
+  ---
+  duration_ms: 1.512334
+  type: 'test'
+  ...
+# Subtest: image canvas plan preserves original ordered versions and saved CAS without mutating selection
+ok 18 - image canvas plan preserves original ordered versions and saved CAS without mutating selection
+  ---
+  duration_ms: 0.624041
+  type: 'test'
+  ...
+# Subtest: video canvas plan preserves original ordered versions and saved CAS without mutating selection
+ok 19 - video canvas plan preserves original ordered versions and saved CAS without mutating selection
+  ---
+  duration_ms: 0.370125
+  type: 'test'
+  ...
+# Subtest: audio canvas plan preserves original ordered versions and saved CAS without mutating selection
+ok 20 - audio canvas plan preserves original ordered versions and saved CAS without mutating selection
+  ---
+  duration_ms: 0.151833
+  type: 'test'
+  ...
+# Subtest: lost canvas plan response and refresh preserve selection, original key/body/CAS despite a newer canvas and sources
+ok 21 - lost canvas plan response and refresh preserve selection, original key/body/CAS despite a newer canvas and sources
+  ---
+  duration_ms: 3.502625
+  type: 'test'
+  ...
+# Subtest: preparing captures sources before a deferred canvas save; later navigation/edits cannot enter the pending plan
+ok 22 - preparing captures sources before a deferred canvas save; later navigation/edits cannot enter the pending plan
+  ---
+  duration_ms: 0.397125
+  type: 'test'
+  ...
+# Subtest: a failed durable source/request write prevents a canvas plan POST
+ok 23 - a failed durable source/request write prevents a canvas plan POST
+  ---
+  duration_ms: 0.925708
+  type: 'test'
+  ...
+# Subtest: historical plan snapshot stays distinct from editable fixed source draft; next plan keeps explicit selection
+ok 24 - historical plan snapshot stays distinct from editable fixed source draft; next plan keeps explicit selection
+  ---
+  duration_ms: 0.299208
+  type: 'test'
+  ...
+# Subtest: fit encloses legal opposite-corner nodes in the smallest editing viewport, including negative coordinates
+ok 25 - fit encloses legal opposite-corner nodes in the smallest editing viewport, including negative coordinates
+  ---
+  duration_ms: 0.68725
+  type: 'test'
+  ...
+# Subtest: fit encloses the existing 20-by-100 capacity layout and still fits small selections normally
+ok 26 - fit encloses the existing 20-by-100 capacity layout and still fits small selections normally
+  ---
+  duration_ms: 0.086833
+  type: 'test'
+  ...
+# Subtest: viewport contract and UI share positive bounds, and low overviews never show zero percent
+ok 27 - viewport contract and UI share positive bounds, and low overviews never show zero percent
+  ---
+  duration_ms: 0.069834
+  type: 'test'
+  ...
+# Subtest: single-node focus at legal coordinate boundaries remains visible and persistable
+ok 28 - single-node focus at legal coordinate boundaries remains visible and persistable
+  ---
+  duration_ms: 0.33
+  type: 'test'
+  ...
+# Subtest: screen-space viewport retains extreme node anchors at 400% without extending node coordinates
+ok 29 - screen-space viewport retains extreme node anchors at 400% without extending node coordinates
+  ---
+  duration_ms: 0.7205
+  type: 'test'
+  ...
+# Subtest: prepare prompt fixes shot and target capability revision without implicit scene context
+ok 30 - prepare prompt fixes shot and target capability revision without implicit scene context
+  ---
+  duration_ms: 2.230625
+  type: 'test'
+  ...
+# Subtest: explicit apply preserves manual text, fixed references and artifact revision; repeat cannot duplicate
+ok 31 - explicit apply preserves manual text, fixed references and artifact revision; repeat cannot duplicate
+  ---
+  duration_ms: 15.949833
+  type: 'test'
+  ...
+# Subtest: unknown edit recovery confirms matching new revision with reordered body keys; unchanged base only permits explicit retry
+ok 32 - unknown edit recovery confirms matching new revision with reordered body keys; unchanged base only permits explicit retry
+  ---
+  duration_ms: 0.141917
+  type: 'test'
+  ...
+# Subtest: manual draft editing after a fixed plan does not change prepared model input
+ok 33 - manual draft editing after a fixed plan does not change prepared model input
+  ---
+  duration_ms: 0.681125
+  type: 'test'
+  ...
+# Subtest: confirmation against older manual input rejects before application or remote read
+ok 34 - confirmation against older manual input rejects before application or remote read
+  ---
+  duration_ms: 0.233584
+  type: 'test'
+  ...
+# Subtest: save intent is durable before request; losing response preserves exact edit for refresh
+ok 35 - save intent is durable before request; losing response preserves exact edit for refresh
+  ---
+  duration_ms: 0.413292
+  type: 'test'
+  ...
+# Subtest: late artifact result cannot repopulate draft or storage after session retirement
+ok 36 - late artifact result cannot repopulate draft or storage after session retirement
+  ---
+  duration_ms: 0.189875
+  type: 'test'
+  ...
+# Subtest: new creation input retains the previous manual prompt and fixed artifact source
+ok 37 - new creation input retains the previous manual prompt and fixed artifact source
+  ---
+  duration_ms: 0.113333
+  type: 'test'
+  ...
+# Subtest: reading a concurrently changed artifact never silently rebases dirty manual edits
+ok 38 - reading a concurrently changed artifact never silently rebases dirty manual edits
+  ---
+  duration_ms: 0.211167
+  type: 'test'
+  ...
+# Subtest: an unapplied prompt can explicitly advance its fixed shot while retaining input and completed task through reload
+ok 39 - an unapplied prompt can explicitly advance its fixed shot while retaining input and completed task through reload
+  ---
+  duration_ms: 3.064917
+  type: 'test'
+  ...
+# Subtest: advancing an unapplied prompt cannot abandon an unknown task
+ok 40 - advancing an unapplied prompt cannot abandon an unknown task
+  ---
+  duration_ms: 0.371417
+  type: 'test'
+  ...
+# Subtest: Take review and comment each require an explicit fixed request; response loss refresh never writes
+ok 41 - Take review and comment each require an explicit fixed request; response loss refresh never writes
+  ---
+  duration_ms: 3.203125
+  type: 'test'
+  ...
+# Subtest: expired create is read-only, same-text lists do not confirm it or release its identity
+ok 42 - expired create is read-only, same-text lists do not confirm it or release its identity
+  ---
+  duration_ms: 0.311917
+  type: 'test'
+  ...
+# Subtest: storage failure before send prevents mutation; confirmed local cleanup failure only retries cleanup
+ok 43 - storage failure before send prevents mutation; confirmed local cleanup failure only retries cleanup
+  ---
+  duration_ms: 0.442584
+  type: 'test'
+  ...
+# Subtest: malformed/proxy rejection is unknown; only full first business rejection permits editing
+ok 44 - malformed/proxy rejection is unknown; only full first business rejection permits editing
+  ---
+  duration_ms: 1.473667
+  type: 'test'
+  ...
+# Subtest: comment receipt must be by original actor; no-op changes accept original revision and preserve unrelated input
+ok 45 - comment receipt must be by original actor; no-op changes accept original revision and preserve unrelated input
+  ---
+  duration_ms: 0.756875
+  type: 'test'
+  ...
+# Subtest: comment CAS response loss reconciles via read only; conflict retains original input before explicit current-head editing
+ok 46 - comment CAS response loss reconciles via read only; conflict retains original input before explicit current-head editing
+  ---
+  duration_ms: 0.541417
+  type: 'test'
+  ...
+# Subtest: fixed opinion confirmation rejects later head/resolution; previous selection remains readable
+ok 47 - fixed opinion confirmation rejects later head/resolution; previous selection remains readable
+  ---
+  duration_ms: 0.396875
+  type: 'test'
+  ...
+# Subtest: temporary access failure hides recovery; confirmed denial clears it and late command cannot revive it
+ok 48 - temporary access failure hides recovery; confirmed denial clears it and late command cannot revive it
+  ---
+  duration_ms: 3.206584
+  type: 'test'
+  ...
+# Subtest: accepted last text drains through view close; failed initial read cannot overwrite an unread draft
+ok 49 - accepted last text drains through view close; failed initial read cannot overwrite an unread draft
+  ---
+  duration_ms: 2.745583
+  type: 'test'
+  ...
+# Subtest: rework plan and next input preserve old Take shot and opinion revision; normal draft/media scope stays distinct
+ok 50 - rework plan and next input preserve old Take shot and opinion revision; normal draft/media scope stays distinct
+  ---
+  duration_ms: 11.025625
+  type: 'test'
+  ...
+# Subtest: a slow durable write cannot extend the original 24-hour create retry window
+ok 51 - a slow durable write cannot extend the original 24-hour create retry window
+  ---
+  duration_ms: 0.3135
+  type: 'test'
+  ...
+# Subtest: altered 201 creation facts never clear the original Take opinion request
+ok 52 - altered 201 creation facts never clear the original Take opinion request
+  ---
+  duration_ms: 0.490083
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 449.159667
