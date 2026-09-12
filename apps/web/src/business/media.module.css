@@ -48,7 +48,7 @@
 .viewport {
   width: 100%;
   min-height: var(--ws-preview-height, 240px);
-  background: var(--ws-panel);
+  background: var(--ws-preview-background, var(--ws-panel));
   color: var(--ws-secondary);
   display: flex;
   justify-content: center;

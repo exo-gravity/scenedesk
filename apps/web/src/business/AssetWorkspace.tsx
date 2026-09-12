@@ -15,7 +15,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { ArrowLeft, Plus } from "@phosphor-icons/react";
+import { Plus } from "@phosphor-icons/react";
 import { useCommand, useResource, type Schema } from "./api";
 import { DraftNotice, useContentDraft } from "./content-drafts";
 import {
@@ -90,26 +90,11 @@ function AssetBrowser(
     document.title = `${props.project?.name ?? "工作室共享"} · 资产 · 幕序`;
   }, [props.project?.name]);
   return (
-    <Stack gap="lg" className={classes.workspace}>
-      {id && (
-        <Group className={classes.navigation}>
-          <Button
-            component="a"
-            variant="subtle"
-            href={back}
-            leftSection={<ArrowLeft size={16} />}
-          >
-            全部资产
-          </Button>
-          <Button
-            component="a"
-            variant="subtle"
-            href={`#/app/t/${props.tenantId}${props.projectId ? "/p/" + props.projectId : ""}/media`}
-          >
-            素材文件
-          </Button>
-        </Group>
-      )}
+    <Stack
+      gap="lg"
+      className={classes.workspace}
+      data-detail={id ? true : undefined}
+    >
       {props.project?.status === "archived" && (
         <Alert title="项目已归档">
           仍可查看资产和固定版本，恢复项目后可继续编辑或引入。
@@ -126,6 +111,7 @@ function AssetBrowser(
           canWrite={canWrite}
           canConfirm={canConfirm}
           href={href}
+          back={back}
           targetProjectId={targetProjectId}
         />
       ) : (

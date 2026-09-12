@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import {
   Alert,
   Badge,
@@ -28,6 +29,7 @@ export function AssetDetails({
   canWrite,
   canConfirm,
   href,
+  back,
   targetProjectId,
 }: {
   path: string;
@@ -38,6 +40,7 @@ export function AssetDetails({
   canWrite: boolean;
   canConfirm: boolean;
   href: (id: string, revision?: string) => string;
+  back: string;
   targetProjectId?: string | undefined;
 }) {
   const asset = useResource<Schema<"Asset">>(`${path}/assets/${id}`);
@@ -80,34 +83,51 @@ export function AssetDetails({
   const active = canWrite && value.status === "active";
   return (
     <>
-      <SectionHeading
-        title={value.name}
-        description={`${assetKinds[value.kind]} · ${value.scope === "shared" ? "工作室共享" : "项目资产"} · ${value.status === "archived" ? "已归档" : "使用中"}`}
-        action={
-          canWrite && (
-            <Button
-              variant="subtle"
-              onClick={() =>
-                setEditing(
-                  editing?.kind === "metadata"
-                    ? undefined
-                    : { kind: "metadata" },
-                )
-              }
-            >
-              修改检索信息
-            </Button>
-          )
-        }
-      />
-      <ErrorNotice error={asset.error ?? command.error} />
-      {value.status === "archived" && (
-        <Alert title="资产已归档">
-          固定版本与已有引用仍保留。不能新增版本或将其用于新引用。
-        </Alert>
-      )}
       <div className={classes.detail}>
         <Stack gap="lg" className={classes.main}>
+          <Group className={classes.navigation}>
+            <Button
+              component="a"
+              variant="subtle"
+              href={back}
+              leftSection={<ArrowLeft size={16} />}
+            >
+              全部资产
+            </Button>
+            <Button
+              component="a"
+              variant="subtle"
+              href={`#/app/t/${tenantId}${expectedProjectId ? "/p/" + expectedProjectId : ""}/media`}
+            >
+              素材文件
+            </Button>
+          </Group>
+          <SectionHeading
+            title={value.name}
+            description={`${assetKinds[value.kind]} · ${value.scope === "shared" ? "工作室共享" : "项目资产"} · ${value.status === "archived" ? "已归档" : "使用中"}`}
+            action={
+              canWrite && (
+                <Button
+                  variant="subtle"
+                  onClick={() =>
+                    setEditing(
+                      editing?.kind === "metadata"
+                        ? undefined
+                        : { kind: "metadata" },
+                    )
+                  }
+                >
+                  修改检索信息
+                </Button>
+              )
+            }
+          />
+          <ErrorNotice error={asset.error ?? command.error} />
+          {value.status === "archived" && (
+            <Alert title="资产已归档">
+              固定版本与已有引用仍保留。不能新增版本或将其用于新引用。
+            </Alert>
+          )}
           <ErrorNotice
             error={selected.error}
             retry={() => void selected.refetch()}
