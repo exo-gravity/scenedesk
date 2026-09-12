@@ -1,4 +1,4 @@
-import { sharedSurfaces } from "./shared-language-study";
+import { sharedSurfaces } from "./shared-language-study.js";
 /** Single value source for the Mantine visual sample. Business CSS uses the semantic variables. */
 export const tokens = {
   surface: {

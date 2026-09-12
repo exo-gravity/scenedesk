@@ -364,10 +364,11 @@ function Workspace({ hash }: { hash: string }) {
     !!projectId && !production && !assetDetail && !scriptEditing;
   const section = projectId ? "projects" : (segments[4] ?? "projects");
   const studio = tenants.data?.find((tenant) => tenant.id === tenantId);
+  const detailObject = params.get("asset") ?? params.get("media");
   const main = useRef<HTMLElement>(null);
   useEffect(() => {
     main.current?.scrollTo({ top: 0 });
-  }, [tenantId, projectId, projectSection, section]);
+  }, [tenantId, projectId, projectSection, section, detailObject, scriptEditing]);
   useEffect(() => {
     if (
       !tenantId &&
