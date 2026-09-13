@@ -794,8 +794,16 @@ export function CanvasBoard({
             onNodesChange={onNodesChange}
             onNodeDragStop={() => void controller.save()}
             onConnect={connect}
-            onPaneClick={(e) => {
-              if (e.detail === 2 && !readOnly) {
+            onDoubleClickCapture={(e) => {
+              // In selection mode React Flow forwards pointer-up through
+              // onPaneClick (detail is zero). Use the actual double click,
+              // limited to the empty pane so node editors keep their behavior.
+              if (
+                !readOnly &&
+                e.target instanceof Element &&
+                e.target.classList.contains("react-flow__pane")
+              ) {
+                e.preventDefault();
                 setAddPoint({
                   screen: { x: e.clientX, y: e.clientY },
                   canvas: flow.current?.screenToFlowPosition({
