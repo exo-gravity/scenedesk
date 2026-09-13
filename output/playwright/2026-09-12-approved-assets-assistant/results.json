@@ -1,0 +1,56 @@
+{
+  "scope": "isolated production web with real API, PostgreSQL, MinIO upload and media processing; local test identity; no model execution",
+  "productCommits": ["9b8b4f9", "01c5bee", "2bd382d"],
+  "fixtureSupportCommit": "e1566cb",
+  "shellCommits": ["7eaf69e", "238f66a", "7bbf96e", "30141a8"],
+  "checks": {
+    "webTypecheck": "passed",
+    "uiCheck": "passed, 135 files",
+    "productionBuild": "passed",
+    "fixtureTypecheck": "passed"
+  },
+  "fixture": {
+    "scenes": 3,
+    "shots": 6,
+    "savedScripts": 1,
+    "assets": 5,
+    "inspectedAssetRevisions": 2,
+    "originalBytes": 2318884,
+    "originalDimensions": [1254, 1254],
+    "presignedUploadStatus": 204,
+    "originalStatus": "ready",
+    "posterStatus": "ready",
+    "providerCalls": 0,
+    "generationWorkerStarted": false
+  },
+  "browser": {
+    "assetVersionHistoryUnchanged": true,
+    "editorReplacesPreview": true,
+    "localDraftRecovered": true,
+    "mediaThemeUnchanged": true,
+    "assetSearch": true,
+    "importPanel": true,
+    "viewports": [1512, 1366, 390],
+    "assetInitialBounds": {
+      "body": true,
+      "main": true,
+      "clientHeight": 892,
+      "scrollHeight": 892
+    },
+    "businessMutations": [],
+    "pageErrors": []
+  },
+  "finalThumbnailFollowup": {
+    "image": { "width": 211.1953125, "height": 131.9921875 },
+    "viewport": { "width": 211.1953125, "height": 131.9921875 },
+    "fit": "contain",
+    "defaultMediaDetailInspectedAt": [1512, 390]
+  },
+  "limitations": [
+    "The full behavior run preceded the final thumbnail CSS correction; the final production build and narrow actual thumbnail/default-detail follow-up passed afterward.",
+    "Assistant dock integration is verified in the scene agent and final root integration evidence, not by this asset/media behavior script.",
+    "The initial 512 MiB fixture storage rejected the 2,318,884-byte multipart upload with 507 XMinioStorageFull. Only this visual fixture uses the explicitly selected 2 GiB test capacity; the shared helper default and production thresholds are unchanged.",
+    "The current live fixture used a loopback 4318 login shim after startup. The committed fresh-start harness also defines the same test-only login route directly on 4317; that later addition was typechecked, not used to replace the running fixture.",
+    "Fixture services were intentionally retained for root integrated visual acceptance at the time this evidence was written. No production deployment or real provider acceptance is claimed."
+  ]
+}

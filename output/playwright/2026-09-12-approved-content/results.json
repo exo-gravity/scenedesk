@@ -1,0 +1,115 @@
+{
+  "creation-result": {
+    "controlledTransport": true,
+    "realBackendAcceptance": false,
+    "lostResults": [
+      {
+        "kind": "episode",
+        "attempts": 2,
+        "commits": 1,
+        "fixedRequest": true,
+        "noAutomaticReplay": true,
+        "rebaseBlocked": true
+      },
+      {
+        "kind": "scene",
+        "attempts": 2,
+        "commits": 1,
+        "fixedRequest": true,
+        "noAutomaticReplay": true,
+        "rebaseBlocked": true
+      },
+      {
+        "kind": "shot",
+        "attempts": 2,
+        "commits": 1,
+        "fixedRequest": true,
+        "noAutomaticReplay": true,
+        "rebaseBlocked": true
+      }
+    ],
+    "failedLocalStagePosts": 0,
+    "knownRejectionThenExplicitRebase": true,
+    "completionReceiptReloadWithoutReplay": true,
+    "attempts": 10,
+    "commits": 6,
+    "otherWrites": 0,
+    "reads": 18,
+    "pageErrors": []
+  },
+  "layout-result-4": {
+    "productionBuild": true,
+    "controlledTransport": true,
+    "realBackendAcceptance": false,
+    "catalogInitiallyFlat": true,
+    "scriptDraftSurvivesNavigationAndRefresh": true,
+    "committedReadFailureCannotResubmit": true,
+    "fixedHistoryDeepLink": true,
+    "documentRemainsDuringProposalEditing": true,
+    "explicitProposalApplication": true,
+    "scriptPosts": 1,
+    "planPosts": 1,
+    "executePosts": 1,
+    "editPosts": 1,
+    "applyPosts": 1,
+    "pageErrors": []
+  },
+  "panels-result-2": {
+    "productionBuild": true,
+    "controlledTransport": true,
+    "realBackendAcceptance": false,
+    "widths": [
+      {
+        "viewport": 1512,
+        "aside": 410,
+        "top": 90,
+        "independentScroll": true
+      },
+      {
+        "viewport": 1366,
+        "aside": 370,
+        "top": 90,
+        "independentScroll": true
+      }
+    ],
+    "mobileNoOverflow": true,
+    "darkTheme": true,
+    "writes": 0
+  },
+  "basic-screens-result": {
+    "finalProductionScreenshots": true
+  },
+  "long-scroll-result": {
+    "productionBuild": true,
+    "controlledLongProposalResponse": true,
+    "realBackendAcceptance": false,
+    "scroll": {
+      "before": 0,
+      "after": 1530.5,
+      "clientHeight": 892,
+      "scrollHeight": 2423
+    },
+    "leftDocumentStayedFixed": true,
+    "businessWrites": 0
+  },
+  "checks": {
+    "productCommit": "f892856",
+    "stylesCommit": "8a346c1",
+    "npmRunCheck": {
+      "tests": 144,
+      "pass": 144,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "contracts": "passed",
+      "ui": "passed",
+      "typecheck": "passed",
+      "productionBuild": "passed"
+    },
+    "afterStylesCommit": {
+      "ui": "passed",
+      "productionBuild": "passed",
+      "browserGeometryAndRealScroll": "passed"
+    }
+  }
+}

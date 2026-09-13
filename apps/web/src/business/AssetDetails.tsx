@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import {
   Alert,
   Badge,
@@ -10,9 +11,12 @@ import {
   Text,
 } from "@mantine/core";
 import { useCommand, useResource, type Schema } from "./api";
-import { Empty, ErrorNotice, projectPath, SectionHeading } from "./common";
+import { Empty, ErrorNotice, projectPath } from "./common";
 import { assetKinds, useAssetPages } from "./asset-queries";
-import { AssetRevisionView } from "./AssetRevisionView";
+import {
+  AssetRevisionView,
+  AssetRevisionDefinition,
+} from "./AssetRevisionView";
 import { AssetDefinitionEditor } from "./AssetDefinitionEditor";
 import { AssetMetadataEditor } from "./AssetMetadataEditor";
 import classes from "./assets.module.css";
@@ -25,6 +29,7 @@ export function AssetDetails({
   canWrite,
   canConfirm,
   href,
+  back,
   targetProjectId,
 }: {
   path: string;
@@ -35,6 +40,7 @@ export function AssetDetails({
   canWrite: boolean;
   canConfirm: boolean;
   href: (id: string, revision?: string) => string;
+  back: string;
   targetProjectId?: string | undefined;
 }) {
   const asset = useResource<Schema<"Asset">>(`${path}/assets/${id}`);
@@ -75,63 +81,126 @@ export function AssetDetails({
       <Empty>该资产不属于当前范围，请从所属项目或工作室共享区进入。</Empty>
     );
   const active = canWrite && value.status === "active";
+  const showEditor =
+    (editing?.kind === "definition" && active) ||
+    (editing?.kind === "metadata" && canWrite);
   return (
     <>
-      <SectionHeading
-        title={value.name}
-        description={`${assetKinds[value.kind]} · ${value.scope === "shared" ? "工作室共享" : "项目资产"} · ${value.status === "archived" ? "已归档" : "使用中"}`}
-        action={
-          canWrite && (
-            <Button
-              onClick={() =>
-                setEditing(
-                  editing?.kind === "metadata"
-                    ? undefined
-                    : { kind: "metadata" },
-                )
-              }
-            >
-              修改检索信息
-            </Button>
-          )
-        }
-      />
-      <ErrorNotice error={asset.error ?? command.error} />
-      {value.status === "archived" && (
-        <Alert title="资产已归档">
-          固定版本与已有引用仍保留。不能新增版本或将其用于新引用。
-        </Alert>
-      )}
       <div className={classes.detail}>
-        <Stack gap="lg">
-          <ErrorNotice
-            error={selected.error}
-            retry={() => void selected.refetch()}
-          />
-          {selectedId ? (
-            selected.isPending ? (
-              <Loader aria-label="正在读取固定版本" />
-            ) : (
-              selected.data &&
-              !selected.isError &&
-              (selected.data.assetId === id ? (
-                <AssetRevisionView
-                  key={selected.data.id}
-                  path={path}
-                  tenantId={tenantId}
-                  revision={selected.data}
-                />
+        <Stack gap="lg" className={classes.main}>
+          <Group className={classes.navigation}>
+            <Button
+              component="a"
+              variant="subtle"
+              href={back}
+              leftSection={<ArrowLeft size={16} />}
+            >
+              全部资产
+            </Button>
+            <Button
+              component="a"
+              variant="subtle"
+              href={`#/app/t/${tenantId}${expectedProjectId ? "/p/" + expectedProjectId : ""}/media`}
+            >
+              素材文件
+            </Button>
+          </Group>
+          <Group
+            justify="space-between"
+            align="center"
+            className={classes.assetHeading}
+          >
+            <div>
+              <Text size="xs" c="dimmed">
+                {assetKinds[value.kind]} ·{" "}
+                {value.scope === "shared" ? "工作室共享" : "项目资产"} ·{" "}
+                {value.status === "archived" ? "已归档" : "使用中"}
+              </Text>
+              <Text component="h1" className={classes.assetTitle}>
+                {value.name}
+              </Text>
+            </div>
+            {canWrite && (
+              <Button
+                variant="subtle"
+                onClick={() =>
+                  setEditing(
+                    editing?.kind === "metadata"
+                      ? undefined
+                      : { kind: "metadata" },
+                  )
+                }
+              >
+                修改检索信息
+              </Button>
+            )}
+          </Group>
+          <ErrorNotice error={asset.error ?? command.error} />
+          {value.status === "archived" && (
+            <Alert title="资产已归档">
+              固定版本与已有引用仍保留。不能新增版本或将其用于新引用。
+            </Alert>
+          )}
+          {editing?.kind === "definition" && active && (
+            <AssetDefinitionEditor
+              key={id}
+              asset={value}
+              current={current.data ?? editing.current}
+              currentReady={
+                !value.currentRevisionId ||
+                (!current.isError &&
+                  current.data?.id === value.currentRevisionId)
+              }
+              path={path}
+              done={(revision) => {
+                setEditing(undefined);
+                if (revision) location.hash = href(id, revision.id);
+              }}
+            />
+          )}
+          {editing?.kind === "metadata" && canWrite && (
+            <AssetMetadataEditor
+              key={id}
+              asset={value}
+              path={path}
+              done={() => setEditing(undefined)}
+            />
+          )}
+          {!showEditor && (
+            <>
+              <ErrorNotice
+                error={selected.error}
+                retry={() => void selected.refetch()}
+              />
+              {selectedId ? (
+                selected.isPending ? (
+                  <Loader aria-label="正在读取固定版本" />
+                ) : (
+                  selected.data &&
+                  !selected.isError &&
+                  (selected.data.assetId === id ? (
+                    <AssetRevisionView
+                      key={selected.data.id}
+                      path={path}
+                      tenantId={tenantId}
+                      revision={selected.data}
+                    />
+                  ) : (
+                    <Empty>指定版本不属于这项资产。</Empty>
+                  ))
+                )
               ) : (
-                <Empty>指定版本不属于这项资产。</Empty>
-              ))
-            )
-          ) : (
-            <Empty>
-              先建立第一个固定版本，保存设定和参考。资产名称与固定设定分别维护。
-            </Empty>
+                <Empty>
+                  先建立第一个固定版本，保存设定和参考。资产名称与固定设定分别维护。
+                </Empty>
+              )}
+            </>
           )}
         </Stack>
-        <Stack gap="lg">
+        <Stack gap="md" className={classes.inspector}>
+          <Text component="h2" className={classes.inspectorTitle}>
+            设定版本
+          </Text>
           {selected.data &&
             !selected.isError &&
             selected.data.assetId === id && (
@@ -154,8 +223,9 @@ export function AssetDetails({
                     ? new Date(selected.data.createdAt).toLocaleString()
                     : ""}
                 </Text>
-                <Text size="sm">
-                  草稿版本可以用于试作。浏览其他版本不会自动替换镜头或项目的既有引用。
+                <AssetRevisionDefinition revision={selected.data} path={path} />
+                <Text size="xs" c="dimmed">
+                  草稿版本可以试作；浏览版本不会替换既有引用。
                 </Text>
                 {selected.data.id !== value.currentRevisionId && (
                   <Button component="a" href={href(id)}>
@@ -197,6 +267,7 @@ export function AssetDetails({
           )}
           <ErrorNotice error={current.error} />
           <details
+            className={classes.disclosure}
             onToggle={(event) => setHistoryOpen(event.currentTarget.open)}
           >
             <summary>固定版本历史</summary>
@@ -235,7 +306,10 @@ export function AssetDetails({
               )}
             </Stack>
           </details>
-          <details onToggle={(event) => setUsageOpen(event.currentTarget.open)}>
+          <details
+            className={classes.disclosure}
+            onToggle={(event) => setUsageOpen(event.currentTarget.open)}
+          >
             <summary>有权查看的直接使用位置</summary>
             <Stack mt="md" gap="sm">
               <ErrorNotice
@@ -289,34 +363,16 @@ export function AssetDetails({
             </div>
           )}
           {active && (
-            <Button onClick={() => setArchive(value)}>归档资产</Button>
+            <Button
+              variant="subtle"
+              className={classes.secondaryAction}
+              onClick={() => setArchive(value)}
+            >
+              归档资产
+            </Button>
           )}
         </Stack>
       </div>
-      {editing?.kind === "definition" && active && (
-        <AssetDefinitionEditor
-          key={id}
-          asset={value}
-          current={current.data ?? editing.current}
-          currentReady={
-            !value.currentRevisionId ||
-            (!current.isError && current.data?.id === value.currentRevisionId)
-          }
-          path={path}
-          done={(revision) => {
-            setEditing(undefined);
-            if (revision) location.hash = href(id, revision.id);
-          }}
-        />
-      )}
-      {editing?.kind === "metadata" && canWrite && (
-        <AssetMetadataEditor
-          key={id}
-          asset={value}
-          path={path}
-          done={() => setEditing(undefined)}
-        />
-      )}
       <Modal
         title="确认这份固定设定？"
         opened={!!confirm}

@@ -6,10 +6,13 @@
 
 当前先使用导入素材及模拟供应商实现和验证业务，不执行真实模型付费调用。真实模型服务与质量验收单列，不以模拟通过代替。部署环境与真实试点条件尚待落实。
 
+2026-09-12 设计验收纠正：用户指出真实业务的视觉、页面结构与布局未遵循已确认方案。此前功能、UI规则和无溢出检查不能替代视觉还原；这项遗漏已补入，[按批准设计还原](62-approved-layout-restoration.md)已完成保留页面的整合实现与生产浏览器验收，交付 PR #33。画布容量、真实模型执行恢复和外部部署等既有缺口仍按各专项记录保留。
+
 ## 当前工作
 
 | 工作包 | 状态 | 实际成果／剩余验收 |
 |---|---|---|
+| 已确认视觉、页面结构与布局 | 实施与本机验收完成 | 依 v0.3 核心／v0.4 保留专项重组真实业务页面；同尺寸整合截图、真实 API 交互与恢复验证见[62](62-approved-layout-restoration.md)，远端检查及合入状态见[PR #33](https://github.com/exo-gravity/scenedesk/pull/33) |
 | 仓库与 CI | 完成 | main 已关联 GitHub；修复不可移植的文档链接，提交 72e95bb 的完整 CI 通过 |
 | E01 身份、权限与内容基础 | 已合入 | [身份／项目基础](23-identity-project-foundation.md)经 [PR #1](https://github.com/exo-gravity/scenedesk/pull/1) 合入（dd04b77）；[内容层](24-content-structure.md)经 [PR #2](https://github.com/exo-gravity/scenedesk/pull/2) 合入（d92c5cc），两组远端 CI 均通过 |
 | E02 剧本、结构与提案 | 实施中 | 手工集场镜、不可变剧本／镜头历史、台词与原文引用、本地草稿恢复已实现；[CSV 提案](25-csv-proposals.md)、明确追加、固定基线复核及永久重复采纳保护已通过 [PR #3](https://github.com/exo-gravity/scenedesk/pull/3) 合入（feb5ea4），两组 CI 通过；[创作依据与项目默认确认](26-creative-bases.md)已通过 [PR #4](https://github.com/exo-gravity/scenedesk/pull/4) 合入（5ae739b），两组 CI 通过；[场次主责与任务分派](27-scene-tasks.md)已通过 [PR #5](https://github.com/exo-gravity/scenedesk/pull/5) 合入（427f528），两组 CI 通过；固定稿限定确认随编辑／审阅完成 |

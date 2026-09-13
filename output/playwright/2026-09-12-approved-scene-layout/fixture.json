@@ -1,0 +1,70 @@
+{
+  "schema": "identity_c277a3ab9f1c",
+  "tenantId": "1bd61561-fc1d-4ce0-89c4-09c87fe7d383",
+  "projectId": "7fe4a3a4-9399-4b20-a0a1-cc8aef3a0cb5",
+  "path": "/v1/tenants/1bd61561-fc1d-4ce0-89c4-09c87fe7d383/projects/7fe4a3a4-9399-4b20-a0a1-cc8aef3a0cb5",
+  "cases": [
+    {
+      "sceneId": "f3ac32b0-83ab-4edc-9921-ec601e7427bb",
+      "canvasId": "55a2f9b6-61c9-4fc4-ad57-636ea1824521",
+      "draftId": "45d1c973-6166-40cb-a67d-b060d8479f37",
+      "shots": [
+        {
+          "id": "76776c8a-d985-4c9d-ae52-491facc2f67d",
+          "label": "SH-01"
+        },
+        {
+          "id": "81a8cf7a-e5d8-486a-8101-527632e3b9a3",
+          "label": "SH-02"
+        },
+        {
+          "id": "d0799914-121e-4274-ad5c-554634dea29a",
+          "label": "SH-03"
+        },
+        {
+          "id": "98c02da4-ebe5-4b45-97ad-18c28d46f2a6",
+          "label": "SH-04"
+        },
+        {
+          "id": "1d9efd73-fddf-446b-9627-f62ae1569d30",
+          "label": "SH-05"
+        },
+        {
+          "id": "1db2f2e5-4cfd-441d-9446-ad17e14a4cf3",
+          "label": "SH-06"
+        }
+      ],
+      "url": "http://127.0.0.1:4316/#/app/t/1bd61561-fc1d-4ce0-89c4-09c87fe7d383/p/7fe4a3a4-9399-4b20-a0a1-cc8aef3a0cb5/production?scene=f3ac32b0-83ab-4edc-9921-ec601e7427bb&shot=98c02da4-ebe5-4b45-97ad-18c28d46f2a6&mode=storyboard"
+    },
+    {
+      "sceneId": "8e9128d2-d644-47a5-a4de-82d79e12b9a3",
+      "shots": [
+        {
+          "id": "5c01bbec-5ea6-443e-8683-8f05ecd6c843",
+          "label": "SH-01"
+        },
+        {
+          "id": "0eb35101-84a6-448a-a296-1c080f15d714",
+          "label": "SH-02"
+        },
+        {
+          "id": "74edbc17-9bf4-460d-a6a8-b74b795a4c06",
+          "label": "SH-03"
+        },
+        {
+          "id": "f502dade-e1f8-47ed-b288-2f554ed65cda",
+          "label": "SH-04"
+        },
+        {
+          "id": "2d247b9e-d3b3-45a0-9ff7-9d39172c480e",
+          "label": "SH-05"
+        },
+        {
+          "id": "6ce47737-3834-4ce1-9b15-0f94afa052f5",
+          "label": "SH-06"
+        }
+      ],
+      "url": "http://127.0.0.1:4316/#/app/t/1bd61561-fc1d-4ce0-89c4-09c87fe7d383/p/7fe4a3a4-9399-4b20-a0a1-cc8aef3a0cb5/production?scene=8e9128d2-d644-47a5-a4de-82d79e12b9a3&shot=f502dade-e1f8-47ed-b288-2f554ed65cda&mode=storyboard"
+    }
+  ]
+}

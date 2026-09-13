@@ -116,7 +116,7 @@ export default function MediaDetail({
         </Alert>
       )}
       <div className={classes.detail}>
-        <Stack gap="md">
+        <Stack gap="md" className={classes.mediaMain}>
           <MediaPreview media={value} path={path} />
           {ready && value.kind !== "document" && (
             <Text size="sm" c="dimmed">
@@ -158,7 +158,10 @@ export default function MediaDetail({
             </Group>
           ))}
         </Stack>
-        <Stack gap="lg">
+        <Stack gap="md" className={classes.inspector}>
+          <Text component="h2" className={classes.inspectorTitle}>
+            文件与来源
+          </Text>
           <dl className={classes.facts}>
             <dt>原文件名</dt>
             <dd>{value.originalFileName}</dd>
@@ -223,6 +226,7 @@ export default function MediaDetail({
               </Button>
               {value.status === "ready" && (
                 <Button
+                  variant="subtle"
                   leftSection={<Archive size={18} />}
                   onClick={() => setArchive(true)}
                 >
@@ -231,7 +235,7 @@ export default function MediaDetail({
               )}
             </Group>
           )}
-          <details>
+          <details className={classes.disclosure}>
             <summary>文件校验信息</summary>
             <Text size="sm" className={classes.detailsText}>
               SHA-256：{value.sha256 ?? "验收后可见"}

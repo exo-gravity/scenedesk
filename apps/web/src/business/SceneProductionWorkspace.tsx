@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   Alert,
   Button,
   Group,
   Loader,
+  Popover,
   Select,
   Stack,
   Text,
@@ -134,10 +135,37 @@ function SceneWorkspace({
     );
   if (!scene) return <Empty>本场次不存在或不属于当前项目。</Empty>;
   const view = { ...preference.view, mode };
+  const modeTools = (
+    <Group gap="xs" wrap="nowrap" className={classes.modeTools}>
+      <Text fw={600} size="sm">
+        镜头制作
+      </Text>
+      <Button
+        size="xs"
+        variant="subtle"
+        aria-pressed={mode === "storyboard"}
+        onClick={() => switchMode("storyboard")}
+      >
+        分镜
+      </Button>
+      <Button
+        size="xs"
+        variant="subtle"
+        aria-pressed={mode === "canvas"}
+        onClick={() => switchMode("canvas")}
+      >
+        自由画布
+      </Button>
+    </Group>
+  );
   return (
     <div className={classes.workspace}>
-      <Group justify="space-between">
-        <Group>
+      <Group
+        justify="space-between"
+        className={classes.contextHeader}
+        wrap="nowrap"
+      >
+        <Group gap="xs" wrap="nowrap">
           <Button
             component="a"
             href={`${base}/content?scene=${sceneId}`}
@@ -155,25 +183,9 @@ function SceneWorkspace({
             </Text>
           </div>
         </Group>
-        <Group>
-          <Button
-            variant={mode === "storyboard" ? "filled" : "default"}
-            aria-pressed={mode === "storyboard"}
-            onClick={() => switchMode("storyboard")}
-          >
-            分镜
-          </Button>
-          <Button
-            variant={mode === "canvas" ? "filled" : "default"}
-            aria-pressed={mode === "canvas"}
-            onClick={() => switchMode("canvas")}
-          >
-            自由画布
-          </Button>
-          <Button component="a" href={`${base}/media`}>
-            素材管理
-          </Button>
-        </Group>
+        <Button size="xs" variant="subtle" component="a" href={`${base}/media`}>
+          素材管理
+        </Button>
       </Group>
       <ErrorNotice
         error={preference.error}
@@ -193,6 +205,7 @@ function SceneWorkspace({
           preference={view}
           changePreference={preference.change}
           active={active}
+          toolbar={modeTools}
         />
       ) : mode === "storyboard" ? (
         <SceneWithoutCanvasAssistant
@@ -203,6 +216,7 @@ function SceneWorkspace({
           active={active}
           open={view.assistantOpen}
           changeOpen={(assistantOpen) => preference.change({ assistantOpen })}
+          toolbar={modeTools}
         />
       ) : (
         <Stack>
@@ -245,6 +259,7 @@ function SceneCanvasSession({
   preference,
   changePreference,
   active,
+  toolbar,
 }: {
   tenantId: string;
   projectId: string;
@@ -254,6 +269,7 @@ function SceneCanvasSession({
   preference: Preference;
   changePreference: (patch: Partial<Preference>) => void;
   active: boolean;
+  toolbar: ReactNode;
 }) {
   const { controller, state, error, retry } = useCanvas(
       tenantId,
@@ -386,15 +402,27 @@ function SceneCanvasSession({
       canvasId={canvasId}
       readOnly={readOnly}
     >
-      <Stack gap="md">
-        <Group justify="space-between">
-          <Text role="status" aria-live="polite">
+      <div className={classes.session}>
+        <Group
+          justify="space-between"
+          className={classes.modeToolbar}
+          wrap="nowrap"
+        >
+          {toolbar}
+          <Text
+            size="xs"
+            role="status"
+            aria-live="polite"
+            className={classes.saveStatus}
+            hidden={preference.mode !== "canvas"}
+          >
             画布 · {canvasSaveLabel(state)}
             {state.local ? ` · 服务器版本 ${state.local.base.revision}` : ""}
           </Text>
           <Group gap="xs">
             <Button
               size="xs"
+              hidden={preference.mode !== "canvas"}
               disabled={readOnly || state.phase === "conflict"}
               loading={state.phase === "saving"}
               onClick={() => void controller.save()}
@@ -403,6 +431,7 @@ function SceneCanvasSession({
             </Button>
             <Button
               size="xs"
+              hidden={preference.mode !== "canvas"}
               aria-pressed={dock === "shots"}
               onClick={() => selectDock("shots")}
             >
@@ -418,12 +447,34 @@ function SceneCanvasSession({
             </Button>
             <Button
               size="xs"
+              hidden={preference.mode !== "canvas"}
               leftSection={<ClockCounterClockwise size={16} />}
               aria-pressed={dock === "history"}
               onClick={() => selectDock("history")}
             >
               历史
             </Button>
+            <Popover width={320} position="bottom-end" keepMounted>
+              <Popover.Target>
+                <Button size="xs" variant="subtle">
+                  协作状态
+                </Button>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <EditingPresence
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  canvasId={canvasId}
+                  enabled={!state.accessChecking && state.phase !== "loading"}
+                  editing={
+                    active &&
+                    (state.dirty ||
+                      state.hasInvalidInput ||
+                      state.phase === "saving")
+                  }
+                />
+              </Popover.Dropdown>
+            </Popover>
             <Button
               size="xs"
               leftSection={<Sparkle size={16} />}
@@ -440,21 +491,11 @@ function SceneCanvasSession({
           retry={retry}
           selectNode={selectNode}
         />
-        <EditingPresence
-          tenantId={tenantId}
-          projectId={projectId}
-          canvasId={canvasId}
-          enabled={!state.accessChecking && state.phase !== "loading"}
-          editing={
-            active &&
-            (state.dirty || state.hasInvalidInput || state.phase === "saving")
-          }
-        />
         {state.phase === "loading" || !document ? (
           <Loader aria-label="正在读取画布" />
         ) : (
           <div className={classes.body} data-dock={dock || undefined}>
-            <div>
+            <div className={classes.central}>
               {assistantProposalId ? (
                 <AssistantProposal
                   path={path}
@@ -473,6 +514,21 @@ function SceneCanvasSession({
                   readOnly={readOnly || bindingBusy}
                   focusRequest={focusRequest}
                   focusCompleted={focusCompleted}
+                  generation={
+                    <CanvasImageGeneration
+                      tenantId={tenantId}
+                      projectId={projectId}
+                      sceneId={sceneId}
+                      controller={controller}
+                      selectedNodeId={
+                        preference.selectedNodeIds.length === 1
+                          ? preference.selectedNodeIds[0]
+                          : undefined
+                      }
+                      readOnly={readOnly}
+                      focus={focusNodes}
+                    />
+                  }
                   nodeActions={
                     preference.selectedNodeIds.length === 1 &&
                     document.nodes.find(
@@ -508,21 +564,8 @@ function SceneCanvasSession({
                   tenantId={tenantId}
                   projectId={projectId}
                   embedded
-                />
-              )}
-              {preference.mode === "canvas" && !assistantProposalId && (
-                <CanvasImageGeneration
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  sceneId={sceneId}
-                  controller={controller}
-                  selectedNodeId={
-                    preference.selectedNodeIds.length === 1
-                      ? preference.selectedNodeIds[0]
-                      : undefined
-                  }
-                  readOnly={readOnly}
-                  focus={focusNodes}
+                  externalDockOpen={!!dock}
+                  closeExternalDock={() => selectDock(null)}
                 />
               )}
             </div>
@@ -654,7 +697,7 @@ function SceneCanvasSession({
             )}
           </div>
         )}
-      </Stack>
+      </div>
     </CanvasUploads>
   );
 }
@@ -834,6 +877,7 @@ function SceneWithoutCanvasAssistant({
   active,
   open,
   changeOpen,
+  toolbar,
 }: {
   tenantId: string;
   projectId: string;
@@ -842,11 +886,13 @@ function SceneWithoutCanvasAssistant({
   active: boolean;
   open: boolean;
   changeOpen: (open: boolean) => void;
+  toolbar: ReactNode;
 }) {
   const [proposalId, setProposalId] = useState<string>();
   return (
-    <Stack>
-      <Group justify="end">
+    <div className={classes.session}>
+      <Group justify="space-between" className={classes.modeToolbar}>
+        {toolbar}
         <Button
           leftSection={<Sparkle size={16} />}
           aria-pressed={open}
@@ -856,7 +902,7 @@ function SceneWithoutCanvasAssistant({
         </Button>
       </Group>
       <div className={classes.body} data-dock={open || undefined}>
-        <div>
+        <div className={classes.central}>
           {proposalId ? (
             <AssistantProposal
               path={projectPath(tenantId, projectId)}
@@ -870,6 +916,8 @@ function SceneWithoutCanvasAssistant({
               tenantId={tenantId}
               projectId={projectId}
               embedded
+              externalDockOpen={open}
+              closeExternalDock={() => changeOpen(false)}
             />
           )}
         </div>
@@ -896,6 +944,6 @@ function SceneWithoutCanvasAssistant({
           />
         </aside>
       </div>
-    </Stack>
+    </div>
   );
 }

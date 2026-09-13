@@ -34,6 +34,7 @@ import {
 } from "./prompt-draft";
 import { usePromptSession } from "./use-prompt-session";
 import classes from "./assistant.module.css";
+import layout from "./candidates.module.css";
 import { AudioGenerationWorkspace } from "./AudioGenerationWorkspace";
 import { VideoGenerationWorkspace } from "./VideoGenerationWorkspace";
 import { ImageGenerationWorkspace } from "./ImageGenerationWorkspace";
@@ -87,6 +88,7 @@ function PromptContent({
       void controller.verify();
     }
   }, [capabilities.error, savedArtifacts.error, controller]);
+  const [collapsed, setCollapsed] = useState(false);
   const [error, setError] = useState<string>(),
     [confirmation, setConfirmation] = useState<PromptDraft>();
   useEffect(() => {
@@ -239,658 +241,721 @@ function PromptContent({
     );
   return (
     <Stack
-      className={assistantOnly ? classes.panel : classes.creation}
-      gap="md"
+      className={
+        assistantOnly
+          ? classes.panel
+          : rework
+            ? classes.creation
+            : layout.promptComposer
+      }
+      data-collapsed={collapsed || undefined}
+      gap="xs"
       aria-label={rework ? "按意见准备修改" : "本次创作输入"}
     >
       <Group justify="space-between">
         <Text fw={600}>
           {rework ? "按意见准备修改" : "本次创作输入"} · {draft?.label}
         </Text>
-        <Badge variant="light">
-          {state.draftSaved ? "本机已保留" : "正在保留"}
-        </Badge>
+        <Group gap="xs">
+          <Badge variant="light">
+            {state.draftSaved ? "本机已保留" : "正在保留"}
+          </Badge>
+          {!assistantOnly && !rework && (
+            <Button
+              size="xs"
+              variant="subtle"
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              {collapsed ? "展开创作输入" : "收起创作输入"}
+            </Button>
+          )}
+        </Group>
       </Group>
-      <Text size="xs" c="dimmed">
-        固定镜头要求：{draft?.intent}。切换镜头后，可返回此修订继续本次输入。
-      </Text>
-      {draft?.rework && (
-        <div className={classes.selection}>
-          <Text size="sm">
-            固定候选 {draft.rework.takeId.slice(0, 8)} · 意见 r
-            {draft.rework.comment.revision}
-          </Text>
-          <Text size="sm" className={classes.prose}>
-            {draft.rework.comment.body}
-          </Text>
+      <div
+        className={!assistantOnly && !rework ? layout.promptBody : undefined}
+        hidden={collapsed}
+      >
+        <Text size="xs" c="dimmed" lineClamp={1}>
+          固定镜头要求：{draft?.intent}。切换镜头后，可返回此修订继续本次输入。
+        </Text>
+        {draft?.rework && (
+          <div className={classes.selection}>
+            <Text size="sm">
+              固定候选 {draft.rework.takeId.slice(0, 8)} · 意见 r
+              {draft.rework.comment.revision}
+            </Text>
+            <Text size="sm" className={classes.prose}>
+              {draft.rework.comment.body}
+            </Text>
+            <Text size="xs" c="dimmed">
+              新尝试保留原候选、原意见及普通创作输入。
+            </Text>
+          </div>
+        )}
+        {(state.error || error) && (
+          <Alert role="alert" title="需要处理">
+            {state.error ?? error}
+          </Alert>
+        )}
+        {!assistantOnly && (
+          <Textarea
+            aria-label="本次提示"
+            label={rework ? "本次提示" : undefined}
+            placeholder="描述本次想要的画面、动作或声音"
+            minRows={2}
+            autosize
+            maxRows={3}
+            className={!rework ? layout.promptField : undefined}
+            value={draft?.prompt ?? ""}
+            disabled={disabled}
+            onChange={(e) => update({ prompt: e.currentTarget.value })}
+          />
+        )}
+        {draft?.assistanceSource && (
           <Text size="xs" c="dimmed">
-            新尝试保留原候选、原意见及普通创作输入。
+            已应用提示建议 r{draft.assistanceSource.revision}
+            ，来源修订已固定。继续手工编辑不会改变该来源。
           </Text>
-        </div>
-      )}
-      {(state.error || error) && (
-        <Alert role="alert" title="需要处理">
-          {state.error ?? error}
-        </Alert>
-      )}
-      {!assistantOnly && (
-        <Textarea
-          label="本次提示"
-          description="手工内容保留在此；建议由你确认后追加。"
-          minRows={3}
-          autosize
-          maxRows={8}
-          value={draft?.prompt ?? ""}
-          disabled={disabled}
-          onChange={(e) => update({ prompt: e.currentTarget.value })}
-        />
-      )}
-      {draft?.assistanceSource && (
-        <Text size="xs" c="dimmed">
-          已应用提示建议 r{draft.assistanceSource.revision}
-          ，来源修订已固定。继续手工编辑不会改变该来源。
-        </Text>
-      )}
-      {!!draft?.references.length && (
-        <Text size="sm">
-          已带入 {draft.references.length} 个固定参考。
-          {draft.references.map((r) => r.note ?? r.purpose).join("、")}
-        </Text>
-      )}
-      {!assistantOnly && draft && (
-        <Accordion>
-          <Accordion.Item value="image">
-            <Accordion.Control icon={<Sparkle size={16} />}>
-              生成图片
-            </Accordion.Control>
-            <Accordion.Panel>
-              <ImageGenerationWorkspace
-                tenantId={tenantId}
-                projectId={projectId}
-                source={{ kind: "shot", creation: draft }}
-                active={active}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="video">
-            <Accordion.Control icon={<Sparkle size={16} />}>
-              生成视频
-            </Accordion.Control>
-            <Accordion.Panel>
-              <VideoGenerationWorkspace
-                tenantId={tenantId}
-                projectId={projectId}
-                source={{ kind: "shot", creation: draft }}
-                active={active}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="audio">
-            <Accordion.Control icon={<Sparkle size={16} />}>
-              生成音频
-            </Accordion.Control>
-            <Accordion.Panel>
-              <AudioGenerationWorkspace
-                tenantId={tenantId}
-                projectId={projectId}
-                source={{ kind: "shot", creation: draft }}
-                active={active}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-      )}
-      {draft && (
-        <Button
-          variant="subtle"
-          disabled={
-            disabled ||
-            !!record?.planRequest ||
-            !!draft.saveIntent ||
-            (!!artifact && !sameValue(draft.editBody, artifact.body)) ||
-            (!!record?.execution && !jobFinished(job))
-          }
-          onClick={() =>
-            setNextInput({
-              draft: structuredClone(draft),
-              shot: structuredClone(shot),
-            })
+        )}
+        {!!draft?.references.length && (
+          <Text size="sm">
+            已带入 {draft.references.length} 个固定参考。
+            {draft.references.map((r) => r.note ?? r.purpose).join("、")}
+          </Text>
+        )}
+        {!assistantOnly && draft && (
+          <Accordion className={layout.generationChoices}>
+            <Accordion.Item value="image">
+              <Accordion.Control icon={<Sparkle size={16} />}>
+                生成图片
+              </Accordion.Control>
+              <Accordion.Panel>
+                <ImageGenerationWorkspace
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  source={{ kind: "shot", creation: draft }}
+                  active={active}
+                />
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value="video">
+              <Accordion.Control icon={<Sparkle size={16} />}>
+                生成视频
+              </Accordion.Control>
+              <Accordion.Panel>
+                <VideoGenerationWorkspace
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  source={{ kind: "shot", creation: draft }}
+                  active={active}
+                />
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value="audio">
+              <Accordion.Control icon={<Sparkle size={16} />}>
+                生成音频
+              </Accordion.Control>
+              <Accordion.Panel>
+                <AudioGenerationWorkspace
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  source={{ kind: "shot", creation: draft }}
+                  active={active}
+                />
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
+        )}
+        <details
+          className={layout.inputHistory}
+          open={
+            assistantOnly ||
+            !!rework ||
+            !!plan ||
+            !!job ||
+            !!artifact ||
+            undefined
           }
         >
-          保留当前输入，另开一次
-        </Button>
-      )}
-      {!!draft?.previousInputs?.length && (
-        <details>
-          <summary>此前保留的输入（{draft.previousInputs.length}）</summary>
-          <Stack mt="sm">
-            {draft.previousInputs.map((input, index) => (
-              <div key={index} className={classes.selection}>
-                <Text size="xs" c="dimmed">
-                  第 {index + 1} 次输入
-                  {input.assistanceSource
-                    ? ` · 建议 r${input.assistanceSource.revision}`
-                    : ""}
-                </Text>
-                <Text className={classes.prose} size="sm">
-                  {input.prompt || "（未填写手工提示）"}
-                </Text>
-                {input.instruction && (
-                  <Text className={classes.prose} size="sm">
-                    准备要求：{input.instruction}
-                  </Text>
-                )}
-              </div>
-            ))}
-          </Stack>
-        </details>
-      )}
-      <Accordion defaultValue={assistantOnly ? "prepare" : null}>
-        <Accordion.Item value="prepare">
-          <Accordion.Control icon={<Sparkle size={16} />}>
-            AI 准备提示
-          </Accordion.Control>
-          <Accordion.Panel>
-            <Stack gap="md">
-              <ErrorNotice
-                error={capabilities.error}
-                retry={() => void capabilities.refetch()}
-              />
-              {!capabilities.isLoading &&
-                !capabilities.error &&
-                (!textModels.length || !targets.length) && (
-                  <Alert title="提示准备暂不可用">
-                    {!textModels.length
-                      ? "尚未配置可用的提示准备模型。"
-                      : "尚未配置可用的目标生成能力。"}{" "}
-                    你可以先保留手工输入。
-                  </Alert>
-                )}
-              <Select
-                label="准备提示的模型"
-                data={textModels.map((c) => ({ value: c.id, label: label(c) }))}
-                value={draft?.capabilityId || null}
-                disabled={disabled || frozen}
-                onChange={(value) => update({ capabilityId: value ?? "" })}
-              />
-              <Select
-                label="提示将用于哪项能力"
-                data={targets.map((c) => ({ value: c.id, label: label(c) }))}
-                value={draft?.targetCapabilityId || null}
-                disabled={disabled || frozen}
-                onChange={(value) => {
-                  const cap = targets.find((c) => c.id === value);
-                  update({
-                    targetCapabilityId: value ?? "",
-                    targetCapabilityRevision: cap?.revision,
-                  });
-                }}
-              />
-              <Textarea
-                label="本次准备要求"
-                placeholder="例如：强调人物动作和镜头运动，保留已有造型。"
-                value={draft?.instruction ?? ""}
-                onChange={(e) => update({ instruction: e.currentTarget.value })}
-                disabled={disabled || frozen}
-                minRows={2}
-              />
-              <Text size="xs" c="dimmed">
-                {rework
-                  ? "使用候选当时的镜头要求及选定意见修订。意见后来有变化时，原记录保留供核对。"
-                  : "上下文仅使用已固定的当前镜头及其引用。可在候选旁记录意见，再按意见准备修改。"}
-              </Text>
-              {!plan && (
-                <Button
-                  leftSection={<Sparkle size={16} />}
-                  disabled={
-                    disabled || !assistant || !target || !!record?.execution
-                  }
-                  onClick={() => {
-                    try {
-                      if (draft && assistant && target)
-                        void controller.prepare(
-                          promptPlan(draft, projectId, assistant, target),
-                        );
-                    } catch (cause) {
-                      setError(
-                        cause instanceof Error ? cause.message : "请核对能力。",
-                      );
-                    }
-                  }}
-                >
-                  {record?.planRequest ? "恢复原计划请求" : "查看固定计划"}
-                </Button>
-              )}
-              {plan && (
-                <Stack gap="sm" className={classes.result}>
-                  <Group justify="space-between">
-                    <Text fw={600}>固定生成计划</Text>
-                    <Badge variant="light">
-                      {plan.status === "ready"
-                        ? "可执行"
-                        : plan.status === "consumed"
-                          ? "已提交"
-                          : "暂不可执行"}
-                    </Badge>
-                  </Group>
-                  {(plan as Execution).executionMode === "test_fixture" && (
-                    <Alert title="受控测试能力">
-                      用于验证交互与恢复流程，不是真实模型产出。
-                    </Alert>
-                  )}
-                  <Text size="sm">
-                    来源：{draft?.label} · {plan.resolvedInput.shots.length}{" "}
-                    个固定镜头
-                  </Text>
-                  {plan.resolvedInput.feedbackSnapshot && (
-                    <div className={classes.selection}>
-                      <Text size="xs" c="dimmed">
-                        计划固定意见 · r
-                        {plan.resolvedInput.feedbackSnapshot.commentRevision}
-                      </Text>
-                      <Text size="sm" className={classes.prose}>
-                        {plan.resolvedInput.feedbackSnapshot.body}
-                      </Text>
-                    </div>
-                  )}
-                  <Text size="sm">
-                    目标能力：
-                    {(
-                      plan.resolvedInput as Schema<"ResolvedInput"> & {
-                        targetCapabilitySnapshot?: Schema<"Capability">;
-                      }
-                    ).targetCapabilitySnapshot?.modelVersion ??
-                      target?.modelVersion}{" "}
-                    · r{plan.input.assistance?.targetCapabilityRevision}
-                  </Text>
-                  <Text size="sm" className={classes.prose}>
-                    {plan.resolvedInput.prompt}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    计划有效至 {new Date(plan.expiresAt).toLocaleString()}
-                    。执行只准备建议，随后可编辑和应用。
-                  </Text>
-                  {plan.blockingReasons.map((reason, index) => (
-                    <Text c="red" size="sm" key={index}>
-                      {typeof reason === "string"
-                        ? reason
-                        : JSON.stringify(reason)}
+          <summary hidden={assistantOnly || !!rework}>
+            准备提示与输入历史
+          </summary>
+          {draft && (
+            <Button
+              variant="subtle"
+              disabled={
+                disabled ||
+                !!record?.planRequest ||
+                !!draft.saveIntent ||
+                (!!artifact && !sameValue(draft.editBody, artifact.body)) ||
+                (!!record?.execution && !jobFinished(job))
+              }
+              onClick={() =>
+                setNextInput({
+                  draft: structuredClone(draft),
+                  shot: structuredClone(shot),
+                })
+              }
+            >
+              保留当前输入，另开一次
+            </Button>
+          )}
+          {!!draft?.previousInputs?.length && (
+            <details>
+              <summary>此前保留的输入（{draft.previousInputs.length}）</summary>
+              <Stack mt="sm">
+                {draft.previousInputs.map((input, index) => (
+                  <div key={index} className={classes.selection}>
+                    <Text size="xs" c="dimmed">
+                      第 {index + 1} 次输入
+                      {input.assistanceSource
+                        ? ` · 建议 r${input.assistanceSource.revision}`
+                        : ""}
                     </Text>
-                  ))}
-                  {!record?.execution && (
+                    <Text className={classes.prose} size="sm">
+                      {input.prompt || "（未填写手工提示）"}
+                    </Text>
+                    {input.instruction && (
+                      <Text className={classes.prose} size="sm">
+                        准备要求：{input.instruction}
+                      </Text>
+                    )}
+                  </div>
+                ))}
+              </Stack>
+            </details>
+          )}
+          <Accordion defaultValue={assistantOnly ? "prepare" : null}>
+            <Accordion.Item value="prepare">
+              <Accordion.Control icon={<Sparkle size={16} />}>
+                AI 准备提示
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  <ErrorNotice
+                    error={capabilities.error}
+                    retry={() => void capabilities.refetch()}
+                  />
+                  {!capabilities.isLoading &&
+                    !capabilities.error &&
+                    (!textModels.length || !targets.length) && (
+                      <Alert title="提示准备暂不可用">
+                        {!textModels.length
+                          ? "尚未配置可用的提示准备模型。"
+                          : "尚未配置可用的目标生成能力。"}{" "}
+                        你可以先保留手工输入。
+                      </Alert>
+                    )}
+                  <Select
+                    label="准备提示的模型"
+                    data={textModels.map((c) => ({
+                      value: c.id,
+                      label: label(c),
+                    }))}
+                    value={draft?.capabilityId || null}
+                    disabled={disabled || frozen}
+                    onChange={(value) => update({ capabilityId: value ?? "" })}
+                  />
+                  <Select
+                    label="提示将用于哪项能力"
+                    data={targets.map((c) => ({
+                      value: c.id,
+                      label: label(c),
+                    }))}
+                    value={draft?.targetCapabilityId || null}
+                    disabled={disabled || frozen}
+                    onChange={(value) => {
+                      const cap = targets.find((c) => c.id === value);
+                      update({
+                        targetCapabilityId: value ?? "",
+                        targetCapabilityRevision: cap?.revision,
+                      });
+                    }}
+                  />
+                  <Textarea
+                    label="本次准备要求"
+                    placeholder="例如：强调人物动作和镜头运动，保留已有造型。"
+                    value={draft?.instruction ?? ""}
+                    onChange={(e) =>
+                      update({ instruction: e.currentTarget.value })
+                    }
+                    disabled={disabled || frozen}
+                    minRows={2}
+                  />
+                  <Text size="xs" c="dimmed">
+                    {rework
+                      ? "使用候选当时的镜头要求及选定意见修订。意见后来有变化时，原记录保留供核对。"
+                      : "上下文仅使用已固定的当前镜头及其引用。可在候选旁记录意见，再按意见准备修改。"}
+                  </Text>
+                  {!plan && (
                     <Button
+                      leftSection={<Sparkle size={16} />}
                       disabled={
-                        disabled ||
-                        plan.status !== "ready" ||
-                        Date.parse(plan.expiresAt) <= Date.now()
+                        disabled || !assistant || !target || !!record?.execution
                       }
-                      onClick={() => void controller.execute()}
-                    >
-                      明确执行提示准备
-                    </Button>
-                  )}
-                  {(!record?.execution || jobFinished(job)) && (
-                    <Button
-                      variant="subtle"
-                      disabled={disabled}
                       onClick={() => {
-                        if (draft)
-                          void controller.revise({
-                            ...draft,
-                            artifact: undefined,
-                            editBody: undefined,
-                            saveIntent: undefined,
-                          });
+                        try {
+                          if (draft && assistant && target)
+                            void controller.prepare(
+                              promptPlan(draft, projectId, assistant, target),
+                            );
+                        } catch (cause) {
+                          setError(
+                            cause instanceof Error
+                              ? cause.message
+                              : "请核对能力。",
+                          );
+                        }
                       }}
                     >
-                      保留输入，调整下一次准备
+                      {record?.planRequest ? "恢复原计划请求" : "查看固定计划"}
                     </Button>
                   )}
-                </Stack>
-              )}
-              {record?.execution && (
-                <Stack gap="sm" className={classes.result}>
-                  <Group justify="space-between">
-                    <Text fw={600}>
-                      {job?.status === "succeeded"
-                        ? "提示建议可用"
-                        : job
-                          ? jobStatusLabel[job.status]
-                          : "提交结果待核对"}
-                    </Text>
-                    <Button
-                      variant="subtle"
-                      leftSection={<ArrowsClockwise size={16} />}
-                      disabled={state.busy}
-                      onClick={() => void controller.refresh()}
-                    >
-                      核对原任务
-                    </Button>
-                  </Group>
-                  {job && (
-                    <GenerationJobControls
-                      job={job}
-                      cancellation={record.cancellation}
-                      active={active && state.access === "ready"}
-                      busy={state.busy}
-                      label={rework ? "本次意见修改建议" : "本次提示建议"}
-                      requestCancellation={(target) =>
-                        controller.requestCancellation(target)
-                      }
-                    />
+                  {plan && (
+                    <Stack gap="sm" className={classes.result}>
+                      <Group justify="space-between">
+                        <Text fw={600}>固定生成计划</Text>
+                        <Badge variant="light">
+                          {plan.status === "ready"
+                            ? "可执行"
+                            : plan.status === "consumed"
+                              ? "已提交"
+                              : "暂不可执行"}
+                        </Badge>
+                      </Group>
+                      {(plan as Execution).executionMode === "test_fixture" && (
+                        <Alert title="受控测试能力">
+                          用于验证交互与恢复流程，不是真实模型产出。
+                        </Alert>
+                      )}
+                      <Text size="sm">
+                        来源：{draft?.label} · {plan.resolvedInput.shots.length}{" "}
+                        个固定镜头
+                      </Text>
+                      {plan.resolvedInput.feedbackSnapshot && (
+                        <div className={classes.selection}>
+                          <Text size="xs" c="dimmed">
+                            计划固定意见 · r
+                            {
+                              plan.resolvedInput.feedbackSnapshot
+                                .commentRevision
+                            }
+                          </Text>
+                          <Text size="sm" className={classes.prose}>
+                            {plan.resolvedInput.feedbackSnapshot.body}
+                          </Text>
+                        </div>
+                      )}
+                      <Text size="sm">
+                        目标能力：
+                        {(
+                          plan.resolvedInput as Schema<"ResolvedInput"> & {
+                            targetCapabilitySnapshot?: Schema<"Capability">;
+                          }
+                        ).targetCapabilitySnapshot?.modelVersion ??
+                          target?.modelVersion}{" "}
+                        · r{plan.input.assistance?.targetCapabilityRevision}
+                      </Text>
+                      <Text size="sm" className={classes.prose}>
+                        {plan.resolvedInput.prompt}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        计划有效至 {new Date(plan.expiresAt).toLocaleString()}
+                        。执行只准备建议，随后可编辑和应用。
+                      </Text>
+                      {plan.blockingReasons.map((reason, index) => (
+                        <Text c="red" size="sm" key={index}>
+                          {typeof reason === "string"
+                            ? reason
+                            : JSON.stringify(reason)}
+                        </Text>
+                      ))}
+                      {!record?.execution && (
+                        <Button
+                          disabled={
+                            disabled ||
+                            plan.status !== "ready" ||
+                            Date.parse(plan.expiresAt) <= Date.now()
+                          }
+                          onClick={() => void controller.execute()}
+                        >
+                          明确执行提示准备
+                        </Button>
+                      )}
+                      {(!record?.execution || jobFinished(job)) && (
+                        <Button
+                          variant="subtle"
+                          disabled={disabled}
+                          onClick={() => {
+                            if (draft)
+                              void controller.revise({
+                                ...draft,
+                                artifact: undefined,
+                                editBody: undefined,
+                                saveIntent: undefined,
+                              });
+                          }}
+                        >
+                          保留输入，调整下一次准备
+                        </Button>
+                      )}
+                    </Stack>
                   )}
-                  {(!job ||
-                    ["submission_unknown", "reconciliation_required"].includes(
-                      job.status,
-                    )) && (
-                    <Text size="sm">
-                      正在核对原任务；切换页面和刷新不会再次执行。
-                    </Text>
+                  {record?.execution && (
+                    <Stack gap="sm" className={classes.result}>
+                      <Group justify="space-between">
+                        <Text fw={600}>
+                          {job?.status === "succeeded"
+                            ? "提示建议可用"
+                            : job
+                              ? jobStatusLabel[job.status]
+                              : "提交结果待核对"}
+                        </Text>
+                        <Button
+                          variant="subtle"
+                          leftSection={<ArrowsClockwise size={16} />}
+                          disabled={state.busy}
+                          onClick={() => void controller.refresh()}
+                        >
+                          核对原任务
+                        </Button>
+                      </Group>
+                      {job && (
+                        <GenerationJobControls
+                          job={job}
+                          cancellation={record.cancellation}
+                          active={active && state.access === "ready"}
+                          busy={state.busy}
+                          label={rework ? "本次意见修改建议" : "本次提示建议"}
+                          requestCancellation={(target) =>
+                            controller.requestCancellation(target)
+                          }
+                        />
+                      )}
+                      {(!job ||
+                        [
+                          "submission_unknown",
+                          "reconciliation_required",
+                        ].includes(job.status)) && (
+                        <Text size="sm">
+                          正在核对原任务；切换页面和刷新不会再次执行。
+                        </Text>
+                      )}
+                      {!job && (
+                        <Button
+                          variant="default"
+                          disabled={disabled}
+                          onClick={() => void controller.resumeSubmission()}
+                        >
+                          核对后恢复原提交
+                        </Button>
+                      )}
+                      {job?.assistanceArtifactId && (
+                        <Button
+                          disabled={
+                            disabled ||
+                            !!draft?.saveIntent ||
+                            (!!artifact &&
+                              !sameValue(draft?.editBody, artifact.body))
+                          }
+                          onClick={() =>
+                            openArtifact(job.assistanceArtifactId!)
+                          }
+                        >
+                          打开提示建议
+                        </Button>
+                      )}
+                      {job?.inputOutdated && (
+                        <Alert>来源已有变化，请核对后重新准备。</Alert>
+                      )}
+                    </Stack>
                   )}
-                  {!job && (
-                    <Button
-                      variant="default"
-                      disabled={disabled}
-                      onClick={() => void controller.resumeSubmission()}
-                    >
-                      核对后恢复原提交
-                    </Button>
-                  )}
-                  {job?.assistanceArtifactId && (
-                    <Button
+                  <ErrorNotice
+                    error={savedArtifacts.error}
+                    retry={() => void savedArtifacts.refetch()}
+                  />
+                  {!!savedArtifacts.data?.length && (
+                    <Select
+                      label="找回已保存的提示建议"
+                      placeholder="选择建议"
+                      value={artifact?.id ?? null}
                       disabled={
                         disabled ||
                         !!draft?.saveIntent ||
                         (!!artifact &&
                           !sameValue(draft?.editBody, artifact.body))
                       }
-                      onClick={() => openArtifact(job.assistanceArtifactId!)}
-                    >
-                      打开提示建议
-                    </Button>
-                  )}
-                  {job?.inputOutdated && (
-                    <Alert>来源已有变化，请核对后重新准备。</Alert>
-                  )}
-                </Stack>
-              )}
-              <ErrorNotice
-                error={savedArtifacts.error}
-                retry={() => void savedArtifacts.refetch()}
-              />
-              {!!savedArtifacts.data?.length && (
-                <Select
-                  label="找回已保存的提示建议"
-                  placeholder="选择建议"
-                  value={artifact?.id ?? null}
-                  disabled={
-                    disabled ||
-                    !!draft?.saveIntent ||
-                    (!!artifact && !sameValue(draft?.editBody, artifact.body))
-                  }
-                  data={savedArtifacts.data
-                    .filter(
-                      (a) =>
-                        (rework
-                          ? a.request.sourceTakeId === rework.takeId &&
-                            a.request.feedback?.commentId ===
-                              rework.comment.id &&
-                            (a.request.feedback as { commentRevision?: number })
-                              ?.commentRevision === rework.comment.revision
-                          : a.request.kind === "prepare_prompt") &&
-                        a.shotSources.some(
-                          (source) =>
-                            source.shotId === draft?.source.shotId &&
-                            source.shotRevisionId ===
-                              draft?.source.shotRevisionId,
-                        ),
-                    )
-                    .map((a) => ({
-                      value: a.id,
-                      label: `${a.body.prompt.slice(0, 28)} · r${a.revision}${a.executionMode === "test_fixture" ? " · 受控测试" : ""}`,
-                    }))}
-                  onChange={(id) => id && openArtifact(id)}
-                />
-              )}
-              {artifact && (
-                <Stack gap="sm" className={classes.result}>
-                  <Group>
-                    <Text fw={600}>可编辑提示建议</Text>
-                    <Badge>r{artifact.revision}</Badge>
-                    {artifact.executionMode === "test_fixture" && (
-                      <Badge color="orange">受控测试结果</Badge>
-                    )}
-                  </Group>
-                  {artifact.inputOutdated && (
-                    <Alert>此建议来源已改变，保留内容供核对。</Alert>
-                  )}
-                  <Select
-                    label="查看已保存的建议历史"
-                    value={historyRevision}
-                    onChange={(value) => {
-                      setHistoryRevision(value);
-                      if (value && draft)
-                        void controller.commitDraft(
-                          draft,
-                          draft,
-                          async (current) => ({
-                            ...current,
-                            historyArtifact: await readArtifact(
-                              artifact.id,
-                              Number(value),
+                      data={savedArtifacts.data
+                        .filter(
+                          (a) =>
+                            (rework
+                              ? a.request.sourceTakeId === rework.takeId &&
+                                a.request.feedback?.commentId ===
+                                  rework.comment.id &&
+                                (
+                                  a.request.feedback as {
+                                    commentRevision?: number;
+                                  }
+                                )?.commentRevision === rework.comment.revision
+                              : a.request.kind === "prepare_prompt") &&
+                            a.shotSources.some(
+                              (source) =>
+                                source.shotId === draft?.source.shotId &&
+                                source.shotRevisionId ===
+                                  draft?.source.shotRevisionId,
                             ),
+                        )
+                        .map((a) => ({
+                          value: a.id,
+                          label: `${a.body.prompt.slice(0, 28)} · r${a.revision}${a.executionMode === "test_fixture" ? " · 受控测试" : ""}`,
+                        }))}
+                      onChange={(id) => id && openArtifact(id)}
+                    />
+                  )}
+                  {artifact && (
+                    <Stack gap="sm" className={classes.result}>
+                      <Group>
+                        <Text fw={600}>可编辑提示建议</Text>
+                        <Badge>r{artifact.revision}</Badge>
+                        {artifact.executionMode === "test_fixture" && (
+                          <Badge color="orange">受控测试结果</Badge>
+                        )}
+                      </Group>
+                      {artifact.inputOutdated && (
+                        <Alert>此建议来源已改变，保留内容供核对。</Alert>
+                      )}
+                      <Select
+                        label="查看已保存的建议历史"
+                        value={historyRevision}
+                        onChange={(value) => {
+                          setHistoryRevision(value);
+                          if (value && draft)
+                            void controller.commitDraft(
+                              draft,
+                              draft,
+                              async (current) => ({
+                                ...current,
+                                historyArtifact: await readArtifact(
+                                  artifact.id,
+                                  Number(value),
+                                ),
+                              }),
+                            );
+                        }}
+                        disabled={disabled}
+                        placeholder="选择固定修订（只读）"
+                        data={Array.from(
+                          { length: artifact.revision },
+                          (_, index) => ({
+                            value: String(index + 1),
+                            label: `r${index + 1}${index === 0 ? " · 原始建议" : ""}`,
                           }),
-                        );
-                    }}
-                    disabled={disabled}
-                    placeholder="选择固定修订（只读）"
-                    data={Array.from(
-                      { length: artifact.revision },
-                      (_, index) => ({
-                        value: String(index + 1),
-                        label: `r${index + 1}${index === 0 ? " · 原始建议" : ""}`,
-                      }),
-                    )}
-                  />
-                  {historyRevision && draft?.historyArtifact && (
-                    <div className={classes.selection}>
-                      <Text size="xs" c="dimmed">
-                        历史 r{draft.historyArtifact.revision} · 只读
-                      </Text>
-                      <Text size="sm" className={classes.prose}>
-                        {draft.historyArtifact.body.prompt}
-                      </Text>
-                    </div>
+                        )}
+                      />
+                      {historyRevision && draft?.historyArtifact && (
+                        <div className={classes.selection}>
+                          <Text size="xs" c="dimmed">
+                            历史 r{draft.historyArtifact.revision} · 只读
+                          </Text>
+                          <Text size="sm" className={classes.prose}>
+                            {draft.historyArtifact.body.prompt}
+                          </Text>
+                        </div>
+                      )}
+                      <Textarea
+                        label="建议提示"
+                        autosize
+                        minRows={3}
+                        maxRows={10}
+                        value={draft?.editBody?.prompt ?? ""}
+                        disabled={disabled || !!draft?.saveIntent}
+                        onChange={(e) =>
+                          draft?.editBody &&
+                          update({
+                            editBody: {
+                              ...draft.editBody,
+                              prompt: e.currentTarget.value,
+                            },
+                          })
+                        }
+                      />
+                      <Textarea
+                        label="建议备注"
+                        autosize
+                        minRows={2}
+                        value={draft?.editBody?.notes ?? ""}
+                        disabled={disabled || !!draft?.saveIntent}
+                        onChange={(e) =>
+                          draft?.editBody &&
+                          update({
+                            editBody: {
+                              ...draft.editBody,
+                              notes: e.currentTarget.value,
+                            },
+                          })
+                        }
+                      />
+                      <Textarea
+                        label="保留要求（每行一项）"
+                        value={draft?.editBody?.retain.join("\n") ?? ""}
+                        disabled={disabled || !!draft?.saveIntent}
+                        onChange={(e) =>
+                          draft?.editBody &&
+                          update({
+                            editBody: {
+                              ...draft.editBody,
+                              retain: e.currentTarget.value.split("\n"),
+                            },
+                          })
+                        }
+                      />
+                      <Textarea
+                        label="调整要求（每行一项）"
+                        value={draft?.editBody?.change.join("\n") ?? ""}
+                        disabled={disabled || !!draft?.saveIntent}
+                        onChange={(e) =>
+                          draft?.editBody &&
+                          update({
+                            editBody: {
+                              ...draft.editBody,
+                              change: e.currentTarget.value.split("\n"),
+                            },
+                          })
+                        }
+                      />
+                      {!!draft?.editBody?.referenceSuggestions.length && (
+                        <Text size="sm">
+                          建议参考：
+                          {draft.editBody.referenceSuggestions
+                            .map((r) => r.note ?? r.purpose)
+                            .join("、")}
+                        </Text>
+                      )}
+                      {draft?.saveIntent && (
+                        <Alert title="保存结果待核对">
+                          本机编辑已保留。先读取原建议，核对保存是否完成。
+                        </Alert>
+                      )}
+                      <Group>
+                        <Button
+                          disabled={
+                            disabled ||
+                            !draft?.editBody?.prompt.trim() ||
+                            (!!draft?.saveIntent &&
+                              !draft.saveIntent.checked) ||
+                            (!draft?.saveIntent &&
+                              sameValue(draft?.editBody, artifact.body))
+                          }
+                          onClick={save}
+                        >
+                          {draft?.saveIntent
+                            ? "按原修订重试保存"
+                            : "保存建议修订"}
+                        </Button>
+                        <Button
+                          variant="default"
+                          disabled={disabled}
+                          onClick={() =>
+                            draft &&
+                            void controller.commitDraft(
+                              draft,
+                              draft,
+                              async (current) =>
+                                recoverArtifactSave(
+                                  current,
+                                  await readArtifact(artifact.id),
+                                ),
+                            )
+                          }
+                        >
+                          核对建议修订
+                        </Button>
+                      </Group>
+                      {(!!draft?.saveIntent ||
+                        !sameValue(draft?.editBody, artifact.body)) && (
+                        <Button
+                          variant="subtle"
+                          disabled={disabled}
+                          onClick={() =>
+                            draft &&
+                            void controller.commitDraft(
+                              draft,
+                              draft,
+                              async (current) => {
+                                const latest = await readArtifact(artifact.id);
+                                validateArtifact(current, latest);
+                                return {
+                                  ...current,
+                                  retainedEdits: [
+                                    ...(current.retainedEdits ?? []),
+                                    {
+                                      artifactId: artifact.id,
+                                      revision: artifact.revision,
+                                      body: current.editBody ?? artifact.body,
+                                    },
+                                  ],
+                                  artifact: latest,
+                                  editBody: latest.body,
+                                  saveIntent: undefined,
+                                };
+                              },
+                            )
+                          }
+                        >
+                          保留本机编辑副本，打开最新修订
+                        </Button>
+                      )}
+                      {!!draft?.retainedEdits?.length && (
+                        <details>
+                          <summary>
+                            已保留的本机编辑副本（{draft.retainedEdits.length}）
+                          </summary>
+                          <Stack mt="sm">
+                            {draft.retainedEdits.map((edit, index) => (
+                              <div key={index} className={classes.selection}>
+                                <Text size="xs" c="dimmed">
+                                  基于 r{edit.revision} 的本机编辑 · 只读
+                                </Text>
+                                <Text size="sm" className={classes.prose}>
+                                  {edit.body.prompt}
+                                </Text>
+                                <Text size="sm" className={classes.prose}>
+                                  {edit.body.notes}
+                                </Text>
+                                <Text size="sm">
+                                  保留：{edit.body.retain.join("；")}；调整：
+                                  {edit.body.change.join("；")}
+                                </Text>
+                              </div>
+                            ))}
+                          </Stack>
+                        </details>
+                      )}
+                      <Button
+                        leftSection={<ArrowBendDownRight size={16} />}
+                        disabled={
+                          disabled ||
+                          !!draft?.saveIntent ||
+                          !!draft?.assistanceSource ||
+                          artifact.inputOutdated ||
+                          !sameValue(draft?.editBody, artifact.body)
+                        }
+                        onClick={() =>
+                          draft && setConfirmation(structuredClone(draft))
+                        }
+                      >
+                        {draft?.assistanceSource
+                          ? "本次输入已应用建议"
+                          : "追加到本次提示…"}
+                      </Button>
+                    </Stack>
                   )}
-                  <Textarea
-                    label="建议提示"
-                    autosize
-                    minRows={3}
-                    maxRows={10}
-                    value={draft?.editBody?.prompt ?? ""}
-                    disabled={disabled || !!draft?.saveIntent}
-                    onChange={(e) =>
-                      draft?.editBody &&
-                      update({
-                        editBody: {
-                          ...draft.editBody,
-                          prompt: e.currentTarget.value,
-                        },
-                      })
-                    }
-                  />
-                  <Textarea
-                    label="建议备注"
-                    autosize
-                    minRows={2}
-                    value={draft?.editBody?.notes ?? ""}
-                    disabled={disabled || !!draft?.saveIntent}
-                    onChange={(e) =>
-                      draft?.editBody &&
-                      update({
-                        editBody: {
-                          ...draft.editBody,
-                          notes: e.currentTarget.value,
-                        },
-                      })
-                    }
-                  />
-                  <Textarea
-                    label="保留要求（每行一项）"
-                    value={draft?.editBody?.retain.join("\n") ?? ""}
-                    disabled={disabled || !!draft?.saveIntent}
-                    onChange={(e) =>
-                      draft?.editBody &&
-                      update({
-                        editBody: {
-                          ...draft.editBody,
-                          retain: e.currentTarget.value.split("\n"),
-                        },
-                      })
-                    }
-                  />
-                  <Textarea
-                    label="调整要求（每行一项）"
-                    value={draft?.editBody?.change.join("\n") ?? ""}
-                    disabled={disabled || !!draft?.saveIntent}
-                    onChange={(e) =>
-                      draft?.editBody &&
-                      update({
-                        editBody: {
-                          ...draft.editBody,
-                          change: e.currentTarget.value.split("\n"),
-                        },
-                      })
-                    }
-                  />
-                  {!!draft?.editBody?.referenceSuggestions.length && (
-                    <Text size="sm">
-                      建议参考：
-                      {draft.editBody.referenceSuggestions
-                        .map((r) => r.note ?? r.purpose)
-                        .join("、")}
-                    </Text>
-                  )}
-                  {draft?.saveIntent && (
-                    <Alert title="保存结果待核对">
-                      本机编辑已保留。先读取原建议，核对保存是否完成。
-                    </Alert>
-                  )}
-                  <Group>
-                    <Button
-                      disabled={
-                        disabled ||
-                        !draft?.editBody?.prompt.trim() ||
-                        (!!draft?.saveIntent && !draft.saveIntent.checked) ||
-                        (!draft?.saveIntent &&
-                          sameValue(draft?.editBody, artifact.body))
-                      }
-                      onClick={save}
-                    >
-                      {draft?.saveIntent ? "按原修订重试保存" : "保存建议修订"}
-                    </Button>
-                    <Button
-                      variant="default"
-                      disabled={disabled}
-                      onClick={() =>
-                        draft &&
-                        void controller.commitDraft(
-                          draft,
-                          draft,
-                          async (current) =>
-                            recoverArtifactSave(
-                              current,
-                              await readArtifact(artifact.id),
-                            ),
-                        )
-                      }
-                    >
-                      核对建议修订
-                    </Button>
-                  </Group>
-                  {(!!draft?.saveIntent ||
-                    !sameValue(draft?.editBody, artifact.body)) && (
-                    <Button
-                      variant="subtle"
-                      disabled={disabled}
-                      onClick={() =>
-                        draft &&
-                        void controller.commitDraft(
-                          draft,
-                          draft,
-                          async (current) => {
-                            const latest = await readArtifact(artifact.id);
-                            validateArtifact(current, latest);
-                            return {
-                              ...current,
-                              retainedEdits: [
-                                ...(current.retainedEdits ?? []),
-                                {
-                                  artifactId: artifact.id,
-                                  revision: artifact.revision,
-                                  body: current.editBody ?? artifact.body,
-                                },
-                              ],
-                              artifact: latest,
-                              editBody: latest.body,
-                              saveIntent: undefined,
-                            };
-                          },
-                        )
-                      }
-                    >
-                      保留本机编辑副本，打开最新修订
-                    </Button>
-                  )}
-                  {!!draft?.retainedEdits?.length && (
-                    <details>
-                      <summary>
-                        已保留的本机编辑副本（{draft.retainedEdits.length}）
-                      </summary>
-                      <Stack mt="sm">
-                        {draft.retainedEdits.map((edit, index) => (
-                          <div key={index} className={classes.selection}>
-                            <Text size="xs" c="dimmed">
-                              基于 r{edit.revision} 的本机编辑 · 只读
-                            </Text>
-                            <Text size="sm" className={classes.prose}>
-                              {edit.body.prompt}
-                            </Text>
-                            <Text size="sm" className={classes.prose}>
-                              {edit.body.notes}
-                            </Text>
-                            <Text size="sm">
-                              保留：{edit.body.retain.join("；")}；调整：
-                              {edit.body.change.join("；")}
-                            </Text>
-                          </div>
-                        ))}
-                      </Stack>
-                    </details>
-                  )}
-                  <Button
-                    leftSection={<ArrowBendDownRight size={16} />}
-                    disabled={
-                      disabled ||
-                      !!draft?.saveIntent ||
-                      !!draft?.assistanceSource ||
-                      artifact.inputOutdated ||
-                      !sameValue(draft?.editBody, artifact.body)
-                    }
-                    onClick={() =>
-                      draft && setConfirmation(structuredClone(draft))
-                    }
-                  >
-                    {draft?.assistanceSource
-                      ? "本次输入已应用建议"
-                      : "追加到本次提示…"}
-                  </Button>
                 </Stack>
-              )}
-            </Stack>
-          </Accordion.Panel>
-        </Accordion.Item>
-      </Accordion>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
+        </details>
+      </div>
       <Modal
         opened={!!nextInput && state.access === "ready"}
         onClose={() => setNextInput(undefined)}

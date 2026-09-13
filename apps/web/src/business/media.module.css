@@ -1,7 +1,6 @@
 .imports {
-  background: var(--ws-panel);
-  padding: var(--mantine-spacing-xl);
-  border-radius: var(--ws-card-radius);
+  padding-block: var(--mantine-spacing-lg);
+  border-block: 1px solid var(--ws-border);
 }
 .importFields {
   display: grid;
@@ -16,7 +15,7 @@
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: var(--mantine-spacing-xl);
 }
 .item {
@@ -32,6 +31,7 @@
   outline-offset: 4px;
 }
 .thumbnail {
+  position: relative;
   aspect-ratio: 16 / 10;
   width: 100%;
   background: var(--ws-panel);
@@ -39,33 +39,37 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  border-radius: var(--ws-card-radius);
+  border-radius: var(--ws-media-radius);
 }
 .thumbnail img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 .viewport {
   width: 100%;
-  min-height: 240px;
-  background: var(--ws-panel);
+  min-height: var(--ws-preview-height, 240px);
+  background: var(--ws-preview-background, var(--ws-panel));
   color: var(--ws-secondary);
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  border-radius: var(--ws-card-radius);
+  border-radius: var(--ws-media-radius);
 }
 .viewport > img {
   display: block;
-  width: 100%;
-  max-height: 55vh;
+  width: auto;
+  max-width: 100%;
+  max-height: var(--ws-preview-height, 55vh);
   object-fit: contain;
+  border-radius: var(--ws-media-radius);
 }
 .detail {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr);
+  grid-template-columns: minmax(0, 1fr) 300px;
   align-items: start;
   gap: var(--mantine-spacing-xl);
 }
@@ -75,12 +79,16 @@
 .metadata {
   display: grid;
   gap: var(--mantine-spacing-md);
+  max-width: 880px;
+  padding-top: var(--mantine-spacing-xl);
+  border-top: 1px solid var(--ws-border);
 }
 .facts {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
   font-size: var(--mantine-font-size-sm);
+  margin: 0;
 }
 .facts dt {
   color: var(--ws-secondary);
@@ -93,7 +101,7 @@
   padding: var(--mantine-spacing-lg);
   background: var(--ws-panel);
   border: 1px solid var(--ws-field-border);
-  border-radius: var(--ws-card-radius);
+  border-radius: var(--ws-media-radius);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -101,12 +109,12 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-@media (max-width: 1000px) {
+@container (max-width: 760px) {
   .detail {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (max-width: 700px) {
+@container (max-width: 600px) {
   .importFields {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -114,11 +122,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--mantine-spacing-md);
   }
-  .viewport {
-    min-height: 180px;
-  }
 }
-@media (max-width: 400px) {
+@container (max-width: 360px) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -127,4 +132,55 @@
 .audioViewport {
   min-height: 0;
   padding-block: var(--mantine-spacing-sm);
+}
+
+.workspace {
+  min-width: 0;
+  container-type: inline-size;
+}
+.filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(140px, 180px) minmax(
+      140px,
+      180px
+    );
+  align-items: end;
+  gap: var(--mantine-spacing-md);
+  padding-block: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--ws-border);
+}
+.mediaMain {
+  --ws-preview-height: clamp(300px, 58dvh, 660px);
+}
+.inspector {
+  border-left: 1px solid var(--ws-border);
+  padding-left: var(--mantine-spacing-xl);
+}
+.inspectorTitle {
+  margin: 0;
+  font-size: var(--mantine-font-size-md);
+  font-weight: 600;
+}
+.disclosure {
+  border-top: 1px solid var(--ws-border);
+  padding-top: var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+}
+.disclosure summary {
+  cursor: pointer;
+}
+@container (max-width: 760px) {
+  .inspector {
+    border-left: 0;
+    border-top: 1px solid var(--ws-border);
+    padding: var(--mantine-spacing-lg) 0 0;
+  }
+  .mediaMain {
+    --ws-preview-height: clamp(240px, 48dvh, 480px);
+  }
+}
+@container (max-width: 600px) {
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

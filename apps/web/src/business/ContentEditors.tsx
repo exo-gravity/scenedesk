@@ -29,6 +29,7 @@ import { reconcileContent } from "./content-reconcile";
 import { submitCreation, type CreationIntent } from "./content-creation";
 import { ShotReferenceFields } from "./ShotReferenceFields";
 import classes from "./workbench.module.css";
+import layout from "./content.module.css";
 
 export type ContentEntity =
   Schema<"Episode"> | Schema<"Scene"> | Schema<"Shot">;
@@ -887,11 +888,15 @@ export function ScriptEditor({
   scripts,
   path,
   done,
+  presentation = "dialog",
+  initialHistoryId,
 }: {
   tree: Schema<"ContentTree">;
   scripts: Schema<"ScriptRevision">[];
   path: string;
   done: () => void;
+  presentation?: "dialog" | "document";
+  initialHistoryId?: string | null;
 }) {
   const current = scripts.find((s) => s.id === tree.currentScriptRevisionId);
   const draft = useContentDraft(
@@ -900,16 +905,102 @@ export function ScriptEditor({
       tree.revision,
     ),
     command = useCommand<Schema<"ScriptRevision">>();
-  const [history, setHistory] = useState<string | null>(null),
+  const [saved, setSaved] = useState(false);
+  const [history, setHistory] = useState<string | null>(
+      initialHistoryId ?? null,
+    ),
     old = scripts.find((s) => s.id === history);
+  useEffect(() => {
+    setHistory(initialHistoryId ?? null);
+  }, [initialHistoryId]);
+  const document = presentation === "document";
   if (draft.committed) return <DraftNotice draft={draft} />;
+  if (saved && document)
+    return (
+      <Alert title="服务器已保存">
+        <Text>
+          正文已保存为新版本。读取完成后继续编辑；读取失败时可重新读取。
+        </Text>
+        <Button mt="sm" variant="default" onClick={done}>
+          重新读取已保存的剧本
+        </Button>
+      </Alert>
+    );
   const conflict = draft.baseVersion !== tree.revision;
+  const save = (
+    <Button
+      variant="filled"
+      loading={command.isPending}
+      disabled={
+        conflict ||
+        !draft.ready ||
+        !!draft.recovered ||
+        !draft.value.text.trim() ||
+        (document && !!history)
+      }
+      onClick={() =>
+        command.mutate(
+          {
+            path: `${path}/scripts`,
+            body: {
+              text: draft.value.text,
+              ...(tree.currentScriptRevisionId
+                ? { parentRevisionId: tree.currentScriptRevisionId }
+                : {}),
+            },
+            version: draft.baseVersion,
+          },
+          {
+            onCommitted: () => {
+              setSaved(true);
+              void draft.complete(done);
+            },
+          },
+        )
+      }
+    >
+      保存为第 {(current?.number ?? 0) + 1} 版
+    </Button>
+  );
+  const historyControl = !!scripts.length && (
+    <Select
+      label="查阅历史剧本"
+      placeholder="正在编辑的正文"
+      clearable
+      value={history}
+      onChange={setHistory}
+      data={[...scripts]
+        .sort((a, b) => b.number - a.number)
+        .map((s) => ({
+          value: s.id,
+          label: `第 ${s.number} 版 · ${s.createdAt ? new Date(s.createdAt).toLocaleString() : ""}`,
+        }))}
+    />
+  );
   return (
-    <Stack gap="lg">
-      <DraftNotice draft={draft} />
-      <Text c="dimmed">
-        每次保存都会新增版本。已经关联到镜头的原文保持不变。
-      </Text>
+    <Stack
+      gap={document ? "md" : "lg"}
+      className={document ? layout.document : undefined}
+    >
+      {document && (
+        <div className={layout.documentToolbar}>
+          <div>
+            <Text fw={600}>剧本正文</Text>
+            <Text size="xs" c="dimmed">
+              {history
+                ? `正在查阅第 ${old?.number ?? "—"} 版 · 只读`
+                : `当前保存版本 ${current?.number ?? 0} · 正在编辑`}
+            </Text>
+          </div>
+          <Group gap="sm">
+            {historyControl}
+            {save}
+          </Group>
+        </div>
+      )}
+      {(!document || draft.recovered || draft.error || !draft.ready) && (
+        <DraftNotice draft={draft} />
+      )}
       {conflict && (
         <Alert title="项目内容已更新">
           <Text>当前剧本为第 {current?.number ?? 0} 版，请核对后提交。</Text>
@@ -928,61 +1019,65 @@ export function ScriptEditor({
           </Button>
         </Alert>
       )}
-      <Textarea
-        label="剧本正文"
-        minRows={14}
-        autosize
-        maxRows={26}
-        required
-        value={draft.value.text}
-        disabled={!draft.ready || !!draft.recovered || command.isPending}
-        onChange={(e) => draft.setValue({ text: e.currentTarget.value })}
-      />
-      <ErrorNotice error={command.error} />
-      <Button
-        variant="filled"
-        loading={command.isPending}
-        disabled={
-          conflict ||
-          !draft.ready ||
-          !!draft.recovered ||
-          !draft.value.text.trim()
-        }
-        onClick={() =>
-          command.mutate(
-            {
-              path: `${path}/scripts`,
-              body: {
-                text: draft.value.text,
-                ...(tree.currentScriptRevisionId
-                  ? { parentRevisionId: tree.currentScriptRevisionId }
-                  : {}),
-              },
-              version: draft.baseVersion,
-            },
-            {
-              onCommitted: () => void draft.complete(done),
-            },
-          )
-        }
-      >
-        保存为第 {(current?.number ?? 0) + 1} 版
-      </Button>
-      {!!scripts.length && (
+      {!document && (
+        <Text c="dimmed">
+          每次保存都会新增版本。已经关联到镜头的原文保持不变。
+        </Text>
+      )}
+      {history && !old && (
+        <Alert title="指定剧本版本不可用">
+          该版本不存在或不在当前可访问的剧本历史中。请重新选择版本。
+        </Alert>
+      )}
+      {document && old ? (
         <>
-          <Select
-            label="查阅历史剧本"
-            placeholder="选择版本"
-            clearable
-            value={history}
-            onChange={setHistory}
-            data={[...scripts]
-              .sort((a, b) => b.number - a.number)
-              .map((s) => ({
-                value: s.id,
-                label: `第 ${s.number} 版 · ${s.createdAt ? new Date(s.createdAt).toLocaleString() : ""}`,
-              }))}
+          <Textarea
+            label={`第 ${old.number} 版原文`}
+            value={old.text}
+            readOnly
+            classNames={{ input: layout.documentInput }}
           />
+          <Button
+            variant="default"
+            disabled={!draft.ready || !!draft.recovered || command.isPending}
+            onClick={() => {
+              draft.setValue({ text: old.text });
+              setHistory(null);
+            }}
+          >
+            将此版本复制到正在编辑的正文
+          </Button>
+        </>
+      ) : (
+        <Textarea
+          {...(document ? { "aria-label": "剧本正文" } : { label: "剧本正文" })}
+          {...(document
+            ? { classNames: { input: layout.documentInput } }
+            : { minRows: 14, autosize: true, maxRows: 26 })}
+          required
+          value={draft.value.text}
+          disabled={
+            !draft.ready ||
+            !!draft.recovered ||
+            command.isPending ||
+            (document && !!history)
+          }
+          onChange={(e) => draft.setValue({ text: e.currentTarget.value })}
+        />
+      )}
+      <ErrorNotice error={command.error} />
+      {document ? (
+        <Text size="xs" c="dimmed">
+          {draft.dirty
+            ? draft.saved
+              ? "修改已保存在本标签页，尚未提交。"
+              : "正在保存本地修改…"
+            : "保存会新增版本。镜头与提案已固定的原文保持不变。"}
+        </Text>
+      ) : (
+        <>
+          {save}
+          {historyControl}
           {old && (
             <>
               <Textarea

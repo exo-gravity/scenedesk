@@ -1,0 +1,198 @@
+{
+  "desktop": {
+    "results": [
+      {
+        "name": "storyboard-light",
+        "main": {
+          "x": 76,
+          "y": 34,
+          "width": 1436,
+          "height": 948,
+          "bottom": 982
+        },
+        "preview": {
+          "x": 76,
+          "y": 190,
+          "width": 1436,
+          "height": 394.8125,
+          "bottom": 584.8125
+        },
+        "video": {
+          "x": 419,
+          "y": 190,
+          "width": 560,
+          "height": 394.8125,
+          "bottom": 584.8125
+        },
+        "composer": {
+          "x": 96,
+          "y": 670,
+          "width": 1396,
+          "height": 208,
+          "bottom": 878
+        },
+        "strip": {
+          "x": 76,
+          "y": 890,
+          "width": 1436,
+          "height": 92,
+          "bottom": 982
+        },
+        "flow": null,
+        "assistant": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "bottom": 0
+        },
+        "overflow": false,
+        "videoFilter": "none"
+      },
+      {
+        "name": "compact-assistant",
+        "main": {
+          "x": 76,
+          "y": 34,
+          "width": 1290,
+          "height": 734,
+          "bottom": 768
+        },
+        "preview": {
+          "x": 76,
+          "y": 182,
+          "width": 930,
+          "height": 220.8125,
+          "bottom": 402.8125
+        },
+        "video": {
+          "x": 186,
+          "y": 182,
+          "width": 560,
+          "height": 220.8125,
+          "bottom": 402.8125
+        },
+        "composer": {
+          "x": 96,
+          "y": 488,
+          "width": 890,
+          "height": 178,
+          "bottom": 666
+        },
+        "strip": {
+          "x": 76,
+          "y": 676,
+          "width": 930,
+          "height": 92,
+          "bottom": 768
+        },
+        "flow": null,
+        "assistant": {
+          "x": 1006,
+          "y": 134,
+          "width": 360,
+          "height": 634,
+          "bottom": 768
+        },
+        "overflow": false,
+        "videoFilter": "none"
+      },
+      {
+        "name": "compact-generation-open",
+        "main": {
+          "x": 76,
+          "y": 34,
+          "width": 1290,
+          "height": 734,
+          "bottom": 768
+        },
+        "preview": {
+          "x": 76,
+          "y": 182,
+          "width": 1290,
+          "height": 153.0546875,
+          "bottom": 335.0546875
+        },
+        "video": {
+          "x": 366,
+          "y": 182,
+          "width": 560,
+          "height": 153.0546875,
+          "bottom": 335.0546875
+        },
+        "composer": {
+          "x": 96,
+          "y": 420.2421875,
+          "width": 1250,
+          "height": 245.7578125,
+          "bottom": 666
+        },
+        "strip": {
+          "x": 76,
+          "y": 676,
+          "width": 1290,
+          "height": 92,
+          "bottom": 768
+        },
+        "flow": null,
+        "assistant": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "bottom": 0
+        },
+        "overflow": false,
+        "videoFilter": "none"
+      }
+    ],
+    "errors": [],
+    "writes": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:4316/v1/tenants/1bd61561-fc1d-4ce0-89c4-09c87fe7d383/media/deeea271-ddbc-468b-b64b-031c404cd177/access"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:4316/v1/tenants/1bd61561-fc1d-4ce0-89c4-09c87fe7d383/media/deeea271-ddbc-468b-b64b-031c404cd177/access"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:4316/v1/tenants/1bd61561-fc1d-4ce0-89c4-09c87fe7d383/media/4d3c48a1-1a6a-4d27-b7b0-113e86f4c888/access"
+      }
+    ],
+    "inputPreservedAcrossCollapseAndDocks": true,
+    "notProviderOrStorageAcceptance": true
+  },
+  "recovery": {
+    "results": [
+      {
+        "canvasRevision": 3,
+        "canvasFlow": {
+          "x": 76,
+          "y": 174,
+          "width": 1436,
+          "height": 519.9140625
+        },
+        "expandedFlow": {
+          "x": 76,
+          "y": 174,
+          "width": 1436,
+          "height": 466
+        },
+        "modeAndRefreshRecovery": true
+      },
+      {
+        "noCanvas": {
+          "main": 948,
+          "strip": 982,
+          "video": 394.8125
+        }
+      }
+    ],
+    "errors": [],
+    "actualRestrictedApiAndPostgres": true,
+    "localStaticMediaAdapter": true,
+    "noProviderOrMediaArchiveAcceptance": true
+  }
+}

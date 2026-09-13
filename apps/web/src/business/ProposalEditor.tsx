@@ -321,7 +321,11 @@ export function ProposalEditor({
       )}
       <div className={classes.list}>
         {edit.operations.map((op) => (
-          <article className={classes.row} key={op.opId}>
+          <article
+            className={classes.row}
+            key={op.opId}
+            aria-label={`${kindName[op.kind]}建议 · ${title(op)}`}
+          >
             <Group justify="space-between" align="start">
               <Group align="start">
                 {!readOnly && (

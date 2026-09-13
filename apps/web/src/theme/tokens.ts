@@ -1,3 +1,4 @@
+import { sharedSurfaces } from "./shared-language-study.js";
 /** Single value source for the Mantine visual sample. Business CSS uses the semantic variables. */
 export const tokens = {
   surface: {
@@ -41,7 +42,7 @@ export const semanticVariables = {
   "--ws-panel": tokens.surface.panel,
   "--ws-raised": tokens.surface.raised,
   "--ws-hover": tokens.surface.hover,
-  "--ws-media": tokens.surface.media,
+  "--ws-media": sharedSurfaces.media,
   "--ws-text": tokens.text.primary,
   "--ws-secondary": tokens.text.secondary,
   "--ws-muted": tokens.text.muted,
@@ -62,5 +63,8 @@ export const semanticVariables = {
   "--ws-control-form": `${tokens.control.form}px`,
   "--ws-radius": `${tokens.radius.control}px`,
   "--ws-card-radius": `${tokens.radius.content}px`,
+  "--ws-media-radius": sharedSurfaces.mediaRadius,
+  "--ws-tool-radius": sharedSurfaces.toolRadius,
+  "--ws-floating-radius": sharedSurfaces.floatingRadius,
   "--ws-shadow": tokens.shadow,
 } as const;

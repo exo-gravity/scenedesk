@@ -1,11 +1,36 @@
+.workspace,
+.detail {
+  min-width: 0;
+}
 .list {
   display: grid;
-  gap: var(--mantine-spacing-md);
 }
-.row {
-  padding: var(--mantine-spacing-lg);
+.row,
+.catalogRow {
+  padding-block: var(--mantine-spacing-lg);
   border-bottom: 1px solid var(--ws-border);
   min-width: 0;
+}
+.row:first-child {
+  border-top: 1px solid var(--ws-border);
+}
+.catalogRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--mantine-spacing-xl);
+}
+.preview {
+  padding-left: var(--mantine-spacing-md);
+  border-left: 2px solid var(--ws-border-subtle);
+}
+.source {
+  padding-block: var(--mantine-spacing-md);
+  border-block: 1px solid var(--ws-border-subtle);
+  font-size: var(--mantine-font-size-sm);
+}
+.source summary {
+  cursor: pointer;
 }
 .columns {
   display: grid;
@@ -16,9 +41,8 @@
   min-width: 0;
 }
 .mapping {
-  background: var(--ws-panel);
-  padding: var(--mantine-spacing-lg);
-  border-radius: var(--ws-card-radius);
+  padding-block: var(--mantine-spacing-lg);
+  border-top: 1px solid var(--ws-border);
 }
 .mapping dt {
   font-weight: var(--mantine-h6-font-weight);
@@ -34,10 +58,11 @@
   overflow-wrap: anywhere;
 }
 @media (max-width: 700px) {
-  .columns {
+  .columns,
+  .catalogRow {
     grid-template-columns: minmax(0, 1fr);
   }
-  .row {
-    padding-inline: 0;
+  .catalogRow > :last-child {
+    justify-self: start;
   }
 }

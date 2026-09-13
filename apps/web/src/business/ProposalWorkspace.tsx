@@ -33,18 +33,18 @@ export function ProposalWorkspace(props: Props) {
     setView("detail");
   }
   return (
-    <Stack gap="xl">
+    <Stack gap="lg" className={classes.workspace}>
       <Button
         variant="subtle"
         leftSection={<ArrowLeft size={18} />}
         onClick={props.onClose}
         w="fit-content"
       >
-        返回集场镜
+        返回内容工作区
       </Button>
       <SectionHeading
-        title={`${props.projectName} · 导入与提案`}
-        description="先核对制作结构，再明确采纳。这里保留剧本分析和 CSV 导入的提案。"
+        title="导入与提案"
+        description={`${props.projectName} · 核对原文、编辑建议，再选择需要的内容。`}
         action={
           view === "list" && (
             <Button
@@ -111,25 +111,30 @@ export function ProposalWorkspace(props: Props) {
           ) : proposals.data?.length ? (
             <div className={classes.list}>
               {proposals.data.map((p) => (
-                <article key={p.id} className={classes.row}>
-                  <Group justify="space-between">
-                    <Text fw={600}>
-                      {p.sourceKind === "ai_analysis" ? "AI 分镜" : "CSV"} ·{" "}
-                      {p.operations.filter((op) => op.kind === "shot").length}{" "}
-                      个镜头
+                <article key={p.id} className={classes.catalogRow}>
+                  <div>
+                    <Group justify="space-between">
+                      <Text fw={600}>
+                        {p.sourceKind === "ai_analysis" ? "AI 分镜" : "CSV"} ·{" "}
+                        {p.operations.filter((op) => op.kind === "shot").length}{" "}
+                        个镜头
+                      </Text>
+                      <Badge variant="light">{statusName[p.status]}</Badge>
+                    </Group>
+                    <Text mt="sm">
+                      {p.target.mode === "new_structure"
+                        ? "新建集场镜结构"
+                        : `追加到 ${props.tree.scenes.find((s) => s.id === (p.target as { sceneId: string }).sceneId)?.title ?? "指定场次"}`}
                     </Text>
-                    <Badge variant="light">{statusName[p.status]}</Badge>
-                  </Group>
-                  <Text mt="sm">
-                    {p.target.mode === "new_structure"
-                      ? "新建集场镜结构"
-                      : `追加到 ${props.tree.scenes.find((s) => s.id === (p.target as { sceneId: string }).sceneId)?.title ?? "指定场次"}`}
-                  </Text>
-                  <Text size="sm" c="dimmed" mt="xs">
-                    第 {p.revision} 版 · 基于内容版本 {p.baseContentRevision} ·{" "}
-                    {p.createdAt ? new Date(p.createdAt).toLocaleString() : ""}
-                  </Text>
-                  <Button mt="md" variant="default" onClick={() => open(p.id)}>
+                    <Text size="sm" c="dimmed" mt="xs">
+                      第 {p.revision} 版 · 基于内容版本 {p.baseContentRevision}{" "}
+                      ·{" "}
+                      {p.createdAt
+                        ? new Date(p.createdAt).toLocaleString()
+                        : ""}
+                    </Text>
+                  </div>
+                  <Button variant="default" onClick={() => open(p.id)}>
                     打开提案
                   </Button>
                 </article>
@@ -162,7 +167,7 @@ export function ProposalDetail(props: Props & { id: string }) {
   if (!current.data) return <Loader aria-label="正在打开提案" />;
   const proposal = revision ? history.data : current.data;
   return (
-    <Stack gap="lg">
+    <Stack gap="lg" className={classes.detail}>
       <Group justify="space-between">
         <Badge variant="light">{statusName[current.data.status]}</Badge>
         <Select
@@ -181,7 +186,7 @@ export function ProposalDetail(props: Props & { id: string }) {
           ]}
         />
       </Group>
-      <details>
+      <details className={classes.source}>
         <summary>提案来源记录</summary>
         <Text size="xs" c="dimmed" className={classes.wrap}>
           来源内容摘要：{current.data.sourceHash}

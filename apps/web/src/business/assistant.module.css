@@ -13,10 +13,10 @@
 }
 .selection {
   flex-shrink: 0;
-  padding: var(--mantine-spacing-sm);
-  background: var(--ws-canvas);
-  border-radius: var(--ws-card-radius);
-  max-height: 180px;
+  padding: var(--mantine-spacing-xs) 0 var(--mantine-spacing-xs)
+    var(--mantine-spacing-md);
+  border-left: 2px solid var(--ws-border);
+  max-height: 132px;
   overflow: auto;
 }
 .prose {
@@ -35,4 +35,49 @@
   border: 1px solid var(--ws-border);
   border-radius: var(--ws-card-radius);
   background: var(--ws-panel);
+}
+
+.assistant {
+  width: 100%;
+}
+.modeTabs {
+  padding: 0;
+  border-radius: initial;
+  border-bottom: 1px solid var(--ws-border);
+  background: transparent;
+}
+.modeIndicator {
+  border-radius: initial;
+  border-bottom: 2px solid var(--ws-text);
+  background: transparent;
+  box-shadow: none;
+}
+.modeLabel {
+  padding-block: var(--mantine-spacing-sm);
+  font-size: var(--mantine-font-size-sm);
+}
+.introduction {
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+}
+.source {
+  font-size: var(--mantine-font-size-sm);
+}
+.source summary {
+  cursor: pointer;
+  color: var(--ws-secondary);
+}
+.promptInput {
+  min-height: 112px;
+  line-height: 1.8;
+}
+.contextOption {
+  padding-block: var(--mantine-spacing-xs);
+}
+.modelField {
+  padding-top: var(--mantine-spacing-sm);
+  border-top: 1px solid var(--ws-border);
+}
+.proposal {
+  min-width: 0;
 }

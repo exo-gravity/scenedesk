@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Badge,
+  Anchor,
   Button,
   Group,
   Loader,
@@ -12,7 +13,14 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { Plus, ArrowLeft, FilmSlate } from "@phosphor-icons/react";
-import { ApiError, useCommand, useList, useResource, type Schema } from "./api";
+import {
+  ApiError,
+  useCommand,
+  useList,
+  useResource,
+  type Schema,
+  type Page,
+} from "./api";
 import {
   Empty,
   ErrorNotice,
@@ -24,6 +32,8 @@ import classes from "./workbench.module.css";
 import { ContentWorkspace } from "./ContentWorkspace";
 import { ProductionSettings } from "./ProductionSettings";
 import { QualityReferenceSettings } from "./QualityReferenceSettings";
+import { MediaPreview } from "./MediaPreview";
+import { MagnifyingGlass } from "@phosphor-icons/react";
 import { CreateProjectForm } from "./CreateProjectForm";
 
 type Member = Schema<"Membership">;
@@ -43,12 +53,14 @@ export function Projects({
   members,
   projectId,
   contentView,
+  scriptView,
 }: {
   tenantId: string;
   own: Member;
   members: Member[];
   projectId?: string | undefined;
   contentView?: boolean | undefined;
+  scriptView?: boolean | undefined;
 }) {
   const manager = own.role === "owner" || own.role === "admin";
   const [creating, setCreating] = useState(false),
@@ -57,7 +69,7 @@ export function Projects({
   useEffect(() => {
     if (!projectId) document.title = "项目 · 幕序 SceneDesk";
   }, [projectId]);
-  if (projectId && contentView)
+  if (projectId && (contentView || scriptView))
     return (
       <ContentWorkspace
         key={projectId}
@@ -65,6 +77,7 @@ export function Projects({
         projectId={projectId}
         own={own}
         members={members}
+        view={scriptView ? "script" : "scenes"}
       />
     );
   if (projectId)
@@ -102,7 +115,8 @@ export function Projects({
         placeholder="输入项目名称"
         value={search}
         onChange={(e) => setSearch(e.currentTarget.value)}
-        mb="xl"
+        className={classes.projectSearch}
+        leftSection={<MagnifyingGlass size={16} />}
       />
       <ErrorNotice
         error={projects.error}
@@ -111,31 +125,13 @@ export function Projects({
       {projects.isPending ? (
         <Loader aria-label="正在读取项目" />
       ) : (
-        <div className={classes.rows}>
-          {visibleProjects.map((p) => (
-            <article key={p.id} className={classes.row}>
-              <Group>
-                <FilmSlate size={28} />
-                <div>
-                  <Text fw={600} size="lg">
-                    {p.name}
-                  </Text>
-                  <Text c="dimmed" mt="xs">
-                    写实短剧 · {p.spec.width} × {p.spec.height} ·{" "}
-                    {p.spec.fpsNum}/{p.spec.fpsDen} fps
-                  </Text>
-                </div>
-              </Group>
-              <Group>
-                <Badge>{p.status === "active" ? "进行中" : "已归档"}</Badge>
-                <Button
-                  component="a"
-                  href={`#/app/t/${tenantId}/p/${p.id}/content`}
-                >
-                  进入项目
-                </Button>
-              </Group>
-            </article>
+        <div className={classes.projectGrid}>
+          {visibleProjects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              tenantId={tenantId}
+            />
           ))}
         </div>
       )}
@@ -179,6 +175,55 @@ export function Projects({
         )}
       </Modal>
     </>
+  );
+}
+function ProjectCard({
+  project,
+  tenantId,
+}: {
+  project: Project;
+  tenantId: string;
+}) {
+  const path = tenantPath(tenantId);
+  const covers = useResource<Page<Schema<"Media">>>(
+    `${path}/media?scope=project&projectId=${project.id}&kind=image&status=ready&limit=1`,
+  );
+  const cover = covers.data?.items[0];
+  const href = `#/app/t/${tenantId}/p/${project.id}/content`;
+  return (
+    <article className={classes.projectCard}>
+      <Anchor
+        component="a"
+        href={href}
+        className={classes.projectCover}
+        aria-label={`进入项目 ${project.name}`}
+      >
+        {cover ? (
+          <MediaPreview media={cover} path={path} thumbnail />
+        ) : (
+          <div className={classes.projectCoverFallback}>
+            <FilmSlate size={36} />
+            <Text size="xs">
+              {covers.isError ? "项目预览暂不可用" : "尚无项目画面"}
+            </Text>
+          </div>
+        )}
+      </Anchor>
+      <div className={classes.projectMeta}>
+        <Anchor href={href} className={classes.projectTitle}>
+          {project.name}
+        </Anchor>
+        {project.status === "archived" && (
+          <Text size="xs" c="dimmed">
+            已归档
+          </Text>
+        )}
+      </div>
+      <Text size="xs" c="dimmed">
+        写实短剧 · {project.spec.width} × {project.spec.height} ·{" "}
+        {project.spec.fpsNum}/{project.spec.fpsDen} fps
+      </Text>
+    </article>
   );
 }
 function ProjectDetails({

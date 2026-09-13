@@ -106,26 +106,7 @@ function MediaBrowser(
     document.title = `${props.project?.name ?? "工作室共享"} · 素材 · 幕序`;
   }, [props.project?.name]);
   return (
-    <Stack gap="xl">
-      {props.projectId && !mediaId && (
-        <Group>
-          <Button
-            component="a"
-            href={`#/app/t/${props.tenantId}/p/${props.projectId}`}
-            variant="subtle"
-            leftSection={<ArrowLeft size={18} />}
-          >
-            项目设定
-          </Button>
-          <Button
-            component="a"
-            href={`#/app/t/${props.tenantId}/p/${props.projectId}/content`}
-            variant="subtle"
-          >
-            剧本与集场镜
-          </Button>
-        </Group>
-      )}
+    <Stack gap="lg" className={classes.workspace}>
       {mediaId ? (
         <Group justify="space-between">
           <Button
@@ -134,29 +115,39 @@ function MediaBrowser(
             variant="subtle"
             leftSection={<ArrowLeft size={18} />}
           >
-            全部素材 · {props.project?.name ?? "工作室共享"}
+            全部素材
           </Button>
-          <Button onClick={() => setImports((value) => !value)}>
+          <Button
+            variant="subtle"
+            onClick={() => setImports((value) => !value)}
+          >
             {imports ? "收起导入记录" : "导入与恢复"}
           </Button>
         </Group>
       ) : (
         <SectionHeading
-          title={
-            props.project ? `${props.project.name} · 素材` : "工作室共享素材"
-          }
+          title={props.project ? "素材文件" : "工作室共享素材"}
           description={
             props.project
               ? "收集这一项目的图片、视频、声音与文档。"
               : "当前工作室成员共同查阅的素材。"
           }
           action={
-            <Button
-              leftSection={<UploadSimple size={18} />}
-              onClick={() => setImports((value) => !value)}
-            >
-              {imports ? "收起导入记录" : "导入与恢复"}
-            </Button>
+            <Group gap="xs">
+              <Button
+                component="a"
+                variant="subtle"
+                href={`#/app/t/${props.tenantId}${props.projectId ? "/p/" + props.projectId : ""}/assets`}
+              >
+                设定资产
+              </Button>
+              <Button
+                leftSection={<UploadSimple size={18} />}
+                onClick={() => setImports((value) => !value)}
+              >
+                {imports ? "收起导入记录" : "导入与恢复"}
+              </Button>
+            </Group>
           }
         />
       )}
@@ -186,7 +177,7 @@ function MediaBrowser(
         </>
       ) : (
         <>
-          <Group align="end">
+          <div className={classes.filters}>
             <TextInput
               label="查找素材"
               placeholder="名称、原文件名或标签"
@@ -209,7 +200,7 @@ function MediaBrowser(
               onChange={setStatus}
               data={choices(mediaStatus)}
             />
-          </Group>
+          </div>
           <ErrorNotice error={list.error} retry={() => void list.refetch()} />
           {list.isPending ? (
             <Loader aria-label="正在读取素材" />

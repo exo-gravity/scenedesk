@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import {
   Background,
@@ -32,6 +33,7 @@ import {
   Button,
   FileButton,
   Group,
+  Menu,
   NumberInput,
   Select,
   Stack,
@@ -44,6 +46,7 @@ import {
   ArrowCounterClockwise,
   ArrowClockwise,
   CornersOut,
+  Crosshair,
   Hand,
   Cursor,
   TextT,
@@ -53,6 +56,7 @@ import {
   Copy,
   Trash,
   SelectionAll,
+  Plus,
 } from "@phosphor-icons/react";
 import {
   inspectCanvasDocument,
@@ -95,6 +99,7 @@ const CanvasNodeView = memo(function CanvasNodeView({
     <article
       className={classes.node}
       data-selected={selected || undefined}
+      data-content={node.content.type}
       aria-label={`${node.title} · ${node.kind}`}
     >
       <div className={`${classes.nodeHeader} canvas-drag-handle`}>
@@ -124,6 +129,7 @@ const CanvasNodeView = memo(function CanvasNodeView({
         </div>
       ) : (
         <NodeMedia
+          width={node.width}
           mediaId={node.content.mediaId}
           path={data.mediaPath}
           playing={data.playing}
@@ -142,11 +148,13 @@ const CanvasNodeView = memo(function CanvasNodeView({
   );
 });
 function NodeMedia({
+  width,
   mediaId,
   path,
   playing,
   play,
 }: {
+  width: number;
   mediaId: string;
   path: string;
   playing: boolean;
@@ -154,7 +162,14 @@ function NodeMedia({
 }) {
   const media = useResource<Schema<"Media">>(`${path}/media/${mediaId}`);
   return (
-    <div className={`${classes.nodeMedia} nodrag nopan`}>
+    <div
+      className={`${classes.nodeMedia} nodrag nopan`}
+      style={
+        {
+          "--ws-node-media-height": `${media.data?.width && media.data.height ? (width * media.data.height) / media.data.width : 180}px`,
+        } as CSSProperties
+      }
+    >
       {media.data ? (
         <>
           <MediaPreview media={media.data} path={path} thumbnail={!playing} />
@@ -199,6 +214,7 @@ export function CanvasBoard({
   readOnly,
   addMedia,
   nodeActions,
+  generation,
   focusRequest,
   focusCompleted,
 }: {
@@ -210,6 +226,7 @@ export function CanvasBoard({
   readOnly: boolean;
   addMedia: () => void;
   nodeActions?: ReactNode;
+  generation?: ReactNode;
   focusRequest?: { ids: string[]; nonce: number } | undefined;
   focusCompleted: (nonce: number) => void;
 }) {
@@ -292,20 +309,22 @@ export function CanvasBoard({
   );
   const displayedNodes: FlowNode[] = [
     ...nodes,
-    ...(uploads?.rows ?? []).map((row): UploadFlowNode => ({
-      id: `upload:${row.id}`,
-      type: "upload",
-      data: { row },
-      position: row.position,
-      width: 320,
-      ...(measurements[`upload:${row.id}`]
-        ? { measured: measurements[`upload:${row.id}`] }
-        : {}),
-      selectable: false,
-      draggable: false,
-      connectable: false,
-      focusable: false,
-    })),
+    ...(uploads?.rows ?? []).map(
+      (row): UploadFlowNode => ({
+        id: `upload:${row.id}`,
+        type: "upload",
+        data: { row },
+        position: row.position,
+        width: 320,
+        ...(measurements[`upload:${row.id}`]
+          ? { measured: measurements[`upload:${row.id}`] }
+          : {}),
+        selectable: false,
+        draggable: false,
+        connectable: false,
+        focusable: false,
+      }),
+    ),
   ];
   const edges = useMemo(
     () =>
@@ -474,6 +493,150 @@ export function CanvasBoard({
     changePreference({ selectedNodeIds: ids });
     setLocalFocus({ ids, nonce: Date.now() });
   };
+  const viewportTools = (
+    <Group
+      className={classes.viewportTools}
+      gap={4}
+      wrap="nowrap"
+      aria-label="画布视口工具"
+    >
+      <Group gap="xs">
+        <Button
+          size="xs"
+          aria-label="撤销画布编辑"
+          disabled={readOnly || !controller.canUndo}
+          onClick={() => controller.undo()}
+        >
+          <ArrowCounterClockwise size={16} />
+        </Button>
+        <Button
+          size="xs"
+          aria-label="重做画布编辑"
+          disabled={readOnly || !controller.canRedo}
+          onClick={() => controller.redo()}
+        >
+          <ArrowClockwise size={16} />
+        </Button>
+        <Button
+          size="xs"
+          aria-pressed={hand}
+          onClick={() => setHand(!hand)}
+          aria-label={hand ? "手形" : "选择"}
+          title={hand ? "手形" : "选择"}
+        >
+          {hand ? <Hand size={16} /> : <Cursor size={16} />}
+        </Button>
+        <Button
+          size="xs"
+          aria-label="缩小画布"
+          onClick={() => void flow.current?.zoomOut()}
+        >
+          −
+        </Button>
+        <Button
+          size="xs"
+          aria-label="画布缩放到百分之百"
+          onClick={() => void flow.current?.zoomTo(1)}
+        >
+          100%
+        </Button>
+        <Button
+          size="xs"
+          aria-label="放大画布"
+          onClick={() => void flow.current?.zoomIn()}
+        >
+          ＋
+        </Button>
+        <Button
+          size="xs"
+          disabled={!selected.length}
+          onClick={() => focus(selected)}
+          aria-label="定位当前内容"
+          title="定位当前内容"
+        >
+          <Crosshair size={16} />
+        </Button>
+        <Button
+          size="xs"
+          aria-label="适应内容"
+          title="适应内容"
+          onClick={() =>
+            void flow.current?.fitView({
+              padding: 0.2,
+              minZoom: CANVAS_MIN_ZOOM,
+              maxZoom: 1,
+            })
+          }
+        >
+          <CornersOut size={16} />
+        </Button>
+      </Group>
+      <Menu position="top-start" keepMounted>
+        <Menu.Target>
+          <Button size="xs" leftSection={<Plus size={16} />}>
+            添加
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            leftSection={<TextT size={16} />}
+            disabled={readOnly}
+            onClick={() => add("text")}
+          >
+            文字
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<ImageSquare size={16} />}
+            disabled={readOnly}
+            onClick={() => add("image")}
+          >
+            图片草稿
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<FilmStrip size={16} />}
+            disabled={readOnly}
+            onClick={() => add("video")}
+          >
+            视频草稿
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<MusicNotes size={16} />}
+            disabled={readOnly}
+            onClick={() => add("audio")}
+          >
+            声音草稿
+          </Menu.Item>
+          <Menu.Item disabled={readOnly} onClick={addMedia}>
+            添加素材
+          </Menu.Item>
+          {uploads && (
+            <FileButton
+              multiple
+              accept={importAccept}
+              onChange={(files) =>
+                uploads.begin(
+                  files,
+                  flow.current?.screenToFlowPosition({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                  }) ?? { x: 80, y: 80 },
+                )
+              }
+            >
+              {(props) => (
+                <Menu.Item
+                  {...props}
+                  disabled={readOnly || uploads.readOnly || uploads.busy}
+                >
+                  上传文件
+                </Menu.Item>
+              )}
+            </FileButton>
+          )}
+        </Menu.Dropdown>
+      </Menu>
+    </Group>
+  );
   return (
     <div
       className={classes.board}
@@ -496,141 +659,11 @@ export function CanvasBoard({
         }
       }}
     >
-      <Group className={classes.toolbar} justify="space-between">
-        <Group gap="xs">
-          <Button
-            size="xs"
-            leftSection={<TextT size={16} />}
-            disabled={readOnly}
-            onClick={() => add("text")}
-          >
-            文字
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<ImageSquare size={16} />}
-            disabled={readOnly}
-            onClick={() => add("image")}
-          >
-            图片草稿
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<FilmStrip size={16} />}
-            disabled={readOnly}
-            onClick={() => add("video")}
-          >
-            视频草稿
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<MusicNotes size={16} />}
-            disabled={readOnly}
-            onClick={() => add("audio")}
-          >
-            声音草稿
-          </Button>
-          <Button size="xs" disabled={readOnly} onClick={addMedia}>
-            添加素材
-          </Button>
-          {uploads && (
-            <FileButton
-              multiple
-              accept={importAccept}
-              onChange={(files) =>
-                uploads.begin(
-                  files,
-                  flow.current?.screenToFlowPosition({
-                    x: window.innerWidth / 2,
-                    y: window.innerHeight / 2,
-                  }) ?? { x: 80, y: 80 },
-                )
-              }
-            >
-              {(props) => (
-                <Button
-                  {...props}
-                  size="xs"
-                  disabled={readOnly || uploads.readOnly || uploads.busy}
-                >
-                  上传文件
-                </Button>
-              )}
-            </FileButton>
-          )}
-        </Group>
-        <Group gap="xs">
-          <Button
-            size="xs"
-            aria-label="撤销画布编辑"
-            disabled={readOnly || !controller.canUndo}
-            onClick={() => controller.undo()}
-          >
-            <ArrowCounterClockwise size={16} />
-          </Button>
-          <Button
-            size="xs"
-            aria-label="重做画布编辑"
-            disabled={readOnly || !controller.canRedo}
-            onClick={() => controller.redo()}
-          >
-            <ArrowClockwise size={16} />
-          </Button>
-          <Button
-            size="xs"
-            aria-pressed={hand}
-            onClick={() => setHand(!hand)}
-            leftSection={hand ? <Hand size={16} /> : <Cursor size={16} />}
-          >
-            {hand ? "手形" : "选择"}
-          </Button>
-          <Button
-            size="xs"
-            aria-label="缩小画布"
-            onClick={() => void flow.current?.zoomOut()}
-          >
-            −
-          </Button>
-          <Button
-            size="xs"
-            aria-label="画布缩放到百分之百"
-            onClick={() => void flow.current?.zoomTo(1)}
-          >
-            100%
-          </Button>
-          <Button
-            size="xs"
-            aria-label="放大画布"
-            onClick={() => void flow.current?.zoomIn()}
-          >
-            ＋
-          </Button>
-          <Button
-            size="xs"
-            disabled={!selected.length}
-            onClick={() => focus(selected)}
-          >
-            定位当前内容
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<CornersOut size={16} />}
-            onClick={() =>
-              void flow.current?.fitView({
-                padding: 0.2,
-                minZoom: CANVAS_MIN_ZOOM,
-                maxZoom: 1,
-              })
-            }
-          >
-            适应内容
-          </Button>
-        </Group>
-      </Group>
       <ErrorNotice error={error} />
       {narrow ? (
         <div className={classes.empty}>
           <Text>窄屏以列表查看内容；完整空间制作请使用桌面宽度。</Text>
+          {viewportTools}
         </div>
       ) : (
         <div
@@ -707,8 +740,9 @@ export function CanvasBoard({
             }}
           >
             <MeasuredCanvasFocus request={localFocus} complete={finishFocus} />
-            <Background color="var(--ws-border)" gap={24} size={1} />
+            <Background color="var(--ws-canvas-dot)" gap={24} size={1} />
           </ReactFlow>
+          {viewportTools}
         </div>
       )}
       <Group className={classes.toolbar} justify="space-between">
@@ -763,7 +797,7 @@ export function CanvasBoard({
           )}
         </Group>
       </Group>
-      <div className={classes.toolbar}>
+      <div className={classes.utilities}>
         <details
           open={showNodeList}
           onToggle={(event) => setListExpanded(event.currentTarget.open)}
@@ -810,7 +844,7 @@ export function CanvasBoard({
       </div>
       {!!document.groups.length && (
         <details
-          className={classes.toolbar}
+          className={classes.groupMenu}
           open={showGroups}
           onToggle={(event) => setGroupsExpanded(event.currentTarget.open)}
         >
@@ -879,19 +913,22 @@ export function CanvasBoard({
           )}
         </details>
       )}
-      {active && (
-        <CanvasComposer
-          key={active.id}
-          node={active}
-          controller={controller}
-          document={document}
-          readOnly={readOnly}
-          composing={(value) => controller.setComposing(value)}
-          change={change}
-          focus={focus}
-          nodeActions={nodeActions}
-        />
-      )}
+      <div className={classes.localPanel} data-active={!!active || undefined}>
+        {active && (
+          <CanvasComposer
+            key={active.id}
+            node={active}
+            controller={controller}
+            document={document}
+            readOnly={readOnly}
+            composing={(value) => controller.setComposing(value)}
+            change={change}
+            focus={focus}
+            nodeActions={nodeActions}
+          />
+        )}
+        {generation}
+      </div>
       {!document.nodes.length && (
         <div className={classes.empty}>
           <Text fw={600}>从一个想法、一张参考开始</Text>
@@ -980,37 +1017,6 @@ function CanvasComposer({
           </Text>
         </Group>
         {nodeActions}
-        <TextInput
-          label="节点名称"
-          maxLength={160}
-          value={
-            controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
-              ?.value ?? node.title
-          }
-          disabled={readOnly}
-          error={
-            controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
-              ? "请填写节点名称；原输入已保留"
-              : undefined
-          }
-          onChange={(e) => {
-            const title = e.currentTarget.value,
-              key = `node:${node.id}:title`;
-            const buffers = { ...controller.getSnapshot().local?.buffers };
-            if (!title) buffers[key] = { value: title, valid: false };
-            else delete buffers[key];
-            controller.change(
-              {
-                ...document,
-                nodes: document.nodes.map((n) =>
-                  n.id === node.id && title ? { ...n, title } : n,
-                ),
-              },
-              `title:${node.id}`,
-              buffers,
-            );
-          }}
-        />
         {node.content.type !== "media" && (
           <Textarea
             label={node.content.type === "text" ? "文字内容" : "本次提示词"}
@@ -1039,221 +1045,268 @@ function CanvasComposer({
             }
           />
         )}
-        <div className={classes.fields}>
-          {(
-            [
-              {
-                key: "x",
-                label: "横向位置",
-                value: node.position.x,
-                min: -1000000,
-                max: 1000000,
-              },
-              {
-                key: "y",
-                label: "纵向位置",
-                value: node.position.y,
-                min: -1000000,
-                max: 1000000,
-              },
-              {
-                key: "width",
-                label: "节点宽度",
-                value: node.width,
-                min: 120,
-                max: 1600,
-              },
-            ] as const
-          ).map((field) => {
-            const key = `node:${node.id}:${field.key}`,
-              buffer = controller.getSnapshot().local?.buffers[key];
-            return (
-              <NumberInput
-                key={key}
-                label={field.label}
-                value={buffer?.value ?? field.value}
-                min={field.min}
-                max={field.max}
-                clampBehavior="none"
-                disabled={readOnly}
-                error={buffer ? "请完成这个数值；原输入已保留" : undefined}
-                onChange={(v) => {
-                  const buffers = {
-                    ...controller.getSnapshot().local?.buffers,
-                  };
-                  const valid =
-                    typeof v === "number" &&
-                    Number.isFinite(v) &&
-                    v >= field.min &&
-                    v <= field.max;
-                  if (!valid) buffers[key] = { value: String(v), valid: false };
-                  else delete buffers[key];
-                  const next = valid
-                    ? field.key === "width"
-                      ? { ...node, width: v }
-                      : {
-                          ...node,
-                          position: { ...node.position, [field.key]: v },
-                        }
-                    : node;
-                  controller.change(
-                    {
-                      ...document,
-                      nodes: document.nodes.map((n) =>
-                        n.id === node.id ? next : n,
-                      ),
-                    },
-                    `number:${key}`,
-                    buffers,
-                  );
-                }}
-              />
-            );
-          })}
-        </div>
-        <Select
-          label="分组"
-          clearable
-          allowDeselect
-          placeholder="独立节点"
-          value={node.groupId ?? null}
-          data={document.groups.map((g) => ({ value: g.id, label: g.title }))}
-          disabled={readOnly}
-          onChange={(v) => {
-            const { groupId: _old, ...rest } = node;
-            edit(v ? { ...node, groupId: v } : rest);
-          }}
-        />
-        {node.groupId && (
-          <Button
-            variant="subtle"
-            onClick={() =>
-              focus(
-                document.nodes
-                  .filter((n) => n.groupId === node.groupId)
-                  .map((n) => n.id),
-              )
+        <details
+          className={classes.nodeSettings}
+          open={
+            Object.keys(controller.getSnapshot().local?.buffers ?? {}).some(
+              (key) => key.startsWith(`node:${node.id}:`),
+            ) || undefined
+          }
+        >
+          <summary>参考与节点设置 · {inbound.length} 项引用</summary>
+          <TextInput
+            label="节点名称"
+            maxLength={160}
+            value={
+              controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
+                ?.value ?? node.title
             }
-          >
-            选中并定位整组
-          </Button>
-        )}
-        {node.content.type === "draft" && (
-          <>
-            <Select
-              label="添加画布参考"
-              placeholder="选择文字或已导入素材"
-              searchable
-              clearable
-              value={reference}
-              onChange={setReference}
-              data={document.nodes
-                .filter((n) => n.content.type !== "draft")
-                .map((n) => ({ value: n.id, label: n.title }))}
-              disabled={readOnly}
-            />
-            <Button
-              disabled={!reference || readOnly}
-              onClick={() => {
-                const source = document.nodes.find((n) => n.id === reference);
-                if (!source) return;
-                try {
-                  change({
-                    ...document,
-                    edges: appendCanvasReference(document.edges, {
-                      id: crypto.randomUUID(),
-                      sourceNodeId: source.id,
-                      targetNodeId: node.id,
-                      enabled: true,
-                      purpose:
-                        source.kind === "text"
-                          ? "prompt"
-                          : source.kind === "audio"
-                            ? "voice"
-                            : "composition",
-                    }),
-                  });
-                  setReferenceError(null);
-                } catch (e) {
-                  setReferenceError(
-                    e instanceof Error ? e : new Error("引用未添加。"),
-                  );
-                }
-                setReference(null);
-              }}
-            >
-              添加所选参考
-            </Button>
-            <ErrorNotice error={referenceError} />
-            {inbound.map((edge) => {
-              const source = document.nodes.find(
-                (n) => n.id === edge.sourceNodeId,
-              )!;
+            disabled={readOnly}
+            error={
+              controller.getSnapshot().local?.buffers[`node:${node.id}:title`]
+                ? "请填写节点名称；原输入已保留"
+                : undefined
+            }
+            onChange={(e) => {
+              const title = e.currentTarget.value,
+                key = `node:${node.id}:title`;
+              const buffers = { ...controller.getSnapshot().local?.buffers };
+              if (!title) buffers[key] = { value: title, valid: false };
+              else delete buffers[key];
+              controller.change(
+                {
+                  ...document,
+                  nodes: document.nodes.map((n) =>
+                    n.id === node.id && title ? { ...n, title } : n,
+                  ),
+                },
+                `title:${node.id}`,
+                buffers,
+              );
+            }}
+          />
+          <div className={classes.fields}>
+            {(
+              [
+                {
+                  key: "x",
+                  label: "横向位置",
+                  value: node.position.x,
+                  min: -1000000,
+                  max: 1000000,
+                },
+                {
+                  key: "y",
+                  label: "纵向位置",
+                  value: node.position.y,
+                  min: -1000000,
+                  max: 1000000,
+                },
+                {
+                  key: "width",
+                  label: "节点宽度",
+                  value: node.width,
+                  min: 120,
+                  max: 1600,
+                },
+              ] as const
+            ).map((field) => {
+              const key = `node:${node.id}:${field.key}`,
+                buffer = controller.getSnapshot().local?.buffers[key];
               return (
-                <Group key={edge.id} align="end">
-                  <Select
-                    label={`${source.title} · 用途`}
-                    allowDeselect={false}
-                    value={edge.purpose}
-                    data={
-                      source.kind === "text"
-                        ? [{ value: "prompt", label: "提示" }]
-                        : options(referencePurposes)
-                    }
-                    disabled={readOnly}
-                    onChange={(purpose) =>
-                      change({
+                <NumberInput
+                  key={key}
+                  label={field.label}
+                  value={buffer?.value ?? field.value}
+                  min={field.min}
+                  max={field.max}
+                  clampBehavior="none"
+                  disabled={readOnly}
+                  error={buffer ? "请完成这个数值；原输入已保留" : undefined}
+                  onChange={(v) => {
+                    const buffers = {
+                      ...controller.getSnapshot().local?.buffers,
+                    };
+                    const valid =
+                      typeof v === "number" &&
+                      Number.isFinite(v) &&
+                      v >= field.min &&
+                      v <= field.max;
+                    if (!valid)
+                      buffers[key] = { value: String(v), valid: false };
+                    else delete buffers[key];
+                    const next = valid
+                      ? field.key === "width"
+                        ? { ...node, width: v }
+                        : {
+                            ...node,
+                            position: { ...node.position, [field.key]: v },
+                          }
+                      : node;
+                    controller.change(
+                      {
                         ...document,
-                        edges: document.edges.map((e) =>
-                          e.id === edge.id
-                            ? { ...e, purpose: purpose as typeof edge.purpose }
-                            : e,
+                        nodes: document.nodes.map((n) =>
+                          n.id === node.id ? next : n,
                         ),
-                      })
-                    }
-                  />
-                  <Button
-                    disabled={readOnly}
-                    onClick={() =>
-                      change({
-                        ...document,
-                        edges: document.edges.map((e) =>
-                          e.id === edge.id ? { ...e, enabled: !e.enabled } : e,
-                        ),
-                      })
-                    }
-                  >
-                    {edge.enabled ? "停用" : "启用"}
-                  </Button>
-                  <Button
-                    disabled={readOnly}
-                    onClick={() =>
-                      change({
-                        ...document,
-                        edges: document.edges.filter((e) => e.id !== edge.id),
-                      })
-                    }
-                  >
-                    移除引用
-                  </Button>
-                </Group>
+                      },
+                      `number:${key}`,
+                      buffers,
+                    );
+                  }}
+                />
               );
             })}
-            <Alert
-              title={
-                node.kind === "image"
-                  ? "准备图片生成"
-                  : node.kind === "video"
-                    ? "准备视频生成"
-                    : "准备音频生成"
+          </div>
+          <Select
+            label="分组"
+            clearable
+            allowDeselect
+            placeholder="独立节点"
+            value={node.groupId ?? null}
+            data={document.groups.map((g) => ({ value: g.id, label: g.title }))}
+            disabled={readOnly}
+            onChange={(v) => {
+              const { groupId: _old, ...rest } = node;
+              edit(v ? { ...node, groupId: v } : rest);
+            }}
+          />
+          {node.groupId && (
+            <Button
+              variant="subtle"
+              onClick={() =>
+                focus(
+                  document.nodes
+                    .filter((n) => n.groupId === node.groupId)
+                    .map((n) => n.id),
+                )
               }
             >
-              <Text>
-                提示和参考会随画布保存。请在下方“画布生成与结果”中选择可执行能力，并核对固定计划后生成。
-              </Text>
-            </Alert>
-          </>
-        )}
+              选中并定位整组
+            </Button>
+          )}
+          {node.content.type === "draft" && (
+            <>
+              <Select
+                label="添加画布参考"
+                placeholder="选择文字或已导入素材"
+                searchable
+                clearable
+                value={reference}
+                onChange={setReference}
+                data={document.nodes
+                  .filter((n) => n.content.type !== "draft")
+                  .map((n) => ({ value: n.id, label: n.title }))}
+                disabled={readOnly}
+              />
+              <Button
+                disabled={!reference || readOnly}
+                onClick={() => {
+                  const source = document.nodes.find((n) => n.id === reference);
+                  if (!source) return;
+                  try {
+                    change({
+                      ...document,
+                      edges: appendCanvasReference(document.edges, {
+                        id: crypto.randomUUID(),
+                        sourceNodeId: source.id,
+                        targetNodeId: node.id,
+                        enabled: true,
+                        purpose:
+                          source.kind === "text"
+                            ? "prompt"
+                            : source.kind === "audio"
+                              ? "voice"
+                              : "composition",
+                      }),
+                    });
+                    setReferenceError(null);
+                  } catch (e) {
+                    setReferenceError(
+                      e instanceof Error ? e : new Error("引用未添加。"),
+                    );
+                  }
+                  setReference(null);
+                }}
+              >
+                添加所选参考
+              </Button>
+              <ErrorNotice error={referenceError} />
+              {inbound.map((edge) => {
+                const source = document.nodes.find(
+                  (n) => n.id === edge.sourceNodeId,
+                )!;
+                return (
+                  <Group key={edge.id} align="end">
+                    <Select
+                      label={`${source.title} · 用途`}
+                      allowDeselect={false}
+                      value={edge.purpose}
+                      data={
+                        source.kind === "text"
+                          ? [{ value: "prompt", label: "提示" }]
+                          : options(referencePurposes)
+                      }
+                      disabled={readOnly}
+                      onChange={(purpose) =>
+                        change({
+                          ...document,
+                          edges: document.edges.map((e) =>
+                            e.id === edge.id
+                              ? {
+                                  ...e,
+                                  purpose: purpose as typeof edge.purpose,
+                                }
+                              : e,
+                          ),
+                        })
+                      }
+                    />
+                    <Button
+                      disabled={readOnly}
+                      onClick={() =>
+                        change({
+                          ...document,
+                          edges: document.edges.map((e) =>
+                            e.id === edge.id
+                              ? { ...e, enabled: !e.enabled }
+                              : e,
+                          ),
+                        })
+                      }
+                    >
+                      {edge.enabled ? "停用" : "启用"}
+                    </Button>
+                    <Button
+                      disabled={readOnly}
+                      onClick={() =>
+                        change({
+                          ...document,
+                          edges: document.edges.filter((e) => e.id !== edge.id),
+                        })
+                      }
+                    >
+                      移除引用
+                    </Button>
+                  </Group>
+                );
+              })}
+              <Alert
+                title={
+                  node.kind === "image"
+                    ? "准备图片生成"
+                    : node.kind === "video"
+                      ? "准备视频生成"
+                      : "准备音频生成"
+                }
+              >
+                <Text>
+                  提示和参考会随画布保存。请在下方“画布生成与结果”中选择可执行能力，并核对固定计划后生成。
+                </Text>
+              </Alert>
+            </>
+          )}
+        </details>
       </div>
     </div>
   );

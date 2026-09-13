@@ -15,7 +15,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { ArrowLeft, Plus } from "@phosphor-icons/react";
+import { Plus } from "@phosphor-icons/react";
 import { useCommand, useResource, type Schema } from "./api";
 import { DraftNotice, useContentDraft } from "./content-drafts";
 import {
@@ -90,47 +90,11 @@ function AssetBrowser(
     document.title = `${props.project?.name ?? "工作室共享"} · 资产 · 幕序`;
   }, [props.project?.name]);
   return (
-    <Stack gap="xl">
-      <Group justify="space-between">
-        <Group>
-          {id ? (
-            <Button
-              component="a"
-              variant="subtle"
-              href={back}
-              leftSection={<ArrowLeft size={18} />}
-            >
-              全部资产 · {props.project?.name ?? "工作室共享"}
-            </Button>
-          ) : (
-            props.projectId && (
-              <Button
-                component="a"
-                variant="subtle"
-                href={`#/app/t/${props.tenantId}/p/${props.projectId}/content`}
-                leftSection={<ArrowLeft size={18} />}
-              >
-                剧本与集场镜
-              </Button>
-            )
-          )}
-          <Button
-            component="a"
-            variant="subtle"
-            href={`#/app/t/${props.tenantId}${props.projectId ? "/p/" + props.projectId : ""}/media`}
-          >
-            素材文件
-          </Button>
-        </Group>
-        {canWrite && (
-          <Button
-            leftSection={<Plus size={18} />}
-            onClick={() => setCreating(true)}
-          >
-            新建资产
-          </Button>
-        )}
-      </Group>
+    <Stack
+      gap="lg"
+      className={classes.workspace}
+      data-detail={id ? true : undefined}
+    >
       {props.project?.status === "archived" && (
         <Alert title="项目已归档">
           仍可查看资产和固定版本，恢复项目后可继续编辑或引入。
@@ -147,20 +111,40 @@ function AssetBrowser(
           canWrite={canWrite}
           canConfirm={canConfirm}
           href={href}
+          back={back}
           targetProjectId={targetProjectId}
         />
       ) : (
         <>
           <SectionHeading
-            title={`${props.project?.name ?? "工作室共享"} · 资产`}
-            description="角色、空间、道具、声音和风格各有固定版本。新修订不会自动替换既有引用。"
+            title={props.projectId ? "项目资产" : "工作室共享资产"}
+            description="角色、空间、道具、声音与风格的固定设定。"
+            action={
+              <Group gap="xs">
+                <Button
+                  component="a"
+                  variant="subtle"
+                  href={`#/app/t/${props.tenantId}${props.projectId ? "/p/" + props.projectId : ""}/media`}
+                >
+                  素材文件
+                </Button>
+                {canWrite && (
+                  <Button
+                    leftSection={<Plus size={16} />}
+                    onClick={() => setCreating(true)}
+                  >
+                    新建资产
+                  </Button>
+                )}
+              </Group>
+            }
           />
           {targetProjectId && (
             <Alert title="正在选择要引入项目的共享固定版">
               打开资产并选择确切版本，再确认引入目标。
             </Alert>
           )}
-          <Group align="end">
+          <div className={classes.filters}>
             <TextInput
               label="查找资产"
               placeholder="名称、说明或标签"
@@ -185,7 +169,7 @@ function AssetBrowser(
               value={status}
               onChange={setStatus}
             />
-          </Group>
+          </div>
           <ErrorNotice
             error={assets.error}
             retry={() => void assets.refetch()}
