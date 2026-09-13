@@ -663,6 +663,14 @@ export function CanvasBoard({
   );
   const selectionActions = (
     <Group gap="xs">
+      <Text
+        size="xs"
+        fw={600}
+        className={classes.selectionName}
+        title={active ? `已选：${active.title}` : `已选 ${selected.length} 项`}
+      >
+        {active ? `已选 · ${active.title}` : `已选 ${selected.length} 项`}
+      </Text>
       <CanvasContinueCreation
         controller={controller}
         selected={selected}
@@ -1457,6 +1465,17 @@ function CanvasSelectionTools({
   const { x, y, zoom } = useViewport();
   const width = useStore((state) => state.width),
     height = useStore((state) => state.height);
+  const tool = useRef<HTMLDivElement>(null);
+  const [toolHeight, setToolHeight] = useState(42);
+  useEffect(() => {
+    const element = tool.current;
+    if (!element) return;
+    const measure = () => setToolHeight(element.getBoundingClientRect().height);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [nodes.length, width, height]);
   if (!nodes.length || !width || !height) return null;
   const left = Math.min(...nodes.map((node) => node.position.x)),
     right = Math.max(
@@ -1469,6 +1488,7 @@ function CanvasSelectionTools({
   const screenTop = top * zoom + y;
   return (
     <div
+      ref={tool}
       className={classes.selectionTools}
       aria-label="所选内容操作"
       style={{
@@ -1483,8 +1503,10 @@ function CanvasSelectionTools({
         top: Math.max(
           12,
           Math.min(
-            height - 62,
-            screenTop > 62 ? screenTop - 54 : screenTop + 36,
+            height - toolHeight - 12,
+            screenTop > toolHeight + 20
+              ? screenTop - toolHeight - 12
+              : screenTop + 36,
           ),
         ),
       }}

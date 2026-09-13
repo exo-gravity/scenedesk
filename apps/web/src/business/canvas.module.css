@@ -475,6 +475,13 @@
   justify-content: center;
   gap: 4px;
 }
+.selectionName {
+  flex: 0 1 112px;
+  min-width: 48px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .selectionTools button {
   height: 30px;
   padding-inline: 9px;

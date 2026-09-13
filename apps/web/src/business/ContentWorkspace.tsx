@@ -80,9 +80,13 @@ export function ContentWorkspace({
     linkedShot = linked.get("shot"),
     linkedRevision = linked.get("revision");
   const scriptView = view === "script" || !!(linkedRevision && !linkedShot);
-  const [scriptTab, setScriptTab] = useState<string | null>(
-    linked.get("tab") === "settings" ? "settings" : "text",
-  );
+  const scriptTab = linked.get("tab") === "settings" ? "settings" : "text";
+  function setScriptTab(value: string | null) {
+    const query = new URLSearchParams(location.hash.split("?")[1]);
+    if (value === "settings") query.set("tab", "settings");
+    else query.delete("tab");
+    location.hash = `${location.hash.split("?")[0]}${query.size ? `?${query}` : ""}`;
+  }
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [scriptMounted, setScriptMounted] = useState(scriptView),
     [scriptEpoch, setScriptEpoch] = useState(0),
@@ -722,44 +726,44 @@ export function ContentWorkspace({
                 </Group>
               }
             />
-            <Tabs value={scriptTab} onChange={setScriptTab} mb="xl">
+            <Tabs value={scriptTab} onChange={setScriptTab} keepMounted mb="xl">
               <Tabs.List>
                 <Tabs.Tab value="text">剧本正文</Tabs.Tab>
                 <Tabs.Tab value="settings">故事设定</Tabs.Tab>
               </Tabs.List>
+              <Tabs.Panel value="settings" pt="xl">
+                <StorySettings path={path} active={active} />
+              </Tabs.Panel>
+              <Tabs.Panel value="text" pt="xl">
+                {(scriptOpening || scripts.isPending) && (
+                  <Loader aria-label="正在读取已保存的剧本版本" />
+                )}
+                {scripts.data &&
+                  (active ? (
+                    <ScriptEditor
+                      key={scriptEpoch}
+                      presentation="document"
+                      tree={tree}
+                      scripts={scripts.data}
+                      path={path}
+                      initialHistoryId={!linkedShot ? linkedRevision : null}
+                      done={() => {
+                        setScriptOpening(true);
+                        // A successful write can precede query invalidation. Only reopen
+                        // the document after both saved roots have been read back.
+                        void Promise.all([content.refetch(), scripts.refetch()])
+                          .then(([nextContent, nextScripts]) => {
+                            if (!nextContent.isError && !nextScripts.isError)
+                              setScriptEpoch((epoch) => epoch + 1);
+                          })
+                          .finally(() => setScriptOpening(false));
+                      }}
+                    />
+                  ) : (
+                    <ScriptArchive scripts={scripts.data} />
+                  ))}
+              </Tabs.Panel>
             </Tabs>
-            <div hidden={scriptTab !== "settings"}>
-              <StorySettings path={path} active={active} />
-            </div>
-            <div hidden={scriptTab !== "text"}>
-              {(scriptOpening || scripts.isPending) && (
-                <Loader aria-label="正在读取已保存的剧本版本" />
-              )}
-              {scripts.data &&
-                (active ? (
-                  <ScriptEditor
-                    key={scriptEpoch}
-                    presentation="document"
-                    tree={tree}
-                    scripts={scripts.data}
-                    path={path}
-                    initialHistoryId={!linkedShot ? linkedRevision : null}
-                    done={() => {
-                      setScriptOpening(true);
-                      // A successful write can precede query invalidation. Only reopen
-                      // the document after both saved roots have been read back.
-                      void Promise.all([content.refetch(), scripts.refetch()])
-                        .then(([nextContent, nextScripts]) => {
-                          if (!nextContent.isError && !nextScripts.isError)
-                            setScriptEpoch((epoch) => epoch + 1);
-                        })
-                        .finally(() => setScriptOpening(false));
-                    }}
-                  />
-                ) : (
-                  <ScriptArchive scripts={scripts.data} />
-                ))}
-            </div>
             <div className={layout.basis}>
               <div>
                 <Text fw={600}>创作依据</Text>
