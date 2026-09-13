@@ -111,7 +111,7 @@ export default function MediaDetail({
         >
           {value.issue.message}
           {value.issue.retryable && (
-            <Text mt="xs">打开「导入与恢复」，继续本次上传记录。</Text>
+            <Text mt="xs">打开「导入记录」，继续本次上传记录。</Text>
           )}
         </Alert>
       )}
@@ -120,7 +120,6 @@ export default function MediaDetail({
           <MediaPreview media={value} path={path} />
           {ready && value.kind !== "document" && (
             <Text size="sm" c="dimmed">
-              {value.kind === "image" ? "海报预览" : "代理预览"} ·
               下载原文件可取得最初验收的完整文件。
             </Text>
           )}

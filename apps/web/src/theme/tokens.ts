@@ -33,6 +33,8 @@ export const tokens = {
     body: 14,
     reading: 16,
     title: 22,
+    display: 32,
+    heading: 21,
   },
   shadow: "0 12px 32px rgb(0 0 0 / 28%)",
 } as const;
@@ -67,4 +69,7 @@ export const semanticVariables = {
   "--ws-tool-radius": sharedSurfaces.toolRadius,
   "--ws-floating-radius": sharedSurfaces.floatingRadius,
   "--ws-shadow": tokens.shadow,
+  "--ws-display-size": `${tokens.font.display}px`,
+  "--ws-heading-size": `${tokens.font.heading}px`,
+  "--ws-reading-size": `${tokens.font.reading}px`,
 } as const;

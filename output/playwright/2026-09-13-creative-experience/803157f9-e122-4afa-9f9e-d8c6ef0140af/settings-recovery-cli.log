@@ -1,0 +1,13 @@
+### Error
+TimeoutError: locator.click: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: '阅读设定', exact: true })[22m
+[2m    - locator resolved to <button disabled type="button" data-size="sm" data-disabled="true" data-variant="subtle" class="_focus_kuo2q_1 _button_kuo2q_5 m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    - waiting for element to be visible, enabled and stable[22m
+[2m  - element was detached from the DOM, retrying[22m
+

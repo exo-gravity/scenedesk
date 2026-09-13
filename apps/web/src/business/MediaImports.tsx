@@ -31,6 +31,9 @@ type Props = {
   projectId?: string | undefined;
   canWrite: boolean;
   mediaHref: (id: string) => string;
+  panel: "new" | "history" | null;
+  onOpen: () => void;
+  onClose: () => void;
 };
 const statusLabels: Record<Schema<"UploadIntent">["status"], string> = {
   pending: "等待上传",
@@ -185,54 +188,77 @@ export function MediaImports(props: Props) {
     }
   }
   return (
-    <section className={classes.imports} aria-label="文件导入与恢复">
+    <section
+      className={classes.imports}
+      aria-label="文件导入与恢复"
+      hidden={!props.panel && !records.length && !active && !error}
+    >
       <Stack gap="md">
-        <Group justify="space-between">
-          <Text fw={600}>导入文件</Text>
-          <Text size="sm" c="dimmed">
-            单文件最多 256 MiB · 文本与 SRT 最多 2 MiB
-          </Text>
-        </Group>
-        {props.canWrite ? (
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void begin();
-            }}
+        <Group justify="space-between" align="flex-start">
+          <div>
+            <Text fw={600}>
+              {props.panel === "new" ? "从本地导入素材" : "本机导入记录"}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {props.panel === "new"
+                ? "图片、视频、声音或文档。单文件最多 256 MiB，文本与 SRT 最多 2 MiB。"
+                : `${records.length} 条记录 · 未完成的导入保留在这里`}
+            </Text>
+          </div>
+          <Button
+            variant="subtle"
+            onClick={props.panel ? props.onClose : props.onOpen}
           >
-            <div className={classes.importFields}>
-              <FileInput
-                label="选择文件"
-                placeholder="图片、音视频、文本或 SRT"
-                accept={importAccept}
-                value={file}
-                onChange={setFile}
-                disabled={!!active}
-                clearable
-              />
-              <TextInput
-                label="素材名称"
-                placeholder="默认使用原文件名"
-                value={name}
-                onChange={(event) => setName(event.currentTarget.value)}
-                disabled={!!active}
-                maxLength={160}
-              />
-              <Button
-                type="submit"
-                variant="filled"
-                leftSection={<UploadSimple size={18} />}
-                disabled={!file || !ready || !!active}
-              >
-                开始导入
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <Text c="dimmed">
-            {props.projectId
-              ? "项目已归档，恢复项目后可导入。"
-              : "共享素材由工作室所有者或管理员导入。"}
+            {props.panel ? "收起" : "查看与恢复"}
+          </Button>
+        </Group>
+        <div hidden={props.panel !== "new"}>
+          {props.canWrite ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void begin();
+              }}
+            >
+              <div className={classes.importFields}>
+                <FileInput
+                  label="选择文件"
+                  placeholder="图片、音视频、文本或 SRT"
+                  accept={importAccept}
+                  value={file}
+                  onChange={setFile}
+                  disabled={!!active}
+                  clearable
+                />
+                <TextInput
+                  label="素材名称"
+                  placeholder="默认使用原文件名"
+                  value={name}
+                  onChange={(event) => setName(event.currentTarget.value)}
+                  disabled={!!active}
+                  maxLength={160}
+                />
+                <Button
+                  type="submit"
+                  variant="filled"
+                  leftSection={<UploadSimple size={18} />}
+                  disabled={!file || !ready || !!active}
+                >
+                  开始导入
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <Text c="dimmed">
+              {props.projectId
+                ? "项目已归档，恢复项目后可导入。"
+                : "共享素材由工作室所有者或管理员导入。"}
+            </Text>
+          )}
+        </div>
+        {props.panel === "history" && ready && records.length === 0 && (
+          <Text c="dimmed" size="sm">
+            此浏览器还没有导入记录。可通过「导入素材」开始。
           </Text>
         )}
         {active && (
@@ -256,6 +282,7 @@ export function MediaImports(props: Props) {
             record={record}
             {...props}
             disabled={!!active}
+            compact={!props.panel}
             resume={(selected) => void resume(record, selected)}
             remove={async () => {
               await saveImport(record, true);
@@ -274,6 +301,7 @@ function PendingImport(
   props: Props & {
     record: ImportRecord;
     disabled: boolean;
+    compact: boolean;
     resume: (file: File | null) => void;
     remove: () => Promise<void>;
     onAccepted: () => Promise<void>;
@@ -320,6 +348,8 @@ function PendingImport(
   const closed =
     !!status && ["accepted", "rejected", "expired"].includes(status);
   if (revoked) return <ErrorNotice error={upload.error} />;
+  if (props.compact && status === "accepted" && !upload.error && !removeError)
+    return null;
   return (
     <article
       className={classes.importRow}
@@ -329,7 +359,7 @@ function PendingImport(
         <Text fw={500}>{record.declaration.displayName}</Text>
         <Badge>{status ? statusLabels[status] : "创建状态待核对"}</Badge>
       </Group>
-      <Text size="sm" c="dimmed">
+      <Text size="sm" c="dimmed" hidden={props.compact}>
         {record.declaration.fileName} ·{" "}
         {(record.declaration.bytes / 1024).toFixed(1)} KiB
       </Text>
@@ -346,46 +376,48 @@ function PendingImport(
           {upload.data.issue.message}
         </Alert>
       )}
-      <Group mt="sm" align="end">
-        {!closed && props.canWrite && !upload.error && (
-          <>
-            {(!status || status === "pending") && !record.transferred && (
-              <FileInput
-                label="重新选择原文件"
-                placeholder="刷新后需重新选择"
-                accept={importAccept}
-                value={file}
-                onChange={setFile}
-                disabled={props.disabled}
-              />
-            )}
-            <Button
-              disabled={
-                props.disabled ||
-                status === "verifying" ||
-                (status === "uploaded" && !upload.data?.issue?.retryable)
-              }
-              onClick={() => props.resume(file)}
-            >
-              继续本次导入
+      <div hidden={props.compact}>
+        <Group mt="sm" align="end">
+          {!closed && props.canWrite && !upload.error && (
+            <>
+              {(!status || status === "pending") && !record.transferred && (
+                <FileInput
+                  label="重新选择原文件"
+                  placeholder="刷新后需重新选择"
+                  accept={importAccept}
+                  value={file}
+                  onChange={setFile}
+                  disabled={props.disabled}
+                />
+              )}
+              <Button
+                disabled={
+                  props.disabled ||
+                  status === "verifying" ||
+                  (status === "uploaded" && !upload.data?.issue?.retryable)
+                }
+                onClick={() => props.resume(file)}
+              >
+                继续本次导入
+              </Button>
+            </>
+          )}
+          {upload.data?.mediaId && (
+            <Button component="a" href={props.mediaHref(upload.data.mediaId)}>
+              查看素材
             </Button>
-          </>
-        )}
-        {upload.data?.mediaId && (
-          <Button component="a" href={props.mediaHref(upload.data.mediaId)}>
-            查看素材
-          </Button>
-        )}
-        {closed && (
-          <Button
-            variant="subtle"
-            disabled={props.disabled}
-            onClick={() => void props.remove().catch(setRemoveError)}
-          >
-            移除本机记录
-          </Button>
-        )}
-      </Group>
+          )}
+          {closed && (
+            <Button
+              variant="subtle"
+              disabled={props.disabled}
+              onClick={() => void props.remove().catch(setRemoveError)}
+            >
+              移除本机记录
+            </Button>
+          )}
+        </Group>
+      </div>
     </article>
   );
 }

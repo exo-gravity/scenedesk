@@ -1,0 +1,17 @@
+{
+  "purpose": "Read-only visual supplement using the retained complete demo; separate from the isolated E2E fixture.",
+  "browser": "Codex in-app browser",
+  "projectId": "b2833448-189c-4ecf-bc3c-f241f36f2969",
+  "theme": "light",
+  "screenshots": [
+    { "file": "before-projects-1280.jpg", "sourceCommit": "585eb10", "width": 1280, "height": 720 },
+    { "file": "after-assets-initial-iab.jpg", "sourceCommit": "dc4ccbf", "width": 1048, "height": 1066 },
+    { "file": "after-assets-final-iab.jpg", "sourceCommit": "652ab9a", "script": "index-B0K0CITd.js", "width": 1048, "height": 1066 },
+    { "file": "after-media-final-iab.jpg", "sourceCommit": "093d8c5", "script": "index-l_bRDbIN.js", "width": 1048, "height": 1066, "loadedImages": 11, "allImagesCompleteWithNaturalWidth": true }
+  ],
+  "notes": [
+    "The in-app screenshot API returned JPEG bytes; extensions match the actual encoding. No conversion or editing was performed.",
+    "Window size changed during review. Dimensions are verified from encoded images; these are not fixed-viewport fixture comparisons.",
+    "Latest visible preview was freshly opened on the final product bundle. Browsing did not change demo content revisions or adoption."
+  ]
+}

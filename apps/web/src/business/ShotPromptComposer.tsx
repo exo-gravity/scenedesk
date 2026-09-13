@@ -12,6 +12,7 @@ import {
   Stack,
   Text,
   Textarea,
+  Tabs,
 } from "@mantine/core";
 import {
   ArrowBendDownRight,
@@ -35,6 +36,7 @@ import {
 import { usePromptSession } from "./use-prompt-session";
 import classes from "./assistant.module.css";
 import layout from "./candidates.module.css";
+import creative from "./shot-prompt.module.css";
 import { AudioGenerationWorkspace } from "./AudioGenerationWorkspace";
 import { VideoGenerationWorkspace } from "./VideoGenerationWorkspace";
 import { ImageGenerationWorkspace } from "./ImageGenerationWorkspace";
@@ -246,7 +248,7 @@ function PromptContent({
           ? classes.panel
           : rework
             ? classes.creation
-            : layout.promptComposer
+            : `${layout.promptComposer} ${creative.composer}`
       }
       data-collapsed={collapsed || undefined}
       gap="xs"
@@ -257,9 +259,9 @@ function PromptContent({
           {rework ? "按意见准备修改" : "本次创作输入"} · {draft?.label}
         </Text>
         <Group gap="xs">
-          <Badge variant="light">
+          <Text size="xs" c="dimmed" role="status">
             {state.draftSaved ? "本机已保留" : "正在保留"}
-          </Badge>
+          </Text>
           {!assistantOnly && !rework && (
             <Button
               size="xs"
@@ -324,47 +326,45 @@ function PromptContent({
           </Text>
         )}
         {!assistantOnly && draft && (
-          <Accordion className={layout.generationChoices}>
-            <Accordion.Item value="image">
-              <Accordion.Control icon={<Sparkle size={16} />}>
-                生成图片
-              </Accordion.Control>
-              <Accordion.Panel>
-                <ImageGenerationWorkspace
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  source={{ kind: "shot", creation: draft }}
-                  active={active}
-                />
-              </Accordion.Panel>
-            </Accordion.Item>
-            <Accordion.Item value="video">
-              <Accordion.Control icon={<Sparkle size={16} />}>
-                生成视频
-              </Accordion.Control>
-              <Accordion.Panel>
-                <VideoGenerationWorkspace
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  source={{ kind: "shot", creation: draft }}
-                  active={active}
-                />
-              </Accordion.Panel>
-            </Accordion.Item>
-            <Accordion.Item value="audio">
-              <Accordion.Control icon={<Sparkle size={16} />}>
-                生成音频
-              </Accordion.Control>
-              <Accordion.Panel>
-                <AudioGenerationWorkspace
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  source={{ kind: "shot", creation: draft }}
-                  active={active}
-                />
-              </Accordion.Panel>
-            </Accordion.Item>
-          </Accordion>
+          <Tabs
+            defaultValue={null}
+            allowTabDeactivation
+            keepMounted
+            className={creative.generationTypes}
+          >
+            <Tabs.List aria-label="创作类型">
+              <Tabs.Tab value="image">图片</Tabs.Tab>
+              <Tabs.Tab value="video">视频</Tabs.Tab>
+              <Tabs.Tab value="audio">声音</Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="image" pt="xs">
+              <ImageGenerationWorkspace
+                tenantId={tenantId}
+                projectId={projectId}
+                source={{ kind: "shot", creation: draft }}
+                active={active}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="video" pt="xs">
+              <VideoGenerationWorkspace
+                tenantId={tenantId}
+                projectId={projectId}
+                source={{ kind: "shot", creation: draft }}
+                active={active}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="audio" pt="xs">
+              <AudioGenerationWorkspace
+                tenantId={tenantId}
+                projectId={projectId}
+                source={{ kind: "shot", creation: draft }}
+                active={active}
+              />
+            </Tabs.Panel>
+          </Tabs>
         )}
         <details
           className={layout.inputHistory}

@@ -194,3 +194,185 @@
   font-weight: 600;
   line-height: 1.4;
 }
+
+.browseTools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-md);
+}
+.categoryTabs {
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  flex-wrap: wrap;
+}
+.categoryTab {
+  color: var(--ws-muted);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  font-size: var(--mantine-font-size-sm);
+}
+.categoryTab:hover,
+.categoryTab[data-active] {
+  color: var(--ws-text);
+  background: var(--ws-panel);
+}
+.categoryTab[data-active] {
+  font-weight: 600;
+}
+.categoryTab:focus-visible,
+.galleryItem:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 3px;
+}
+.searchTools {
+  flex-wrap: nowrap;
+}
+.searchInput {
+  width: clamp(160px, 18vw, 240px);
+}
+.assetGallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--mantine-spacing-xl) var(--mantine-spacing-lg);
+  align-items: start;
+}
+.galleryItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  color: var(--ws-text);
+  text-decoration: none;
+  min-width: 0;
+}
+.galleryPreview {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  overflow: hidden;
+  background: var(--ws-panel);
+  border-radius: var(--ws-media-radius);
+}
+.galleryItem .galleryPreview img {
+  object-fit: cover;
+}
+.thumbnailSurface {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.thumbnailSurface > div {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+.previewPlaceholder {
+  display: flex;
+  height: 100%;
+  min-height: 80px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  color: var(--ws-muted);
+  font-size: var(--mantine-font-size-sm);
+}
+.galleryCaption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}
+.galleryTitle {
+  overflow-wrap: anywhere;
+}
+.galleryItem:hover .galleryTitle {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sharedSection {
+  margin-top: var(--mantine-spacing-xl);
+  padding-top: var(--mantine-spacing-lg);
+  border-top: 1px solid var(--ws-border);
+}
+.referenceStrip {
+  display: flex;
+  gap: var(--mantine-spacing-sm);
+  overflow-x: auto;
+  padding: var(--mantine-spacing-xs);
+}
+.referenceStrip .referenceChoice {
+  flex: 0 0 132px;
+  padding: var(--mantine-spacing-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  text-align: start;
+  border-color: transparent;
+}
+.referenceStrip .referenceChoice[data-selected] {
+  border-color: var(--ws-focus);
+}
+.referenceChoice .thumbnailSurface {
+  height: 96px;
+  border-radius: var(--ws-media-radius);
+  background: var(--ws-panel);
+}
+@container (max-width: 560px) {
+  .browseTools {
+    align-items: stretch;
+  }
+  .searchTools {
+    width: 100%;
+  }
+  .searchInput {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+  .assetGallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--mantine-spacing-lg) var(--mantine-spacing-sm);
+  }
+}
+@container (max-width: 300px) {
+  .assetGallery {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.editorSection {
+  border-top: 1px solid var(--ws-border);
+}
+.editorSection > summary {
+  padding-block: var(--mantine-spacing-md);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--mantine-font-size-sm);
+}
+.editorSection > summary span {
+  margin-left: var(--mantine-spacing-sm);
+  color: var(--ws-muted);
+  font-weight: 400;
+}
+.sectionBody {
+  padding-block: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+}
+.referenceSettings {
+  font-size: var(--mantine-font-size-sm);
+}
+.referenceSettings > summary {
+  cursor: pointer;
+  color: var(--ws-muted);
+}
+.editorSection > summary:focus-visible,
+.referenceSettings > summary:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
+}
+.editorActions {
+  position: sticky;
+  bottom: 0;
+  padding-block: var(--mantine-spacing-md);
+  background: var(--ws-panel);
+  border-top: 1px solid var(--ws-border);
+}

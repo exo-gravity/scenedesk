@@ -362,18 +362,18 @@ function GenerationWorkspace({
       })
     | undefined;
   return (
-    <Stack className={classes.panel} gap="md" aria-label={`生成${single}`}>
-      <Group justify="space-between">
-        <Text fw={600}>{`生成${single}`}</Text>
-        <Badge variant="light">
+    <Stack className={classes.panel} gap="sm" aria-label={`生成${single}`}>
+      <Group justify="space-between" className={classes.generationContext}>
+        <Text size="xs" fw={500}>{`生成${single}`}</Text>
+        <Text size="xs" c="dimmed" role="status">
           {state.draftSaved ? "本机已保留" : "正在保留"}
-        </Badge>
+        </Text>
       </Group>
       <Text size="xs" c="dimmed">
         {source.kind === "shot"
           ? `来源：${source.creation.label}的本次提示`
           : `来源：${node?.title ?? `已删除的${label}草稿`}`}
-        。先确认固定计划，再执行一次。
+        {plan ? " · 输入已固定" : ""}
       </Text>
       {(error || state.error) && (
         <Alert title="需要处理" role="alert">
@@ -407,16 +407,22 @@ function GenerationWorkspace({
         </Button>
       )}
       {source.kind === "canvas" && draft && !frozen && (
-        <CanvasShotSources
-          path={path}
-          projectId={projectId}
-          sceneId={source.sceneId}
-          sources={draft.shotSources}
-          disabled={disabled || !content}
-          onChange={(shotSources) =>
-            controller.updateDraft({ ...draft, shotSources })
-          }
-        />
+        <details className={classes.shotSourceDisclosure}>
+          <summary>
+            固定镜头来源{" "}
+            <span>{draft.shotSources?.length ?? 0} 项 · 可独立探索</span>
+          </summary>
+          <CanvasShotSources
+            path={path}
+            projectId={projectId}
+            sceneId={source.sceneId}
+            sources={draft.shotSources}
+            disabled={disabled || !content}
+            onChange={(shotSources) =>
+              controller.updateDraft({ ...draft, shotSources })
+            }
+          />
+        </details>
       )}
       {source.kind === "canvas" && record?.planRequest && !plan && (
         <Text size="sm">
@@ -424,120 +430,129 @@ function GenerationWorkspace({
           个镜头来源，恢复时使用原版本与顺序。
         </Text>
       )}
-      <Select
-        label={`${label}生成模型`}
-        value={capabilityId || null}
-        disabled={disabled || frozen || (source.kind === "canvas" && !content)}
-        data={models.map((c) => ({
-          value: c.id,
-          label: `${c.modelVersion}${c.executionMode === "test_fixture" ? " · 受控测试" : ""}`,
-        }))}
-        onChange={(id) => {
-          const cap = models.find((c) => c.id === id);
-          change(id ?? "", {
-            ...(kind !== "audio" && cap?.allowedResolutions?.length === 1
-              ? { resolution: cap.allowedResolutions[0]! }
-              : {}),
-            ...(kind !== "image" &&
-            cap?.minDurationSeconds !== undefined &&
-            cap.minDurationSeconds === cap.maxDurationSeconds
-              ? { durationSeconds: cap.minDurationSeconds }
-              : {}),
-          });
-        }}
-      />
-      {kind !== "audio" && (
-        <Group grow align="start">
+      {!plan && (
+        <div className={classes.parameters}>
           <Select
-            label={`${label}尺寸`}
-            value={output.resolution ?? null}
-            disabled={disabled || frozen || !capability}
-            data={capability?.allowedResolutions ?? []}
-            onChange={(resolution) => {
-              const {
-                aspectRatio: _aspect,
-                resolution: _resolution,
-                ...rest
-              } = output;
-              change(capabilityId ?? "", {
-                ...rest,
-                ...(resolution ? { resolution } : {}),
-              });
-            }}
-          />
-          <Select
-            label="画幅"
-            placeholder={`按${label}尺寸`}
-            clearable
-            value={output.aspectRatio ?? null}
-            disabled={disabled || frozen || !capability}
-            data={capability?.allowedAspectRatios ?? []}
-            onChange={(aspectRatio) => {
-              const { aspectRatio: _old, ...rest } = output;
-              change(capabilityId ?? "", {
-                ...rest,
-                ...(aspectRatio ? { aspectRatio } : {}),
-              });
-            }}
-          />
-        </Group>
-      )}
-      {kind !== "image" && (
-        <Stack gap="sm">
-          <NumberInput
-            label={`${label}时长（秒）`}
-            allowDecimal={false}
-            min={capability?.minDurationSeconds ?? 1}
-            max={capability?.maxDurationSeconds ?? Number.MAX_SAFE_INTEGER}
-            value={output.durationSeconds ?? ""}
-            disabled={disabled || frozen || !capability}
-            onChange={(value) => {
-              const { durationSeconds: _old, ...rest } = output;
-              change(capabilityId ?? "", {
-                ...rest,
-                ...(typeof value === "number"
-                  ? { durationSeconds: value }
+            label={`${label}生成模型`}
+            value={capabilityId || null}
+            disabled={
+              disabled || frozen || (source.kind === "canvas" && !content)
+            }
+            data={models.map((c) => ({
+              value: c.id,
+              label: `${c.modelVersion}${c.executionMode === "test_fixture" ? " · 受控测试" : ""}`,
+            }))}
+            onChange={(id) => {
+              const cap = models.find((c) => c.id === id);
+              change(id ?? "", {
+                ...(kind !== "audio" && cap?.allowedResolutions?.length === 1
+                  ? { resolution: cap.allowedResolutions[0]! }
+                  : {}),
+                ...(kind !== "image" &&
+                cap?.minDurationSeconds !== undefined &&
+                cap.minDurationSeconds === cap.maxDurationSeconds
+                  ? { durationSeconds: cap.minDurationSeconds }
                   : {}),
               });
             }}
           />
-          {kind === "video" &&
-            (capability?.audioOutput === true ? (
-              <Checkbox
-                label="同时生成声音"
-                checked={output.withAudio === true}
-                disabled={disabled || frozen}
-                onChange={(event) =>
+          {kind !== "audio" && (
+            <Group grow align="start">
+              <Select
+                label={`${label}尺寸`}
+                value={output.resolution ?? null}
+                disabled={disabled || frozen || !capability}
+                data={capability?.allowedResolutions ?? []}
+                onChange={(resolution) => {
+                  const {
+                    aspectRatio: _aspect,
+                    resolution: _resolution,
+                    ...rest
+                  } = output;
                   change(capabilityId ?? "", {
-                    ...output,
-                    withAudio: event.currentTarget.checked,
-                  })
-                }
+                    ...rest,
+                    ...(resolution ? { resolution } : {}),
+                  });
+                }}
               />
-            ) : (
-              <Text size="xs" c="dimmed">
-                {capability?.audioOutput === false
-                  ? "当前模型生成无声视频。"
-                  : "声音生成能力尚未确认。"}
-              </Text>
-            ))}
-        </Stack>
+              <Select
+                label="画幅"
+                placeholder={`按${label}尺寸`}
+                clearable
+                value={output.aspectRatio ?? null}
+                disabled={disabled || frozen || !capability}
+                data={capability?.allowedAspectRatios ?? []}
+                onChange={(aspectRatio) => {
+                  const { aspectRatio: _old, ...rest } = output;
+                  change(capabilityId ?? "", {
+                    ...rest,
+                    ...(aspectRatio ? { aspectRatio } : {}),
+                  });
+                }}
+              />
+            </Group>
+          )}
+          {kind !== "image" && (
+            <Stack gap="sm">
+              <NumberInput
+                label={`${label}时长（秒）`}
+                allowDecimal={false}
+                min={capability?.minDurationSeconds ?? 1}
+                max={capability?.maxDurationSeconds ?? Number.MAX_SAFE_INTEGER}
+                value={output.durationSeconds ?? ""}
+                disabled={disabled || frozen || !capability}
+                onChange={(value) => {
+                  const { durationSeconds: _old, ...rest } = output;
+                  change(capabilityId ?? "", {
+                    ...rest,
+                    ...(typeof value === "number"
+                      ? { durationSeconds: value }
+                      : {}),
+                  });
+                }}
+              />
+              {kind === "video" &&
+                (capability?.audioOutput === true ? (
+                  <Checkbox
+                    label="同时生成声音"
+                    checked={output.withAudio === true}
+                    disabled={disabled || frozen}
+                    onChange={(event) =>
+                      change(capabilityId ?? "", {
+                        ...output,
+                        withAudio: event.currentTarget.checked,
+                      })
+                    }
+                  />
+                ) : (
+                  <Text size="xs" c="dimmed">
+                    {capability?.audioOutput === false
+                      ? "当前模型生成无声视频。"
+                      : "声音生成能力尚未确认。"}
+                  </Text>
+                ))}
+            </Stack>
+          )}
+          <details className={classes.advanced}>
+            <summary>更多参数</summary>
+            <NumberInput
+              label="随机种子（可选）"
+              min={0}
+              max={2147483647}
+              allowDecimal={false}
+              value={output.seed ?? ""}
+              disabled={disabled || frozen || !capability}
+              onChange={(value) => {
+                const { seed: _old, ...rest } = output;
+                change(capabilityId ?? "", {
+                  ...rest,
+                  ...(typeof value === "number" ? { seed: value } : {}),
+                });
+              }}
+            />
+          </details>
+        </div>
       )}
-      <NumberInput
-        label="随机种子（可选）"
-        min={0}
-        max={2147483647}
-        allowDecimal={false}
-        value={output.seed ?? ""}
-        disabled={disabled || frozen || !capability}
-        onChange={(value) => {
-          const { seed: _old, ...rest } = output;
-          change(capabilityId ?? "", {
-            ...rest,
-            ...(typeof value === "number" ? { seed: value } : {}),
-          });
-        }}
-      />
       {!plan && awaitingSave && (
         <Text role="status" size="sm">
           先完成画布保存或核对，完成后可准备生成。
@@ -609,6 +624,18 @@ function GenerationWorkspace({
               )}
             </Text>
           )}
+          <Text size="xs" c="dimmed">
+            {kind !== "audio" && (
+              <>
+                画幅：
+                {(resolved?.output ?? plan.input.output).aspectRatio ??
+                  "默认（按固定尺寸）"}{" "}
+                ·{" "}
+              </>
+            )}
+            随机种子：
+            {(resolved?.output ?? plan.input.output).seed ?? "默认（未指定）"}
+          </Text>
           <Text size="sm" className={classes.prose}>
             {resolved?.prompt}
           </Text>
@@ -863,9 +890,7 @@ function GenerationWorkspace({
         centered
       >
         <Stack>
-          <Text>
-            {`将已归档的${label}作为独立节点添加到画布。`}
-          </Text>
+          <Text>{`将已归档的${label}作为独立节点添加到画布。`}</Text>
           <Button
             disabled={disabled || job?.status !== "succeeded"}
             onClick={materialize}

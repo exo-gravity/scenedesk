@@ -4,14 +4,14 @@ import type { CSSProperties } from "react";
 export type StudyTone = "light" | "dark";
 export const palettes = {
   light: {
-    canvas: "#F4F4F2",
-    shell: "#FAFAF8",
+    canvas: "#F5F5F2",
+    shell: "#FCFCFA",
     surface: "#FFFFFF",
     soft: "#EFEFED",
     text: "#242522",
     secondary: "#666963",
-    line: "#DADCD6",
-    field: "#878B81",
+    line: "#E1E3DC",
+    field: "#92968C",
     selection: "#515A51",
     focus: "#416AA3",
     action: "#303830",

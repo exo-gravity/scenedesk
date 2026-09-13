@@ -10,7 +10,7 @@ import {
   TextInput,
   Textarea,
 } from "@mantine/core";
-import { Plus, Trash } from "@phosphor-icons/react";
+import { BookOpen, PencilSimple, Plus, Trash } from "@phosphor-icons/react";
 import { useCommand, type Schema } from "./api";
 import { ErrorNotice } from "./common";
 import { DraftNotice, useContentDraft } from "./content-drafts";
@@ -906,6 +906,11 @@ export function ScriptEditor({
     ),
     command = useCommand<Schema<"ScriptRevision">>();
   const [saved, setSaved] = useState(false);
+  const [editingText, setEditingText] = useState(!current);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (draft.recovered) setEditingText(true);
+  }, [draft.recovered]);
   const [history, setHistory] = useState<string | null>(
       initialHistoryId ?? null,
     ),
@@ -927,6 +932,8 @@ export function ScriptEditor({
       </Alert>
     );
   const conflict = draft.baseVersion !== tree.revision;
+  const changed = draft.value.text !== (current?.text ?? "");
+  const reading = document && !editingText && !!draft.value.text.trim();
   const save = (
     <Button
       variant="filled"
@@ -936,6 +943,7 @@ export function ScriptEditor({
         !draft.ready ||
         !!draft.recovered ||
         !draft.value.text.trim() ||
+        !changed ||
         (document && !!history)
       }
       onClick={() =>
@@ -964,8 +972,8 @@ export function ScriptEditor({
   );
   const historyControl = !!scripts.length && (
     <Select
-      label="查阅历史剧本"
-      placeholder="正在编辑的正文"
+      aria-label="查阅历史剧本"
+      placeholder={`当前 · 第 ${current?.number ?? 0} 版`}
       clearable
       value={history}
       onChange={setHistory}
@@ -985,16 +993,38 @@ export function ScriptEditor({
       {document && (
         <div className={layout.documentToolbar}>
           <div>
-            <Text fw={600}>剧本正文</Text>
-            <Text size="xs" c="dimmed">
+            <Text size="sm" c="dimmed">
               {history
                 ? `正在查阅第 ${old?.number ?? "—"} 版 · 只读`
-                : `当前保存版本 ${current?.number ?? 0} · 正在编辑`}
+                : changed
+                  ? "本机有修改 · 尚未提交"
+                  : `第 ${current?.number ?? 0} 版 · 已保存`}
             </Text>
           </div>
           <Group gap="sm">
             {historyControl}
-            {save}
+            {!history && (
+              <Button
+                variant={reading ? "default" : "subtle"}
+                leftSection={
+                  reading ? <PencilSimple size={16} /> : <BookOpen size={16} />
+                }
+                disabled={
+                  !draft.ready ||
+                  !!draft.recovered ||
+                  command.isPending ||
+                  (!reading && !draft.value.text.trim())
+                }
+                onClick={() => {
+                  setEditingText(reading);
+                  if (reading)
+                    requestAnimationFrame(() => textRef.current?.focus());
+                }}
+              >
+                {reading ? "编辑正文" : "阅读预览"}
+              </Button>
+            )}
+            {!reading && !history && save}
           </Group>
         </div>
       )}
@@ -1031,25 +1061,31 @@ export function ScriptEditor({
       )}
       {document && old ? (
         <>
-          <Textarea
-            label={`第 ${old.number} 版原文`}
-            value={old.text}
-            readOnly
-            classNames={{ input: layout.documentInput }}
-          />
+          <article
+            className={layout.readingPaper}
+            aria-label={`第 ${old.number} 版原文`}
+          >
+            <div className={layout.readingText}>{old.text}</div>
+          </article>
           <Button
             variant="default"
             disabled={!draft.ready || !!draft.recovered || command.isPending}
             onClick={() => {
               draft.setValue({ text: old.text });
               setHistory(null);
+              setEditingText(true);
             }}
           >
             将此版本复制到正在编辑的正文
           </Button>
         </>
+      ) : reading ? (
+        <article className={layout.readingPaper} aria-label="剧本正文">
+          <div className={layout.readingText}>{draft.value.text}</div>
+        </article>
       ) : (
         <Textarea
+          ref={textRef}
           {...(document ? { "aria-label": "剧本正文" } : { label: "剧本正文" })}
           {...(document
             ? { classNames: { input: layout.documentInput } }

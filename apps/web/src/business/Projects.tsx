@@ -30,7 +30,6 @@ import {
 } from "./common";
 import classes from "./workbench.module.css";
 import { ContentWorkspace } from "./ContentWorkspace";
-import { ProductionSettings } from "./ProductionSettings";
 import { QualityReferenceSettings } from "./QualityReferenceSettings";
 import { MediaPreview } from "./MediaPreview";
 import { MagnifyingGlass } from "@phosphor-icons/react";
@@ -38,7 +37,6 @@ import { CreateProjectForm } from "./CreateProjectForm";
 
 type Member = Schema<"Membership">;
 type Project = Schema<"Project">;
-type Production = Schema<"Production">;
 const rates = [
   { value: "24/1", label: "24 fps" },
   { value: "25/1", label: "25 fps" },
@@ -97,7 +95,7 @@ export function Projects({
     <>
       <SectionHeading
         title="项目"
-        description="从一个项目开始组织创作。"
+        description="让故事从这里，走向画面。"
         action={
           manager && (
             <Button
@@ -110,14 +108,19 @@ export function Projects({
           )
         }
       />
-      <TextInput
-        label="查找项目"
-        placeholder="输入项目名称"
-        value={search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-        className={classes.projectSearch}
-        leftSection={<MagnifyingGlass size={16} />}
-      />
+      <div className={classes.libraryToolbar}>
+        <Text size="sm" c="dimmed">
+          全部项目{projects.data ? ` · ${projects.data.length}` : ""}
+        </Text>
+        <TextInput
+          aria-label="查找项目"
+          placeholder="输入项目名称"
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+          className={classes.projectSearch}
+          leftSection={<MagnifyingGlass size={16} />}
+        />
+      </div>
       <ErrorNotice
         error={projects.error}
         retry={() => void projects.refetch()}
@@ -220,8 +223,8 @@ function ProjectCard({
         )}
       </div>
       <Text size="xs" c="dimmed">
-        写实短剧 · {project.spec.width} × {project.spec.height} ·{" "}
-        {project.spec.fpsNum}/{project.spec.fpsDen} fps
+        {project.spec.width} × {project.spec.height} ·{" "}
+        {Number((project.spec.fpsNum / project.spec.fpsDen).toFixed(3))} fps
       </Text>
     </article>
   );
@@ -236,8 +239,7 @@ function ProjectDetails({
   own: Member;
 }) {
   const path = projectPath(tenantId, projectId),
-    project = useResource<Project>(path),
-    production = useResource<Production>(`${path}/production`);
+    project = useResource<Project>(path);
   const participants = useList<Schema<"ProjectMember">>(`${path}/members`);
   const manager = own.role === "owner" || own.role === "admin";
   const lead = participants.data?.some(
@@ -317,19 +319,18 @@ function ProjectDetails({
         active={active && !!(manager || lead)}
       />
       <hr className={classes.divider} />
-      <h2 className={classes.subheading}>剧目设定</h2>
-      <ErrorNotice
-        error={production.error}
-        retry={() => void production.refetch()}
-      />
-      {production.data && (
-        <ProductionSettings
-          key={production.data.id}
-          production={production.data}
-          path={`${path}/production`}
-          active={active}
-        />
-      )}
+      <Group justify="space-between">
+        <div>
+          <h2 className={classes.subheading}>故事设定</h2>
+          <Text c="dimmed">故事、风格与默认参考集中在创作页。</Text>
+        </div>
+        <Button
+          component="a"
+          href={`#/app/t/${tenantId}/p/${projectId}/script?tab=settings`}
+        >
+          查看故事设定
+        </Button>
+      </Group>
       <Modal
         opened={action !== null}
         onClose={() => {

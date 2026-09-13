@@ -9,13 +9,19 @@ import {
   Loader,
   Modal,
   Select,
+  Popover,
+  UnstyledButton,
   Stack,
   TagsInput,
   Text,
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { Plus } from "@phosphor-icons/react";
+import {
+  Plus,
+  MagnifyingGlass,
+  SlidersHorizontal,
+} from "@phosphor-icons/react";
 import { useCommand, useResource, type Schema } from "./api";
 import { DraftNotice, useContentDraft } from "./content-drafts";
 import {
@@ -27,6 +33,7 @@ import {
 } from "./common";
 import { assetKinds, options, useAssetPages } from "./asset-queries";
 import { AssetDetails } from "./AssetDetails";
+import { AssetGalleryItem } from "./AssetThumbnail";
 import classes from "./assets.module.css";
 type Props = {
   tenantId: string;
@@ -144,31 +151,65 @@ function AssetBrowser(
               打开资产并选择确切版本，再确认引入目标。
             </Alert>
           )}
-          <div className={classes.filters}>
-            <TextInput
-              label="查找资产"
-              placeholder="名称、说明或标签"
-              value={q}
-              onChange={(e) => setQ(e.currentTarget.value)}
-            />
-            <Select
-              label="资产类别"
-              placeholder="全部类别"
-              clearable
-              data={options(assetKinds)}
-              value={kind}
-              onChange={setKind}
-            />
-            <Select
-              label="资产状态"
-              clearable
-              data={[
-                { value: "active", label: "使用中" },
-                { value: "archived", label: "已归档" },
-              ]}
-              value={status}
-              onChange={setStatus}
-            />
+          <div className={classes.browseTools}>
+            <div
+              className={classes.categoryTabs}
+              role="group"
+              aria-label="资产类别"
+            >
+              {[{ value: null, label: "全部" }, ...options(assetKinds)].map(
+                (item) => (
+                  <UnstyledButton
+                    key={item.value ?? "all"}
+                    className={classes.categoryTab}
+                    data-active={kind === item.value || undefined}
+                    aria-pressed={kind === item.value}
+                    onClick={() => setKind(item.value)}
+                  >
+                    {item.label}
+                  </UnstyledButton>
+                ),
+              )}
+            </div>
+            <Group gap="xs" className={classes.searchTools}>
+              <TextInput
+                aria-label="查找资产"
+                placeholder="搜索资产"
+                leftSection={<MagnifyingGlass size={16} />}
+                value={q}
+                onChange={(e) => setQ(e.currentTarget.value)}
+                className={classes.searchInput}
+              />
+              <Popover position="bottom-end" width={240}>
+                <Popover.Target>
+                  <Button
+                    variant={status === "active" ? "subtle" : "light"}
+                    leftSection={<SlidersHorizontal size={16} />}
+                  >
+                    筛选
+                    {status === "archived"
+                      ? " · 已归档"
+                      : status === null
+                        ? " · 全部状态"
+                        : ""}
+                  </Button>
+                </Popover.Target>
+                <Popover.Dropdown>
+                  <Select
+                    label="资产状态"
+                    data={[
+                      { value: "active", label: "使用中" },
+                      { value: "archived", label: "已归档" },
+                      { value: "all", label: "全部状态" },
+                    ]}
+                    value={status ?? "all"}
+                    onChange={(value) =>
+                      setStatus(value === "all" ? null : value)
+                    }
+                  />
+                </Popover.Dropdown>
+              </Popover>
+            </Group>
           </div>
           <ErrorNotice
             error={assets.error}
@@ -179,28 +220,18 @@ function AssetBrowser(
           ) : (
             !assets.isError && (
               <>
-                {assets.data?.pages
-                  .flatMap((page) => page.items)
-                  .map((asset) => (
-                    <div className={classes.assetRow} key={asset.id}>
-                      <a className={classes.assetLink} href={href(asset.id)}>
-                        <Text fw={600}>{asset.name}</Text>
-                        <Text size="sm" c="dimmed" lineClamp={2}>
-                          {asset.description || assetKinds[asset.kind]}
-                        </Text>
-                      </a>
-                      <Group gap="xs">
-                        <Badge>{assetKinds[asset.kind]}</Badge>
-                        <Text size="xs" c="dimmed">
-                          {asset.status === "archived"
-                            ? "已归档"
-                            : asset.currentRevisionId
-                              ? "已有固定版本"
-                              : "待建立首版"}
-                        </Text>
-                      </Group>
-                    </div>
-                  ))}
+                <div className={classes.assetGallery}>
+                  {assets.data?.pages
+                    .flatMap((page) => page.items)
+                    .map((asset) => (
+                      <AssetGalleryItem
+                        key={asset.id}
+                        asset={asset}
+                        path={path}
+                        href={href(asset.id)}
+                      />
+                    ))}
+                </div>
                 {!assets.data?.pages.some((page) => page.items.length) && (
                   <Empty>
                     {q || kind || status === "archived"
@@ -220,9 +251,13 @@ function AssetBrowser(
             )
           )}
           {props.projectId && (
-            <Stack gap="md">
+            <Stack gap="md" className={classes.sharedSection}>
               <Group justify="space-between">
-                <Text fw={600}>已引入的共享固定版</Text>
+                <Text fw={600}>
+                  {imports.data?.pages.some((page) => page.items.length)
+                    ? "已引入的共享固定版"
+                    : "工作室共享资产"}
+                </Text>
                 {canWrite && (
                   <Button
                     component="a"
@@ -253,7 +288,7 @@ function AssetBrowser(
                       ))}
                     {!imports.data?.pages.some((page) => page.items.length) && (
                       <Text size="sm" c="dimmed">
-                        尚未引入共享资产。每次引入会保留确切版本，升级需另行选择。
+                        从工作室中选择可复用的角色、声音与风格；引入时保留所选版本。
                       </Text>
                     )}
                     {imports.hasNextPage && (

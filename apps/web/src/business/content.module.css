@@ -80,11 +80,17 @@
 }
 .scriptWorkspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 410px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   height: 100%;
   min-height: 0;
   align-items: stretch;
+}
+.scriptWorkspace[data-assistant] {
+  grid-template-columns: minmax(0, 1fr) 370px;
+}
+.scriptAssistant[hidden] {
+  display: none;
 }
 .scriptMain,
 .document {
@@ -117,8 +123,8 @@
   flex-wrap: wrap;
 }
 .documentInput {
-  min-height: 560px;
-  height: calc(100dvh - 360px);
+  min-height: 460px;
+  height: calc(100dvh - 320px);
   resize: vertical;
   padding: var(--mantine-spacing-xl);
   border-color: var(--ws-border);
@@ -133,8 +139,8 @@
   border-top: 1px solid var(--ws-border);
 }
 @media (max-width: 1400px) {
-  .scriptWorkspace {
-    grid-template-columns: minmax(0, 1fr) 370px;
+  .scriptWorkspace[data-assistant] {
+    grid-template-columns: minmax(0, 1fr) 340px;
   }
   .scriptMain,
   .fullWorkspace {
@@ -142,7 +148,8 @@
   }
 }
 @media (max-width: 1000px) {
-  .scriptWorkspace {
+  .scriptWorkspace,
+  .scriptWorkspace[data-assistant] {
     grid-template-columns: minmax(0, 1fr);
     height: auto;
     min-height: 100%;
@@ -176,5 +183,137 @@
   .documentInput {
     min-height: 400px;
     padding: var(--mantine-spacing-lg);
+  }
+}
+
+.readingPaper {
+  background: var(--ws-raised);
+  padding: clamp(28px, 4vw, 60px);
+  border: 1px solid var(--ws-border-subtle);
+  border-radius: var(--ws-media-radius);
+  min-height: 380px;
+}
+.readingText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--ws-reading-size);
+  line-height: 2.15;
+  max-width: 68ch;
+  margin-inline: auto;
+}
+
+.document {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.documentToolbar {
+  align-items: center;
+  padding-block: 4px 12px;
+}
+.documentToolbar > :last-child {
+  flex-wrap: wrap;
+}
+.documentToolbar :global(.mantine-Select-root) {
+  max-width: 210px;
+}
+.basis {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.storyTitle {
+  font-size: var(--ws-heading-size);
+  font-weight: 600;
+  margin: 0 0 28px;
+}
+.storyReferences {
+  margin-top: 40px;
+  border-top: 1px solid var(--ws-border-subtle);
+  padding-top: 24px;
+}
+.storySettings {
+  max-width: 960px;
+  width: 100%;
+  margin-inline: auto;
+}
+.scenePreview {
+  width: 180px;
+  flex: 0 0 180px;
+  border-radius: var(--ws-media-radius);
+  overflow: hidden;
+}
+.scenePreview > div {
+  aspect-ratio: 16 / 10;
+}
+.scenePreview img {
+  object-fit: cover;
+}
+.scenePreview:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 4px;
+}
+.scenePlaceholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: var(--ws-secondary);
+  background: var(--ws-panel);
+}
+.sceneName > p:first-child {
+  font-size: var(--mantine-font-size-lg);
+}
+.sceneRow {
+  min-height: 150px;
+  padding-block: 24px;
+  gap: 24px;
+  align-items: center;
+}
+.sceneActions {
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 4px;
+}
+.episodeHeader {
+  padding-block: 18px;
+}
+.episodeTitle {
+  font-size: var(--mantine-font-size-md);
+}
+@media (max-width: 1100px) {
+  .scenePreview {
+    width: 128px;
+    flex-basis: 128px;
+  }
+  .sceneRow {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .sceneActions {
+    flex-direction: row;
+    margin-left: auto;
+  }
+}
+@media (max-width: 700px) {
+  .readingPaper {
+    padding: 24px 18px;
+    min-height: 300px;
+  }
+  .readingText {
+    line-height: 1.95;
+  }
+  .scriptMain,
+  .fullWorkspace {
+    padding: 24px 16px;
+  }
+  .scenePreview {
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .scenePreview > div {
+    max-height: 180px;
+  }
+  .sceneActions {
+    flex-wrap: wrap;
   }
 }

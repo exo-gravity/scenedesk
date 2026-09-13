@@ -355,7 +355,7 @@
     margin: 4px 8px;
   }
   .saveStatus {
-    display: none;
+    display: inline-flex;
   }
 }
 .dock[hidden] {
@@ -459,5 +459,161 @@
   .viewportTools > :global(.mantine-Group-root) {
     flex-wrap: wrap;
     justify-content: center;
+  }
+}
+/* Creative workspace: screen-space tools never affect canvas measurements. */
+.selectionTools {
+  position: absolute;
+  z-index: 6;
+  padding: 5px;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-floating-radius);
+  background: var(--ws-panel);
+  box-shadow: var(--mantine-shadow-sm);
+}
+.selectionTools > :global(.mantine-Group-root) {
+  justify-content: center;
+  gap: 4px;
+}
+.selectionName {
+  flex: 0 1 112px;
+  min-width: 48px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.selectionTools button {
+  height: 30px;
+  padding-inline: 9px;
+  font-size: var(--mantine-font-size-xs);
+}
+.mobileSelection {
+  padding: 8px;
+}
+.pointAnchor {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+}
+.canvasStart {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 36px;
+  pointer-events: none;
+}
+.canvasStart button {
+  pointer-events: auto;
+}
+.startEyebrow {
+  font-size: var(--mantine-font-size-xs);
+  letter-spacing: 0.16em;
+  color: var(--ws-secondary);
+}
+.startTitle {
+  font-size: clamp(var(--mantine-font-size-xl), 2.4vw, var(--ws-display-size));
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: var(--ws-text);
+}
+.canvasCount {
+  font-variant-numeric: tabular-nums;
+  color: var(--ws-secondary);
+  white-space: nowrap;
+  padding-inline: 6px;
+}
+.localPanel {
+  width: min(900px, calc(100% - 40px));
+  align-self: center;
+  max-height: min(370px, 42dvh);
+  margin: 0 20px 14px;
+  box-shadow: var(--mantine-shadow-xs);
+}
+.composer {
+  padding: 14px 18px 8px;
+}
+.composerFields {
+  gap: 9px;
+}
+.composerFields textarea {
+  border: 0;
+  padding-inline: 0;
+  font-size: var(--mantine-font-size-sm);
+}
+.referenceStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.referenceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-raised);
+  color: var(--ws-text);
+  padding: 6px 9px;
+  cursor: pointer;
+}
+.referenceChip > span {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--mantine-font-size-xs);
+}
+.referenceChip small {
+  color: var(--ws-secondary);
+}
+.referenceChip[data-disabled] {
+  opacity: 0.6;
+}
+.referenceChip:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
+}
+.referenceSettings,
+.nodeSettings {
+  font-size: var(--mantine-font-size-xs);
+}
+.referenceSettings > summary,
+.nodeSettings > summary {
+  display: list-item;
+  cursor: pointer;
+  color: var(--ws-secondary);
+  padding-block: 5px;
+}
+.referenceSettings summary > span,
+.nodeSettings summary > span {
+  margin-left: 8px;
+  font-weight: 400;
+}
+.referenceSettings[open] > :not(summary) {
+  margin-block: 10px;
+}
+.modeToolbar > :global(.mantine-Group-root) button {
+  border-color: transparent;
+  background: transparent;
+}
+.modeToolbar > :global(.mantine-Group-root) button:hover {
+  background: var(--ws-raised);
+}
+@media (max-width: 760px) {
+  .localPanel {
+    width: calc(100% - 16px);
+    max-height: 55dvh;
+    margin: 8px;
+  }
+  .composer {
+    padding: 12px;
   }
 }

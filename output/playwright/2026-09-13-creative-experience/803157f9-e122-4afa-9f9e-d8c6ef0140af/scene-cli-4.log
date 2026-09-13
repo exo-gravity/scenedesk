@@ -1,0 +1,5 @@
+### Error
+TimeoutError: locator.waitFor: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('textbox', { name: '文字内容', exact: true }) to be visible[22m
+

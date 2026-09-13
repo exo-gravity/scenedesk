@@ -1,0 +1,58 @@
+### Page
+- Page URL: http://127.0.0.1:4317/#/app/t/b229ad0b-6a74-4800-85ed-0bcae35b0853/p/20b2fc5d-cd36-4555-bc30-f9334c760fc3/script
+- Page Title: 旧钥匙 · 剧本与设定 · 幕序
+### Snapshot
+```yaml
+- generic [ref=f2e4]:
+  - banner [ref=f2e5]:
+    - link "幕序 SceneDesk" [ref=f2e6] [cursor=pointer]:
+      - /url: "#/app"
+    - generic [ref=f2e7]:
+      - paragraph [ref=f2e8]: 未连接真实模型
+      - paragraph [ref=f2e9]: 本地测试身份
+      - button "切换深色" [ref=f2e10] [cursor=pointer]
+  - generic [ref=f2e14]:
+    - navigation "工作室导航" [ref=f2e15]:
+      - button "切换工作室" [ref=f2e16] [cursor=pointer]:
+        - generic [ref=f2e19]: 业务验收
+      - link "项目" [ref=f2e20] [cursor=pointer]:
+        - /url: "#/app/t/b229ad0b-6a74-4800-85ed-0bcae35b0853"
+      - link "我的工作" [ref=f2e24] [cursor=pointer]:
+        - /url: "#/app/t/b229ad0b-6a74-4800-85ed-0bcae35b0853/work"
+      - link "资产" [ref=f2e28] [cursor=pointer]:
+        - /url: "#/app/t/b229ad0b-6a74-4800-85ed-0bcae35b0853/assets"
+      - button "账号与退出登录" [ref=f2e33] [cursor=pointer]
+    - banner [ref=f2e37]:
+      - navigation "当前位置" [ref=f2e38]:
+        - link "业务验收" [ref=f2e39] [cursor=pointer]:
+          - /url: "#/app/t/b229ad0b-6a74-4800-85ed-0bcae35b0853"
+        - link "旧钥匙" [ref=f2e42] [cursor=pointer]:
+          - /url: "#/app/t/b229ad0b-6a74-4800-85ed-0bcae35b0853/p/20b2fc5d-cd36-4555-bc30-f9334c760fc3/content"
+        - paragraph [ref=f2e45]: 剧本与设定
+    - main [ref=f2e47]:
+      - region "剧本正文与版本" [ref=f2e49]:
+        - generic [ref=f2e50]:
+          - generic [ref=f2e51]:
+            - heading "剧本与设定" [level=1] [ref=f2e52]
+            - paragraph [ref=f2e53]: 写下故事，再将选定原文整理为场次中的镜头要求。
+          - generic [ref=f2e54]:
+            - button "剧本操作" [ref=f2e55] [cursor=pointer]
+            - button "整理为镜头" [ref=f2e59] [cursor=pointer]
+        - tablist [ref=f2e66]:
+          - tab "剧本正文" [selected] [ref=f2e67] [cursor=pointer]
+          - tab "故事设定" [ref=f2e69] [cursor=pointer]
+        - generic [ref=f2e72]:
+          - generic [ref=f2e73]:
+            - paragraph [ref=f2e75]: 第 1 版 · 已保存
+            - generic [ref=f2e76]:
+              - combobox "查阅历史剧本" [ref=f2e79] [cursor=pointer]
+              - button "编辑正文" [ref=f2e80] [cursor=pointer]
+          - article "剧本正文" [ref=f2e86]:
+            - generic [ref=f2e87]: 第 1 集 · 重逢 咖啡厅，午后。 林夏坐在靠窗的位置。周远把旧铜钥匙放在桌上。 林夏伸出右手，拿起钥匙，认出匙环上的磨痕。 她抬头望向门外，压住了涌起的情绪。
+          - paragraph [ref=f2e88]: 保存会新增版本。镜头与提案已固定的原文保持不变。
+        - generic [ref=f2e89]:
+          - generic [ref=f2e90]:
+            - paragraph [ref=f2e91]: 创作依据
+            - paragraph [ref=f2e92]: 查看项目设定、角色关系和固定版本的创作依据。
+          - button "查看与编辑" [ref=f2e93] [cursor=pointer]
+```

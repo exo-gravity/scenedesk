@@ -1,0 +1,102 @@
+async (page) => {
+  page.setDefaultTimeout(15000)
+  const f = await (
+      await page.request.get("http://127.0.0.1:4317/__fixture/ids")
+    ).json(),
+    out = `output/playwright/2026-09-13-creative-experience/${f.runId}/after`,
+    cp = f.path + "/canvases/" + f.canvasId
+  const check = (v, m) => {
+      if (!v) throw Error(m)
+    },
+    read = async (p) =>
+      page.evaluate(async (p) => await (await fetch(p)).json(), p),
+    events = []
+  page.on("request", (r) => {
+    if (r.url().includes("/v1/") && r.method() !== "GET")
+      events.push({ method: r.method(), path: new URL(r.url()).pathname })
+  })
+  await page.setViewportSize({ width: 1440, height: 900 })
+  const before = await read(cp)
+  const flow = page.locator(".react-flow")
+  await flow.scrollIntoViewIfNeeded()
+  const box = await flow.boundingBox()
+  check(box, "no flow")
+  const point = await page.evaluate(() => {
+    const r = document.querySelector(".react-flow").getBoundingClientRect()
+    for (
+      let y = Math.max(r.top + 20, 150);
+      y < Math.min(r.bottom - 30, innerHeight - 30);
+      y += 50
+    )
+      for (let x = r.right - 30; x > r.left + 30; x -= 50) {
+        const e = document.elementFromPoint(x, y)
+        if (e?.classList.contains("react-flow__pane")) return { x, y }
+      }
+    return null
+  })
+  check(point, "no visible empty canvas point")
+  const transform = await page
+    .locator(".react-flow__viewport")
+    .evaluate((e) => {
+      const m = new DOMMatrix(getComputedStyle(e).transform)
+      return { x: m.e, y: m.f, zoom: m.a }
+    })
+  const expected = {
+    x: (point.x - box.x - transform.x) / transform.zoom,
+    y: (point.y - box.y - transform.y) / transform.zoom,
+  }
+  await page.mouse.dblclick(point.x, point.y, { delay: 80 })
+  await page.getByRole("menuitem", { name: "上传文件", exact: true }).waitFor()
+  check(
+    (await read(cp)).document.nodes.length === before.document.nodes.length,
+    "double click created text without choice",
+  )
+  const chooserPromise = page.waitForEvent("filechooser")
+  await page.getByRole("menuitem", { name: "上传文件", exact: true }).click()
+  const chooser = await chooserPromise
+  await page.waitForTimeout(800)
+  await chooser.setFiles("apps/web/public/demo/workspace-v2/key-reference.png")
+  const limit = Date.now() + 180000
+  let after, newNode
+  while (Date.now() < limit) {
+    after = await read(cp)
+    newNode = after.document.nodes.find(
+      (n) => !before.document.nodes.some((old) => old.id === n.id),
+    )
+    if (newNode) break
+    await page.waitForTimeout(500)
+  }
+  check(newNode, "actual menu upload did not place")
+  check(newNode.content.type === "media", "upload fake ready")
+  check(
+    Math.abs(newNode.position.x - expected.x) < 2 &&
+      Math.abs(newNode.position.y - expected.y) < 2,
+    "upload did not preserve clicked point",
+  )
+  const media = await read(
+    `/v1/tenants/${f.tenantId}/media/${newNode.content.mediaId}`,
+  )
+  check(
+    media.status === "ready" &&
+      media.sha256 === f.media.key.sha256 &&
+      media.bytes === f.media.key.bytes,
+    "actual file readback mismatch",
+  )
+  await page.getByRole("button", { name: "适应内容", exact: true }).click()
+  await page.screenshot({
+    path: out + "/canvas-menu-upload-1440.png",
+    animations: "disabled",
+  })
+  return {
+    doubleClickNoCreation: true,
+    fileChooserDelayMs: 800,
+    originalPoint: expected,
+    savedPoint: newNode.position,
+    nodeId: newNode.id,
+    mediaId: media.id,
+    sha256: media.sha256,
+    bytes: media.bytes,
+    events,
+    providerCalls: 0,
+  }
+}

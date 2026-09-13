@@ -32,6 +32,7 @@ import {
 import type { GenerationPhase } from "../components/workspace/cards";
 import { PromptComposer } from "../components/workspace/PromptComposer";
 import classes from "./design.module.css";
+import { SectionHeading } from "../business/common";
 const MediaPlayer = lazy(() => import("../components/workspace/MediaPlayer"));
 
 export function DesignPage({ navigate }: { navigate: Navigate }) {
@@ -124,6 +125,21 @@ export function DesignPage({ navigate }: { navigate: Navigate }) {
           </div>
         ))}
       </div>
+      <section
+        className={classes.editorialSample}
+        aria-label="创作页面标题层级"
+      >
+        <SectionHeading
+          title="创作，从一个故事开始"
+          description="页面标题 · 32px；正文保持舒适阅读，工具留在需要的地方。"
+          action={<Button variant="filled">主要动作示例</Button>}
+        />
+        <SectionHeading
+          level={2}
+          title="故事与画面"
+          description="区段标题 · 21px；色彩与表面继续使用共同主题。"
+        />
+      </section>
       <Tabs value={tab} onChange={setTab}>
         <Tabs.List>
           <Tabs.Tab

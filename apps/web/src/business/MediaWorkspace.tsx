@@ -6,12 +6,20 @@ import {
   Button,
   Group,
   Loader,
+  Popover,
   Select,
   Stack,
   Text,
   TextInput,
+  UnstyledButton,
 } from "@mantine/core";
-import { ArrowLeft, UploadSimple } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  UploadSimple,
+  MagnifyingGlass,
+  SlidersHorizontal,
+  ClockCounterClockwise,
+} from "@phosphor-icons/react";
 import { api, useResource, useSession, type Page, type Schema } from "./api";
 import {
   Empty,
@@ -64,7 +72,7 @@ function MediaBrowser(
   const [q, setQ] = useState(""),
     [kind, setKind] = useState<string | null>(null),
     [status, setStatus] = useState<string | null>(null),
-    [imports, setImports] = useState(false);
+    [imports, setImports] = useState<"new" | "history" | null>(null);
   const [search] = useDebouncedValue(q, 250);
   const filters = new URLSearchParams({
     scope: props.projectId ? "project" : "shared",
@@ -117,11 +125,8 @@ function MediaBrowser(
           >
             全部素材
           </Button>
-          <Button
-            variant="subtle"
-            onClick={() => setImports((value) => !value)}
-          >
-            {imports ? "收起导入记录" : "导入与恢复"}
+          <Button variant="subtle" onClick={() => setImports("history")}>
+            导入记录
           </Button>
         </Group>
       ) : (
@@ -142,11 +147,21 @@ function MediaBrowser(
                 设定资产
               </Button>
               <Button
-                leftSection={<UploadSimple size={18} />}
-                onClick={() => setImports((value) => !value)}
+                variant="subtle"
+                leftSection={<ClockCounterClockwise size={18} />}
+                onClick={() => setImports("history")}
               >
-                {imports ? "收起导入记录" : "导入与恢复"}
+                导入记录
               </Button>
+              {canWrite && (
+                <Button
+                  variant="filled"
+                  leftSection={<UploadSimple size={18} />}
+                  onClick={() => setImports("new")}
+                >
+                  导入素材
+                </Button>
+              )}
             </Group>
           }
         />
@@ -156,15 +171,16 @@ function MediaBrowser(
           仍可查阅和下载已验收素材，恢复项目后可继续导入与编辑。
         </Alert>
       )}
-      {imports && (
-        <MediaImports
-          path={path}
-          scopeKey={baseHref}
-          projectId={props.projectId}
-          canWrite={canWrite}
-          mediaHref={mediaHref}
-        />
-      )}
+      <MediaImports
+        path={path}
+        scopeKey={baseHref}
+        projectId={props.projectId}
+        canWrite={canWrite}
+        mediaHref={mediaHref}
+        panel={imports}
+        onOpen={() => setImports("history")}
+        onClose={() => setImports(null)}
+      />
       {mediaId ? (
         <>
           <MediaDetail
@@ -177,29 +193,58 @@ function MediaBrowser(
         </>
       ) : (
         <>
-          <div className={classes.filters}>
-            <TextInput
-              label="查找素材"
-              placeholder="名称、原文件名或标签"
-              value={q}
-              onChange={(event) => setQ(event.currentTarget.value)}
-            />
-            <Select
-              label="类型"
-              placeholder="全部类型"
-              clearable
-              value={kind}
-              onChange={setKind}
-              data={choices(mediaKind)}
-            />
-            <Select
-              label="状态"
-              placeholder="全部状态"
-              clearable
-              value={status}
-              onChange={setStatus}
-              data={choices(mediaStatus)}
-            />
+          <div className={classes.browseTools}>
+            <Group
+              gap="xs"
+              className={classes.categoryTabs}
+              role="group"
+              aria-label="素材类型"
+            >
+              {[{ value: "", label: "全部" }, ...choices(mediaKind)].map(
+                (choice) => (
+                  <UnstyledButton
+                    key={choice.value}
+                    className={classes.categoryTab}
+                    aria-pressed={(kind ?? "") === choice.value}
+                    onClick={() => setKind(choice.value || null)}
+                  >
+                    {choice.label}
+                  </UnstyledButton>
+                ),
+              )}
+            </Group>
+            <Group gap="xs" className={classes.searchTools}>
+              <TextInput
+                aria-label="查找素材"
+                placeholder="搜索名称或标签"
+                leftSection={<MagnifyingGlass size={16} />}
+                className={classes.searchInput}
+                value={q}
+                onChange={(event) => setQ(event.currentTarget.value)}
+              />
+              <Popover position="bottom-end" width={240}>
+                <Popover.Target>
+                  <Button
+                    variant="subtle"
+                    leftSection={<SlidersHorizontal size={17} />}
+                  >
+                    {status
+                      ? mediaStatus[status as keyof typeof mediaStatus]
+                      : "筛选"}
+                  </Button>
+                </Popover.Target>
+                <Popover.Dropdown>
+                  <Select
+                    label="素材状态"
+                    placeholder="全部状态"
+                    clearable
+                    value={status}
+                    onChange={setStatus}
+                    data={choices(mediaStatus)}
+                  />
+                </Popover.Dropdown>
+              </Popover>
+            </Group>
           </div>
           <ErrorNotice error={list.error} retry={() => void list.refetch()} />
           {list.isPending ? (

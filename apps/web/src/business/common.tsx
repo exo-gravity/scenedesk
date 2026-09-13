@@ -42,9 +42,17 @@ export function SectionHeading({
 }) {
   const Heading = level === 1 ? "h1" : "h2";
   return (
-    <Group justify="space-between" align="flex-start" mb="xl" wrap="wrap">
+    <Group
+      justify="space-between"
+      align="center"
+      mb="xl"
+      wrap="wrap"
+      className={classes.sectionHeading}
+    >
       <div>
-        <Heading className={classes.title}>{title}</Heading>
+        <Heading className={classes.title} data-level={level}>
+          {title}
+        </Heading>
         {description && (
           <Text size="sm" c="dimmed" mt="xs">
             {description}

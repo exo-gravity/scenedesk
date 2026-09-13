@@ -1,0 +1,6 @@
+### Result
+{"screen":{"x":1260,"y":154},"world":{"x":1159.7206852170227,"y":-35.28326408505737}}
+### Ran Playwright code
+```js
+await (async(page)=>{return await page.evaluate(()=>{const b=document.querySelector('.react-flow').getBoundingClientRect();const m=new DOMMatrix(getComputedStyle(document.querySelector('.react-flow__viewport')).transform);return{screen:{x:1260,y:154},world:{x:(1260-b.x-m.e)/m.a,y:(154-b.y-m.f)/m.a}}})})(page);
+```

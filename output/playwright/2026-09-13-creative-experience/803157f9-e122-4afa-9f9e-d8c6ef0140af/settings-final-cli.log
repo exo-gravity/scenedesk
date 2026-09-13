@@ -1,0 +1,6 @@
+### Result
+{"settingsDraftReadEditReloadRecoverySave":true,"documentWidth":390}
+### Ran Playwright code
+```js
+await (async(page)=>{await page.reload();await page.getByRole('button',{name:'编辑设定',exact:true}).waitFor();const v='隔离验收故事设定：午后自然光，保留人物克制与钥匙的磨痕。';if(!(await page.getByRole('article').getByText(v,{exact:true}).isVisible()))throw Error('save readback');await page.setViewportSize({width:390,height:844});await page.screenshot({path:'output/playwright/2026-09-13-creative-experience/803157f9-e122-4afa-9f9e-d8c6ef0140af/after/settings-390.png'});return {settingsDraftReadEditReloadRecoverySave:true,documentWidth:await page.evaluate(()=>document.documentElement.scrollWidth)}})(page);
+```
