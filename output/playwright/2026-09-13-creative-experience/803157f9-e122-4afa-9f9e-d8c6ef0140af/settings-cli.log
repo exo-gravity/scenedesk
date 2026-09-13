@@ -1,0 +1,8 @@
+### Error
+Error: locator.isVisible: Error: strict mode violation: getByText('隔离验收故事设定：午后自然光，保留人物克制与钥匙的磨痕。', { exact: true }) resolved to 2 elements:
+    1) <div class="_readingText_zaaio_196">隔离验收故事设定：午后自然光，保留人物克制与钥匙的磨痕。</div> aka getByRole('article').getByText('隔离验收故事设定：午后自然光，保留人物克制与钥匙的磨痕。')
+    2) <textarea rows="5" maxlength="20000" data-variant="default" id="mantine-5z23p3h7j" data-no-overflow="true" class="_input_kuo2q_37 _textarea_kuo2q_54 m_8fb7ebe7 mantine-Input-input mantine-Textarea-input">隔离验收故事设定：午后自然光，保留人物克制与钥匙的磨痕。</textarea> aka getByLabel('故事与创作设定')
+
+Call log:
+[2m    - checking visibility of getByText('隔离验收故事设定：午后自然光，保留人物克制与钥匙的磨痕。', { exact: true })[22m
+

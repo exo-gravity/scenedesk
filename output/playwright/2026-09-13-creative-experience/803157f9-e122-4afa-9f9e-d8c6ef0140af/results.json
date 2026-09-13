@@ -1,0 +1,487 @@
+{
+  "scope": "actual isolated API + PostgreSQL 16 + MinIO + restricted media worker; zero generation executors",
+  "status": "verified scoped flows; two product bugs corrected and retested",
+  "runId": "803157f9-e122-4afa-9f9e-d8c6ef0140af",
+  "baselineSourceCommit": "585eb10df26bc7b1d32d8b67bb99a8ee7b596898",
+  "initialAfterSourceCommit": "dc4ccbf",
+  "assetAndSceneSourceCommit": "652ab9a",
+  "finalSourceCommit": "093d8c5ed2c3ffc24164a77c6676f7ec08ca9c3b",
+  "results": {
+    "baseline": {
+      "phase": "before",
+      "build": {
+        "phase": "before",
+        "sourceCommit": "585eb10df26bc7b1d32d8b67bb99a8ee7b596898",
+        "indexSha256": "2c4156203aa5a6b38d69b6faa4584303a26f813139abb65733b6bc639383578c",
+        "scripts": [
+          "/assets/index-DLdKIDFc.js",
+          "/assets/react-runtime-CKhiqiYO.js",
+          "/assets/mantine-ui-iutVKc8K.js",
+          "/assets/mantine-ui-C9RRYpjM.css",
+          "/assets/index-BBzDpB5V.css"
+        ]
+      },
+      "states": [
+        {
+          "name": "storyboard-1440-light",
+          "geometry": {
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "documentWidth": 1440,
+            "main": {
+              "x": 76,
+              "y": 34,
+              "width": 1364,
+              "height": 866
+            },
+            "video": {
+              "x": 555.0234375,
+              "y": 190,
+              "width": 175.953125,
+              "height": 312.8046875
+            },
+            "canvas": null,
+            "focus": "BODY"
+          }
+        },
+        {
+          "name": "storyboard-1366-light",
+          "geometry": {
+            "viewport": {
+              "width": 1366,
+              "height": 768
+            },
+            "documentWidth": 1366,
+            "main": {
+              "x": 76,
+              "y": 34,
+              "width": 1290,
+              "height": 734
+            },
+            "video": {
+              "x": 563.8984375,
+              "y": 182,
+              "width": 124.203125,
+              "height": 220.8046875
+            },
+            "canvas": null,
+            "focus": "BODY"
+          }
+        },
+        {
+          "name": "storyboard-1366-dark-assistant",
+          "geometry": {
+            "viewport": {
+              "width": 1366,
+              "height": 768
+            },
+            "documentWidth": 1366,
+            "main": {
+              "x": 76,
+              "y": 34,
+              "width": 1290,
+              "height": 734
+            },
+            "video": {
+              "x": 383.8984375,
+              "y": 182,
+              "width": 124.203125,
+              "height": 220.8046875
+            },
+            "canvas": null,
+            "focus": "切换浅色"
+          }
+        },
+        {
+          "name": "canvas-1440-light",
+          "geometry": {
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "documentWidth": 1440,
+            "main": {
+              "x": 76,
+              "y": 34,
+              "width": 1364,
+              "height": 866
+            },
+            "video": null,
+            "canvas": {
+              "x": 76,
+              "y": 134,
+              "width": 1364,
+              "height": 667.8046875
+            },
+            "focus": "适应内容"
+          }
+        },
+        {
+          "name": "canvas-390-list",
+          "geometry": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "documentWidth": 390,
+            "main": {
+              "x": 60,
+              "y": 34,
+              "width": 330,
+              "height": 810
+            },
+            "video": null,
+            "canvas": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "focus": "BODY"
+          }
+        },
+        {
+          "name": "assets-1440-light",
+          "geometry": {
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "documentWidth": 1440,
+            "main": {
+              "x": 272,
+              "y": 90,
+              "width": 1168,
+              "height": 810
+            },
+            "video": null,
+            "canvas": null,
+            "focus": "BODY"
+          }
+        },
+        {
+          "name": "asset-detail-1440-light",
+          "geometry": {
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "documentWidth": 1440,
+            "main": {
+              "x": 76,
+              "y": 90,
+              "width": 1364,
+              "height": 810
+            },
+            "video": null,
+            "canvas": null,
+            "focus": "BODY"
+          }
+        },
+        {
+          "name": "script-1440-light",
+          "geometry": {
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "documentWidth": 1440,
+            "main": {
+              "x": 76,
+              "y": 90,
+              "width": 1364,
+              "height": 810
+            },
+            "video": null,
+            "canvas": null,
+            "focus": "BODY"
+          }
+        }
+      ],
+      "pageErrors": [],
+      "fixtureScope": "real isolated API/PG/MinIO; zero generation calls",
+      "note": "Baseline observations, not final acceptance"
+    },
+    "settings": {
+      "settingsDraftReadEditReloadRecoverySave": true,
+      "documentWidth": 390
+    },
+    "assets": {
+      "categoryAndSearch": true,
+      "archivedFilter": true,
+      "noImageHonest": true,
+      "fixedHistoryConfirmed": true,
+      "referenceLookReadOnly": true,
+      "draftRecovery": true,
+      "savedFixedRevision": "8472451f-1463-4c97-ab6a-c4641e9e90aa",
+      "savedNumber": 3,
+      "states": [
+        "assets-1440",
+        "asset-v2-1440",
+        "asset-v1-1366-dark",
+        "asset-look-1366",
+        "asset-editor-1366",
+        "asset-detail-390"
+      ],
+      "pageErrors": [],
+      "providerCalls": 0
+    },
+    "sceneContinuation": {
+      "results": [
+        {
+          "name": "canvas-1440-references",
+          "geometry": {
+            "width": 1440,
+            "documentWidth": 1440,
+            "video": null,
+            "flow": {
+              "x": 68,
+              "y": 134,
+              "width": 1372,
+              "height": 382,
+              "bottom": 516
+            },
+            "strip": null,
+            "filter": null
+          }
+        },
+        {
+          "name": "canvas-390-list",
+          "geometry": {
+            "width": 390,
+            "documentWidth": 390,
+            "video": null,
+            "flow": null,
+            "strip": null,
+            "filter": null
+          }
+        }
+      ],
+      "actualPlayback": true,
+      "viewingDoesNotAdopt": true,
+      "tabDraftPreserved": true,
+      "canvasSavedRevision": 3,
+      "canvasReload": true,
+      "pageErrors": [],
+      "providerCalls": 0
+    },
+    "mediaStart": {
+      "fileAndNameSurviveCollapse": true,
+      "uploadStartedAndPanelCollapsed": true,
+      "name": "E2E收起后继续上传"
+    },
+    "mediaReadback": {
+      "actualUploadReady": true,
+      "collapseDidNotAbort": true,
+      "reloadKeptRecord": true,
+      "mediaId": "7068507b-ffe4-476e-b42b-80f0ee6cae07",
+      "sha256": "0d172aa5d602e1af7ff3ba0c7baee8ef00ad476f153358a6ebbc68eca76970bc",
+      "bytes": 2318884,
+      "documentWidth": 390
+    },
+    "canvasConflict": {
+      "actual412": 1,
+      "localInputKept": true,
+      "explicitMergePreservesPeer": true,
+      "refreshReadback": true,
+      "revision": 5
+    },
+    "canvasMenu": {
+      "fixedSourceCommit": "093d8c5",
+      "doubleClickOpensMenu": true,
+      "nodeDoubleClickDoesNotOpenMenu": true,
+      "delayedNativeFileChooser": true,
+      "chooserOpenTime": "2026-09-13T16:21:36.810Z",
+      "chooserAcceptedTime": "2026-09-13T16:21:46.524Z",
+      "originalPoint": {
+        "x": 1159.7206852170227,
+        "y": -35.28326408505737
+      },
+      "savedPoint": {
+        "x": 1159.7202797202797,
+        "y": -35.28321678321677
+      },
+      "mediaReady": true,
+      "mediaId": "96327435-f7a8-424e-85f7-d2920e234984",
+      "nodeId": "3fba2c24-9c91-43d7-9890-7ea16ed1cd64",
+      "sha256": "0d172aa5d602e1af7ff3ba0c7baee8ef00ad476f153358a6ebbc68eca76970bc",
+      "bytes": 2318884,
+      "nodeCount": 5
+    },
+    "canvasActions": {
+      "pointerDrag": {
+        "before": {
+          "x": 300,
+          "y": 40
+        },
+        "after": {
+          "x": 407.32709663218134,
+          "y": 103.29546724461977
+        }
+      },
+      "dragAutoSaved": true,
+      "createdDraftId": "57fae388-0385-48cb-9432-baed8af1f203",
+      "sourceId": "641bad26-5c72-4979-8689-4c1c0ecbf0f4",
+      "promptEdge": true,
+      "sourceContentPreserved": true,
+      "sourceHistoryIdenticalRevisions": [
+        7,
+        8
+      ],
+      "toolbarClickNotPane": true,
+      "offscreenSelectionLabel": "已选 · 本次动作要求\n\n继续创作\n复制\n移除节点",
+      "toolbar": {
+        "x": 80,
+        "y": 188.03125,
+        "width": 420,
+        "height": 42
+      },
+      "generationCalls": 0
+    },
+    "finalRoute": {
+      "build": {
+        "phase": "after",
+        "sourceCommit": "093d8c5ed2c3ffc24164a77c6676f7ec08ca9c3b",
+        "indexSha256": "6b17b3a629dd9c05fe1ad955603cea1815908d5f161ee764bb173a01b71e4798",
+        "scripts": [
+          "/assets/index-l_bRDbIN.js",
+          "/assets/react-runtime-CKhiqiYO.js",
+          "/assets/mantine-ui-BW_-MCHr.js",
+          "/assets/mantine-ui-C9RRYpjM.css",
+          "/assets/index-BBzDpB5V.css"
+        ]
+      },
+      "urlTabBackForward": true,
+      "samePageURLSync": true,
+      "scriptDraftPreservedAcrossHiddenPanels": true,
+      "explicitReloadRecovery": true,
+      "colors": [
+        {
+          "text": "剧本正文",
+          "color": "rgb(220, 227, 213)",
+          "background": "rgb(25, 27, 25)",
+          "fontSize": "14px",
+          "contrast": 13.192793672615023
+        },
+        {
+          "text": "故事设定",
+          "color": "rgb(168, 174, 165)",
+          "background": "rgb(25, 27, 25)",
+          "fontSize": "14px",
+          "contrast": 7.641583811972643
+        }
+      ],
+      "modelCalls": 0
+    },
+    "scriptSave": {
+      "status": "assertions passed before later settings locator timeout",
+      "defaultReading": true,
+      "emptyFirstCharacterKeptFocus": true,
+      "readingPreviewPreservedInput": true,
+      "hiddenAssistantTabChecks": 12,
+      "explicitReloadRecovery": true,
+      "newRevisionNumber": 2,
+      "serverScriptRevisionCount": 2,
+      "lastText": "隔离验收：林夏把钥匙轻轻放回桌面。",
+      "apiReadbackPassed": true,
+      "scriptPostsObserved": [
+        {
+          "method": "POST",
+          "path": "/v1/tenants/b229ad0b-6a74-4800-85ed-0bcae35b0853/projects/20b2fc5d-cd36-4555-bc30-f9334c760fc3/scripts",
+          "status": 201
+        }
+      ],
+      "evidence": [
+        "script-cli.log",
+        "script-resume-cli.log",
+        "script-saved-cli.log",
+        "../resume-script-saved.js",
+        "after/script-1366-reading.png",
+        "after/script-final-1366-dark.png"
+      ],
+      "note": "resume-script-saved.js asserts scripts.items.length === 2 and exact v2 ending before navigating to settings; the subsequent old same-page settings locator timed out. This is not a green result for that whole script."
+    }
+  },
+  "database": {
+    "projects": 1,
+    "media": 6,
+    "readyMedia": 6,
+    "generationJobs": 0,
+    "generationAttempts": 0,
+    "sourceEqualAfterContinue": true
+  },
+  "cleanup": {
+    "checkedAt": "2026-09-13T16:28:41.627493+00:00",
+    "fixtureFinally": {
+      "closed": true,
+      "failures": [],
+      "errors": []
+    },
+    "exactOwnedContainersAbsent": {
+      "activePostgres": true,
+      "activeMinio": true,
+      "abortedPostgres": true,
+      "abortedMinio": true
+    },
+    "listeningPorts": {
+      "4317": false,
+      "4310": true,
+      "4311": true,
+      "4312": true,
+      "4320": true
+    },
+    "closedService": 4317,
+    "protectedPortsNotSignalled": [
+      4310,
+      4311,
+      4312,
+      4320
+    ],
+    "schemaAndRoleCleanup": "fixture callbacks completed without errors before owned PostgreSQL container removal",
+    "temporaryStorage": "all owned database/storage data mounted as tmpfs; no named data volumes created by fixture",
+    "credentials": "private runtime paths retained at 0700/0600; no secrets copied into evidence"
+  },
+  "requests": {
+    "total": 1216,
+    "statusCounts": {
+      "200": 1206,
+      "201": 4,
+      "404": 3,
+      "202": 2,
+      "412": 1
+    },
+    "writeStatusCounts": {
+      "POST 200": 53,
+      "PUT 200": 21,
+      "POST 201": 4,
+      "POST 202": 2,
+      "PUT 412": 1
+    }
+  },
+  "productDefectsFixed": [
+    {
+      "defect": "Same mounted script route ignored tab=settings query changes",
+      "fix": "652ab9a",
+      "evidence": "final-route-cli.log"
+    },
+    {
+      "defect": "ReactFlow selection mode passes pointer detail 0 to onPaneClick; blank double click never opened menu",
+      "fix": "093d8c5",
+      "evidence": "menu-readback-cli.log"
+    }
+  ],
+  "verificationLimitations": [
+    "The CLI flows were executed incrementally, with explicit continuations after harness corrections; this is not one uninterrupted green suite.",
+    "scene-cli-4.log completed native play/time advance/pause, tab retention, theme, read-only adoption and real canvas save checks before its stale post-reload selection locator timed out; canvas-resume-cli.log verifies persisted input by explicitly selecting the node.",
+    "Native file choosers must use Playwright CLI click then upload, not a long run-code function spanning the modal. Earlier tool sessions closed; no upload intent was created by those interrupted attempts.",
+    "media-import-ready-1440 proves completed import record while gallery thumbnails were still loading. Root final demo media supplement verifies all eleven images loaded.",
+    "No real model, paid execution or newly generated acting was exercised. Empty-canvas menu upload, complete keyboard screen-reader audit, and actual provider plan seed execution were not separately repeated in this bounded visual pass.",
+    "The portable serve.ts fallback was typechecked, not run again; this run used approved repo images plus the existing privately stored technical video/poster as read-only source bytes."
+  ],
+  "rootVisualSupplement": [
+    "demo/after-assets-final-iab.jpg",
+    "demo/after-media-final-iab.jpg"
+  ]
+}

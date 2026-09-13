@@ -1,0 +1,5 @@
+### Error
+TimeoutError: locator.waitFor: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('heading', { name: 'SH-04 · 拿起旧钥匙', exact: true }) to be visible[22m
+

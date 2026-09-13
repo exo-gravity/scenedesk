@@ -1,0 +1,91 @@
+async (page) => {
+  page.setDefaultTimeout(20000)
+  const f = await (
+      await page.request.get("http://127.0.0.1:4317/__fixture/ids")
+    ).json(),
+    cp = f.path + "/canvases/" + f.canvasId,
+    root = `${f.origin}/#/app/t/${f.tenantId}/p/${f.projectId}`,
+    out = `output/playwright/2026-09-13-creative-experience/${f.runId}/after`,
+    check = (v, m) => {
+      if (!v) throw Error(m)
+    }
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(root + `/production?scene=${f.sceneId}&mode=canvas`)
+  await page.reload()
+  await page
+    .getByRole("article", { name: "本次动作要求 · text", exact: true })
+    .click()
+  const field = page.getByRole("textbox", { name: "文字内容", exact: true })
+  await field.waitFor()
+  const session = await (
+      await page.request.get(f.origin + "/v1/session")
+    ).json(),
+    before = await (await page.request.get(f.origin + cp)).json()
+  const changed = JSON.parse(JSON.stringify(before.document))
+  changed.nodes.find((n) => n.id === f.refId).title = "同伴保留的固定参考"
+  const peer = await page.request.put(f.origin + cp, {
+    headers: {
+      origin: f.origin,
+      "x-csrf-token": session.csrfToken,
+      "idempotency-key": await page.evaluate(() => crypto.randomUUID()),
+      "if-match": '"' + before.revision + '"',
+    },
+    data: { schemaVersion: 1, document: changed },
+  })
+  check(peer.status() === 200, "peer update failed " + peer.status())
+  let rejected = 0
+  const listener = (r) => {
+    if (r.url().endsWith(cp) && r.status() === 412) rejected++
+  }
+  page.on("response", listener)
+  const value = "冲突核对后仍保留这段本机文字。"
+  await field.fill(value)
+  await page.getByRole("button", { name: "保存画布", exact: true }).click()
+  const conflict = page.getByRole("alert", { name: /保存冲突 · 本机基线/ })
+  await conflict.waitFor()
+  check((await field.inputValue()) === value, "412 lost local text")
+  check(rejected === 1, "missing actual 412")
+  await page.screenshot({
+    path: out + "/canvas-real-412.png",
+    animations: "disabled",
+  })
+  await conflict.getByRole("checkbox", { name: /本次动作要求/ }).check()
+  await conflict
+    .getByRole("button", { name: "重新应用选定修改", exact: true })
+    .click()
+  await page.getByRole("button", { name: "保存画布", exact: true }).click()
+  await page.waitForFunction(
+    async ({ cp, id }) => {
+      const c = await (await fetch(cp)).json()
+      return (
+        c.document.nodes.find((n) => n.id === id)?.content.text ===
+        "冲突核对后仍保留这段本机文字。"
+      )
+    },
+    { cp, id: f.textId },
+  )
+  const final = await (await page.request.get(f.origin + cp)).json()
+  check(
+    final.document.nodes.find((n) => n.id === f.refId).title ===
+      "同伴保留的固定参考",
+    "merge lost untouched peer node",
+  )
+  await page.reload()
+  await page
+    .getByRole("article", { name: "本次动作要求 · text", exact: true })
+    .click()
+  check(
+    (await page
+      .getByRole("textbox", { name: "文字内容", exact: true })
+      .inputValue()) === value,
+    "conflict final reload mismatch",
+  )
+  page.off("response", listener)
+  return {
+    actual412: rejected,
+    localInputKept: true,
+    explicitMergePreservesPeer: true,
+    refreshReadback: true,
+    revision: final.revision,
+  }
+}

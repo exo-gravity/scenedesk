@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-09-13T16:28:41.627493+00:00",
+  "fixtureFinally": {
+    "closed": true,
+    "failures": [],
+    "errors": []
+  },
+  "exactOwnedContainersAbsent": {
+    "activePostgres": true,
+    "activeMinio": true,
+    "abortedPostgres": true,
+    "abortedMinio": true
+  },
+  "listeningPorts": {
+    "4317": false,
+    "4310": true,
+    "4311": true,
+    "4312": true,
+    "4320": true
+  },
+  "closedService": 4317,
+  "protectedPortsNotSignalled": [
+    4310,
+    4311,
+    4312,
+    4320
+  ],
+  "schemaAndRoleCleanup": "fixture callbacks completed without errors before owned PostgreSQL container removal",
+  "temporaryStorage": "all owned database/storage data mounted as tmpfs; no named data volumes created by fixture",
+  "credentials": "private runtime paths retained at 0700/0600; no secrets copied into evidence"
+}
