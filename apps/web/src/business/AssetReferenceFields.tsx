@@ -137,27 +137,32 @@ function ReferenceRow({
               {value.note ? ` · ${value.note}` : ""}
             </Text>
           ) : (
-            <>
-              <Select
-                label="参考用途"
-                data={options(referencePurposes)}
-                value={value.purpose}
-                onChange={(purpose) =>
-                  purpose &&
-                  onChange({
-                    ...value,
-                    purpose: purpose as Reference["purpose"],
-                  })
-                }
-              />
-              <TextInput
-                label="参考说明"
-                value={value.note ?? ""}
-                onChange={(event) =>
-                  onChange({ ...value, note: event.currentTarget.value })
-                }
-              />
-            </>
+            <details className={classes.referenceSettings}>
+              <summary>
+                {referencePurposes[value.purpose]} · 编辑用途与说明
+              </summary>
+              <Stack gap="sm" mt="sm">
+                <Select
+                  label="参考用途"
+                  data={options(referencePurposes)}
+                  value={value.purpose}
+                  onChange={(purpose) =>
+                    purpose &&
+                    onChange({
+                      ...value,
+                      purpose: purpose as Reference["purpose"],
+                    })
+                  }
+                />
+                <TextInput
+                  label="参考说明"
+                  value={value.note ?? ""}
+                  onChange={(event) =>
+                    onChange({ ...value, note: event.currentTarget.value })
+                  }
+                />
+              </Stack>
+            </details>
           ))}
         {value.assetRevisionId && (
           <FixedAssetLabel path={path} id={value.assetRevisionId} />

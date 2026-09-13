@@ -41,3 +41,80 @@
   padding-block: var(--mantine-spacing-xs);
   border-bottom: 1px solid var(--ws-border);
 }
+.canvasGeneration {
+  padding: 10px 18px 16px;
+  min-width: 0;
+}
+.canvasGenerationHeading {
+  margin-bottom: 6px;
+  color: var(--ws-secondary);
+}
+.historyPicker,
+.shotSourceDisclosure,
+.advanced {
+  font-size: var(--mantine-font-size-xs);
+}
+.historyPicker > summary,
+.shotSourceDisclosure > summary,
+.advanced > summary {
+  color: var(--ws-secondary);
+  cursor: pointer;
+  padding-block: 5px;
+}
+.historyPicker summary span,
+.shotSourceDisclosure summary span {
+  margin-left: 8px;
+}
+.historyPicker[open] > :not(summary),
+.shotSourceDisclosure[open] > :not(summary) {
+  margin-top: 8px;
+}
+.parameters {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(220px, 1.6fr);
+  gap: 10px 14px;
+  align-items: start;
+}
+.parameters > :global(.mantine-Stack-root) {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr);
+  align-items: center;
+}
+.parameters :global(.mantine-InputWrapper-label) {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 400;
+  color: var(--ws-secondary);
+  margin-bottom: 4px;
+}
+.parameters :global(.mantine-Input-input) {
+  min-height: 32px;
+  height: 32px;
+  font-size: var(--mantine-font-size-xs);
+  border-color: var(--ws-border);
+}
+.advanced {
+  grid-column: 1 / -1;
+}
+.advanced :global(.mantine-InputWrapper-root) {
+  max-width: 220px;
+  margin-top: 6px;
+}
+.generationContext {
+  color: var(--ws-secondary);
+}
+.panel > button {
+  align-self: flex-end;
+}
+.result {
+  border-bottom: 0;
+}
+@media (max-width: 760px) {
+  .parameters,
+  .parameters > :global(.mantine-Stack-root) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .canvasGeneration {
+    padding: 10px 12px;
+  }
+}

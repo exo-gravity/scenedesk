@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { ArrowLeft } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  DotsThree,
+  PencilSimple,
+  Archive,
+} from "@phosphor-icons/react";
 import {
   Alert,
   Badge,
@@ -7,6 +12,7 @@ import {
   Group,
   Loader,
   Modal,
+  Menu,
   Stack,
   Text,
 } from "@mantine/core";
@@ -119,20 +125,66 @@ export function AssetDetails({
               <Text component="h1" className={classes.assetTitle}>
                 {value.name}
               </Text>
+              {selected.data &&
+                !selected.isError &&
+                selected.data.assetId === id && (
+                  <Text size="sm" c="dimmed" mt="xs">
+                    正在查看 v{selected.data.number}
+                    {selected.data.id === value.currentRevisionId
+                      ? " · 当前版本"
+                      : ` · 历史版本${current.data ? `，当前为 v${current.data.number}` : ""}`}
+                  </Text>
+                )}
             </div>
             {canWrite && (
-              <Button
-                variant="subtle"
-                onClick={() =>
-                  setEditing(
-                    editing?.kind === "metadata"
-                      ? undefined
-                      : { kind: "metadata" },
-                  )
-                }
-              >
-                修改检索信息
-              </Button>
+              <Group gap="xs">
+                {active && !showEditor && (
+                  <Button
+                    variant="filled"
+                    leftSection={<PencilSimple size={16} />}
+                    disabled={
+                      !!value.currentRevisionId &&
+                      (!current.data || current.isError)
+                    }
+                    onClick={() => {
+                      if (selectedId !== value.currentRevisionId)
+                        location.hash = href(id);
+                      setEditing({ kind: "definition", current: current.data });
+                    }}
+                  >
+                    {value.currentRevisionId ? "新建修订" : "建立首版设定"}
+                  </Button>
+                )}
+                <Menu position="bottom-end">
+                  <Menu.Target>
+                    <Button variant="subtle" aria-label="资产更多操作" px="xs">
+                      <DotsThree size={22} />
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={<PencilSimple size={16} />}
+                      onClick={() =>
+                        setEditing(
+                          editing?.kind === "metadata"
+                            ? undefined
+                            : { kind: "metadata" },
+                        )
+                      }
+                    >
+                      修改检索信息
+                    </Menu.Item>
+                    {active && (
+                      <Menu.Item
+                        leftSection={<Archive size={16} />}
+                        onClick={() => setArchive(value)}
+                      >
+                        归档资产
+                      </Menu.Item>
+                    )}
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
             )}
           </Group>
           <ErrorNotice error={asset.error ?? command.error} />
@@ -249,22 +301,6 @@ export function AssetDetails({
                 )}
               </>
             )}
-          {active && (
-            <Button
-              disabled={
-                !!value.currentRevisionId && (!current.data || current.isError)
-              }
-              onClick={() => {
-                if (selectedId !== value.currentRevisionId)
-                  location.hash = href(id);
-                setEditing({ kind: "definition", current: current.data });
-              }}
-            >
-              {value.currentRevisionId
-                ? "基于当前版本新建修订"
-                : "建立第一个固定版本"}
-            </Button>
-          )}
           <ErrorNotice error={current.error} />
           <details
             className={classes.disclosure}
@@ -348,10 +384,8 @@ export function AssetDetails({
             </Stack>
           </details>
           {(value.description || value.tags?.length) && (
-            <div>
-              <Text size="sm" fw={500}>
-                检索说明
-              </Text>
+            <details className={classes.disclosure}>
+              <summary>检索信息与标签</summary>
               <Text size="sm" className={classes.definition}>
                 {value.description || "未填写"}
               </Text>
@@ -360,16 +394,7 @@ export function AssetDetails({
                   <Badge key={tag}>{tag}</Badge>
                 ))}
               </Group>
-            </div>
-          )}
-          {active && (
-            <Button
-              variant="subtle"
-              className={classes.secondaryAction}
-              onClick={() => setArchive(value)}
-            >
-              归档资产
-            </Button>
+            </details>
           )}
         </Stack>
       </div>

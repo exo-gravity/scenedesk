@@ -409,26 +409,53 @@ function SceneCanvasSession({
           wrap="nowrap"
         >
           {toolbar}
-          <Text
-            size="xs"
-            role="status"
-            aria-live="polite"
-            className={classes.saveStatus}
-            hidden={preference.mode !== "canvas"}
-          >
-            画布 · {canvasSaveLabel(state)}
-            {state.local ? ` · 服务器版本 ${state.local.base.revision}` : ""}
-          </Text>
+          <Popover width={280} position="bottom-end">
+            <Popover.Target>
+              <Button
+                variant="subtle"
+                size="xs"
+                className={classes.saveStatus}
+                hidden={preference.mode !== "canvas"}
+                aria-label={`画布保存状态：${canvasSaveLabel(state)}`}
+              >
+                <span role="status" aria-live="polite">
+                  {canvasSaveLabel(state)}
+                </span>
+              </Button>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Stack gap="xs">
+                <Text size="sm">画布 · {canvasSaveLabel(state)}</Text>
+                <Text size="xs" c="dimmed">
+                  {state.local
+                    ? `服务器版本 ${state.local.base.revision}`
+                    : "正在读取服务器版本"}
+                </Text>
+                <Button
+                  size="xs"
+                  disabled={readOnly || state.phase === "conflict"}
+                  loading={state.phase === "saving"}
+                  onClick={() => void controller.save()}
+                >
+                  保存画布
+                </Button>
+              </Stack>
+            </Popover.Dropdown>
+          </Popover>
           <Group gap="xs">
-            <Button
-              size="xs"
-              hidden={preference.mode !== "canvas"}
-              disabled={readOnly || state.phase === "conflict"}
-              loading={state.phase === "saving"}
-              onClick={() => void controller.save()}
-            >
-              保存画布
-            </Button>
+            {preference.mode === "canvas" &&
+              (state.dirty ||
+                state.hasInvalidInput ||
+                state.phase === "saving") && (
+                <Button
+                  size="xs"
+                  disabled={readOnly || state.phase === "conflict"}
+                  loading={state.phase === "saving"}
+                  onClick={() => void controller.save()}
+                >
+                  保存画布
+                </Button>
+              )}
             <Button
               size="xs"
               hidden={preference.mode !== "canvas"}

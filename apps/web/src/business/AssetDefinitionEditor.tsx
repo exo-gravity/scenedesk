@@ -213,123 +213,153 @@ export function AssetDefinitionEditor({
               change({ ...input, description: e.currentTarget.value })
             }
           />
-          <Fieldset legend="主参考" variant="unstyled">
-            <AssetReferenceFields
-              path={path}
-              projectId={asset.projectId}
-              value={input.references}
-              onChange={(references) => change({ ...input, references })}
-              purpose={
-                asset.kind === "character"
-                  ? "identity"
-                  : asset.kind === "location"
-                    ? "location"
-                    : asset.kind === "voice"
-                      ? "voice"
-                      : asset.kind === "prop"
-                        ? "prop"
-                        : "style"
-              }
-            />
-          </Fieldset>
-          {(asset.kind === "voice" || asset.kind === "character") && (
-            <Textarea
-              label="声音说明"
-              value={input.voiceDescription ?? ""}
-              onChange={(e) =>
-                change({ ...input, voiceDescription: e.currentTarget.value })
-              }
-              autosize
-              minRows={2}
-              maxLength={20000}
-            />
-          )}
-          {asset.kind === "character" && (
-            <>
-              <FixedVoiceField
+          <details className={classes.editorSection} open>
+            <summary>
+              主参考 <span>{input.references.length} 项</span>
+            </summary>
+            <div className={classes.sectionBody}>
+              <AssetReferenceFields
                 path={path}
                 projectId={asset.projectId}
-                value={input.defaultVoiceAssetRevisionId}
-                onChange={(id) => {
-                  const next = { ...input };
-                  if (id) next.defaultVoiceAssetRevisionId = id;
-                  else delete next.defaultVoiceAssetRevisionId;
-                  change(next);
-                }}
+                value={input.references}
+                onChange={(references) => change({ ...input, references })}
+                purpose={
+                  asset.kind === "character"
+                    ? "identity"
+                    : asset.kind === "location"
+                      ? "location"
+                      : asset.kind === "voice"
+                        ? "voice"
+                        : asset.kind === "prop"
+                          ? "prop"
+                          : "style"
+                }
               />
-              <Text fw={600}>并存造型</Text>
-              {(input.looks ?? []).map((look, index) => (
-                <Stack gap="md" key={look.id} className={classes.look}>
-                  <Group justify="space-between">
-                    <Badge>造型 {index + 1}</Badge>
-                    <ActionIcon
-                      variant="subtle"
-                      aria-label={`移除造型 ${look.label || index + 1}`}
-                      onClick={() =>
+            </div>
+          </details>
+          {(asset.kind === "voice" || asset.kind === "character") && (
+            <details className={classes.editorSection}>
+              <summary>
+                声音{" "}
+                <span>
+                  {input.defaultVoiceAssetRevisionId
+                    ? "已固定声线"
+                    : input.voiceDescription
+                      ? "已有声音说明"
+                      : "未设置"}
+                </span>
+              </summary>
+              <Stack gap="md" className={classes.sectionBody}>
+                <Textarea
+                  label="声音说明"
+                  value={input.voiceDescription ?? ""}
+                  onChange={(e) =>
+                    change({
+                      ...input,
+                      voiceDescription: e.currentTarget.value,
+                    })
+                  }
+                  autosize
+                  minRows={2}
+                  maxLength={20000}
+                />
+                {asset.kind === "character" && (
+                  <FixedVoiceField
+                    path={path}
+                    projectId={asset.projectId}
+                    value={input.defaultVoiceAssetRevisionId}
+                    onChange={(id) => {
+                      const next = { ...input };
+                      if (id) next.defaultVoiceAssetRevisionId = id;
+                      else delete next.defaultVoiceAssetRevisionId;
+                      change(next);
+                    }}
+                  />
+                )}
+              </Stack>
+            </details>
+          )}
+          {asset.kind === "character" && (
+            <details className={classes.editorSection}>
+              <summary>
+                并存造型 <span>{input.looks?.length ?? 0} 种</span>
+              </summary>
+              <div className={classes.sectionBody}>
+                {(input.looks ?? []).map((look, index) => (
+                  <Stack gap="md" key={look.id} className={classes.look}>
+                    <Group justify="space-between">
+                      <Badge>造型 {index + 1}</Badge>
+                      <ActionIcon
+                        variant="subtle"
+                        aria-label={`移除造型 ${look.label || index + 1}`}
+                        onClick={() =>
+                          change({
+                            ...input,
+                            looks: input.looks!.filter(
+                              (item) => item.id !== look.id,
+                            ),
+                          })
+                        }
+                      >
+                        <Trash size={18} />
+                      </ActionIcon>
+                    </Group>
+                    <TextInput
+                      label="造型名称"
+                      value={look.label}
+                      maxLength={160}
+                      onChange={(e) => {
+                        const label = e.currentTarget.value;
                         change({
                           ...input,
-                          looks: input.looks!.filter(
-                            (item) => item.id !== look.id,
+                          looks: input.looks!.map((item) =>
+                            item.id === look.id ? { ...item, label } : item,
+                          ),
+                        });
+                      }}
+                    />
+                    <AssetReferenceFields
+                      path={path}
+                      projectId={asset.projectId}
+                      value={look.references}
+                      onChange={(references) =>
+                        change({
+                          ...input,
+                          looks: input.looks!.map((item) =>
+                            item.id === look.id
+                              ? { ...item, references }
+                              : item,
                           ),
                         })
                       }
-                    >
-                      <Trash size={18} />
-                    </ActionIcon>
-                  </Group>
-                  <TextInput
-                    label="造型名称"
-                    value={look.label}
-                    maxLength={160}
-                    onChange={(e) => {
-                      const label = e.currentTarget.value;
-                      change({
-                        ...input,
-                        looks: input.looks!.map((item) =>
-                          item.id === look.id ? { ...item, label } : item,
-                        ),
-                      });
-                    }}
-                  />
-                  <AssetReferenceFields
-                    path={path}
-                    projectId={asset.projectId}
-                    value={look.references}
-                    onChange={(references) =>
-                      change({
-                        ...input,
-                        looks: input.looks!.map((item) =>
-                          item.id === look.id ? { ...item, references } : item,
-                        ),
-                      })
-                    }
-                    purpose="look"
-                  />
-                </Stack>
-              ))}
-              <Button
-                leftSection={<Plus size={16} />}
-                disabled={(input.looks?.length ?? 0) >= 100}
-                onClick={() =>
-                  change({
-                    ...input,
-                    looks: [
-                      ...(input.looks ?? []),
-                      {
-                        id: crypto.randomUUID(),
-                        revision: 1,
-                        label: "",
-                        references: [],
-                      },
-                    ],
-                  })
-                }
-              >
-                添加另一种造型
-              </Button>
-            </>
+                      purpose="look"
+                    />
+                  </Stack>
+                ))}
+                <Button
+                  leftSection={<Plus size={16} />}
+                  disabled={(input.looks?.length ?? 0) >= 100}
+                  onClick={() =>
+                    change({
+                      ...input,
+                      looks: [
+                        ...(input.looks ?? []),
+                        {
+                          id: crypto.randomUUID(),
+                          revision: 1,
+                          label: "",
+                          references: [],
+                        },
+                      ],
+                    })
+                  }
+                >
+                  添加另一种造型
+                </Button>
+              </div>
+            </details>
           )}
-          <Group>
+          <Group className={classes.editorActions}>
             <Button
               variant="filled"
               type="submit"

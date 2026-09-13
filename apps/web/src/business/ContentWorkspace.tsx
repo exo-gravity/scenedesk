@@ -1,6 +1,8 @@
 import { ProposalDetail, ProposalWorkspace } from "./ProposalWorkspace";
 import { SceneAssistant } from "./SceneAssistant";
 import { CreativeWorkspace } from "./CreativeWorkspace";
+import { ProductionSettings } from "./ProductionSettings";
+import { SceneIndexPreview } from "./SceneIndexPreview";
 import { useEffect, useRef, useState } from "react";
 import {
   ActionIcon,
@@ -9,10 +11,13 @@ import {
   Button,
   Group,
   Loader,
+  Menu,
   Modal,
   Select,
   Stack,
   Switch,
+  Tabs,
+  Tooltip,
   Text,
   Textarea,
 } from "@mantine/core";
@@ -24,6 +29,9 @@ import {
   FilmSlate,
   PencilSimple,
   Plus,
+  Sparkle,
+  X,
+  DotsThree,
 } from "@phosphor-icons/react";
 import { ApiError, useCommand, useList, useResource, type Schema } from "./api";
 import { Empty, ErrorNotice, projectPath, SectionHeading } from "./common";
@@ -72,6 +80,10 @@ export function ContentWorkspace({
     linkedShot = linked.get("shot"),
     linkedRevision = linked.get("revision");
   const scriptView = view === "script" || !!(linkedRevision && !linkedShot);
+  const [scriptTab, setScriptTab] = useState<string | null>(
+    linked.get("tab") === "settings" ? "settings" : "text",
+  );
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [scriptMounted, setScriptMounted] = useState(scriptView),
     [scriptEpoch, setScriptEpoch] = useState(0),
     [scriptOpening, setScriptOpening] = useState(false),
@@ -245,46 +257,53 @@ export function ContentWorkspace({
     const index = siblings.findIndex((s) => s.id === entity.id),
       name = "label" in entity ? entity.label : entity.title;
     return (
-      <Group gap="xs" wrap="wrap">
-        <ActionIcon
-          variant="subtle"
-          aria-label={`编辑${name}`}
-          disabled={!enabled}
-          onClick={() => setEditing({ kind, id: entity.id, parentId })}
-        >
-          <PencilSimple size={18} />
-        </ActionIcon>
-        <ActionIcon
-          variant="subtle"
-          aria-label={`上移${name}`}
-          disabled={!enabled || index === 0 || command.isPending}
-          onClick={() => move(kind, parentId, entity.id, -1)}
-        >
-          <ArrowUp size={18} />
-        </ActionIcon>
-        <ActionIcon
-          variant="subtle"
-          aria-label={`下移${name}`}
-          disabled={
-            !enabled || index === siblings.length - 1 || command.isPending
-          }
-          onClick={() => move(kind, parentId, entity.id, 1)}
-        >
-          <ArrowDown size={18} />
-        </ActionIcon>
-        <ActionIcon
-          variant="subtle"
-          aria-label={`${entity.status === "active" ? "归档" : "恢复"}${name}`}
-          disabled={!enabled}
-          onClick={() => setArchive({ kind, entity })}
-        >
-          {entity.status === "active" ? (
-            <Archive size={18} />
-          ) : (
-            <ArrowCounterClockwise size={18} />
-          )}
-        </ActionIcon>
-      </Group>
+      <Menu position="bottom-end" withinPortal>
+        <Menu.Target>
+          <ActionIcon variant="subtle" aria-label={`管理${name}`}>
+            <DotsThree size={20} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            leftSection={<PencilSimple size={16} />}
+            disabled={!enabled}
+            onClick={() => setEditing({ kind, id: entity.id, parentId })}
+          >
+            编辑{name}
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<ArrowUp size={16} />}
+            disabled={!enabled || index === 0 || command.isPending}
+            onClick={() => move(kind, parentId, entity.id, -1)}
+          >
+            上移{name}
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<ArrowDown size={16} />}
+            disabled={
+              !enabled || index === siblings.length - 1 || command.isPending
+            }
+            onClick={() => move(kind, parentId, entity.id, 1)}
+          >
+            下移{name}
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Item
+            leftSection={
+              entity.status === "active" ? (
+                <Archive size={16} />
+              ) : (
+                <ArrowCounterClockwise size={16} />
+              )
+            }
+            disabled={!enabled}
+            onClick={() => setArchive({ kind, entity })}
+          >
+            {entity.status === "active" ? "归档" : "恢复"}
+            {name}
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     );
   };
   return (
@@ -391,11 +410,27 @@ export function ContentWorkspace({
                 </div>
                 {episodeScenes.map((sc, index) => (
                   <article key={sc.id} className={layout.sceneRow}>
+                    <SceneIndexPreview
+                      path={path}
+                      href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}`}
+                      shot={tree.shots.find(
+                        (sh) =>
+                          sh.sceneId === sc.id &&
+                          sh.status === "active" &&
+                          !!sh.currentTakeId,
+                      )}
+                      title={sc.title}
+                    />
                     <div className={layout.sceneName}>
                       <Text fw={600}>
                         {String(index + 1).padStart(2, "0")} · {sc.title}
                       </Text>
-                      <Text size="sm" c="dimmed">
+                      {sc.summary && (
+                        <Text size="sm" c="dimmed" lineClamp={2} my="sm">
+                          {sc.summary}
+                        </Text>
+                      )}
+                      <Text size="xs" c="dimmed">
                         {
                           tree.shots.filter(
                             (s) => s.sceneId === sc.id && s.status === "active",
@@ -407,11 +442,11 @@ export function ContentWorkspace({
                           : ""}
                       </Text>
                     </div>
-                    <Text size="xs" c="dimmed" className={layout.sceneState}>
-                      {sc.status === "archived" || ep.status === "archived"
-                        ? "已归档"
-                        : "要求版本 " + sc.revision}
-                    </Text>
+                    {(sc.status === "archived" || ep.status === "archived") && (
+                      <Text size="xs" c="dimmed" className={layout.sceneState}>
+                        已归档
+                      </Text>
+                    )}
                     <Group gap="sm" className={layout.sceneActions}>
                       <Button
                         size="xs"
@@ -427,6 +462,7 @@ export function ContentWorkspace({
                       </Button>
                       <Button
                         size="sm"
+                        variant="filled"
                         component="a"
                         href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}`}
                       >
@@ -622,7 +658,11 @@ export function ContentWorkspace({
         </section>
       </div>
       {(scriptMounted || scriptView) && (
-        <div hidden={!scriptView} className={layout.scriptWorkspace}>
+        <div
+          hidden={!scriptView}
+          className={layout.scriptWorkspace}
+          data-assistant={(assistantOpen && scriptTab === "text") || undefined}
+        >
           <section className={layout.scriptMain} aria-label="剧本正文与版本">
             {" "}
             <SectionHeading
@@ -634,24 +674,39 @@ export function ContentWorkspace({
               }
               action={
                 <Group gap="sm">
+                  <Menu position="bottom-end" withinPortal>
+                    <Menu.Target>
+                      <ActionIcon aria-label="剧本操作" variant="subtle">
+                        <DotsThree size={22} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item onClick={() => setProposalOpen(true)}>
+                        提案历史与导入
+                      </Menu.Item>
+                      <Menu.Item onClick={() => setCreativeOpen(true)}>
+                        核对创作依据
+                      </Menu.Item>
+                      <Menu.Item
+                        component="a"
+                        href={`#/app/t/${tenantId}/p/${projectId}/content`}
+                      >
+                        返回场次
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
                   <Button
-                    component="a"
-                    href={`#/app/t/${tenantId}/p/${projectId}/content`}
-                    variant="subtle"
+                    variant={assistantOpen ? "default" : "filled"}
+                    leftSection={<Sparkle size={16} />}
+                    aria-expanded={assistantOpen}
+                    onClick={() => {
+                      setScriptTab("text");
+                      setAssistantOpen(
+                        scriptTab === "text" ? !assistantOpen : true,
+                      );
+                    }}
                   >
-                    返回场次
-                  </Button>
-                  <Button
-                    variant="subtle"
-                    onClick={() => setCreativeOpen(true)}
-                  >
-                    创作依据
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={() => setProposalOpen(true)}
-                  >
-                    CSV 与提案
+                    整理为镜头
                   </Button>
                   {!scriptView && (
                     <Button
@@ -667,33 +722,44 @@ export function ContentWorkspace({
                 </Group>
               }
             />
-            {(scriptOpening || scripts.isPending) && (
-              <Loader aria-label="正在读取已保存的剧本版本" />
-            )}
-            {scripts.data &&
-              (active ? (
-                <ScriptEditor
-                  key={scriptEpoch}
-                  presentation="document"
-                  tree={tree}
-                  scripts={scripts.data}
-                  path={path}
-                  initialHistoryId={!linkedShot ? linkedRevision : null}
-                  done={() => {
-                    setScriptOpening(true);
-                    // A successful write can precede query invalidation. Only reopen
-                    // the document after both saved roots have been read back.
-                    void Promise.all([content.refetch(), scripts.refetch()])
-                      .then(([nextContent, nextScripts]) => {
-                        if (!nextContent.isError && !nextScripts.isError)
-                          setScriptEpoch((epoch) => epoch + 1);
-                      })
-                      .finally(() => setScriptOpening(false));
-                  }}
-                />
-              ) : (
-                <ScriptArchive scripts={scripts.data} />
-              ))}
+            <Tabs value={scriptTab} onChange={setScriptTab} mb="xl">
+              <Tabs.List>
+                <Tabs.Tab value="text">剧本正文</Tabs.Tab>
+                <Tabs.Tab value="settings">故事设定</Tabs.Tab>
+              </Tabs.List>
+            </Tabs>
+            <div hidden={scriptTab !== "settings"}>
+              <StorySettings path={path} active={active} />
+            </div>
+            <div hidden={scriptTab !== "text"}>
+              {(scriptOpening || scripts.isPending) && (
+                <Loader aria-label="正在读取已保存的剧本版本" />
+              )}
+              {scripts.data &&
+                (active ? (
+                  <ScriptEditor
+                    key={scriptEpoch}
+                    presentation="document"
+                    tree={tree}
+                    scripts={scripts.data}
+                    path={path}
+                    initialHistoryId={!linkedShot ? linkedRevision : null}
+                    done={() => {
+                      setScriptOpening(true);
+                      // A successful write can precede query invalidation. Only reopen
+                      // the document after both saved roots have been read back.
+                      void Promise.all([content.refetch(), scripts.refetch()])
+                        .then(([nextContent, nextScripts]) => {
+                          if (!nextContent.isError && !nextScripts.isError)
+                            setScriptEpoch((epoch) => epoch + 1);
+                        })
+                        .finally(() => setScriptOpening(false));
+                    }}
+                  />
+                ) : (
+                  <ScriptArchive scripts={scripts.data} />
+                ))}
+            </div>
             <div className={layout.basis}>
               <div>
                 <Text fw={600}>创作依据</Text>
@@ -706,11 +772,25 @@ export function ContentWorkspace({
               </Button>
             </div>
           </section>
-          <aside className={layout.scriptAssistant} aria-label="剧本提案助手">
+          <aside
+            hidden={!assistantOpen || scriptTab !== "text"}
+            className={layout.scriptAssistant}
+            aria-label="剧本提案助手"
+          >
             <div className={layout.assistantHeader}>
-              <Text component="h2" className={layout.episodeTitle}>
-                提案助手
-              </Text>
+              <Group justify="space-between">
+                <Text component="h2" className={layout.episodeTitle}>
+                  提案助手
+                </Text>
+                <Tooltip label="收起提案助手">
+                  <ActionIcon
+                    aria-label="收起提案助手"
+                    onClick={() => setAssistantOpen(false)}
+                  >
+                    <X size={16} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
               <Text size="xs" c="dimmed">
                 选定来源 · 核对建议 · 明确采纳
               </Text>
@@ -764,7 +844,12 @@ export function ContentWorkspace({
                 projectId={projectId}
                 sceneId={scriptTargetId}
                 active={active}
-                visible={scriptView && !scriptProposalId}
+                visible={
+                  scriptView &&
+                  assistantOpen &&
+                  scriptTab === "text" &&
+                  !scriptProposalId
+                }
                 onOpenProposal={setScriptProposalId}
               />
             ) : (
@@ -884,6 +969,26 @@ export function ContentWorkspace({
         )}
       </Modal>
     </>
+  );
+}
+function StorySettings({ path, active }: { path: string; active: boolean }) {
+  const production = useResource<Schema<"Production">>(`${path}/production`);
+  if (production.isError)
+    return (
+      <ErrorNotice
+        error={production.error}
+        retry={() => void production.refetch()}
+      />
+    );
+  if (!production.data) return <Loader aria-label="正在读取故事设定" />;
+  return (
+    <ProductionSettings
+      key={production.data.id}
+      production={production.data}
+      path={`${path}/production`}
+      active={active}
+      presentation="summary"
+    />
   );
 }
 function ScriptArchive({ scripts }: { scripts: Schema<"ScriptRevision">[] }) {

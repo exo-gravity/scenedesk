@@ -6,6 +6,7 @@ import {
   Group,
   Loader,
   Modal,
+  Menu,
   Select,
   Stack,
   Text,
@@ -300,21 +301,29 @@ function ShotProduction({
           此镜头或上级内容已归档，可查看历史。恢复后再建立候选或修改采用。
         </Alert>
       )}
-      <Group justify="space-between" className={classes.previewHeader}>
-        <Group>
+      <Group
+        justify="space-between"
+        className={classes.previewHeader}
+        wrap="nowrap"
+      >
+        <Group className={classes.previewIdentity} gap="sm" wrap="nowrap">
+          <Text component="h1" className={classes.title}>
+            {shot.label}
+          </Text>
           <Text
-            component="h1"
-            className={classes.title}
-            lineClamp={2}
+            size="sm"
+            c="dimmed"
+            lineClamp={1}
             title={shot.spec.intent}
+            className={classes.shotSummary}
           >
-            {shot.label} · {shot.spec.intent}
+            {shot.spec.intent}
           </Text>
           <StatusLabel>
             {shot.currentTakeId ? "当前采用" : "尚未采用"}
           </StatusLabel>
         </Group>
-        <Group>
+        <Group gap={4} wrap="nowrap">
           <Button
             size="xs"
             variant="subtle"
@@ -325,20 +334,30 @@ function ShotProduction({
           >
             候选与历史
           </Button>
+          <Menu position="bottom-end">
+            <Menu.Target>
+              <Button size="xs" variant="subtle">
+                镜头操作
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                disabled={!take}
+                onClick={() =>
+                  openDock(dock === "feedback" ? null : "feedback")
+                }
+              >
+                候选意见
+              </Menu.Item>
+              <Menu.Item component="a" href={contentHref}>
+                镜头要求与历史
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
           <Button
             size="xs"
-            variant="subtle"
-            aria-pressed={dock === "feedback"}
-            disabled={!take}
-            onClick={() => openDock(dock === "feedback" ? null : "feedback")}
-          >
-            候选意见
-          </Button>
-          <Button size="xs" variant="subtle" component="a" href={contentHref}>
-            镜头要求与历史
-          </Button>
-          <Button
-            leftSection={<Plus size={16} />}
+            variant="default"
+            leftSection={<Plus size={15} />}
             disabled={!active}
             onClick={() => openDock("media")}
           >

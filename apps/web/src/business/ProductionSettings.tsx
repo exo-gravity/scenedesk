@@ -3,6 +3,7 @@ import {
   Alert,
   Button,
   Fieldset,
+  Group,
   Stack,
   Text,
   TextInput,
@@ -14,8 +15,14 @@ import { DraftNotice, useContentDraft } from "./content-drafts";
 import { FixedAssetLabel, FixedAssetList } from "./CreativeAssetFields";
 import { reconcileContent } from "./content-reconcile";
 import classes from "./workbench.module.css";
+import layout from "./content.module.css";
 type Production = Schema<"Production">;
-type Props = { production: Production; path: string; active: boolean };
+type Props = {
+  production: Production;
+  path: string;
+  active: boolean;
+  presentation?: "editor" | "summary";
+};
 export function ProductionSettings(props: Props) {
   const [accepted, setAccepted] = useState<Production>(),
     [epoch, setEpoch] = useState(0);
@@ -43,6 +50,7 @@ function ProductionEditor({
   path,
   active,
   saved,
+  presentation = "editor",
 }: Props & { saved: (value: Production) => void }) {
   const source = {
     title: production.title,
@@ -60,10 +68,12 @@ function ProductionEditor({
   const setText = (key: "title" | "brief", text: string) =>
     draft.setValue((v) => ({ ...v, input: { ...v.input, [key]: text } }));
   const tenantPath = path.split("/projects/")[0]!;
+  const [editing, setEditing] = useState(presentation === "editor");
+  const showEditor = editing || !!draft.recovered || conflict;
   if (draft.committed) return <DraftNotice draft={draft} />;
   return (
     <form
-      className={classes.form}
+      className={`${classes.form} ${presentation === "summary" ? layout.storySettings : ""}`}
       onSubmit={(event) => {
         event.preventDefault();
         if (
@@ -84,6 +94,43 @@ function ProductionEditor({
     >
       <Stack>
         <DraftNotice draft={draft} />
+        <Group justify="space-between">
+          <Text size="xs" c="dimmed">
+            故事设定 · r{production.revision}
+            {draft.dirty ? " · 本机有修改" : ""}
+          </Text>
+          {presentation === "summary" && (
+            <Button
+              disabled={!draft.ready || !!draft.recovered || command.isPending}
+              variant="subtle"
+              onClick={() => setEditing(!editing)}
+            >
+              {showEditor ? "阅读设定" : "编辑设定"}
+            </Button>
+          )}
+        </Group>
+        {!showEditor && (
+          <article className={layout.readingPaper}>
+            <Text component="h2" className={layout.storyTitle}>
+              {input.title}
+            </Text>
+            <div className={layout.readingText}>
+              {input.brief || "写下这个故事的主题、人物关系与画面风格。"}
+            </div>
+            <div className={layout.storyReferences}>
+              <Text fw={600} mb="md">
+                默认参考
+              </Text>
+              {input.defaultAssetRevisionIds.length ? (
+                input.defaultAssetRevisionIds.map((id) => (
+                  <FixedAssetLabel key={id} path={tenantPath} id={id} />
+                ))
+              ) : (
+                <Text c="dimmed">尚未设置默认资产</Text>
+              )}
+            </div>
+          </article>
+        )}
         {conflict && (
           <Alert title="剧目设定已更新">
             <Text>
@@ -110,6 +157,7 @@ function ProductionEditor({
           </Alert>
         )}
         <Fieldset
+          hidden={!showEditor}
           variant="unstyled"
           disabled={
             !active || !draft.ready || !!draft.recovered || command.isPending
@@ -146,7 +194,7 @@ function ProductionEditor({
           </Stack>
         </Fieldset>
         <ErrorNotice error={command.error} />
-        {active && (
+        {active && showEditor && (
           <Button
             variant="filled"
             type="submit"

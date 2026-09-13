@@ -1,0 +1,36 @@
+.composer {
+  width: min(900px, calc(100% - 40px));
+  align-self: center;
+  flex-basis: 208px;
+  padding: 14px 18px;
+  border-color: var(--ws-border);
+  box-shadow: var(--mantine-shadow-xs);
+}
+.composer:has(.generationTypes [role="tab"][data-active]) {
+  flex-basis: min(330px, 36dvh);
+}
+.composer[data-collapsed] {
+  flex-basis: 44px;
+}
+.generationTypes {
+  min-width: 0;
+}
+.generationTypes :global(.mantine-Tabs-list) {
+  gap: 8px;
+}
+.generationTypes :global(.mantine-Tabs-tab) {
+  min-height: 30px;
+  padding: 5px 16px;
+  font-size: var(--mantine-font-size-xs);
+}
+.generationTypes :global(.mantine-Tabs-panel) {
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .composer {
+    width: calc(100% - 16px);
+    padding: 12px;
+    flex-basis: auto;
+    max-height: 55dvh;
+  }
+}

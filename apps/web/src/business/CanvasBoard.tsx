@@ -18,6 +18,8 @@ import {
   Background,
   useNodesInitialized,
   useReactFlow,
+  useViewport,
+  useStore,
   Handle,
   Position,
   ReactFlow,
@@ -40,6 +42,7 @@ import {
   Text,
   Textarea,
   TextInput,
+  UnstyledButton,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import {
@@ -237,6 +240,10 @@ export function CanvasBoard({
     [query, setQuery] = useState(""),
     [listExpanded, setListExpanded] = useState(false),
     [groupsExpanded, setGroupsExpanded] = useState(false);
+  const [addPoint, setAddPoint] = useState<{
+    screen: { x: number; y: number };
+    canvas: { x: number; y: number };
+  } | null>(null);
   const [localFocus, setLocalFocus] = useState(focusRequest);
   useEffect(() => setLocalFocus(focusRequest), [focusRequest]);
   const finishFocus = useCallback(
@@ -309,22 +316,20 @@ export function CanvasBoard({
   );
   const displayedNodes: FlowNode[] = [
     ...nodes,
-    ...(uploads?.rows ?? []).map(
-      (row): UploadFlowNode => ({
-        id: `upload:${row.id}`,
-        type: "upload",
-        data: { row },
-        position: row.position,
-        width: 320,
-        ...(measurements[`upload:${row.id}`]
-          ? { measured: measurements[`upload:${row.id}`] }
-          : {}),
-        selectable: false,
-        draggable: false,
-        connectable: false,
-        focusable: false,
-      }),
-    ),
+    ...(uploads?.rows ?? []).map((row): UploadFlowNode => ({
+      id: `upload:${row.id}`,
+      type: "upload",
+      data: { row },
+      position: row.position,
+      width: 320,
+      ...(measurements[`upload:${row.id}`]
+        ? { measured: measurements[`upload:${row.id}`] }
+        : {}),
+      selectable: false,
+      draggable: false,
+      connectable: false,
+      focusable: false,
+    })),
   ];
   const edges = useMemo(
     () =>
@@ -493,6 +498,74 @@ export function CanvasBoard({
     changePreference({ selectedNodeIds: ids });
     setLocalFocus({ ids, nonce: Date.now() });
   };
+  const addItems = (point?: { x: number; y: number }) => {
+    const choose = (kind: CanvasNode["kind"]) => {
+      add(kind, point);
+      setAddPoint(null);
+    };
+    return (
+      <>
+        <Menu.Item
+          leftSection={<TextT size={16} />}
+          disabled={readOnly}
+          onClick={() => choose("text")}
+        >
+          文字
+        </Menu.Item>
+        <Menu.Item
+          leftSection={<ImageSquare size={16} />}
+          disabled={readOnly}
+          onClick={() => choose("image")}
+        >
+          图片草稿
+        </Menu.Item>
+        <Menu.Item
+          leftSection={<FilmStrip size={16} />}
+          disabled={readOnly}
+          onClick={() => choose("video")}
+        >
+          视频草稿
+        </Menu.Item>
+        <Menu.Item
+          leftSection={<MusicNotes size={16} />}
+          disabled={readOnly}
+          onClick={() => choose("audio")}
+        >
+          声音草稿
+        </Menu.Item>
+        <Menu.Item disabled={readOnly} onClick={addMedia}>
+          添加素材
+        </Menu.Item>
+        {uploads && (
+          <FileButton
+            multiple
+            accept={importAccept}
+            onChange={(files) => {
+              uploads.begin(
+                files,
+                point ??
+                  flow.current?.screenToFlowPosition({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                  }) ?? { x: 80, y: 80 },
+              );
+              setAddPoint(null);
+            }}
+          >
+            {(props) => (
+              <Menu.Item
+                {...props}
+                closeMenuOnClick={false}
+                disabled={readOnly || uploads.readOnly || uploads.busy}
+              >
+                上传文件
+              </Menu.Item>
+            )}
+          </FileButton>
+        )}
+      </>
+    );
+  };
   const viewportTools = (
     <Group
       className={classes.viewportTools}
@@ -571,70 +644,69 @@ export function CanvasBoard({
           <CornersOut size={16} />
         </Button>
       </Group>
+      <Text
+        size="xs"
+        className={classes.canvasCount}
+        title={`${document.nodes.length} / 2,000 节点 · ${document.edges.length} / 5,000 引用 · 缩放 ${canvasZoomLabel(preference.viewport.zoom)}`}
+      >
+        {document.nodes.length} 项
+      </Text>
       <Menu position="top-start" keepMounted>
         <Menu.Target>
           <Button size="xs" leftSection={<Plus size={16} />}>
             添加
           </Button>
         </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Item
-            leftSection={<TextT size={16} />}
-            disabled={readOnly}
-            onClick={() => add("text")}
-          >
-            文字
-          </Menu.Item>
-          <Menu.Item
-            leftSection={<ImageSquare size={16} />}
-            disabled={readOnly}
-            onClick={() => add("image")}
-          >
-            图片草稿
-          </Menu.Item>
-          <Menu.Item
-            leftSection={<FilmStrip size={16} />}
-            disabled={readOnly}
-            onClick={() => add("video")}
-          >
-            视频草稿
-          </Menu.Item>
-          <Menu.Item
-            leftSection={<MusicNotes size={16} />}
-            disabled={readOnly}
-            onClick={() => add("audio")}
-          >
-            声音草稿
-          </Menu.Item>
-          <Menu.Item disabled={readOnly} onClick={addMedia}>
-            添加素材
-          </Menu.Item>
-          {uploads && (
-            <FileButton
-              multiple
-              accept={importAccept}
-              onChange={(files) =>
-                uploads.begin(
-                  files,
-                  flow.current?.screenToFlowPosition({
-                    x: window.innerWidth / 2,
-                    y: window.innerHeight / 2,
-                  }) ?? { x: 80, y: 80 },
-                )
-              }
-            >
-              {(props) => (
-                <Menu.Item
-                  {...props}
-                  disabled={readOnly || uploads.readOnly || uploads.busy}
-                >
-                  上传文件
-                </Menu.Item>
-              )}
-            </FileButton>
-          )}
-        </Menu.Dropdown>
+        <Menu.Dropdown>{addItems()}</Menu.Dropdown>
       </Menu>
+    </Group>
+  );
+  const selectionActions = (
+    <Group gap="xs">
+      <CanvasContinueCreation
+        controller={controller}
+        selected={selected}
+        readOnly={readOnly}
+        focus={focus}
+      />
+      <Button
+        size="xs"
+        disabled={!selected.length || readOnly}
+        leftSection={<Copy size={14} />}
+        onClick={duplicate}
+      >
+        复制
+      </Button>
+      <Button
+        size="xs"
+        disabled={!selected.length || readOnly}
+        leftSection={<Trash size={14} />}
+        onClick={remove}
+      >
+        移除节点
+      </Button>
+      {selected.length > 1 && (
+        <Button
+          size="xs"
+          disabled={readOnly}
+          leftSection={<SelectionAll size={14} />}
+          onClick={() => {
+            const id = crypto.randomUUID();
+            change({
+              ...document,
+              groups: [
+                ...document.groups,
+                { id, title: `分组 ${document.groups.length + 1}` },
+              ],
+              nodes: document.nodes.map((n) =>
+                selectedSet.has(n.id) ? { ...n, groupId: id } : n,
+              ),
+            });
+          }}
+        >
+          组合
+        </Button>
+      )}
     </Group>
   );
   return (
@@ -715,15 +787,15 @@ export function CanvasBoard({
             onNodeDragStop={() => void controller.save()}
             onConnect={connect}
             onPaneClick={(e) => {
-              if (e.detail === 2 && !readOnly)
-                add(
-                  "text",
-                  flow.current?.screenToFlowPosition({
+              if (e.detail === 2 && !readOnly) {
+                setAddPoint({
+                  screen: { x: e.clientX, y: e.clientY },
+                  canvas: flow.current?.screenToFlowPosition({
                     x: e.clientX,
                     y: e.clientY,
-                  }),
-                );
-              else changePreference({ selectedNodeIds: [] });
+                  }) ?? { x: 80, y: 80 },
+                });
+              }
             }}
             zoomOnDoubleClick={false}
             nodesDraggable={!readOnly && !hand}
@@ -740,63 +812,79 @@ export function CanvasBoard({
             }}
           >
             <MeasuredCanvasFocus request={localFocus} complete={finishFocus} />
+            <CanvasSelectionTools
+              nodes={nodes.filter((node) => selectedSet.has(node.id))}
+            >
+              {selectionActions}
+            </CanvasSelectionTools>
             <Background color="var(--ws-canvas-dot)" gap={24} size={1} />
           </ReactFlow>
           {viewportTools}
+          {addPoint && (
+            <Menu
+              opened
+              onChange={(opened) => {
+                if (!opened) setAddPoint(null);
+              }}
+              position="bottom-start"
+              withinPortal
+            >
+              <Menu.Target>
+                <UnstyledButton
+                  aria-label="在此添加内容"
+                  className={classes.pointAnchor}
+                  style={{ left: addPoint.screen.x, top: addPoint.screen.y }}
+                />
+              </Menu.Target>
+              <Menu.Dropdown>{addItems(addPoint.canvas)}</Menu.Dropdown>
+            </Menu>
+          )}
+          {!document.nodes.length && (
+            <div className={classes.canvasStart}>
+              <Text className={classes.startEyebrow}>自由画布</Text>
+              <Text className={classes.startTitle}>一个想法，从这里展开</Text>
+              <Text size="sm" c="dimmed">
+                放入参考，写下灵感，再逐步创作这一场的画面与声音。
+              </Text>
+              <Group justify="center" gap="sm">
+                <Button
+                  disabled={readOnly}
+                  variant="default"
+                  leftSection={<TextT size={16} />}
+                  onClick={() => add("text")}
+                >
+                  写一个想法
+                </Button>
+                <Button
+                  disabled={readOnly}
+                  variant="default"
+                  leftSection={<ImageSquare size={16} />}
+                  onClick={addMedia}
+                >
+                  导入参考
+                </Button>
+                <Menu position="bottom" keepMounted>
+                  <Menu.Target>
+                    <Button
+                      disabled={readOnly}
+                      leftSection={<Plus size={16} />}
+                    >
+                      开始创作
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>{addItems()}</Menu.Dropdown>
+                </Menu>
+              </Group>
+              <Text size="xs" c="dimmed">
+                也可以拖入文件，或双击空白选择内容类型
+              </Text>
+            </div>
+          )}
         </div>
       )}
-      <Group className={classes.toolbar} justify="space-between">
-        <Text size="xs">
-          {document.nodes.length} / 2,000 节点 · {document.edges.length} / 5,000
-          引用 · 缩放 {canvasZoomLabel(preference.viewport.zoom)}
-        </Text>
-        <Group gap="xs">
-          <CanvasContinueCreation
-            controller={controller}
-            selected={selected}
-            readOnly={readOnly}
-            focus={focus}
-          />
-          <Button
-            size="xs"
-            disabled={!selected.length || readOnly}
-            leftSection={<Copy size={14} />}
-            onClick={duplicate}
-          >
-            复制
-          </Button>
-          <Button
-            size="xs"
-            disabled={!selected.length || readOnly}
-            leftSection={<Trash size={14} />}
-            onClick={remove}
-          >
-            移除节点
-          </Button>
-          {selected.length > 1 && (
-            <Button
-              size="xs"
-              disabled={readOnly}
-              leftSection={<SelectionAll size={14} />}
-              onClick={() => {
-                const id = crypto.randomUUID();
-                change({
-                  ...document,
-                  groups: [
-                    ...document.groups,
-                    { id, title: `分组 ${document.groups.length + 1}` },
-                  ],
-                  nodes: document.nodes.map((n) =>
-                    selectedSet.has(n.id) ? { ...n, groupId: id } : n,
-                  ),
-                });
-              }}
-            >
-              组合
-            </Button>
-          )}
-        </Group>
-      </Group>
+      {narrow && selected.length > 0 && (
+        <div className={classes.mobileSelection}>{selectionActions}</div>
+      )}
       <div className={classes.utilities}>
         <details
           open={showNodeList}
@@ -929,7 +1017,7 @@ export function CanvasBoard({
         )}
         {generation}
       </div>
-      {!document.nodes.length && (
+      {narrow && !document.nodes.length && (
         <div className={classes.empty}>
           <Text fw={600}>从一个想法、一张参考开始</Text>
           <Text c="dimmed">
@@ -1011,7 +1099,9 @@ function CanvasComposer({
     <div className={classes.composer}>
       <div className={classes.composerFields}>
         <Group justify="space-between">
-          <Text fw={600}>当前内容 · {node.title}</Text>
+          <Text fw={600} size="sm">
+            {node.title}
+          </Text>
           <Text size="xs" c="dimmed">
             {node.content.type === "draft" ? "独立创作草稿" : "画布节点"}
           </Text>
@@ -1019,14 +1109,22 @@ function CanvasComposer({
         {nodeActions}
         {node.content.type !== "media" && (
           <Textarea
-            label={node.content.type === "text" ? "文字内容" : "本次提示词"}
+            aria-label={
+              node.content.type === "text" ? "文字内容" : "本次提示词"
+            }
+            placeholder={
+              node.content.type === "text"
+                ? "写下故事、构图或一闪而过的想法…"
+                : "描述本次想要的画面、运动或声音…"
+            }
             value={
               node.content.type === "text"
                 ? node.content.text
                 : node.content.prompt
             }
-            minRows={3}
-            maxRows={6}
+            minRows={2}
+            autosize
+            maxRows={4}
             maxLength={20000}
             disabled={readOnly}
             onCompositionStart={() => composing(true)}
@@ -1045,6 +1143,162 @@ function CanvasComposer({
             }
           />
         )}
+        {node.content.type === "draft" && inbound.length > 0 && (
+          <div className={classes.referenceStrip} aria-label="本次画布参考">
+            {inbound.map((edge) => {
+              const source = document.nodes.find(
+                (item) => item.id === edge.sourceNodeId,
+              );
+              return (
+                <UnstyledButton
+                  key={edge.id}
+                  type="button"
+                  className={classes.referenceChip}
+                  data-disabled={!edge.enabled || undefined}
+                  onClick={() => {
+                    const details = window.document.getElementById(
+                      `references-${node.id}`,
+                    ) as HTMLDetailsElement | null;
+                    if (details) details.open = true;
+                  }}
+                >
+                  {source?.kind === "text" ? (
+                    <TextT size={15} />
+                  ) : source?.kind === "video" ? (
+                    <FilmStrip size={15} />
+                  ) : source?.kind === "audio" ? (
+                    <MusicNotes size={15} />
+                  ) : (
+                    <ImageSquare size={15} />
+                  )}
+                  <span>{source?.title ?? "不可用参考"}</span>
+                  <small>
+                    {edge.enabled
+                      ? edge.purpose === "prompt"
+                        ? "提示"
+                        : referencePurposes[edge.purpose]
+                      : "已停用"}
+                  </small>
+                </UnstyledButton>
+              );
+            })}
+          </div>
+        )}
+        {node.content.type === "draft" && (
+          <details
+            id={`references-${node.id}`}
+            className={classes.referenceSettings}
+          >
+            <summary>
+              参考材料{" "}
+              <span>
+                {inbound.filter((edge) => edge.enabled).length} 项已启用
+              </span>
+            </summary>
+            <Select
+              label="添加画布参考"
+              placeholder="选择文字或已导入素材"
+              searchable
+              clearable
+              value={reference}
+              onChange={setReference}
+              data={document.nodes
+                .filter((n) => n.content.type !== "draft")
+                .map((n) => ({ value: n.id, label: n.title }))}
+              disabled={readOnly}
+            />
+            <Button
+              disabled={!reference || readOnly}
+              onClick={() => {
+                const source = document.nodes.find((n) => n.id === reference);
+                if (!source) return;
+                try {
+                  change({
+                    ...document,
+                    edges: appendCanvasReference(document.edges, {
+                      id: crypto.randomUUID(),
+                      sourceNodeId: source.id,
+                      targetNodeId: node.id,
+                      enabled: true,
+                      purpose:
+                        source.kind === "text"
+                          ? "prompt"
+                          : source.kind === "audio"
+                            ? "voice"
+                            : "composition",
+                    }),
+                  });
+                  setReferenceError(null);
+                } catch (e) {
+                  setReferenceError(
+                    e instanceof Error ? e : new Error("引用未添加。"),
+                  );
+                }
+                setReference(null);
+              }}
+            >
+              添加所选参考
+            </Button>
+            <ErrorNotice error={referenceError} />
+            {inbound.map((edge) => {
+              const source = document.nodes.find(
+                (n) => n.id === edge.sourceNodeId,
+              )!;
+              return (
+                <Group key={edge.id} align="end">
+                  <Select
+                    label={`${source.title} · 用途`}
+                    allowDeselect={false}
+                    value={edge.purpose}
+                    data={
+                      source.kind === "text"
+                        ? [{ value: "prompt", label: "提示" }]
+                        : options(referencePurposes)
+                    }
+                    disabled={readOnly}
+                    onChange={(purpose) =>
+                      change({
+                        ...document,
+                        edges: document.edges.map((e) =>
+                          e.id === edge.id
+                            ? {
+                                ...e,
+                                purpose: purpose as typeof edge.purpose,
+                              }
+                            : e,
+                        ),
+                      })
+                    }
+                  />
+                  <Button
+                    disabled={readOnly}
+                    onClick={() =>
+                      change({
+                        ...document,
+                        edges: document.edges.map((e) =>
+                          e.id === edge.id ? { ...e, enabled: !e.enabled } : e,
+                        ),
+                      })
+                    }
+                  >
+                    {edge.enabled ? "停用" : "启用"}
+                  </Button>
+                  <Button
+                    disabled={readOnly}
+                    onClick={() =>
+                      change({
+                        ...document,
+                        edges: document.edges.filter((e) => e.id !== edge.id),
+                      })
+                    }
+                  >
+                    移除引用
+                  </Button>
+                </Group>
+              );
+            })}
+          </details>
+        )}
         <details
           className={classes.nodeSettings}
           open={
@@ -1053,7 +1307,9 @@ function CanvasComposer({
             ) || undefined
           }
         >
-          <summary>参考与节点设置 · {inbound.length} 项引用</summary>
+          <summary>
+            节点属性 <span>名称、位置与分组</span>
+          </summary>
           <TextInput
             label="节点名称"
             maxLength={160}
@@ -1185,129 +1441,55 @@ function CanvasComposer({
               选中并定位整组
             </Button>
           )}
-          {node.content.type === "draft" && (
-            <>
-              <Select
-                label="添加画布参考"
-                placeholder="选择文字或已导入素材"
-                searchable
-                clearable
-                value={reference}
-                onChange={setReference}
-                data={document.nodes
-                  .filter((n) => n.content.type !== "draft")
-                  .map((n) => ({ value: n.id, label: n.title }))}
-                disabled={readOnly}
-              />
-              <Button
-                disabled={!reference || readOnly}
-                onClick={() => {
-                  const source = document.nodes.find((n) => n.id === reference);
-                  if (!source) return;
-                  try {
-                    change({
-                      ...document,
-                      edges: appendCanvasReference(document.edges, {
-                        id: crypto.randomUUID(),
-                        sourceNodeId: source.id,
-                        targetNodeId: node.id,
-                        enabled: true,
-                        purpose:
-                          source.kind === "text"
-                            ? "prompt"
-                            : source.kind === "audio"
-                              ? "voice"
-                              : "composition",
-                      }),
-                    });
-                    setReferenceError(null);
-                  } catch (e) {
-                    setReferenceError(
-                      e instanceof Error ? e : new Error("引用未添加。"),
-                    );
-                  }
-                  setReference(null);
-                }}
-              >
-                添加所选参考
-              </Button>
-              <ErrorNotice error={referenceError} />
-              {inbound.map((edge) => {
-                const source = document.nodes.find(
-                  (n) => n.id === edge.sourceNodeId,
-                )!;
-                return (
-                  <Group key={edge.id} align="end">
-                    <Select
-                      label={`${source.title} · 用途`}
-                      allowDeselect={false}
-                      value={edge.purpose}
-                      data={
-                        source.kind === "text"
-                          ? [{ value: "prompt", label: "提示" }]
-                          : options(referencePurposes)
-                      }
-                      disabled={readOnly}
-                      onChange={(purpose) =>
-                        change({
-                          ...document,
-                          edges: document.edges.map((e) =>
-                            e.id === edge.id
-                              ? {
-                                  ...e,
-                                  purpose: purpose as typeof edge.purpose,
-                                }
-                              : e,
-                          ),
-                        })
-                      }
-                    />
-                    <Button
-                      disabled={readOnly}
-                      onClick={() =>
-                        change({
-                          ...document,
-                          edges: document.edges.map((e) =>
-                            e.id === edge.id
-                              ? { ...e, enabled: !e.enabled }
-                              : e,
-                          ),
-                        })
-                      }
-                    >
-                      {edge.enabled ? "停用" : "启用"}
-                    </Button>
-                    <Button
-                      disabled={readOnly}
-                      onClick={() =>
-                        change({
-                          ...document,
-                          edges: document.edges.filter((e) => e.id !== edge.id),
-                        })
-                      }
-                    >
-                      移除引用
-                    </Button>
-                  </Group>
-                );
-              })}
-              <Alert
-                title={
-                  node.kind === "image"
-                    ? "准备图片生成"
-                    : node.kind === "video"
-                      ? "准备视频生成"
-                      : "准备音频生成"
-                }
-              >
-                <Text>
-                  提示和参考会随画布保存。请在下方“画布生成与结果”中选择可执行能力，并核对固定计划后生成。
-                </Text>
-              </Alert>
-            </>
-          )}
         </details>
       </div>
+    </div>
+  );
+}
+
+function CanvasSelectionTools({
+  nodes,
+  children,
+}: {
+  nodes: CanvasFlowNode[];
+  children: ReactNode;
+}) {
+  const { x, y, zoom } = useViewport();
+  const width = useStore((state) => state.width),
+    height = useStore((state) => state.height);
+  if (!nodes.length || !width || !height) return null;
+  const left = Math.min(...nodes.map((node) => node.position.x)),
+    right = Math.max(
+      ...nodes.map(
+        (node) => node.position.x + (node.measured?.width ?? node.width ?? 320),
+      ),
+    ),
+    top = Math.min(...nodes.map((node) => node.position.y));
+  const toolWidth = Math.min(420, width - 24);
+  const screenTop = top * zoom + y;
+  return (
+    <div
+      className={classes.selectionTools}
+      aria-label="所选内容操作"
+      style={{
+        width: toolWidth,
+        left: Math.max(
+          12,
+          Math.min(
+            width - toolWidth - 12,
+            ((left + right) / 2) * zoom + x - toolWidth / 2,
+          ),
+        ),
+        top: Math.max(
+          12,
+          Math.min(
+            height - 62,
+            screenTop > 62 ? screenTop - 54 : screenTop + 36,
+          ),
+        ),
+      }}
+    >
+      {children}
     </div>
   );
 }

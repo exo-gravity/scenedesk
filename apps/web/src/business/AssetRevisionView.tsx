@@ -11,6 +11,7 @@ import {
 import { useResource, type Schema } from "./api";
 import { Empty, ErrorNotice } from "./common";
 import { MediaPreview } from "./MediaPreview";
+import { AssetMediaThumbnail } from "./AssetThumbnail";
 import { FixedVoiceLabel } from "./FixedVoiceField";
 import { referencePurposes } from "./asset-queries";
 import classes from "./assets.module.css";
@@ -86,14 +87,21 @@ export function AssetRevisionView({
           这个固定版本尚无{look ? "此造型的" : "主"}参考文件。文字设定仍已保存。
         </Empty>
       )}
-      <Group gap="sm">
+      <div
+        className={classes.referenceStrip}
+        role="group"
+        aria-label="固定版本参考"
+      >
         {references.map((ref, index) => (
           <UnstyledButton
             key={`${ref.mediaId}/${index}`}
             className={classes.referenceChoice}
             data-selected={ref.mediaId === id || undefined}
+            aria-pressed={ref.mediaId === id}
+            aria-label={`查看${referencePurposes[ref.purpose]}参考 ${index + 1}`}
             onClick={() => setSelected(ref.mediaId)}
           >
+            <AssetMediaThumbnail path={path} mediaId={ref.mediaId} />
             <Text size="sm">
               {referencePurposes[ref.purpose]} {index + 1}
             </Text>
@@ -104,7 +112,7 @@ export function AssetRevisionView({
             )}
           </UnstyledButton>
         ))}
-      </Group>
+      </div>
     </Stack>
   );
 }
