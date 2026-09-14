@@ -311,7 +311,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
           <Stack gap="xl">
             <SectionHeading
               title="进入创作工作台"
-              description="整理剧本与参考，在分镜和画布中完成每一场创作。"
+              description="整理剧本与参考，在分镜台和画布中完成每一场创作。"
             />
             {session.error instanceof ApiError &&
             session.error.status === 401 ? (

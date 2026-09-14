@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   Alert,
+  ActionIcon,
   Badge,
   Button,
   Group,
@@ -11,22 +12,34 @@ import {
   Stack,
   Text,
   TextInput,
+  Tooltip,
   UnstyledButton,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FilmStrip, Plus } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  CaretLeft,
+  CaretRight,
+  Check,
+  DotsThree,
+  FilmStrip,
+  Images,
+  Plus,
+  SquaresFour,
+  X,
+} from "@phosphor-icons/react";
 import { useList, useResource, useSession, type Schema } from "./api";
 import { Empty, ErrorNotice, projectPath, tenantPath } from "./common";
 import { MediaPreview } from "./MediaPreview";
 import { CandidateEditor, SelectionEditor } from "./CandidateEditor";
 import { sourceSeconds } from "./candidate-time";
 import { useAssetPages } from "./asset-queries";
-import { StatusLabel } from "../components/workspace/cards";
 import classes from "./candidates.module.css";
 import { referencePurposes } from "./asset-queries";
 import { TakeFeedback } from "./TakeFeedback";
 import { ShotPromptComposer } from "./ShotPromptComposer";
+import { retainProjectAssistantDrafts } from "./assistant-lifecycle";
 type Take = Schema<"Take">;
 
 export default function CandidateWorkspace({
@@ -37,6 +50,7 @@ export default function CandidateWorkspace({
   closeExternalDock,
   selectedShotId,
   onSelectShot,
+  onNavigate,
 }: {
   tenantId: string;
   projectId: string;
@@ -45,10 +59,44 @@ export default function CandidateWorkspace({
   closeExternalDock?: () => void;
   selectedShotId?: string | null;
   onSelectShot?: (id: string) => void;
+  onNavigate?: (destination: string) => Promise<void>;
 }) {
   const [overview, setOverview] = useState(false);
+  const focusRef = useRef<HTMLDivElement>(null),
+    stripRef = useRef<HTMLElement>(null),
+    overviewToggle = useRef<HTMLButtonElement>(null),
+    overviewClose = useRef<HTMLButtonElement>(null);
   const cache = useQueryClient(),
     session = useSession();
+  const navigationLock = useRef(false);
+  const [browseRevision, setBrowseRevision] = useState(0);
+  const [navigationError, setNavigationError] = useState<Error | null>(null);
+  const navigate = async (destination: string) => {
+    if (navigationLock.current) return;
+    navigationLock.current = true;
+    setNavigationError(null);
+    try {
+      if (onNavigate) await onNavigate(destination);
+      else {
+        await retainProjectAssistantDrafts({
+          sessionId: session.id,
+          userId: session.userId,
+          tenantId,
+          projectId,
+        });
+        location.hash = destination;
+      }
+      setOverview(false);
+      setBrowseRevision((revision) => revision + 1);
+      if (overview) overviewToggle.current?.focus();
+    } catch (cause) {
+      setNavigationError(
+        cause instanceof Error ? cause : new Error("输入尚未保留，请重试。"),
+      );
+    } finally {
+      navigationLock.current = false;
+    }
+  };
   const path = projectPath(tenantId, projectId),
     mediaPath = tenantPath(tenantId);
   const project = useResource<Schema<"Project">>(path),
@@ -59,13 +107,41 @@ export default function CandidateWorkspace({
     takeId = query.get("take");
   const scene = content.data?.scenes.find((s) => s.id === sceneId),
     episode = content.data?.episodes.find((e) => e.id === scene?.episodeId);
-  const shots = content.data?.shots.filter((s) => s.sceneId === sceneId) ?? [];
+  const shots =
+    content.data?.shots
+      .filter((s) => s.sceneId === sceneId)
+      .sort((a, b) => a.position - b.position) ?? [];
   const shot = shotId
     ? shots.find((s) => s.id === shotId)
     : (shots.find((s) => s.status === "active") ?? shots[0]);
   useEffect(() => {
     if (shot && shot.id !== selectedShotId) onSelectShot?.(shot.id);
   }, [shot?.id, selectedShotId, onSelectShot]);
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const reveal = () =>
+      strip
+        .querySelector<HTMLElement>('[aria-current="true"]')
+        ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    reveal();
+    const observer = new ResizeObserver(reveal);
+    observer.observe(strip);
+    return () => observer.disconnect();
+  }, [shot?.id]);
+  useEffect(() => {
+    if (overview) {
+      focusRef.current
+        ?.querySelectorAll<HTMLMediaElement>("video, audio")
+        .forEach((media) => media.pause());
+      overviewClose.current?.focus();
+    }
+  }, [overview]);
+  const closeOverview = () => {
+    setOverview(false);
+    overviewToggle.current?.focus();
+  };
+  const shotIndex = shots.findIndex((s) => s.id === shot?.id);
   const base = `#/app/t/${tenantId}/p/${projectId}`,
     contentHref = `${base}/content?scene=${sceneId ?? ""}`;
   useEffect(() => {
@@ -88,7 +164,27 @@ export default function CandidateWorkspace({
     episode?.status === "active" &&
     scene?.status === "active";
   return (
-    <div className={classes.production}>
+    <div
+      className={classes.production}
+      onClickCapture={(event) => {
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        )
+          return;
+        const link = (event.target as HTMLElement).closest<HTMLAnchorElement>(
+          'a[href^="#/app/"]',
+        );
+        if (!link || link.target === "_blank") return;
+        event.preventDefault();
+        event.stopPropagation();
+        void navigate(link.getAttribute("href")!);
+      }}
+    >
+      <ErrorNotice error={navigationError} />
       {!embedded && (
         <Group justify="space-between">
           <Group>
@@ -106,7 +202,7 @@ export default function CandidateWorkspace({
                 {scene?.title ?? "场次不可用"}
               </Text>
               <Text size="sm" c="dimmed">
-                镜头制作 · 分镜
+                分镜台
               </Text>
             </div>
           </Group>
@@ -132,46 +228,67 @@ export default function CandidateWorkspace({
           </Group>
         </Group>
       )}
-      {!scene ? (
-        <Empty>指定场次不存在或不属于当前项目。请返回场次目录。</Empty>
-      ) : !shot ? (
-        <Empty>
-          {shotId
-            ? "指定镜头不存在于本场次，请在下方重新选择。"
-            : "本场尚无镜头，请先在场次目录添加要求。"}
-        </Empty>
-      ) : (
-        <ShotProduction
-          key={shot.id}
-          tenantId={tenantId}
-          path={path}
-          mediaPath={mediaPath}
-          projectId={projectId}
-          shot={shot}
-          active={active && shot.status === "active"}
-          takeId={takeId}
-          externalDockOpen={externalDockOpen}
-          closeExternalDock={closeExternalDock}
-          href={`${base}/production?scene=${scene.id}&mode=storyboard&shot=${shot.id}`}
-          contentHref={`${base}/content?shot=${shot.id}`}
-        />
-      )}
-      {shot && (
-        <ShotPromptComposer
-          tenantId={tenantId}
-          projectId={projectId}
-          shot={shot}
-          active={active && shot.status === "active"}
-        />
-      )}
+      <div ref={focusRef} className={classes.shotFocus} hidden={overview}>
+        {!scene ? (
+          <Empty>指定场次不存在或不属于当前项目。请返回场次目录。</Empty>
+        ) : !shot ? (
+          <Empty>
+            {shotId
+              ? "指定镜头不存在于本场次，请在下方重新选择。"
+              : "本场尚无镜头，请先在场次目录添加要求。"}
+          </Empty>
+        ) : (
+          <ShotProduction
+            key={shot.id}
+            tenantId={tenantId}
+            path={path}
+            mediaPath={mediaPath}
+            projectId={projectId}
+            shot={shot}
+            active={active && shot.status === "active"}
+            takeId={takeId}
+            browseRevision={browseRevision}
+            externalDockOpen={externalDockOpen}
+            closeExternalDock={closeExternalDock}
+            href={`${base}/production?scene=${scene.id}&mode=storyboard&shot=${shot.id}`}
+            contentHref={`${base}/content?shot=${shot.id}`}
+          />
+        )}
+        {shot && (
+          <ShotPromptComposer
+            tenantId={tenantId}
+            projectId={projectId}
+            shot={shot}
+            active={active && shot.status === "active"}
+          />
+        )}
+      </div>
       {overview && (
-        <section className={classes.overview} aria-label="全场分镜总览">
+        <section
+          className={classes.overview}
+          aria-label="全场分镜总览"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.stopPropagation();
+              closeOverview();
+            }
+          }}
+        >
           <Group justify="space-between">
-            <Text fw={600}>全场分镜 · {shots.length} 镜</Text>
+            <div>
+              <Text component="h1" className={classes.title}>
+                全场总览
+              </Text>
+              <Text size="sm" c="dimmed">
+                {shots.length} 个镜头 ·{" "}
+                {shots.filter((s) => s.currentTakeId).length} 个已采用
+              </Text>
+            </div>
             <Button
+              ref={overviewClose}
               size="xs"
               variant="subtle"
-              onClick={() => setOverview(false)}
+              onClick={closeOverview}
             >
               返回当前镜头
             </Button>
@@ -182,8 +299,9 @@ export default function CandidateWorkspace({
                 key={s.id}
                 component="a"
                 href={`${base}/production?scene=${sceneId}&mode=storyboard&shot=${s.id}`}
-                onClick={() => setOverview(false)}
+                onClick={closeOverview}
                 className={classes.overviewShot}
+                data-selected={s.id === shot?.id || undefined}
               >
                 <ShotThumbnail
                   path={path}
@@ -194,48 +312,127 @@ export default function CandidateWorkspace({
                 <Text size="sm" lineClamp={2}>
                   {s.spec.intent}
                 </Text>
+                <Text size="xs" c="dimmed">
+                  {s.status === "archived" ? "已归档 · " : ""}
+                  {s.currentTakeId ? "已采用" : "待选候选"}
+                </Text>
               </UnstyledButton>
             ))}
           </div>
         </section>
       )}
-      <nav className={classes.strip} aria-label="本场分镜顺序">
-        {shots.map((s) => (
-          <UnstyledButton
-            key={s.id}
-            component="a"
-            href={`${base}/production?scene=${sceneId}&mode=storyboard&shot=${s.id}`}
-            className={classes.shot}
-            data-selected={s.id === shot?.id || undefined}
-            aria-current={s.id === shot?.id ? "true" : undefined}
-          >
-            <ShotThumbnail
-              path={path}
-              mediaPath={mediaPath}
-              takeId={s.currentTakeId}
-            />
-            <span className={classes.shotText}>
-              <Text fw={600}>
-                {s.label} {s.status === "archived" ? "· 已归档" : ""}
-              </Text>
-              <Text size="sm" lineClamp={1}>
-                {s.spec.intent}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {s.currentTakeId ? "当前采用" : "尚未采用"}
-              </Text>
-            </span>
-          </UnstyledButton>
-        ))}
-        <Button
-          className={classes.allShots}
-          size="xs"
-          variant="subtle"
-          onClick={() => setOverview(!overview)}
+      <div className={classes.storyboardRail}>
+        <Group
+          justify="space-between"
+          className={classes.railHeader}
+          wrap="nowrap"
         >
-          全场总览
-        </Button>
-      </nav>
+          <Group gap="xs" wrap="nowrap">
+            <Text size="xs" fw={600}>
+              本场镜头
+            </Text>
+            <Text size="xs" c="dimmed" aria-live="polite">
+              {shotIndex < 0 ? 0 : shotIndex + 1} / {shots.length}
+            </Text>
+            <ActionIcon
+              variant="subtle"
+              aria-label="上一个镜头"
+              disabled={shotIndex <= 0}
+              onClick={() => {
+                const previous = shots[shotIndex - 1];
+                if (previous)
+                  void navigate(
+                    `${base}/production?scene=${sceneId}&mode=storyboard&shot=${previous.id}`,
+                  );
+              }}
+            >
+              <CaretLeft size={16} />
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              aria-label="下一个镜头"
+              disabled={shotIndex < 0 || shotIndex >= shots.length - 1}
+              onClick={() => {
+                const next = shots[shotIndex + 1];
+                if (next)
+                  void navigate(
+                    `${base}/production?scene=${sceneId}&mode=storyboard&shot=${next.id}`,
+                  );
+              }}
+            >
+              <CaretRight size={16} />
+            </ActionIcon>
+          </Group>
+          <Button
+            ref={overviewToggle}
+            size="compact-xs"
+            variant="subtle"
+            leftSection={<SquaresFour size={15} />}
+            aria-expanded={overview}
+            onClick={() => (overview ? closeOverview() : setOverview(true))}
+          >
+            {overview ? "返回当前镜头" : "全场总览"}
+          </Button>
+        </Group>
+        <nav
+          ref={stripRef}
+          className={classes.strip}
+          aria-label="本场分镜顺序"
+          onKeyDown={(event) => {
+            const links = Array.from(
+              event.currentTarget.querySelectorAll<HTMLAnchorElement>("a"),
+            );
+            const index = links.indexOf(event.target as HTMLAnchorElement);
+            if (index < 0) return;
+            const next =
+              event.key === "ArrowRight"
+                ? index + 1
+                : event.key === "ArrowLeft"
+                  ? index - 1
+                  : event.key === "Home"
+                    ? 0
+                    : event.key === "End"
+                      ? links.length - 1
+                      : undefined;
+            if (next === undefined) return;
+            event.preventDefault();
+            const link = links[Math.max(0, Math.min(links.length - 1, next))];
+            link?.focus();
+            link?.click();
+          }}
+        >
+          {shots.map((s) => (
+            <UnstyledButton
+              key={s.id}
+              component="a"
+              href={`${base}/production?scene=${sceneId}&mode=storyboard&shot=${s.id}`}
+              className={classes.shot}
+              data-selected={s.id === shot?.id || undefined}
+              aria-current={s.id === shot?.id ? "true" : undefined}
+              onClick={() => setOverview(false)}
+            >
+              <ShotThumbnail
+                path={path}
+                mediaPath={mediaPath}
+                takeId={s.currentTakeId}
+              />
+              <span className={classes.shotText}>
+                <Text fw={600}>
+                  {s.label} {s.status === "archived" ? "· 已归档" : ""}
+                </Text>
+                <Text size="sm" lineClamp={1}>
+                  {s.spec.intent}
+                </Text>
+                {!s.currentTakeId && (
+                  <Text size="xs" c="dimmed">
+                    待选候选
+                  </Text>
+                )}
+              </span>
+            </UnstyledButton>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }
@@ -247,6 +444,7 @@ function ShotProduction({
   shot,
   active,
   takeId,
+  browseRevision,
   href,
   contentHref,
   externalDockOpen,
@@ -259,6 +457,7 @@ function ShotProduction({
   shot: Schema<"Shot">;
   active: boolean;
   takeId: string | null;
+  browseRevision: number;
   href: string;
   contentHref: string;
   externalDockOpen: boolean;
@@ -269,17 +468,28 @@ function ShotProduction({
       `${path}/shots/${shot.id}/selections`,
     );
   const members = useList<Schema<"Membership">>(`${mediaPath}/members`);
-  const [dock, setDock] = useState<"candidates" | "media" | "feedback" | null>(
-      null,
-    ),
+  const [dock, setDock] = useState<
+      "candidates" | "media" | "feedback" | "references" | null
+    >(null),
     [editor, setEditor] = useState<{ mediaId: string; source?: Take }>(),
     [decision, setDecision] = useState<{ take?: Take }>();
+  useEffect(() => setEditor(undefined), [takeId, browseRevision]);
   useEffect(() => {
     if (externalDockOpen) setDock(null);
   }, [externalDockOpen]);
+  const dockOpener = useRef<HTMLElement | null>(null);
+  const dockClose = useRef<HTMLButtonElement>(null);
   const openDock = (next: typeof dock) => {
-    if (next) closeExternalDock?.();
+    if (next && !dock)
+      dockOpener.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+    if (next && externalDockOpen) closeExternalDock?.();
     setDock(next);
+    requestAnimationFrame(() =>
+      next ? dockClose.current?.focus() : dockOpener.current?.focus(),
+    );
   };
   const take = takeId
     ? takes.data?.find((t) => t.id === takeId)
@@ -294,6 +504,9 @@ function ShotProduction({
     !!take,
   );
   const obsolete = take?.shotRevisionId !== shot.specRevisionId;
+  const adopted = !!take && take.id === shot.currentTakeId;
+  const candidateNumber = (id: string) =>
+    (takes.data?.findIndex((item) => item.id === id) ?? -1) + 1;
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -326,11 +539,23 @@ function ShotProduction({
           >
             {shot.spec.intent}
           </Text>
-          <StatusLabel>
-            {shot.currentTakeId ? "当前采用" : "尚未采用"}
-          </StatusLabel>
         </Group>
         <Group gap={4} wrap="nowrap">
+          <Tooltip label="查看此候选固定的参考">
+            <ActionIcon
+              variant="subtle"
+              aria-label="固定参考"
+              aria-pressed={dock === "references"}
+              disabled={
+                revision.isError || !revision.data?.spec.references.length
+              }
+              onClick={() =>
+                openDock(dock === "references" ? null : "references")
+              }
+            >
+              <Images size={18} />
+            </ActionIcon>
+          </Tooltip>
           <Button
             size="xs"
             variant="subtle"
@@ -344,7 +569,7 @@ function ShotProduction({
           <Menu position="bottom-end">
             <Menu.Target>
               <Button size="xs" variant="subtle">
-                镜头操作
+                更多
               </Button>
             </Menu.Target>
             <Menu.Dropdown>
@@ -359,6 +584,13 @@ function ShotProduction({
               <Menu.Item component="a" href={contentHref}>
                 镜头要求与历史
               </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item
+                disabled={!active || !shot.currentTakeId}
+                onClick={() => setDecision({})}
+              >
+                清除当前采用
+              </Menu.Item>
             </Menu.Dropdown>
           </Menu>
           <Button
@@ -368,7 +600,7 @@ function ShotProduction({
             disabled={!active}
             onClick={() => openDock("media")}
           >
-            从素材建候选
+            新建候选
           </Button>
         </Group>
       </Group>
@@ -432,61 +664,94 @@ function ShotProduction({
                     <Loader aria-label="正在读取候选预览" />
                   )}
                 </div>
-                {revision.data &&
-                  !revision.error &&
-                  revision.data.spec.references.length > 0 && (
-                    <FixedTakeReferences
-                      key={take.id}
-                      path={mediaPath}
-                      revision={revision.data}
-                    />
-                  )}
               </div>
-              <Group justify="space-between" className={classes.previewCaption}>
-                <div>
-                  <Text fw={600}>{media.data?.displayName ?? "当前候选"}</Text>
-                  <Text size="sm">
-                    {sourceSeconds(take.range.inUs)}–
-                    {sourceSeconds(take.range.outUs)} 秒 · 连续区间{" "}
-                    {sourceSeconds(take.range.outUs - take.range.inUs)} 秒
+              <Group
+                justify="space-between"
+                className={classes.previewCaption}
+                wrap="nowrap"
+              >
+                <div className={classes.captionIdentity}>
+                  <Text
+                    size="sm"
+                    fw={500}
+                    truncate
+                    title={media.data?.displayName}
+                  >
+                    {media.data?.displayName ?? "正在读取候选"}
                   </Text>
+                  <Group gap="xs" wrap="wrap">
+                    <Text size="xs" c="dimmed">
+                      候选 {candidateNumber(take.id)} ·{" "}
+                      {sourceSeconds(take.range.outUs - take.range.inUs)} 秒
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      区间 {sourceSeconds(take.range.inUs)}–
+                      {sourceSeconds(take.range.outUs)} 秒
+                    </Text>
+                    {revision.data && !revision.isError && (
+                      <Text size="xs" c="dimmed">
+                        {obsolete ? "旧要求" : "要求"} v{revision.data.number}
+                      </Text>
+                    )}
+                  </Group>
                 </div>
-                <Badge variant="light">
-                  {take.id === shot.currentTakeId ? "当前采用" : "未采用此候选"}
-                </Badge>
-              </Group>
-              <Group className={classes.previewActions}>
-                <Button
-                  variant="filled"
-                  disabled={
-                    !active ||
-                    media.data?.status !== "ready" ||
-                    !revision.data ||
-                    revision.isError ||
-                    (!obsolete && shot.currentTakeId === take.id)
-                  }
-                  onClick={() =>
-                    obsolete
-                      ? setEditor({ mediaId: take.mediaId, source: take })
-                      : setDecision({ take })
-                  }
+                <Group
+                  gap="xs"
+                  className={classes.previewActions}
+                  wrap="nowrap"
                 >
-                  {obsolete ? "核对并沿用到当前要求" : "采用此候选"}
-                </Button>
-                <Button
-                  disabled={!active || media.data?.status !== "ready"}
-                  onClick={() =>
-                    setEditor({ mediaId: take.mediaId, source: take })
-                  }
-                >
-                  基于此候选另选区间
-                </Button>
-                <Button
-                  disabled={!active || !shot.currentTakeId}
-                  onClick={() => setDecision({})}
-                >
-                  清除当前采用
-                </Button>
+                  {adopted && !obsolete ? (
+                    <Badge variant="light" leftSection={<Check size={12} />}>
+                      当前采用
+                    </Badge>
+                  ) : (
+                    <>
+                      <Text size="xs" c="dimmed">
+                        {shot.currentTakeId
+                          ? `当前采用：候选 ${candidateNumber(shot.currentTakeId)}`
+                          : "尚未采用"}
+                      </Text>
+                      <Button
+                        size="xs"
+                        variant="filled"
+                        disabled={
+                          !active ||
+                          media.data?.status !== "ready" ||
+                          !revision.data ||
+                          revision.isError ||
+                          (!obsolete && shot.currentTakeId === take.id)
+                        }
+                        onClick={() =>
+                          obsolete
+                            ? setEditor({ mediaId: take.mediaId, source: take })
+                            : setDecision({ take })
+                        }
+                      >
+                        {obsolete ? "核对并沿用" : "采用此候选"}
+                      </Button>
+                    </>
+                  )}
+                  <Menu position="top-end">
+                    <Menu.Target>
+                      <ActionIcon variant="subtle" aria-label="当前候选操作">
+                        <DotsThree size={20} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        disabled={!active || media.data?.status !== "ready"}
+                        onClick={() =>
+                          setEditor({ mediaId: take.mediaId, source: take })
+                        }
+                      >
+                        基于此候选另选区间
+                      </Menu.Item>
+                      <Menu.Item onClick={() => openDock("feedback")}>
+                        候选意见与来源
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Group>
               </Group>
             </div>
           ) : takes.isPending ? (
@@ -495,9 +760,7 @@ function ShotProduction({
             <div className={classes.empty}>
               <FilmStrip size={40} />
               <Text fw={600}>为这一镜选择一个视频区间</Text>
-              <Text c="dimmed">
-                已导入的视频可直接成为候选，归档后再明确采用。
-              </Text>
+              <Text c="dimmed">从素材中选择视频，固定区间后再明确采用。</Text>
               <Button
                 variant="filled"
                 disabled={!active}
@@ -509,9 +772,23 @@ function ShotProduction({
           )}
         </section>
         <aside
-          className={classes.dock}
+          className={`${classes.dock} ${classes.productionDock}`}
           aria-label="制作辅助面板"
           hidden={!dock}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              // Inner pickers and dialogs consume the first Escape themselves.
+              if (
+                event.defaultPrevented ||
+                (event.target as HTMLElement).closest(
+                  '[role="combobox"][aria-expanded="true"], [role="listbox"], [role="dialog"], [role="menu"]',
+                )
+              )
+                return;
+              event.stopPropagation();
+              openDock(null);
+            }
+          }}
         >
           <Group justify="space-between">
             <Text fw={600}>
@@ -519,24 +796,43 @@ function ShotProduction({
                 ? "素材浏览"
                 : dock === "feedback"
                   ? "候选意见"
-                  : "候选与历史"}
+                  : dock === "references"
+                    ? "固定参考"
+                    : "候选与历史"}
             </Text>
-            <Button size="xs" variant="subtle" onClick={() => openDock(null)}>
-              收起制作面板
-            </Button>
+            <ActionIcon
+              ref={dockClose}
+              variant="subtle"
+              aria-label="收起制作面板"
+              onClick={() => openDock(null)}
+            >
+              <X size={18} />
+            </ActionIcon>
           </Group>
-          <Group grow>
+          <Group gap={4}>
             <Button
-              variant={dock === "candidates" ? "filled" : "default"}
+              size="xs"
+              variant={dock === "candidates" ? "light" : "subtle"}
               onClick={() => openDock("candidates")}
             >
-              候选与历史
+              候选
             </Button>
             <Button
-              variant={dock === "media" ? "filled" : "default"}
+              size="xs"
+              variant={dock === "media" ? "light" : "subtle"}
               onClick={() => openDock("media")}
             >
-              素材浏览
+              素材
+            </Button>
+            <Button
+              size="xs"
+              variant={dock === "references" ? "light" : "subtle"}
+              disabled={
+                revision.isError || !revision.data?.spec.references.length
+              }
+              onClick={() => openDock("references")}
+            >
+              参考
             </Button>
           </Group>
           <div hidden={dock !== "feedback"}>
@@ -592,7 +888,24 @@ function ShotProduction({
               </>
             )}
           </div>
-          {dock === "feedback" ? null : dock === "media" ? (
+          {dock === "feedback" ? null : dock === "references" ? (
+            revision.isError ? (
+              <ErrorNotice
+                error={revision.error}
+                retry={() => void revision.refetch()}
+              />
+            ) : revision.data && !!revision.data.spec.references.length ? (
+              <FixedTakeReferences
+                key={take?.id}
+                path={mediaPath}
+                revision={revision.data}
+              />
+            ) : (
+              <Text size="sm" c="dimmed">
+                此候选没有固定参考。
+              </Text>
+            )
+          ) : dock === "media" ? (
             <VideoBrowser
               path={mediaPath}
               projectId={projectId}
@@ -604,7 +917,7 @@ function ShotProduction({
               <Text size="sm" c="dimmed">
                 查看候选不会改变采用。
               </Text>
-              {takes.data?.map((item) => (
+              {takes.data?.map((item, index) => (
                 <UnstyledButton
                   key={item.id}
                   component="a"
@@ -612,14 +925,16 @@ function ShotProduction({
                   onClick={() => setEditor(undefined)}
                   className={classes.candidate}
                   data-selected={(take?.id === item.id && !editor) || undefined}
-                  aria-label={`查看候选 ${item.id.slice(0, 8)}`}
+                  aria-label={`查看候选 ${index + 1}`}
                   aria-pressed={take?.id === item.id && !editor}
                 >
-                  <Text fw={500}>
-                    {item.id.slice(0, 8)}{" "}
-                    {item.id === shot.currentTakeId ? "· 当前采用" : ""}
-                  </Text>
-                  <Text size="sm">
+                  <CandidateSummary
+                    mediaPath={mediaPath}
+                    take={item}
+                    number={index + 1}
+                    adopted={item.id === shot.currentTakeId}
+                  />
+                  <Text size="xs" c="dimmed">
                     {sourceSeconds(item.range.inUs)}–
                     {sourceSeconds(item.range.outUs)} 秒 ·{" "}
                     {item.shotRevisionId === shot.specRevisionId
@@ -651,7 +966,7 @@ function ShotProduction({
                         <Text size="sm">
                           第 {item.number} 次 ·{" "}
                           {item.takeId
-                            ? `采用 ${item.takeId.slice(0, 8)}`
+                            ? `采用候选 ${candidateNumber(item.takeId) || "（不可用）"}`
                             : "清除采用"}
                         </Text>
                         <Text size="xs" c="dimmed">
@@ -737,6 +1052,48 @@ function SourceTake({
     </details>
   );
 }
+function CandidateSummary({
+  mediaPath,
+  take,
+  number,
+  adopted,
+}: {
+  mediaPath: string;
+  take: Take;
+  number: number;
+  adopted: boolean;
+}) {
+  const media = useResource<Schema<"Media">>(
+    `${mediaPath}/media/${take.mediaId}`,
+  );
+  return (
+    <div className={classes.candidateSummary}>
+      <div className={classes.candidateThumbnail}>
+        {media.data ? (
+          <MediaPreview media={media.data} path={mediaPath} thumbnail />
+        ) : (
+          <FilmStrip size={20} aria-hidden />
+        )}
+      </div>
+      <div className={classes.candidateIdentity}>
+        <Group gap="xs">
+          <Text size="sm" fw={600}>
+            候选 {number}
+          </Text>
+          {adopted && (
+            <Badge size="xs" variant="light">
+              当前采用
+            </Badge>
+          )}
+        </Group>
+        <Text size="xs" lineClamp={2}>
+          {media.data?.displayName ??
+            (media.error ? "素材暂不可用" : "正在读取素材…")}
+        </Text>
+      </div>
+    </div>
+  );
+}
 function VideoBrowser({
   path,
   projectId,
@@ -780,7 +1137,7 @@ function VideoBrowser({
       <ErrorNotice error={list.error} retry={() => void list.refetch()} />
       {list.isPending && <Loader size="sm" aria-label="正在读取视频" />}
       {!list.isPending && !list.isError && !items.length && (
-        <Text>此范围暂无可用视频。可从页首进入导入与管理视频。</Text>
+        <Text>此范围暂无可用视频。可从顶部「素材」导入视频。</Text>
       )}
       {items.map((media) => (
         <div key={media.id} className={classes.mediaChoice}>
@@ -839,23 +1196,18 @@ function FixedTakeReferences({
   path: string;
   revision: Schema<"ShotRevision">;
 }) {
-  const [index, setIndex] = useState(0),
-    [open, setOpen] = useState(true);
+  const [index, setIndex] = useState(0);
   const reference =
     revision.spec.references[index] ?? revision.spec.references[0]!;
   const media = useResource<Schema<"Media">>(
     `${path}/media/${reference.mediaId}`,
   );
   return (
-    <aside
-      className={classes.nearReference}
-      data-open={open || undefined}
-      aria-label="候选固定参考"
-    >
-      <Button size="xs" variant="subtle" onClick={() => setOpen(!open)}>
-        {open ? "收起参考" : `固定参考 · ${revision.spec.references.length}`}
-      </Button>
-      <div hidden={!open}>
+    <aside className={classes.nearReference} aria-label="候选固定参考">
+      <Text size="xs" c="dimmed">
+        保留此候选建立时的参考 · 要求 v{revision.number}
+      </Text>
+      <div>
         <Text size="xs" c="dimmed">
           固定要求 v{revision.number} · {referencePurposes[reference.purpose]}
         </Text>

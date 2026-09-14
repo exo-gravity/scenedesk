@@ -1,16 +1,53 @@
-.composer {
-  width: min(900px, calc(100% - 40px));
+.composer.composer {
+  width: 100%;
+  align-self: stretch;
+  flex: 0 0 min(300px, 30dvh);
+  margin: 0;
+  padding: 10px 20px;
+  border: 0;
+  border-top: 1px solid var(--ws-border);
+  border-radius: initial;
+  background: var(--ws-panel);
+  box-shadow: none;
+  min-height: 0;
+  max-height: 44dvh;
+}
+.composer.composer[data-generation-open]:not([data-collapsed]) {
+  flex-basis: 44dvh;
+}
+.composer.composer[data-collapsed] {
+  flex: 0 0 auto;
+  min-height: 56px;
+  max-height: none;
+}
+.toolbar {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+.summary {
+  flex: 1;
+  min-width: 0;
+}
+.toolbarActions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+}
+.body {
+  flex: 1;
+  width: min(100%, 960px);
   align-self: center;
-  flex-basis: 208px;
-  padding: 14px 18px;
-  border-color: var(--ws-border);
-  box-shadow: var(--mantine-shadow-xs);
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 8px;
 }
-.composer:has(.generationTypes [role="tab"][data-active]) {
-  flex-basis: min(330px, 36dvh);
+.composer:not([data-collapsed]) .toolbar {
+  width: min(100%, 960px);
+  align-self: center;
 }
-.composer[data-collapsed] {
-  flex-basis: 44px;
+.body > * {
+  flex-shrink: 0;
 }
 .generationTypes {
   min-width: 0;
@@ -27,10 +64,18 @@
   min-width: 0;
 }
 @media (max-width: 760px) {
-  .composer {
-    width: calc(100% - 16px);
-    padding: 12px;
-    flex-basis: auto;
-    max-height: 55dvh;
+  .composer.composer {
+    padding: 10px 12px;
+  }
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .summary {
+    flex-basis: 100%;
+  }
+  .toolbarActions {
+    width: 100%;
+    justify-content: space-between;
   }
 }
