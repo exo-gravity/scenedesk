@@ -1,6 +1,10 @@
 import { CanvasShotSources, FixedPlanShotSources } from "./CanvasShotSources";
 import { fixedShotSources } from "./canvas-shot-sources";
 import { canvasResultPosition } from "./canvas-result-position";
+import {
+  canReviewCanvasResultPlacement,
+  submitCanvasResultPlacement,
+} from "./canvas-result-placement";
 import { GenerationJobControls } from "./GenerationJobControls";
 import { reworkScope } from "./prompt-draft";
 import { useQueryClient } from "@tanstack/react-query";
@@ -330,7 +334,7 @@ function GenerationWorkspace({
       job.status !== "succeeded" ||
       source.kind !== "canvas" ||
       !job.mediaIds.length ||
-      (draft.placement && draft.placement.phase !== "conflict")
+      !canReviewCanvasResultPlacement(draft.placement)
     )
       return;
     void controller.commitDraft(draft, draft, async (current) => {
@@ -365,48 +369,39 @@ function GenerationWorkspace({
       job?.status !== "succeeded"
     )
       return;
-    void controller
-      .commitDraft(
-        draft,
-        { ...draft, placement: { ...placement, phase: "unknown" } },
-        async (current, checkCurrent) => {
-          try {
-            const placed = await post<Schema<"CanvasResultPlacement">>(
-              `${path}/canvases/${placement.canvasId}/results`,
-              placement.key,
-              placement.input,
-              placement.revision,
-            );
-            checkCurrent();
-            return {
-              ...current,
-              placement: { ...placement, phase: "placed", placed },
-            };
-          } catch (cause) {
-            if (cause instanceof ApiError && cause.status === 412)
-              return {
-                ...current,
-                placement: { ...placement, phase: "conflict" },
-              };
-            throw cause;
-          }
-        },
-      )
-      .then(async () => {
-        const current = controller.getSnapshot();
-        const placed = current.record?.draft.placement;
+    void submitCanvasResultPlacement(controller, draft, async (intent) => {
+      try {
+        const receipt = await post<Schema<"CanvasResultPlacement">>(
+          `${path}/canvases/${intent.canvasId}/results`,
+          intent.key,
+          intent.input,
+          intent.revision,
+        );
+        return { kind: "placed", receipt };
+      } catch (cause) {
         if (
-          current.access !== "ready" ||
-          placed?.phase !== "placed" ||
-          !placed.placed
+          cause instanceof ApiError &&
+          cause.status === 412 &&
+          cause.code === "VERSION_CONFLICT"
         )
-          return;
-        try {
-          await source.afterPlacement(placed.placed);
-        } catch {
-          setError(`${label}已加入画布，但当前画布尚未完成刷新，请重新读取。`);
-        }
-      });
+          return { kind: "version_conflict" };
+        throw cause;
+      }
+    }).then(async () => {
+      const current = controller.getSnapshot();
+      const placed = current.record?.draft.placement;
+      if (
+        current.access !== "ready" ||
+        placed?.phase !== "placed" ||
+        !placed.placed
+      )
+        return;
+      try {
+        await source.afterPlacement(placed.placed);
+      } catch {
+        setError(`${label}已加入画布，但当前画布尚未完成刷新，请重新读取。`);
+      }
+    });
   };
   if (state.access !== "ready")
     return (
