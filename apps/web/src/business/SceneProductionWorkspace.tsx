@@ -198,7 +198,7 @@ function SceneWorkspace({
     </Group>
   );
   return (
-    <div className={classes.workspace}>
+    <div className={classes.workspace} data-scene-workspace>
       <ErrorNotice
         error={preference.error}
         retry={preference.retry}

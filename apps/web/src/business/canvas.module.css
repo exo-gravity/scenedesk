@@ -7,6 +7,13 @@
   overflow: hidden;
   position: relative;
 }
+.workspace[data-scene-workspace] {
+  height: 100%;
+  overflow: hidden;
+}
+.workspace[data-scene-workspace] > .session {
+  overflow: hidden;
+}
 .contextHeader {
   height: 56px;
   min-height: 56px;
