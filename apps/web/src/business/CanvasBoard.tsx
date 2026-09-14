@@ -158,9 +158,11 @@ const CanvasNodeView = memo(function CanvasNodeView({
             <div className={classes.creationPreview}>
               {data.previewMediaId ? (
                 <>
-                  <Text size="xs" c="dimmed" mb={4}>最近完成的结果</Text>
+                  <Text size="xs" c="dimmed" mb={4}>
+                    最近完成的结果
+                  </Text>
                   <NodeMedia
-                    width={Math.max(360, node.width)}
+                    width={Math.max(420, node.width)}
                     mediaId={data.previewMediaId}
                     path={data.mediaPath}
                     playing={data.playing}
@@ -252,7 +254,9 @@ function NodeMedia({
       }
     >
       {media.isError ? (
-        <Text size="xs" c="dimmed">素材当前无法读取，请重新核对访问权限。</Text>
+        <Text size="xs" c="dimmed">
+          素材当前无法读取，请重新核对访问权限。
+        </Text>
       ) : media.data?.id === mediaId ? (
         <>
           <MediaPreview media={media.data} path={path} thumbnail={!playing} />
@@ -549,7 +553,7 @@ export function CanvasBoard({
         },
         position: node.position,
         width:
-          node.id === editingNodeId ? Math.max(360, node.width) : node.width,
+          node.id === editingNodeId ? Math.max(420, node.width) : node.width,
         ...(measurements[node.id] ? { measured: measurements[node.id] } : {}),
         selected: preference.selectedNodeIds.includes(node.id),
         dragHandle: ".canvas-drag-handle",
@@ -572,20 +576,22 @@ export function CanvasBoard({
   );
   const displayedNodes: FlowNode[] = [
     ...nodes,
-    ...(uploads?.rows ?? []).map((row): UploadFlowNode => ({
-      id: `upload:${row.id}`,
-      type: "upload",
-      data: { row },
-      position: row.position,
-      width: 320,
-      ...(measurements[`upload:${row.id}`]
-        ? { measured: measurements[`upload:${row.id}`] }
-        : {}),
-      selectable: false,
-      draggable: false,
-      connectable: false,
-      focusable: false,
-    })),
+    ...(uploads?.rows ?? []).map(
+      (row): UploadFlowNode => ({
+        id: `upload:${row.id}`,
+        type: "upload",
+        data: { row },
+        position: row.position,
+        width: 320,
+        ...(measurements[`upload:${row.id}`]
+          ? { measured: measurements[`upload:${row.id}`] }
+          : {}),
+        selectable: false,
+        draggable: false,
+        connectable: false,
+        focusable: false,
+      }),
+    ),
   ];
   const edges = useMemo(
     () =>
@@ -1281,7 +1287,7 @@ export function CanvasBoard({
                     x: editing.position.x + 1,
                     y: editing.position.y + editorGeometry.offset,
                   }}
-                  nodeWidth={Math.max(360, editing.width) - 2}
+                  nodeWidth={Math.max(420, editing.width) - 2}
                   boardSize={boardSize}
                   onHeight={editorHeight}
                   safe={safe}

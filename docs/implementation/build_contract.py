@@ -321,12 +321,15 @@ for kind, input_name in [("episode","EpisodeInput"),("scene","SceneInput"),("sho
 require_when("Proposal", {"properties":{"target":{"properties":{"mode":{"const":"append_to_scene"}},"required":["mode"]}},"required":["target"]}, {"properties":{"operations":{"items":{"properties":{"kind":{"const":"shot"}}}}}})
 schema("ContextSourceInput", {"kind": enum("production","scene","shot_revision","asset_revision"), "objectId": ID, "revision": POS}, ["kind","objectId","revision"])
 schema("ContextSnapshot", {"source": ref("SourceDependency"), "text": TEXT}, ["source","text"])
-schema("AssistanceRequest", {"kind": enum("prepare_prompt","prepare_rework"), "targetCapabilityId": ID, "targetCapabilityRevision": POS, "sourceTakeId": ID, "sourceCutRevisionId": ID, "feedback": ref("ReworkLink")}, ["kind","targetCapabilityId","targetCapabilityRevision"])
+schema("AssistanceRequest", {"kind": enum("prepare_prompt","prepare_rework","discuss"), "canvasId": ID, "targetCapabilityId": ID, "targetCapabilityRevision": POS, "sourceTakeId": ID, "sourceCutRevisionId": ID, "feedback": ref("ReworkLink")}, ["kind"])
+require_when("AssistanceRequest", {"properties":{"kind":{"const":"discuss"}},"required":["kind"]}, {"required":["canvasId"],"not":{"anyOf":[{"required":[x]} for x in ["targetCapabilityId","targetCapabilityRevision","feedback","sourceTakeId","sourceCutRevisionId"]]}})
+require_when("AssistanceRequest", {"properties":{"kind":{"enum":["prepare_prompt","prepare_rework"]}},"required":["kind"]}, {"required":["targetCapabilityId","targetCapabilityRevision"],"not":{"required":["canvasId"]}})
 require_when("AssistanceRequest", {"properties":{"kind":{"const":"prepare_rework"}},"required":["kind"]}, {"required":["feedback"],"properties":{"feedback":{"required":["commentRevision"]}},"anyOf":[{"required":["sourceTakeId"]},{"required":["sourceCutRevisionId"]}]})
-schema("AssistanceBody", {"prompt": TEXT, "referenceSuggestions": arr(ref("Reference")), "retain": arr(TEXT), "change": arr(TEXT), "notes": TEXT}, ["prompt","referenceSuggestions","retain","change","notes"])
+schema("AssistanceBody", {"message": string(minLength=1,maxLength=20000), "prompt": TEXT, "referenceSuggestions": arr(ref("Reference")), "retain": arr(TEXT), "change": arr(TEXT), "notes": TEXT}, ["prompt","referenceSuggestions","retain","change","notes"])
 entity("AssistanceArtifact", {"projectId": ID, "generationJobId": ID, "request": ref("AssistanceRequest"), "shotSources": arr(ref("ShotSource")), "resolvedInput": ref("ResolvedInput"), "body": ref("AssistanceBody"), "editedBy": ID, "inputOutdated": BOOL}, ["projectId","generationJobId","request","shotSources","resolvedInput","body","inputOutdated"])
 schema("AssistanceEdit", {"body": ref("AssistanceBody")}, ["body"])
 schema("ArtifactSource", {"artifactId": ID, "revision": POS}, ["artifactId","revision"])
+schema("AssistanceTurn", {"source":ref("ArtifactSource"),"instruction":TEXT,"message":string(minLength=1,maxLength=20000)}, ["source","instruction","message"])
 for name in ["PlanInput", "Capability"]:
     S[name]["properties"]["purpose"]["enum"].append("creative_assistance")
 extend("PlanInput", {"proposalTarget": ref("ProposalTarget"), "contextSources": arr(ref("ContextSourceInput")), "assistance": ref("AssistanceRequest"), "assistanceSource": ref("ArtifactSource")})
@@ -336,7 +339,7 @@ require_when("PlanInput", {"properties":{"purpose":{"const":"script_analysis"}},
 require_when("PlanInput", {"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}, {"required":["assistance","shotSources"],"properties":{"scope":{"const":"project"},"shotSources":{"minItems":1},"output":{"maxProperties":0}},"not":{"anyOf":[{"required":["proposalTarget"]}]}})
 require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}}, {"not":{"required":["assistance"]}})
 require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"script_analysis"}},"required":["purpose"]}}, {"not":{"anyOf":[{"required":["proposalTarget"]}]}})
-require_when("PlanInput", {"required":["assistanceSource"]}, {"properties":{"scope":{"const":"project"}},"anyOf":[{"properties":{"purpose":{"enum":["video","image","audio"]}}},{"required":["canvasSources","assistance"],"properties":{"purpose":{"const":"creative_assistance"},"assistance":{"properties":{"kind":{"const":"prepare_prompt"}}}}}]})
+require_when("PlanInput", {"required":["assistanceSource"]}, {"properties":{"scope":{"const":"project"}},"anyOf":[{"properties":{"purpose":{"enum":["video","image","audio"]}}},{"required":["canvasSources","assistance"],"properties":{"purpose":{"const":"creative_assistance"},"assistance":{"properties":{"kind":{"enum":["prepare_prompt","discuss"]}}}}}]})
 S["SourceDependency"]["properties"]["kind"]["enum"] += ["assistance_artifact","creative_confirmation","review_comment"]
 for name in ["Task", "TaskInput"]:
     extend(name, {"kind": enum("general","scene_owner","assist","rework"), "sceneId": ID}, ["kind"])
@@ -371,14 +374,16 @@ schema("CanvasAssistanceSource", {"canvasId":ID,"canvasRevision":POS,"nodeId":ID
 schema("CanvasAssistanceSnapshot", {"source":ref("CanvasAssistanceSource"),"kind":enum("text","image","video","audio"),"content":{"oneOf":[ref("CanvasTextContent"),ref("CanvasDraftContent"),ref("CanvasMediaContent")]},"contentHash":string(pattern="^[0-9a-f]{64}$")}, ["source","kind","content","contentHash"])
 require_when("CanvasAssistanceSnapshot", {"properties":{"kind":{"const":"text"}},"required":["kind"]}, {"properties":{"content":ref("CanvasTextContent")}})
 require_when("CanvasAssistanceSnapshot", {"properties":{"content":{"properties":{"type":{"const":"media"}},"required":["type"]}},"required":["content"]}, {"properties":{"source":{"required":["purpose"]},"kind":{"enum":["image","video","audio"]}}})
-extend("PlanInput", {"canvasSources":arr(ref("CanvasAssistanceSource"),minItems=1,maxItems=20)})
-extend("ResolvedInput", {"canvasSnapshots":arr(ref("CanvasAssistanceSnapshot"),minItems=1,maxItems=20),"assistanceInstruction":TEXT})
+extend("PlanInput", {"canvasSources":arr(ref("CanvasAssistanceSource"),maxItems=20)})
+extend("ResolvedInput", {"canvasSnapshots":arr(ref("CanvasAssistanceSnapshot"),maxItems=20),"assistanceInstruction":TEXT,"assistanceHistory":arr(ref("AssistanceTurn"),minItems=1,maxItems=20),"canvasScope":obj({"canvasId":ID,"sceneId":ID},["canvasId","sceneId"])})
 require_when("ResolvedInput", {"required":["assistanceInstruction"]}, {"required":["assistanceSnapshot","canvasSnapshots"]})
 for rule in S["PlanInput"]["allOf"]:
     if rule.get("if", {}).get("properties", {}).get("purpose", {}).get("const") == "creative_assistance":
         rule["then"]["properties"]["shotSources"] = {"maxItems":100}
-        rule["then"]["anyOf"] = [{"properties":{"shotSources":{"minItems":1}}},{"required":["canvasSources"]}]
-require_when("PlanInput", {"required":["canvasSources"]}, {"properties":{"purpose":{"const":"creative_assistance"},"assistance":{"properties":{"kind":{"const":"prepare_prompt"}}},"contextSources":{"maxItems":0},"additionalReferences":{"maxItems":0},"referenceOverrides":{"maxItems":0}}})
+        rule["then"]["anyOf"] = [{"properties":{"shotSources":{"minItems":1}}},{"required":["canvasSources"],"properties":{"canvasSources":{"minItems":1}}},{"properties":{"assistance":{"properties":{"kind":{"const":"discuss"}},"required":["kind"]}}}]
+require_when("PlanInput", {"required":["canvasSources"]}, {"properties":{"purpose":{"const":"creative_assistance"},"assistance":{"properties":{"kind":{"enum":["prepare_prompt","discuss"]}}},"contextSources":{"maxItems":0},"additionalReferences":{"maxItems":0},"referenceOverrides":{"maxItems":0}}})
+require_when("PlanInput", {"properties":{"assistance":{"properties":{"kind":{"const":"discuss"}},"required":["kind"]}},"required":["assistance"]}, {"required":["prompt","canvasSources"],"properties":{"prompt":{"minLength":1},"shotSources":{"maxItems":0},"contextSources":{"maxItems":0},"additionalReferences":{"maxItems":0},"referenceOverrides":{"maxItems":0}}})
+require_when("AssistanceArtifact", {"properties":{"request":{"properties":{"kind":{"const":"discuss"}},"required":["kind"]}},"required":["request"]}, {"properties":{"body":{"required":["message"],"properties":{"prompt":{"const":""},"notes":{"const":""},"retain":{"maxItems":0},"change":{"maxItems":0},"referenceSuggestions":{"maxItems":0}}},"resolvedInput":{"required":["canvasScope"]}}})
 require_when("AssistanceArtifact", {"properties":{"shotSources":{"maxItems":0}},"required":["shotSources"]}, {"properties":{"resolvedInput":{"required":["canvasSnapshots"]}}})
 schema("ApplyCanvasAssistance", {"applicationId":ID,"artifactId":ID,"artifactRevision":POS,"nodeId":ID,"mode":enum("replace","append")}, ["applicationId","artifactId","artifactRevision","nodeId","mode"])
 schema("CanvasAssistanceApplication", {"id":ID,"canvasId":ID,"nodeId":ID,"artifactId":ID,"artifactRevision":POS,"mode":enum("replace","append"),"baseCanvasRevision":POS,"resultCanvasRevision":POS,"beforePrompt":TEXT,"afterPrompt":TEXT,"appliedAt":TIME}, ["id","canvasId","nodeId","artifactId","artifactRevision","mode","baseCanvasRevision","resultCanvasRevision","beforePrompt","afterPrompt","appliedAt"])
@@ -560,7 +565,7 @@ filters = {
     "listCuts": {"episodeId": ID, "sceneId": ID},
     "listReviews": {"status": enum("open", "approved", "changes_requested"), "cutRevisionId": ID, "takeId": ID},
     "listProposals": {"sceneId": ID, "status": enum("proposed","applied","rejected"), "sourceKind": enum("ai_analysis","csv_import")},
-    "listAssistanceArtifacts": {"shotId": ID, "canvasId": ID, "kind": enum("prepare_prompt","prepare_rework")},
+    "listAssistanceArtifacts": {"shotId": ID, "canvasId": ID, "kind": enum("prepare_prompt","prepare_rework","discuss")},
     "listCreativeBasisRevisions": {"subjectId": ID, "kind": enum("script","production","scene","shot_dialogue")},
     "listCreativeConfirmations": {"subjectId": ID},
     "listTasks": {"sceneId": ID, "kind": enum("general","scene_owner","assist","rework"), "assigneeMembershipId": ID, "status": enum("open", "in_progress", "blocked", "done")},

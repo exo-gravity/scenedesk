@@ -99,7 +99,9 @@ export async function grantRuntimeAccess(
     `REVOKE UPDATE ON ${scope}.generation_jobs FROM ${target}; REVOKE UPDATE(status,error_code,revision,updated_at,recovery_epoch) ON ${scope}.generation_jobs FROM ${target}`,
   );
   await client.query(`GRANT INSERT ON ${scope}.generation_work TO ${target}`);
-  await client.query(`GRANT SELECT ON ${scope}.generation_provider_bindings TO ${target}`);
+  await client.query(
+    `GRANT SELECT ON ${scope}.generation_provider_bindings TO ${target}`,
+  );
   await client.query(
     `GRANT SELECT,INSERT ON ${scope}.generation_canvas_origins,${scope}.generation_canvas_results TO ${target}`,
   );
@@ -115,10 +117,18 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT SELECT,INSERT ON ${scope}.generation_rework_inputs TO ${target}`,
   );
-  await client.query(`GRANT SELECT,INSERT ON ${scope}.generation_canvas_contexts,${scope}.canvas_assistance_applications TO ${target}`);
-  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_snapshot(uuid,uuid,jsonb,boolean),${scope}.canvas_assistance_access(uuid,uuid,jsonb) TO ${target}`);
-  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_references_supported(uuid,uuid,jsonb,jsonb) TO ${target}`);
-  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_direct_access(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_snapshot(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_access(uuid,uuid,jsonb) TO ${target}`);
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_canvas_contexts,${scope}.canvas_assistance_applications,${scope}.generation_assistance_scopes TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_snapshot(uuid,uuid,jsonb,boolean),${scope}.canvas_assistance_access(uuid,uuid,jsonb),${scope}.discussion_canvas_scope(uuid,uuid,uuid,boolean),${scope}.canvas_discussion_history(uuid,uuid,jsonb) TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_references_supported(uuid,uuid,jsonb,jsonb) TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_direct_access(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_snapshot(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_access(uuid,uuid,jsonb) TO ${target}`,
+  );
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.rework_input_hash(jsonb,jsonb,bigint,uuid),${scope}.rework_source_current(uuid) TO ${target}`,
   );
@@ -428,9 +438,15 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT SELECT ON ${scope}.generation_rework_inputs,${scope}.shots TO ${target}`,
   );
-  await client.query(`GRANT SELECT ON ${scope}.generation_canvas_contexts,${scope}.canvas_assistance_applications TO ${target}`);
-  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_access(uuid,uuid,jsonb) TO ${target}`);
-  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_direct_access(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_snapshot(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_access(uuid,uuid,jsonb) TO ${target}`);
+  await client.query(
+    `GRANT SELECT ON ${scope}.generation_canvas_contexts,${scope}.canvas_assistance_applications,${scope}.generation_assistance_scopes TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_access(uuid,uuid,jsonb),${scope}.discussion_canvas_scope(uuid,uuid,uuid,boolean),${scope}.canvas_discussion_history(uuid,uuid,jsonb) TO ${target}`,
+  );
+  await client.query(
+    `GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_direct_access(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_snapshot(uuid,uuid,jsonb),${scope}.canvas_assistance_reply_access(uuid,uuid,jsonb) TO ${target}`,
+  );
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.rework_input_hash(jsonb,jsonb,bigint,uuid),${scope}.rework_source_current(uuid),${scope}.creative_canonical(jsonb) TO ${target}`,
   );
@@ -461,9 +477,15 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT UPDATE(kind,status,immutable_key,storage_version_id,sha256,bytes,mime,width,height,duration_us,fps_num,fps_den,has_audio,probe_metadata,issue,revision,updated_at) ON ${scope}.media TO ${target}`,
   );
-  await client.query(`GRANT SELECT,INSERT ON ${scope}.generation_provider_bindings TO ${target}`);
-  await client.query(`GRANT SELECT,INSERT,UPDATE ON ${scope}.generation_observation_control TO ${target}`);
-  await client.query(`GRANT SELECT,INSERT ON ${scope}.generation_applied_observations TO ${target}`);
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_provider_bindings TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT,UPDATE ON ${scope}.generation_observation_control TO ${target}`,
+  );
+  await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_applied_observations TO ${target}`,
+  );
   for (const signature of [
     ...authorizationFunctions,
     ...generationFunctions,
@@ -607,7 +629,9 @@ export async function grantGenerationWorkerAccess(
     throw new Error(
       "An existing generation worker identity cannot be replaced without explicit recovery",
     );
-  await client.query(`REVOKE EXECUTE ON FUNCTION ${scope}.finish_generation_output(uuid,uuid,jsonb,text) FROM ${target}`);
+  await client.query(
+    `REVOKE EXECUTE ON FUNCTION ${scope}.finish_generation_output(uuid,uuid,jsonb,text) FROM ${target}`,
+  );
   for (const signature of generationFunctions)
     await client.query(
       `GRANT EXECUTE ON FUNCTION ${scope}.${signature} TO ${target}`,

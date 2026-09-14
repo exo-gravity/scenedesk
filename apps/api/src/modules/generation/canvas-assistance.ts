@@ -14,63 +14,151 @@ export async function resolveCanvasSources(
     references: Schema<"ResolvedReference">[] = [],
     dependencies: Schema<"SourceDependency">[] = [],
     seen = new Set<string>();
-  requireThat(sources.length > 0 && sources.length <= 20, 422,
-    "CANVAS_ASSISTANCE_LIMIT", "请选择 1–20 个明确的画布节点。");
+  requireThat(
+    sources.length > 0 && sources.length <= 20,
+    422,
+    "CANVAS_ASSISTANCE_LIMIT",
+    "请选择 1–20 个明确的画布节点。",
+  );
   for (const raw of sources) {
-    const source = { ...raw, canvasId: raw.canvasId.toLowerCase(), nodeId: raw.nodeId.toLowerCase() };
-    requireThat(!seen.has(source.nodeId), 422, "DUPLICATE_CANVAS_SOURCE", "同一个画布节点只能明确选择一次。");
+    const source = {
+      ...raw,
+      canvasId: raw.canvasId.toLowerCase(),
+      nodeId: raw.nodeId.toLowerCase(),
+    };
+    requireThat(
+      !seen.has(source.nodeId),
+      422,
+      "DUPLICATE_CANVAS_SOURCE",
+      "同一个画布节点只能明确选择一次。",
+    );
     seen.add(source.nodeId);
-    const canvas = (await tx.sql.query(
-      "SELECT c.revision,l.scene_id FROM canvases c JOIN scene_canvas_links l ON l.canvas_id=c.id WHERE c.tenant_id=$1 AND c.project_id=$2 AND c.id=$3",
-      [tx.tenantId, tx.projectId, source.canvasId],
-    )).rows[0];
-    requireThat(canvas, 404, "CANVAS_CONTEXT_UNAVAILABLE", "明确选择的画布不存在或无访问权限。");
+    const canvas = (
+      await tx.sql.query(
+        "SELECT c.revision,l.scene_id FROM canvases c JOIN scene_canvas_links l ON l.canvas_id=c.id WHERE c.tenant_id=$1 AND c.project_id=$2 AND c.id=$3",
+        [tx.tenantId, tx.projectId, source.canvasId],
+      )
+    ).rows[0];
+    requireThat(
+      canvas,
+      404,
+      "CANVAS_CONTEXT_UNAVAILABLE",
+      "明确选择的画布不存在或无访问权限。",
+    );
     await activeParent(tx, "scenes", canvas.scene_id);
-    if (checkVersion) versionMatches(Number(canvas.revision), source.canvasRevision);
-    const snapshot = (await tx.sql.query(
-      "SELECT canvas_assistance_snapshot($1,$2,$3,$4) AS snapshot",
-      [tx.tenantId, tx.projectId, source, checkVersion],
-    )).rows[0]?.snapshot as Schema<"CanvasAssistanceSnapshot"> | null;
-    requireThat(snapshot, 422, "CANVAS_CONTEXT_UNAVAILABLE", "节点已移除、版本不符或参考用途不合法，请保留输入并核对。");
+    if (checkVersion)
+      versionMatches(Number(canvas.revision), source.canvasRevision);
+    const snapshot = (
+      await tx.sql.query(
+        "SELECT canvas_assistance_snapshot($1,$2,$3,$4) AS snapshot",
+        [tx.tenantId, tx.projectId, source, checkVersion],
+      )
+    ).rows[0]?.snapshot as Schema<"CanvasAssistanceSnapshot"> | null;
+    requireThat(
+      snapshot,
+      422,
+      "CANVAS_CONTEXT_UNAVAILABLE",
+      "节点已移除、版本不符或参考用途不合法，请保留输入并核对。",
+    );
     if (snapshot.content.type === "media") {
       const reference: Schema<"Reference"> = {
         mediaId: snapshot.content.mediaId,
         purpose: source.purpose!,
-        ...(snapshot.content.assetRevisionId ? { assetRevisionId: snapshot.content.assetRevisionId } : {}),
+        ...(snapshot.content.assetRevisionId
+          ? { assetRevisionId: snapshot.content.assetRevisionId }
+          : {}),
       };
       await validateReference(tx, reference);
-      references.push({ sourceLevel: "attempt", sourceObjectId: source.nodeId, reference });
+      references.push({
+        sourceLevel: "attempt",
+        sourceObjectId: source.nodeId,
+        reference,
+      });
     }
     snapshots.push(snapshot);
-    dependencies.push({ kind: "canvas_node", objectId: source.nodeId,
-      revision: source.canvasRevision, tracking: "current", contentHash: snapshot.contentHash });
+    dependencies.push({
+      kind: "canvas_node",
+      objectId: source.nodeId,
+      revision: source.canvasRevision,
+      tracking: "current",
+      contentHash: snapshot.contentHash,
+    });
   }
   return { snapshots, references, dependencies };
 }
 
 /** History remains fixed, but it never grants access to media or revoked asset imports. */
-export async function assertCanvasAssistanceAccess(tx: Transaction, resolved: Schema<"ResolvedInput">) {
+export async function assertCanvasAssistanceAccess(
+  tx: Transaction,
+  resolved: Schema<"ResolvedInput">,
+) {
+  if (resolved.canvasScope)
+    requireThat(
+      (
+        await tx.sql.query(
+          "SELECT discussion_canvas_scope($1,$2,$3,false) AS scope",
+          [tx.tenantId, tx.projectId, resolved.canvasScope.canvasId],
+        )
+      ).rows[0]?.scope,
+      404,
+      "CANVAS_CONTEXT_UNAVAILABLE",
+      "讨论画布已不可访问。",
+    );
   for (const snapshot of resolved.canvasSnapshots ?? []) {
-    requireThat((await tx.sql.query(
-      "SELECT 1 FROM canvases WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
-      [tx.tenantId, tx.projectId, snapshot.source.canvasId],
-    )).rowCount, 404, "CANVAS_CONTEXT_UNAVAILABLE", "固定来源画布已不可访问。");
-    if (snapshot.content.type === "media") await validateReference(tx, {
-      mediaId: snapshot.content.mediaId, purpose: snapshot.source.purpose!,
-      ...(snapshot.content.assetRevisionId ? { assetRevisionId: snapshot.content.assetRevisionId } : {}),
-    });
+    requireThat(
+      (
+        await tx.sql.query(
+          "SELECT 1 FROM canvases WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
+          [tx.tenantId, tx.projectId, snapshot.source.canvasId],
+        )
+      ).rowCount,
+      404,
+      "CANVAS_CONTEXT_UNAVAILABLE",
+      "固定来源画布已不可访问。",
+    );
+    if (snapshot.content.type === "media")
+      await validateReference(tx, {
+        mediaId: snapshot.content.mediaId,
+        purpose: snapshot.source.purpose!,
+        ...(snapshot.content.assetRevisionId
+          ? { assetRevisionId: snapshot.content.assetRevisionId }
+          : {}),
+      });
   }
   if (resolved.canvasSnapshots?.length)
-    for (const item of resolved.references) await validateReference(tx,item.reference);
-  if (resolved.canvasSnapshots?.length && resolved.dependencies.some((d)=>d.kind==="assistance_artifact"))
-    requireThat((await tx.sql.query("SELECT canvas_assistance_access($1,$2,$3) AS accessible",
-      [tx.tenantId,tx.projectId,resolved])).rows[0].accessible,
-      409,"ASSISTANCE_REPLY_UNAVAILABLE","原建议的固定来源已不可用或无当前访问权限。");
+    for (const item of resolved.references)
+      await validateReference(tx, item.reference);
+  if (
+    (resolved.canvasSnapshots?.length || resolved.canvasScope) &&
+    resolved.dependencies.some((d) => d.kind === "assistance_artifact")
+  )
+    requireThat(
+      (
+        await tx.sql.query(
+          "SELECT canvas_assistance_access($1,$2,$3) AS accessible",
+          [tx.tenantId, tx.projectId, resolved],
+        )
+      ).rows[0].accessible,
+      409,
+      "ASSISTANCE_REPLY_UNAVAILABLE",
+      "原建议的固定来源已不可用或无当前访问权限。",
+    );
 }
 
-export async function assertCanvasAssistanceCurrent(tx: Transaction, resolved: Schema<"ResolvedInput">) {
+export async function assertCanvasAssistanceCurrent(
+  tx: Transaction,
+  resolved: Schema<"ResolvedInput">,
+) {
   if (!resolved.canvasSnapshots?.length) return;
-  const fresh = await resolveCanvasSources(tx, resolved.canvasSnapshots.map((s) => s.source), false);
-  requireThat(canonical(fresh.snapshots) === canonical(resolved.canvasSnapshots),
-    409, "PLAN_INPUT_CHANGED", "明确选择的节点内容已变化；原固定快照不会升级，请核对后重新准备。");
+  const fresh = await resolveCanvasSources(
+    tx,
+    resolved.canvasSnapshots.map((s) => s.source),
+    false,
+  );
+  requireThat(
+    canonical(fresh.snapshots) === canonical(resolved.canvasSnapshots),
+    409,
+    "PLAN_INPUT_CHANGED",
+    "明确选择的节点内容已变化；原固定快照不会升级，请核对后重新准备。",
+  );
 }

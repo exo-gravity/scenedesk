@@ -115,6 +115,15 @@ export function localAssistanceFixtureOutput(submission: AssistanceSubmission) {
         },
       ],
     };
+  if (submission.input.assistance?.kind === "discuss")
+    return {
+      message: `技术 fixture 已接收本轮文字：${submission.input.prompt}。明确附件 ${submission.resolvedInput.canvasSnapshots?.length ?? 0} 个${submission.resolvedInput.assistanceHistory?.length ? `，包含 ${submission.resolvedInput.assistanceHistory.length} 个固定旧回合` : ""}。这是协议验证输出，未调用真实模型，也未生成或修改任何节点。`,
+      prompt: "",
+      notes: "",
+      referenceSuggestions: [],
+      retain: [],
+      change: [],
+    };
   const feedback = submission.resolvedInput.feedbackSnapshot;
   const rework = submission.input.assistance?.kind === "prepare_rework";
   if (rework && !feedback) throw new Error("Fixed Take feedback is required");

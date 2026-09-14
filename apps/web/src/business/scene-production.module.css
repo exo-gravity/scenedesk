@@ -4,7 +4,7 @@
   align-items: center;
   flex: 0 0 auto;
   min-height: 64px;
-  padding: 8px 16px 8px 12px;
+  padding: 8px 16px;
   gap: var(--mantine-spacing-xs);
   border-bottom: 1px solid var(--ws-border);
   background: var(--ws-panel);
@@ -56,6 +56,9 @@
   grid-row: 1;
   justify-self: end;
   min-width: 0;
+}
+.headerActions [hidden] {
+  display: none;
 }
 .modePanel {
   flex: 1;
@@ -240,5 +243,19 @@
     border: 0;
     border-radius: initial;
     box-shadow: none;
+  }
+}
+@media (max-width: 560px) {
+  .modeSwitch {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+  .headerActions {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+  }
+  .headerActions .saveAction {
+    display: none;
   }
 }

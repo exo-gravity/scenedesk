@@ -28,6 +28,7 @@ export function assistanceBody(
   requireThat(
     Buffer.byteLength(serialized) <= 480000 &&
       [
+        body.message ?? "",
         body.prompt,
         body.notes,
         ...body.retain,
@@ -45,6 +46,25 @@ export function assistanceBody(
     "INVALID_ASSISTANCE_OUTPUT",
     "建议内容超过限制或包含无效字符。",
   );
+  if (input?.assistanceRequest?.kind === "discuss")
+    requireThat(
+      body.message?.trim() &&
+        !body.prompt &&
+        !body.notes &&
+        !body.retain.length &&
+        !body.change.length &&
+        !body.referenceSuggestions.length,
+      422,
+      "INVALID_ASSISTANCE_OUTPUT",
+      "讨论必须返回明确正文，不得混入可应用提示或参考变更。",
+    );
+  else
+    requireThat(
+      !body.message,
+      422,
+      "INVALID_ASSISTANCE_OUTPUT",
+      "提示建议不得伪装为讨论正文。",
+    );
   if (input) {
     const allowed = new Set(input.references.map((r) => identity(r.reference)));
     requireThat(
@@ -124,7 +144,7 @@ export function assistanceArtifactRoutes(
       context.secrets,
       "listAssistanceArtifacts",
       input.query,
-      `${select} WHERE a.tenant_id=$1 AND a.project_id=$2 AND r.number=a.revision AND ($3::text IS NULL OR p.input->'assistance'->>'kind'=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM generation_plan_shots s WHERE s.plan_id=p.id AND s.shot_id=$4)) AND r.body->>'prompt' ILIKE $5 AND ($6::uuid IS NULL OR EXISTS(SELECT 1 FROM generation_canvas_contexts c WHERE c.plan_id=p.id AND c.canvas_id=$6))`,
+      `${select} WHERE a.tenant_id=$1 AND a.project_id=$2 AND r.number=a.revision AND ($3::text IS NULL OR p.input->'assistance'->>'kind'=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM generation_plan_shots s WHERE s.plan_id=p.id AND s.shot_id=$4)) AND coalesce(r.body->>'message',r.body->>'prompt') ILIKE $5 AND ($6::uuid IS NULL OR EXISTS(SELECT 1 FROM generation_canvas_contexts c WHERE c.plan_id=p.id AND c.canvas_id=$6) OR EXISTS(SELECT 1 FROM generation_assistance_scopes s WHERE s.plan_id=p.id AND s.canvas_id=$6))`,
       [
         tx.tenantId,
         tx.projectId,
@@ -144,6 +164,12 @@ export function assistanceArtifactRoutes(
   });
   registerAction(app, context, "editAssistanceArtifact", async (tx, input) => {
     const previous = await read(tx, input.params.artifactId!);
+    requireThat(
+      previous.input.assistance.kind !== "discuss",
+      422,
+      "DISCUSSION_IMMUTABLE",
+      "讨论回复保持固定；请通过新一轮消息继续讨论。",
+    );
     versionMatches(Number(previous.revision), input.version);
     const body = assistanceBody(input.body.body);
     const existing = new Set(

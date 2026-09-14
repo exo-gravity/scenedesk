@@ -5,7 +5,11 @@ import { activeParent, contentTree, type Schema } from "../content/model.js";
 import { safeText, resolveContext } from "./input-sources.js";
 import { canvasDraftInput } from "./canvas-context.js";
 import { resolveTakeFeedback } from "../reviews/model.js";
-import { resolveCanvasSources, assertCanvasAssistanceCurrent } from "./canvas-assistance.js";
+import {
+  resolveCanvasSources,
+  assertCanvasAssistanceCurrent,
+} from "./canvas-assistance.js";
+import { discussionScope } from "./discussion.js";
 import { resolveCanvasReply } from "./canvas-replies.js";
 
 /** Fixed history is resolved first; current head checks never replace that history. */
@@ -128,7 +132,8 @@ export async function resolvePrompt(
     !input.sourceScriptRevisionId &&
       !input.scriptRange &&
       !input.proposalTarget &&
-      (!input.assistanceSource || (input.canvasSources && input.assistance.kind === "prepare_prompt")),
+      (!input.assistanceSource ||
+        (input.canvasSources && input.assistance.kind === "prepare_prompt")),
     422,
     "ASSISTANCE_SOURCE_MISMATCH",
     "提示准备只能使用本次明确选择的固定镜头和上下文；不能附带未解析的来源。",
@@ -144,15 +149,23 @@ export async function resolvePrompt(
     "提示准备不接收返工来源，请选择正确的任务类型。",
   );
   requireThat(
-    ((input.shotSources?.length ?? 0) > 0 || (input.canvasSources?.length ?? 0) > 0) &&
+    ((input.shotSources?.length ?? 0) > 0 ||
+      (input.canvasSources?.length ?? 0) > 0) &&
       (input.shotSources?.length ?? 0) <= 100,
     422,
     "ASSISTANCE_SHOT_REQUIRED",
     "请明确选择固定镜头版本或画布节点。",
   );
-  requireThat(!input.canvasSources || (request.kind === "prepare_prompt" &&
-    !input.contextSources?.length && !input.additionalReferences.length && !input.referenceOverrides.length),
-    422, "CANVAS_ASSISTANCE_INPUT_UNSUPPORTED", "画布提示准备只使用明确选定的节点和镜头；其他来源请通过独立固定输入准备。");
+  requireThat(
+    !input.canvasSources ||
+      (request.kind === "prepare_prompt" &&
+        !input.contextSources?.length &&
+        !input.additionalReferences.length &&
+        !input.referenceOverrides.length),
+    422,
+    "CANVAS_ASSISTANCE_INPUT_UNSUPPORTED",
+    "画布提示准备只使用明确选定的节点和镜头；其他来源请通过独立固定输入准备。",
+  );
   requireThat(
     (input.contextSources?.length ?? 0) <= 20 &&
       (input.additionalReferences?.length ?? 0) <= 100 &&
@@ -174,21 +187,29 @@ export async function resolvePrompt(
     "TARGET_CAPABILITY_UNAVAILABLE",
     "目标媒体能力尚未配置或已停用，不能隐式选用其他版本。",
   );
-  versionMatches(Number(target.revision), request.targetCapabilityRevision);
+  versionMatches(Number(target.revision), request.targetCapabilityRevision!);
   const feedback =
     request.kind === "prepare_rework"
       ? await currentTakeFeedback(tx, input)
       : undefined;
   const result = await resolveSelectedInput(tx, input, target);
-  if (input.canvasSources) result.resolved.resolverVersion = "canvas-assistance/1";
-  const reply = await resolveCanvasReply(tx,input);
+  if (input.canvasSources)
+    result.resolved.resolverVersion = "canvas-assistance/1";
+  const reply = await resolveCanvasReply(tx, input);
   if (reply) {
     result.resolved.assistanceSnapshot = reply.body;
     result.resolved.assistanceInstruction = reply.instruction;
     result.resolved.dependencies.push(reply.dependency);
-    requireThat(JSON.stringify(result.resolved.shots).length + JSON.stringify(result.resolved.canvasSnapshots).length +
-      JSON.stringify(reply.body).length + reply.instruction.length <= 100000,
-      422,"ASSISTANCE_INPUT_LIMIT","本轮固定来源与上轮建议合计过长，请缩小明确选区。");
+    requireThat(
+      JSON.stringify(result.resolved.shots).length +
+        JSON.stringify(result.resolved.canvasSnapshots).length +
+        JSON.stringify(reply.body).length +
+        reply.instruction.length <=
+        100000,
+      422,
+      "ASSISTANCE_INPUT_LIMIT",
+      "本轮固定来源与上轮建议合计过长，请缩小明确选区。",
+    );
   }
   if (feedback) {
     result.resolved.resolverVersion = "creative-rework/1";
@@ -287,7 +308,11 @@ export async function resolveSelectedInput(
       references.push(...canvas.references);
     } else snapshots.push(await resolveContext(tx, source, true));
   }
-  const canvas = input.canvasSources ? await resolveCanvasSources(tx, input.canvasSources, true) : undefined;
+  const canvas = input.canvasSources
+    ? input.canvasSources.length
+      ? await resolveCanvasSources(tx, input.canvasSources, true)
+      : { snapshots: [], references: [], dependencies: [] }
+    : undefined;
   if (canvas) references.push(...canvas.references);
   if (expandSources) {
     const extra = await expandSources(tx, shots, snapshots);
@@ -372,7 +397,8 @@ export async function resolveSelectedInput(
     );
   requireThat(
     snapshots.reduce((n, s) => n + s.text.length, 0) +
-      JSON.stringify(shots).length + JSON.stringify(canvas?.snapshots ?? []).length <=
+      JSON.stringify(shots).length +
+      JSON.stringify(canvas?.snapshots ?? []).length <=
       100000,
     422,
     "ASSISTANCE_INPUT_LIMIT",
@@ -384,7 +410,11 @@ export async function resolveSelectedInput(
       prompt: safeText(input.prompt),
       references,
       shots,
-      dependencies: [...dependencies, ...snapshots.map((s) => s.source), ...(canvas?.dependencies ?? [])],
+      dependencies: [
+        ...dependencies,
+        ...snapshots.map((s) => s.source),
+        ...(canvas?.dependencies ?? []),
+      ],
       contextSnapshots: snapshots,
       ...(canvas ? { canvasSnapshots: canvas.snapshots } : {}),
       ...(input.assistance ? { assistanceRequest: input.assistance } : {}),
@@ -408,6 +438,11 @@ export async function assertPromptCurrent(
   const resolved = plan.resolved_input as Schema<"ResolvedInput">,
     input = plan.input as Schema<"PlanInput">,
     request = input.assistance!;
+  if (request.kind === "discuss") {
+    await discussionScope(tx, request.canvasId!, true);
+    await assertSelectedCurrent(tx, resolved);
+    return;
+  }
   const target = (
     await tx.sql.query(
       "SELECT revision,connection_version_id,enabled FROM generation_capabilities WHERE tenant_id=$1 AND id=$2",

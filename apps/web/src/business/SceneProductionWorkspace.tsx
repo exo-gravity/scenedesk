@@ -690,6 +690,7 @@ function SceneCanvasSession({
                   state.phase === "saving") && (
                   <Button
                     size="xs"
+                    className={layout.saveAction}
                     disabled={readOnly || state.phase === "conflict"}
                     loading={state.phase === "saving"}
                     onClick={() => void controller.save()}
@@ -922,30 +923,26 @@ function SceneCanvasSession({
                   </ActionIcon>
                 </Group>
               </div>
-              {preference.mode === "canvas" && (
-                <div className={layout.assistantTabs}>
-                  <Select
-                    size="xs"
-                    variant="unstyled"
-                    aria-label="助手上下文"
-                    value={assistantView}
-                    allowDeselect={false}
-                    onChange={(next) => {
-                      if (next === "canvas" || next === "scene")
-                        setAssistantView(next);
-                    }}
-                    data={[
-                      { value: "canvas", label: "画布对话" },
-                      { value: "scene", label: "场次分镜建议" },
-                    ]}
-                  />
-                </div>
-              )}
+              <div className={layout.assistantTabs}>
+                <Select
+                  size="xs"
+                  variant="unstyled"
+                  aria-label="助手上下文"
+                  value={assistantView}
+                  allowDeselect={false}
+                  onChange={(next) => {
+                    if (next === "canvas" || next === "scene")
+                      setAssistantView(next);
+                  }}
+                  data={[
+                    { value: "canvas", label: "创作对话" },
+                    { value: "scene", label: "场次分镜建议" },
+                  ]}
+                />
+              </div>
               <div
                 className={layout.assistantChatSlot}
-                hidden={
-                  preference.mode !== "canvas" || assistantView !== "canvas"
-                }
+                hidden={assistantView !== "canvas"}
               >
                 <CanvasAssistant
                   tenantId={tenantId}
@@ -953,29 +950,20 @@ function SceneCanvasSession({
                   sceneId={sceneId}
                   controller={controller}
                   active={active && !readOnly}
-                  visible={
-                    dock === "assistant" &&
-                    preference.mode === "canvas" &&
-                    assistantView === "canvas"
-                  }
+                  visible={dock === "assistant" && assistantView === "canvas"}
                   requestedContext={assistantContext}
                 />
               </div>
               <div
                 className={layout.assistantSceneSlot}
-                hidden={
-                  preference.mode === "canvas" && assistantView !== "scene"
-                }
+                hidden={assistantView !== "scene"}
               >
                 <SceneAssistant
                   tenantId={tenantId}
                   projectId={projectId}
                   sceneId={sceneId}
                   active={active}
-                  visible={
-                    dock === "assistant" &&
-                    (preference.mode !== "canvas" || assistantView === "scene")
-                  }
+                  visible={dock === "assistant" && assistantView === "scene"}
                   onOpenProposal={setAssistantProposalId}
                 />
               </div>

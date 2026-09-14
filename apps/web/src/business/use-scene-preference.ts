@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError, useResource, useSession, type Schema } from "./api";
+import { sameValue } from "./prompt-draft";
 
 type Preference = Schema<"SaveSceneWorkspacePreference">;
 type Saved = Schema<"SceneWorkspacePreference">;
@@ -36,7 +37,7 @@ export function useScenePreference(path: string) {
   const change = useCallback((patch: Partial<Preference>) => {
     if (!draft.current) return;
     const next = { ...draft.current, ...patch };
-    if (JSON.stringify(next) === JSON.stringify(draft.current)) return;
+    if (sameValue(next, draft.current)) return;
     draft.current = next;
     setView(next);
     setTick((t) => t + 1);
@@ -64,7 +65,7 @@ export function useScenePreference(path: string) {
             revision: _revision,
             ...saved
           } = base.current;
-          if (JSON.stringify(desired) === JSON.stringify(saved)) {
+          if (sameValue(desired, saved)) {
             failed.current = false;
             setError(null);
             return;
@@ -114,7 +115,7 @@ export function useScenePreference(path: string) {
   useEffect(() => {
     if (!view || !base.current || failed.current) return;
     const { sceneId: _scene, revision: _revision, ...saved } = base.current;
-    if (JSON.stringify(draft.current) === JSON.stringify(saved)) return;
+    if (sameValue(draft.current, saved)) return;
     const timer = setTimeout(() => void save(), 500);
     return () => clearTimeout(timer);
   }, [view, tick, save]);
@@ -127,7 +128,7 @@ export function useScenePreference(path: string) {
       );
     if (draft.current && base.current) {
       const { sceneId: _scene, revision: _revision, ...saved } = base.current;
-      if (JSON.stringify(draft.current) !== JSON.stringify(saved)) {
+      if (!sameValue(draft.current, saved)) {
         await save();
         if (failed.current)
           throw new Error("视图位置尚未保存，请先重新保存本页视图。");
@@ -135,7 +136,7 @@ export function useScenePreference(path: string) {
     }
     if (draft.current && base.current) {
       const { sceneId: _scene, revision: _revision, ...saved } = base.current;
-      if (JSON.stringify(draft.current) !== JSON.stringify(saved))
+      if (!sameValue(draft.current, saved))
         throw new Error("视图刚有新变化，当前页面仍保留，请再次切换。");
     }
   }, [save]);

@@ -580,12 +580,23 @@
   padding: 8px 12px;
 }
 .contextualEditor .referenceStrip {
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   padding-bottom: 4px;
 }
 .contextualEditor .referenceChip {
-  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  padding: 4px;
+  gap: 4px;
+}
+.contextualEditor .referenceCard {
+  min-width: 0;
+  max-width: none;
+}
+.contextualEditor .referenceChip svg,
+.contextualEditor .referenceChip small {
+  flex-shrink: 0;
 }
 .referenceCard {
   display: flex;
