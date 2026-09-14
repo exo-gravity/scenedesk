@@ -51,3 +51,18 @@ test("applying advice fixes its application identity, artifact revision and expl
   const { applicationId: _application, ...unidentified } = body;
   assert.equal(validateContract("ApplyCanvasAssistance", unidentified).valid, false);
 });
+
+test("only a fixed canvas prompt continuation may use prior advice as assistant input", () => {
+  const assistanceSource = { artifactId: id, revision: 2 };
+  assert.equal(validateContract("PlanInput", { ...input, assistanceSource }).valid, true);
+  const { canvasSources: _sources, ...withoutCanvas } = input;
+  assert.equal(validateContract("PlanInput", {
+    ...withoutCanvas, shotSources: [{ shotId: id, shotRevisionId: id }], assistanceSource,
+  }).valid, false);
+  for (const value of [
+    { ...input, assistanceSource: { ...assistanceSource, revision: 0 } },
+    { ...input, assistanceSource, assistanceInstruction: "前端不能伪造历史用户要求" },
+    { ...input, assistanceSource, assistance: { ...input.assistance, kind: "prepare_rework", sourceTakeId: id,
+      feedback: { reviewId: id, commentId: id, commentRevision: 1 } } },
+  ]) assert.equal(validateContract("PlanInput", value).valid, false);
+});

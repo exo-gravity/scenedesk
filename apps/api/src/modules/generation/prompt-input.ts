@@ -6,6 +6,7 @@ import { safeText, resolveContext } from "./input-sources.js";
 import { canvasDraftInput } from "./canvas-context.js";
 import { resolveTakeFeedback } from "../reviews/model.js";
 import { resolveCanvasSources, assertCanvasAssistanceCurrent } from "./canvas-assistance.js";
+import { resolveCanvasReply } from "./canvas-replies.js";
 
 /** Fixed history is resolved first; current head checks never replace that history. */
 async function currentTakeFeedback(
@@ -127,7 +128,7 @@ export async function resolvePrompt(
     !input.sourceScriptRevisionId &&
       !input.scriptRange &&
       !input.proposalTarget &&
-      !input.assistanceSource,
+      (!input.assistanceSource || (input.canvasSources && input.assistance.kind === "prepare_prompt")),
     422,
     "ASSISTANCE_SOURCE_MISMATCH",
     "提示准备只能使用本次明确选择的固定镜头和上下文；不能附带未解析的来源。",
@@ -180,6 +181,15 @@ export async function resolvePrompt(
       : undefined;
   const result = await resolveSelectedInput(tx, input, target);
   if (input.canvasSources) result.resolved.resolverVersion = "canvas-assistance/1";
+  const reply = await resolveCanvasReply(tx,input);
+  if (reply) {
+    result.resolved.assistanceSnapshot = reply.body;
+    result.resolved.assistanceInstruction = reply.instruction;
+    result.resolved.dependencies.push(reply.dependency);
+    requireThat(JSON.stringify(result.resolved.shots).length + JSON.stringify(result.resolved.canvasSnapshots).length +
+      JSON.stringify(reply.body).length + reply.instruction.length <= 100000,
+      422,"ASSISTANCE_INPUT_LIMIT","本轮固定来源与上轮建议合计过长，请缩小明确选区。");
+  }
   if (feedback) {
     result.resolved.resolverVersion = "creative-rework/1";
     result.resolved.feedbackSnapshot = feedback.feedbackSnapshot;

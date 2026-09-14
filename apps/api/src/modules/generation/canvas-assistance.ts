@@ -62,6 +62,10 @@ export async function assertCanvasAssistanceAccess(tx: Transaction, resolved: Sc
   }
   if (resolved.canvasSnapshots?.length)
     for (const item of resolved.references) await validateReference(tx,item.reference);
+  if (resolved.canvasSnapshots?.length && resolved.dependencies.some((d)=>d.kind==="assistance_artifact"))
+    requireThat((await tx.sql.query("SELECT canvas_assistance_access($1,$2,$3) AS accessible",
+      [tx.tenantId,tx.projectId,resolved])).rows[0].accessible,
+      409,"ASSISTANCE_REPLY_UNAVAILABLE","原建议的固定来源已不可用或无当前访问权限。");
 }
 
 export async function assertCanvasAssistanceCurrent(tx: Transaction, resolved: Schema<"ResolvedInput">) {

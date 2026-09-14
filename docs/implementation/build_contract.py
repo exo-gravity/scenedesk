@@ -333,10 +333,10 @@ extend("PlanInput", {"proposalTarget": ref("ProposalTarget"), "contextSources": 
 extend("ResolvedInput", {"contextSnapshots": arr(ref("ContextSnapshot")), "assistanceSnapshot": ref("AssistanceBody"), "assistanceRequest": ref("AssistanceRequest"), "feedbackSnapshot": obj({"reviewId":ID,"commentId":ID,"commentRevision":POS,"body":TEXT,"subject":ref("ReviewSubject"),"startUs":US,"endUs":US},["reviewId","commentId","commentRevision","body","subject"])})
 extend("GenerationJob", {"assistanceArtifactId": ID})
 require_when("PlanInput", {"properties":{"purpose":{"const":"script_analysis"}},"required":["purpose"]}, {"required":["proposalTarget"]})
-require_when("PlanInput", {"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}, {"required":["assistance","shotSources"],"properties":{"scope":{"const":"project"},"shotSources":{"minItems":1},"output":{"maxProperties":0}},"not":{"anyOf":[{"required":["assistanceSource"]},{"required":["proposalTarget"]}]}})
+require_when("PlanInput", {"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}, {"required":["assistance","shotSources"],"properties":{"scope":{"const":"project"},"shotSources":{"minItems":1},"output":{"maxProperties":0}},"not":{"anyOf":[{"required":["proposalTarget"]}]}})
 require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}}, {"not":{"required":["assistance"]}})
-require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"script_analysis"}},"required":["purpose"]}}, {"not":{"required":["proposalTarget"]}})
-require_when("PlanInput", {"required":["assistanceSource"]}, {"properties":{"purpose":{"enum":["video","image","audio"]},"scope":{"const":"project"}}})
+require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"script_analysis"}},"required":["purpose"]}}, {"not":{"anyOf":[{"required":["proposalTarget"]}]}})
+require_when("PlanInput", {"required":["assistanceSource"]}, {"properties":{"scope":{"const":"project"}},"anyOf":[{"properties":{"purpose":{"enum":["video","image","audio"]}}},{"required":["canvasSources","assistance"],"properties":{"purpose":{"const":"creative_assistance"},"assistance":{"properties":{"kind":{"const":"prepare_prompt"}}}}}]})
 S["SourceDependency"]["properties"]["kind"]["enum"] += ["assistance_artifact","creative_confirmation","review_comment"]
 for name in ["Task", "TaskInput"]:
     extend(name, {"kind": enum("general","scene_owner","assist","rework"), "sceneId": ID}, ["kind"])
@@ -372,7 +372,8 @@ schema("CanvasAssistanceSnapshot", {"source":ref("CanvasAssistanceSource"),"kind
 require_when("CanvasAssistanceSnapshot", {"properties":{"kind":{"const":"text"}},"required":["kind"]}, {"properties":{"content":ref("CanvasTextContent")}})
 require_when("CanvasAssistanceSnapshot", {"properties":{"content":{"properties":{"type":{"const":"media"}},"required":["type"]}},"required":["content"]}, {"properties":{"source":{"required":["purpose"]},"kind":{"enum":["image","video","audio"]}}})
 extend("PlanInput", {"canvasSources":arr(ref("CanvasAssistanceSource"),minItems=1,maxItems=20)})
-extend("ResolvedInput", {"canvasSnapshots":arr(ref("CanvasAssistanceSnapshot"),minItems=1,maxItems=20)})
+extend("ResolvedInput", {"canvasSnapshots":arr(ref("CanvasAssistanceSnapshot"),minItems=1,maxItems=20),"assistanceInstruction":TEXT})
+require_when("ResolvedInput", {"required":["assistanceInstruction"]}, {"required":["assistanceSnapshot","canvasSnapshots"]})
 for rule in S["PlanInput"]["allOf"]:
     if rule.get("if", {}).get("properties", {}).get("purpose", {}).get("const") == "creative_assistance":
         rule["then"]["properties"]["shotSources"] = {"maxItems":100}

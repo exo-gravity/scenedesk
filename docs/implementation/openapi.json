@@ -17300,11 +17300,6 @@
                 "anyOf": [
                   {
                     "required": [
-                      "assistanceSource"
-                    ]
-                  },
-                  {
-                    "required": [
                       "proposalTarget"
                     ]
                   },
@@ -17372,8 +17367,12 @@
             },
             "then": {
               "not": {
-                "required": [
-                  "proposalTarget"
+                "anyOf": [
+                  {
+                    "required": [
+                      "proposalTarget"
+                    ]
+                  }
                 ]
               }
             }
@@ -17386,17 +17385,41 @@
             },
             "then": {
               "properties": {
-                "purpose": {
-                  "enum": [
-                    "video",
-                    "image",
-                    "audio"
-                  ]
-                },
                 "scope": {
                   "const": "project"
                 }
-              }
+              },
+              "anyOf": [
+                {
+                  "properties": {
+                    "purpose": {
+                      "enum": [
+                        "video",
+                        "image",
+                        "audio"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "required": [
+                    "canvasSources",
+                    "assistance"
+                  ],
+                  "properties": {
+                    "purpose": {
+                      "const": "creative_assistance"
+                    },
+                    "assistance": {
+                      "properties": {
+                        "kind": {
+                          "const": "prepare_prompt"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
             }
           },
           {
@@ -20494,6 +20517,10 @@
             "minItems": 1,
             "maxItems": 20
           },
+          "assistanceInstruction": {
+            "type": "string",
+            "maxLength": 20000
+          },
           "targetCapabilitySnapshot": {
             "$ref": "#/components/schemas/Capability"
           },
@@ -20515,7 +20542,22 @@
           "shots",
           "dependencies"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "assistanceInstruction"
+              ]
+            },
+            "then": {
+              "required": [
+                "assistanceSnapshot",
+                "canvasSnapshots"
+              ]
+            }
+          }
+        ]
       },
       "EstimateLine": {
         "type": "object",

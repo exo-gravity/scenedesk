@@ -3958,12 +3958,13 @@ export interface components {
             };
             creativeBasisRevisionIds?: string[];
             canvasSnapshots?: components["schemas"]["CanvasAssistanceSnapshot"][];
+            assistanceInstruction?: string;
             targetCapabilitySnapshot?: components["schemas"]["Capability"];
             /** Format: uuid */
             targetConnectionVersionId?: string;
             capabilitySnapshot?: components["schemas"]["Capability"];
             output?: components["schemas"]["OutputOptions"];
-        };
+        } & unknown;
         EstimateLine: {
             metric: string;
             quantity: string;
