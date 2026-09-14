@@ -250,7 +250,17 @@ function AuthenticatedApp({ hash }: { hash: string }) {
     document.title = "创作工作台 · SceneDesk";
   }, []);
   return (
-    <div className={classes.shell} ref={shell}>
+    <div
+      className={classes.shell}
+      ref={shell}
+      data-scene-production={
+        (session.data &&
+          !session.isError &&
+          hash.split("?")[0]?.endsWith("/production") &&
+          new URLSearchParams(hash.split("?")[1]).has("scene")) ||
+        undefined
+      }
+    >
       <ErrorNotice
         error={editingCleanupError}
         retryLabel="重试清理本机恢复"
@@ -365,7 +375,14 @@ function Workspace({ hash }: { hash: string }) {
   const main = useRef<HTMLElement>(null);
   useEffect(() => {
     main.current?.scrollTo({ top: 0 });
-  }, [tenantId, projectId, projectSection, section, detailObject, scriptEditing]);
+  }, [
+    tenantId,
+    projectId,
+    projectSection,
+    section,
+    detailObject,
+    scriptEditing,
+  ]);
   useEffect(() => {
     if (
       !tenantId &&
@@ -415,6 +432,7 @@ function Workspace({ hash }: { hash: string }) {
       <div
         className={classes.layout}
         data-production={production || undefined}
+        data-scene-production={(production && params.has("scene")) || undefined}
         data-project={projectDirectory || undefined}
       >
         <nav className={classes.sidebar} aria-label="工作室导航">

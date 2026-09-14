@@ -14,6 +14,7 @@ export function useScenePreference(path: string) {
     writing = useRef(false),
     generation = useRef(0),
     failed = useRef(false);
+  const inFlight = useRef<Promise<void> | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => {
     if (!initial.data || base.current) return;
@@ -41,60 +42,72 @@ export function useScenePreference(path: string) {
     setTick((t) => t + 1);
   }, []);
   const save = useCallback(
-    async (retry = false) => {
-      if (
-        writing.current ||
-        !draft.current ||
-        !base.current ||
-        (failed.current && !retry)
-      )
-        return;
-      const epoch = generation.current;
-      writing.current = true;
-      setSaving(true);
-      try {
-        if (retry) base.current = await api<Saved>(path);
-        if (epoch !== generation.current) return;
-        const desired = draft.current;
-        const { sceneId: _scene, revision: _revision, ...saved } = base.current;
-        if (JSON.stringify(desired) === JSON.stringify(saved)) {
+    (retry = false): Promise<void> => {
+      if (inFlight.current) return inFlight.current;
+      const operation = (async () => {
+        if (
+          writing.current ||
+          !draft.current ||
+          !base.current ||
+          (failed.current && !retry)
+        )
+          return;
+        const epoch = generation.current;
+        writing.current = true;
+        setSaving(true);
+        try {
+          if (retry) base.current = await api<Saved>(path);
+          if (epoch !== generation.current) return;
+          const desired = draft.current;
+          const {
+            sceneId: _scene,
+            revision: _revision,
+            ...saved
+          } = base.current;
+          if (JSON.stringify(desired) === JSON.stringify(saved)) {
+            failed.current = false;
+            setError(null);
+            return;
+          }
+          const result = await api<Saved>(path, {
+            method: "PUT",
+            signal: AbortSignal.timeout(15000),
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": session.csrfToken,
+              "If-Match": `"${base.current.revision}"`,
+            },
+            body: JSON.stringify(desired),
+          });
+          if (epoch !== generation.current) return;
+          base.current = result;
           failed.current = false;
           setError(null);
-          return;
+        } catch (e) {
+          if (epoch !== generation.current) return;
+          failed.current = true;
+          setError(
+            e instanceof ApiError && e.status === 412
+              ? new Error(
+                  "其他页面更新了你的视图偏好。本页布局仍保留，可明确重新保存本页视图。",
+                )
+              : e instanceof Error
+                ? e
+                : new Error("视图偏好未保存。"),
+          );
+        } finally {
+          writing.current = false;
+          if (epoch === generation.current) {
+            setSaving(false);
+            setTick((t) => t + 1);
+          }
         }
-        const result = await api<Saved>(path, {
-          method: "PUT",
-          signal: AbortSignal.timeout(15000),
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": session.csrfToken,
-            "If-Match": `"${base.current.revision}"`,
-          },
-          body: JSON.stringify(desired),
-        });
-        if (epoch !== generation.current) return;
-        base.current = result;
-        failed.current = false;
-        setError(null);
-      } catch (e) {
-        if (epoch !== generation.current) return;
-        failed.current = true;
-        setError(
-          e instanceof ApiError && e.status === 412
-            ? new Error(
-                "其他页面更新了你的视图偏好。本页布局仍保留，可明确重新保存本页视图。",
-              )
-            : e instanceof Error
-              ? e
-              : new Error("视图偏好未保存。"),
-        );
-      } finally {
-        writing.current = false;
-        if (epoch === generation.current) {
-          setSaving(false);
-          setTick((t) => t + 1);
-        }
-      }
+      })();
+      inFlight.current = operation;
+      void operation.finally(() => {
+        if (inFlight.current === operation) inFlight.current = null;
+      });
+      return operation;
     },
     [path, session.csrfToken],
   );
@@ -105,11 +118,33 @@ export function useScenePreference(path: string) {
     const timer = setTimeout(() => void save(), 500);
     return () => clearTimeout(timer);
   }, [view, tick, save]);
+  const flush = useCallback(async () => {
+    await inFlight.current;
+    await save();
+    if (failed.current)
+      throw new Error(
+        "视图位置尚未保存，请先重新保存本页视图；当前页面仍保留。",
+      );
+    if (draft.current && base.current) {
+      const { sceneId: _scene, revision: _revision, ...saved } = base.current;
+      if (JSON.stringify(draft.current) !== JSON.stringify(saved)) {
+        await save();
+        if (failed.current)
+          throw new Error("视图位置尚未保存，请先重新保存本页视图。");
+      }
+    }
+    if (draft.current && base.current) {
+      const { sceneId: _scene, revision: _revision, ...saved } = base.current;
+      if (JSON.stringify(draft.current) !== JSON.stringify(saved))
+        throw new Error("视图刚有新变化，当前页面仍保留，请再次切换。");
+    }
+  }, [save]);
   return {
     view,
     change,
     error: error ?? initial.error,
     saving,
+    flush,
     retry: () => {
       if (!base.current) void initial.refetch();
       else void save(true);

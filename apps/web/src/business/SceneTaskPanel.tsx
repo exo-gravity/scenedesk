@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode, type Ref } from "react";
 import { Badge, Button, Tabs } from "@mantine/core";
+import { Tray } from "@phosphor-icons/react";
 import { CanvasUploadPanel, useCanvasUploads } from "./CanvasUploads";
 
 export type SceneTaskView = "generation" | "imports";
@@ -32,6 +33,7 @@ export function SceneTasksButton({
       size="xs"
       variant="subtle"
       aria-label="任务与结果"
+      leftSection={<Tray size={16} />}
       aria-pressed={open}
       title={count || uploads?.error ? label : undefined}
       onClick={onClick}
@@ -43,7 +45,7 @@ export function SceneTasksButton({
         ) : undefined
       }
     >
-      任务与结果
+      任务
     </Button>
   );
 }
@@ -61,8 +63,7 @@ export function SceneTaskPanel({
   const count = uploads?.rows.length ?? 0;
   const value = view ?? (count || uploads?.error ? "imports" : "generation");
   useEffect(() => {
-    if (view === null && (!uploads?.loading || uploads?.error))
-      onChange(value);
+    if (view === null && (!uploads?.loading || uploads?.error)) onChange(value);
   }, [view, uploads?.loading, uploads?.error, value, onChange]);
   return (
     <Tabs
@@ -75,7 +76,13 @@ export function SceneTaskPanel({
         <Tabs.Tab value="generation">生成记录</Tabs.Tab>
         <Tabs.Tab
           value="imports"
-          rightSection={count ? <Badge size="xs" variant="light">{count}</Badge> : undefined}
+          rightSection={
+            count ? (
+              <Badge size="xs" variant="light">
+                {count}
+              </Badge>
+            ) : undefined
+          }
         >
           文件导入
         </Tabs.Tab>

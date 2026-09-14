@@ -98,6 +98,8 @@ export default function MyWork({
             task.sceneId && task.stage === "generation"
               ? "production"
               : "content";
+          if (destination === "production" && task.shotId)
+            query.set("mode", "storyboard");
           return (
             <article key={task.id} className={classes.workRow}>
               <div className={classes.workSummary}>

@@ -39,6 +39,7 @@ import {
 } from "./api";
 import { ErrorNotice, projectPath, tenantPath } from "./common";
 import { jobFinished, jobStatusLabel } from "./assistant-session";
+import { cancellationDescription } from "./generation-lifecycle";
 import type { PromptDraft } from "./prompt-draft";
 import {
   executableImages,
@@ -59,7 +60,9 @@ import {
   canvasAudioRequest,
 } from "./audio-generation";
 import { AudioPlanSources } from "./AudioPlanSources";
+import { NodeGenerationResults } from "./NodeGenerationResults";
 import classes from "./image-generation.module.css";
+import nodeClasses from "./node-generation.module.css";
 export type MediaInputSource =
   | { kind: "shot"; creation: PromptDraft }
   | {
@@ -89,6 +92,9 @@ export type MediaGenerationProps = {
   historyPlanId?: string | undefined;
   /** A fixed attempt uses a separate durable session and never edits a node. */
   inspection?: boolean | undefined;
+  /** Presentation never changes the durable session or its fixed inputs. */
+  presentation?: "node" | "detail" | undefined;
+  onInspectPlan?: ((planId: string) => void) | undefined;
   onRetainDraft?:
     ((retain: (() => Promise<void>) | undefined) => void) | undefined;
 };
@@ -115,6 +121,8 @@ function GenerationWorkspace({
   active,
   historyPlanId,
   inspection = false,
+  presentation = "detail",
+  onInspectPlan,
   onRetainDraft,
 }: MediaGenerationProps & { kind: "image" | "video" | "audio" }) {
   const label = { image: "图片", video: "视频", audio: "音频" }[kind],
@@ -214,6 +222,7 @@ function GenerationWorkspace({
       audio: executableAudios,
     }[kind](capabilities.data ?? []);
   const [error, setError] = useState<string>();
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const { record, plan, job } = state,
     draft = record?.draft;
   const node =
@@ -232,7 +241,8 @@ function GenerationWorkspace({
     frozen = !!record?.planId || !!record?.planRequest,
     disabled = !active || state.busy || !draft;
   const placement = draft?.placement;
-  const compact = source.kind === "canvas" && !inspection;
+  const compact =
+    presentation === "node" && source.kind === "canvas" && !inspection;
   const awaitingSave = source.kind === "canvas" && source.awaitingSave;
   useEffect(() => {
     if (
@@ -337,29 +347,36 @@ function GenerationWorkspace({
       !canReviewCanvasResultPlacement(draft.placement)
     )
       return;
-    void controller.commitDraft(draft, draft, async (current) => {
-      const canvas = await source.save();
-      if (canvas.id !== source.canvas.id) throw Error("结果接收画布已改变。");
-      const position = canvasResultPosition(
-        canvas.document.nodes,
-        source.nodeId,
-        job.mediaIds.length,
-      );
-      return {
-        ...current,
-        placement: {
-          phase: "review",
-          key: crypto.randomUUID(),
-          canvasId: canvas.id,
-          revision: canvas.revision,
-          input: {
-            jobId: job.id,
-            mediaIds: [...job.mediaIds],
-            position,
+    void controller
+      .commitDraft(draft, draft, async (current) => {
+        const canvas = await source.save();
+        if (canvas.id !== source.canvas.id) throw Error("结果接收画布已改变。");
+        const position = canvasResultPosition(
+          canvas.document.nodes,
+          source.nodeId,
+          job.mediaIds.length,
+        );
+        return {
+          ...current,
+          placement: {
+            phase: "review",
+            key: crypto.randomUUID(),
+            canvasId: canvas.id,
+            revision: canvas.revision,
+            input: {
+              jobId: job.id,
+              mediaIds: [...job.mediaIds],
+              position,
+            },
           },
-        },
-      };
-    });
+        };
+      })
+      .then(() => {
+        if (
+          controller.getSnapshot().record?.draft.placement?.phase === "review"
+        )
+          setDetailsOpen(false);
+      });
   };
   const materialize = () => {
     if (
@@ -546,9 +563,498 @@ function GenerationWorkspace({
       </details>
     </>
   );
+  const placementActions = (
+    <>
+      {job?.status === "succeeded" &&
+        source.kind === "canvas" &&
+        !placement && (
+          <Button disabled={disabled || awaitingSave} onClick={reviewPlacement}>
+            查看添加到画布的位置
+          </Button>
+        )}
+      {placement?.phase === "unknown" && (
+        <Alert title="添加结果待核对">
+          <Text size="sm">
+            {`原${label}与添加请求已保留。恢复会核对同一次添加，不会生成新${label}。`}
+          </Text>
+          <Button
+            disabled={disabled || job?.status !== "succeeded"}
+            onClick={materialize}
+          >
+            恢复本次添加
+          </Button>
+        </Alert>
+      )}
+      {placement?.phase === "conflict" && (
+        <Alert title="画布已有修改">
+          <Text size="sm">{`${label}尚未添加，先保存并核对当前画布。`}</Text>
+          <Button disabled={disabled || awaitingSave} onClick={reviewPlacement}>
+            重新核对添加位置
+          </Button>
+        </Alert>
+      )}
+      {placement?.phase === "placed" && (
+        <Alert title="已添加到画布">
+          {`结果以独立${label}节点保存。`}
+          {source.kind === "canvas" && placement.placed && (
+            <Button
+              mt="sm"
+              variant="default"
+              onClick={() =>
+                source.focus(
+                  placement.placed!.placements.map((item) => item.nodeId),
+                )
+              }
+            >
+              定位{label}结果
+            </Button>
+          )}
+        </Alert>
+      )}
+    </>
+  );
+  const archiveRecovery = (
+    <>
+      {job?.status === "archive_failed" && (
+        <Stack>
+          <Text size="sm">
+            结果保存未完成，可恢复归档。恢复不会重新调用模型。
+          </Text>
+          <Button
+            disabled={disabled || !!draft?.archiveRequest}
+            onClick={recoverArchive}
+          >
+            {`恢复${label}归档`}
+          </Button>
+        </Stack>
+      )}
+      {draft?.archiveRequest && (
+        <Stack>
+          <Text size="sm">归档恢复结果待核对，请先读取原任务。</Text>
+          <Button
+            disabled={disabled}
+            variant="default"
+            onClick={() =>
+              draft &&
+              void controller
+                .commitDraft(draft, draft, async (current) => {
+                  await api(
+                    `${tenant}/generation-jobs/${draft.archiveRequest!.jobId}`,
+                    { signal: AbortSignal.timeout(15000) },
+                  );
+                  return {
+                    ...current,
+                    archiveRequest: {
+                      ...draft.archiveRequest!,
+                      checked: true,
+                    },
+                  };
+                })
+                .then(() => controller.refresh())
+            }
+          >
+            核对归档恢复
+          </Button>
+          {draft.archiveRequest.checked && (
+            <Button
+              disabled={disabled}
+              variant="default"
+              onClick={recoverArchive}
+            >
+              继续原归档恢复请求
+            </Button>
+          )}
+        </Stack>
+      )}
+    </>
+  );
+  const nextAction = (
+    <>
+      {plan && !inspection && (!record?.execution || jobFinished(job)) && (
+        <Button
+          variant="subtle"
+          disabled={
+            disabled ||
+            placement?.phase === "unknown" ||
+            placement?.phase === "review"
+          }
+          onClick={() =>
+            draft &&
+            void controller.revise(
+              {
+                capabilityId: draft.capabilityId,
+                output: draft.output,
+                ...(draft.shotSources === undefined
+                  ? {}
+                  : { shotSources: draft.shotSources }),
+              },
+              draft,
+            )
+          }
+        >
+          {`保留原任务，准备${next}`}
+        </Button>
+      )}
+    </>
+  );
+  const taskDetails = (
+    <>
+      {plan && (
+        <Stack
+          gap="sm"
+          className={classes.result}
+          aria-label={`固定${label}计划`}
+        >
+          <Group justify="space-between">
+            <Text fw={600}>{`固定${label}计划`}</Text>
+            <Badge variant="light">
+              {plan.status === "ready"
+                ? "可执行"
+                : plan.status === "consumed"
+                  ? "已提交"
+                  : "暂不可执行"}
+            </Badge>
+          </Group>
+          {(plan as Schema<"GenerationPlan"> & { executionMode?: string })
+            .executionMode === "test_fixture" && (
+            <Alert title={`受控测试${label}`}>
+              用于验证生成与归档流程，不代表真实模型效果。
+            </Alert>
+          )}
+          <Text size="sm">
+            模型：
+            {resolved?.capabilitySnapshot?.modelVersion ??
+              capability?.modelVersion}{" "}
+            {kind !== "audio" && (
+              <>
+                {" "}
+                · {resolved?.output?.resolution ?? plan.input.output.resolution}
+              </>
+            )}
+          </Text>
+          {kind !== "image" && (
+            <Text size="sm">
+              {resolved?.output?.durationSeconds ??
+                plan.input.output.durationSeconds}{" "}
+              秒
+              {kind === "video" && (
+                <>
+                  {" "}
+                  ·{" "}
+                  {(resolved?.output ?? plan.input.output).withAudio
+                    ? "生成声音"
+                    : "无声视频"}
+                </>
+              )}
+            </Text>
+          )}
+          <Text size="xs" c="dimmed">
+            {kind !== "audio" && (
+              <>
+                画幅：
+                {(resolved?.output ?? plan.input.output).aspectRatio ??
+                  "默认（按固定尺寸）"}{" "}
+                ·{" "}
+              </>
+            )}
+            随机种子：
+            {(resolved?.output ?? plan.input.output).seed ?? "默认（未指定）"}
+          </Text>
+          <details className={classes.fixedDetails}>
+            <summary>查看固定提示全文</summary>
+            <Text size="sm" className={classes.prose}>
+              {resolved?.prompt}
+            </Text>
+          </details>
+          <Text size="xs" c="dimmed">
+            固定参考 {resolved?.references.length ?? 0} 个
+            {plan.input.assistanceSource
+              ? ` · 提示建议 r${plan.input.assistanceSource.revision}`
+              : ""}
+            。有效至 {new Date(plan.expiresAt).toLocaleString()}。
+          </Text>
+          {resolved && (
+            <details className={classes.fixedDetails}>
+              <summary>
+                核对固定来源 · {resolved.shots.length} 个镜头 /{" "}
+                {resolved.references.length} 个参考
+              </summary>
+              <FixedPlanShotSources resolved={resolved} />
+              {kind === "audio" && <AudioPlanSources resolved={resolved} />}
+            </details>
+          )}
+          {plan.blockingReasons.map((reason) => (
+            <Text size="sm" c="red" key={reason}>
+              {reason}
+            </Text>
+          ))}
+          {!record?.execution && (
+            <Button
+              disabled={
+                disabled ||
+                plan.status !== "ready" ||
+                Date.parse(plan.expiresAt) <= Date.now()
+              }
+
+              onClick={() => void controller.execute()}
+            >
+              {`确认执行${label}生成`}
+            </Button>
+          )}
+          {nextAction}
+        </Stack>
+      )}
+      {record?.execution && (
+        <Stack gap="sm" className={classes.result}>
+          <Group justify="space-between">
+            <Text fw={600}>
+              {job?.status === "succeeded"
+                ? `${label}结果已归档`
+                : job
+                  ? jobStatusLabel[job.status]
+                  : `${label}提交结果待核对`}
+            </Text>
+            <Button
+              variant="subtle"
+              leftSection={<ArrowsClockwise size={16} />}
+              disabled={state.busy}
+              onClick={() => void controller.refresh()}
+            >
+              {`核对${label}任务`}
+            </Button>
+          </Group>
+          {job && (
+            <GenerationJobControls
+              job={job}
+              cancellation={record.cancellation}
+              active={active && state.access === "ready"}
+              busy={state.busy}
+              label={`本次${label}任务`}
+              requestCancellation={(target) =>
+                controller.requestCancellation(target)
+              }
+            />
+          )}
+          {(!job ||
+            ["submission_unknown", "reconciliation_required"].includes(
+              job.status,
+            )) && (
+            <Text size="sm">刷新只读取原任务，未知提交不会再次执行。</Text>
+          )}
+          {!job && (
+            <Button
+              variant="default"
+              disabled={disabled}
+              onClick={() => void controller.resumeSubmission()}
+            >
+              {`核对后恢复原${label}提交`}
+            </Button>
+          )}
+          {job?.inputOutdated && (
+            <Alert>当前来源已有变化，此任务仍保留原固定输入。</Alert>
+          )}
+          {job?.errorCode && <Text size="sm">{job.errorCode}</Text>}
+          {archiveRecovery}
+          {job?.status === "succeeded" &&
+            job.mediaIds.map((mediaId) => (
+              <GeneratedMediaResult
+                kind={kind}
+                key={mediaId}
+                tenantId={tenantId}
+                projectId={projectId}
+                jobId={job.id}
+                mediaId={mediaId}
+              />
+            ))}
+          {placementActions}
+        </Stack>
+      )}
+      {!!record?.previous.length && (
+        <details>
+          <summary>
+            此前{label}任务（{record.previous.length}）
+          </summary>
+          <Stack mt="sm">
+            {record.previous
+              .filter((previous) => previous.jobId)
+              .map((previous) => (
+                <PastMedia
+                  kind={kind}
+                  key={previous.planId}
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  jobId={previous.jobId!}
+                />
+              ))}
+          </Stack>
+        </details>
+      )}
+    </>
+  );
+  const nodeTask = (
+    <>
+      {plan && (
+        <section
+          className={nodeClasses.fixedSummary}
+          aria-label={`固定${label}计划`}
+        >
+          <Group justify="space-between" gap="xs">
+            <Text size="xs" fw={600}>
+              {record?.execution ? "本次固定输入" : "确认本次生成"}
+            </Text>
+            <Button
+              size="compact-xs"
+              variant="subtle"
+              onClick={() => setDetailsOpen(true)}
+            >
+              核对固定输入
+            </Button>
+          </Group>
+          <Text size="xs" className={nodeClasses.summaryLine}>
+            {resolved?.capabilitySnapshot?.modelVersion ??
+              capability?.modelVersion ??
+              "固定模型"}
+            {kind !== "audio"
+              ? ` · ${(resolved?.output ?? plan.input.output).resolution ?? "固定尺寸"}`
+              : ""}
+            {kind !== "image"
+              ? ` · ${(resolved?.output ?? plan.input.output).durationSeconds ?? "—"} 秒`
+              : ""}
+            {kind === "video"
+              ? ` · ${(resolved?.output ?? plan.input.output).withAudio ? "有声" : "无声"}`
+              : ""}
+            {` · ${resolved?.references.length ?? 0} 参考 / ${resolved?.shots.length ?? 0} 镜头`}
+          </Text>
+          {(plan as Schema<"GenerationPlan"> & { executionMode?: string })
+            .executionMode === "test_fixture" && (
+            <Text size="xs" c="dimmed">
+              受控测试 · 不代表真实模型效果
+            </Text>
+          )}
+          {plan.blockingReasons.map((reason) => (
+            <Text key={reason} size="xs" c="red">
+              {reason}
+            </Text>
+          ))}
+          {!record?.execution && (
+            <>
+              {Date.parse(plan.expiresAt) <= Date.now() && (
+                <Text size="xs" role="status">
+                  固定计划已过期，请保留原计划并重新准备。
+                </Text>
+              )}
+              <Button
+                size="sm"
+                fullWidth
+                disabled={
+                  disabled ||
+                  plan.status !== "ready" ||
+                  Date.parse(plan.expiresAt) <= Date.now()
+                }
+                onClick={() => void controller.execute()}
+              >
+                {`确认执行${label}生成`}
+              </Button>
+            </>
+          )}
+        </section>
+      )}
+      {record?.execution && (
+        <section className={nodeClasses.taskStage} aria-label="当前生成阶段">
+          <Group justify="space-between" gap="xs">
+            <Text size="sm" fw={500} role="status">
+              {job ? jobStatusLabel[job.status] : "提交结果待核对"}
+            </Text>
+            <Button
+              size="compact-xs"
+              variant="subtle"
+              onClick={() => setDetailsOpen(true)}
+            >
+              {jobFinished(job) ? "任务详情" : "任务详情 / 取消"}
+            </Button>
+          </Group>
+          {(!job ||
+            ["submission_unknown", "reconciliation_required"].includes(
+              job.status,
+            )) && <Text size="xs">原提交待核对；读取进度不会再次执行。</Text>}
+          {job?.inputOutdated && (
+            <Text size="xs" c="dimmed">
+              来源已变化，本次仍使用原固定输入。
+            </Text>
+          )}
+          {job && cancellationDescription(job, record.cancellation) && (
+            <Text size="xs">
+              {cancellationDescription(job, record.cancellation)}
+            </Text>
+          )}
+          {job?.errorCode && (
+            <Text size="xs" role="status">
+              {job.errorCode}
+            </Text>
+          )}
+          {!job ? (
+            <Button
+              size="sm"
+              variant="default"
+              disabled={disabled}
+              onClick={() => void controller.resumeSubmission()}
+            >
+              核对后恢复原提交
+            </Button>
+          ) : (
+            job.status !== "succeeded" && (
+              <Button
+                size="xs"
+                variant="subtle"
+                leftSection={<ArrowsClockwise size={14} />}
+                disabled={state.busy}
+                onClick={() => void controller.refresh()}
+              >
+                核对任务进度
+              </Button>
+            )
+          )}
+          {archiveRecovery}
+          {job?.status === "succeeded" && !detailsOpen && (
+            <NodeGenerationResults
+              key={job.id}
+              kind={kind}
+              tenantId={tenantId}
+              projectId={projectId}
+              job={job}
+              previous={record.previous}
+              placed={placement?.phase === "placed"}
+            />
+          )}
+          {placementActions}
+        </section>
+      )}
+      {nextAction}
+      {onInspectPlan && plan && (
+        <Button
+          size="compact-xs"
+          variant="subtle"
+          onClick={() => onInspectPlan(plan.id)}
+        >
+          在任务中查看本次尝试
+        </Button>
+      )}
+      {!!record?.previous.length && (
+        <Button
+          size="compact-xs"
+          variant="subtle"
+          onClick={() => setDetailsOpen(true)}
+        >
+          此前尝试 · {record.previous.length}
+        </Button>
+      )}
+    </>
+  );
   return (
     <Stack
-      className={classes.panel}
+      className={
+        compact ? `${classes.panel} ${nodeClasses.node}` : classes.panel
+      }
       data-compact-controls={(compact && !plan) || undefined}
       gap="sm"
       aria-label={`生成${single}`}
@@ -694,7 +1200,7 @@ function GenerationWorkspace({
       )}
       {!plan && !inspection && (
         <Button
-          className={compact ? classes.generationAction : undefined}
+          className={compact ? nodeClasses.primaryAction : undefined}
           leftSection={<Symbol size={16} />}
           disabled={
             disabled ||
@@ -712,316 +1218,17 @@ function GenerationWorkspace({
               : `查看${label}生成计划`}
         </Button>
       )}
-      {plan && (
-        <Stack
-          gap="sm"
-          className={classes.result}
-          aria-label={`固定${label}计划`}
+      {compact ? nodeTask : taskDetails}
+      {compact && detailsOpen && (
+        <Modal
+          opened
+          onClose={() => setDetailsOpen(false)}
+          title={`固定${label}尝试`}
+          size="lg"
+          centered
         >
-          <Group justify="space-between">
-            <Text fw={600}>{`固定${label}计划`}</Text>
-            <Badge variant="light">
-              {plan.status === "ready"
-                ? "可执行"
-                : plan.status === "consumed"
-                  ? "已提交"
-                  : "暂不可执行"}
-            </Badge>
-          </Group>
-          {(plan as Schema<"GenerationPlan"> & { executionMode?: string })
-            .executionMode === "test_fixture" && (
-            <Alert title={`受控测试${label}`}>
-              用于验证生成与归档流程，不代表真实模型效果。
-            </Alert>
-          )}
-          <Text size="sm">
-            模型：
-            {resolved?.capabilitySnapshot?.modelVersion ??
-              capability?.modelVersion}{" "}
-            {kind !== "audio" && (
-              <>
-                {" "}
-                · {resolved?.output?.resolution ?? plan.input.output.resolution}
-              </>
-            )}
-          </Text>
-          {kind !== "image" && (
-            <Text size="sm">
-              {resolved?.output?.durationSeconds ??
-                plan.input.output.durationSeconds}{" "}
-              秒
-              {kind === "video" && (
-                <>
-                  {" "}
-                  ·{" "}
-                  {(resolved?.output ?? plan.input.output).withAudio
-                    ? "生成声音"
-                    : "无声视频"}
-                </>
-              )}
-            </Text>
-          )}
-          <Text size="xs" c="dimmed">
-            {kind !== "audio" && (
-              <>
-                画幅：
-                {(resolved?.output ?? plan.input.output).aspectRatio ??
-                  "默认（按固定尺寸）"}{" "}
-                ·{" "}
-              </>
-            )}
-            随机种子：
-            {(resolved?.output ?? plan.input.output).seed ?? "默认（未指定）"}
-          </Text>
-          <details className={classes.fixedDetails}>
-            <summary>查看固定提示全文</summary>
-            <Text size="sm" className={classes.prose}>
-              {resolved?.prompt}
-            </Text>
-          </details>
-          <Text size="xs" c="dimmed">
-            固定参考 {resolved?.references.length ?? 0} 个
-            {plan.input.assistanceSource
-              ? ` · 提示建议 r${plan.input.assistanceSource.revision}`
-              : ""}
-            。有效至 {new Date(plan.expiresAt).toLocaleString()}。
-          </Text>
-          {resolved && (
-            <details className={classes.fixedDetails}>
-              <summary>
-                核对固定来源 · {resolved.shots.length} 个镜头 /{" "}
-                {resolved.references.length} 个参考
-              </summary>
-              <FixedPlanShotSources resolved={resolved} />
-              {kind === "audio" && <AudioPlanSources resolved={resolved} />}
-            </details>
-          )}
-          {plan.blockingReasons.map((reason) => (
-            <Text size="sm" c="red" key={reason}>
-              {reason}
-            </Text>
-          ))}
-          {!record?.execution && (
-            <Button
-              disabled={
-                disabled ||
-                plan.status !== "ready" ||
-                Date.parse(plan.expiresAt) <= Date.now()
-              }
-              className={compact ? classes.generationAction : undefined}
-              onClick={() => void controller.execute()}
-            >
-              {`确认执行${label}生成`}
-            </Button>
-          )}
-          {!inspection && (!record?.execution || jobFinished(job)) && (
-            <Button
-              variant="subtle"
-              disabled={disabled || placement?.phase === "unknown"}
-              onClick={() =>
-                draft &&
-                void controller.revise(
-                  {
-                    capabilityId: draft.capabilityId,
-                    output: draft.output,
-                    ...(draft.shotSources === undefined
-                      ? {}
-                      : { shotSources: draft.shotSources }),
-                  },
-                  draft,
-                )
-              }
-            >
-              {`保留原任务，准备${next}`}
-            </Button>
-          )}
-        </Stack>
-      )}
-      {record?.execution && (
-        <Stack gap="sm" className={classes.result}>
-          <Group justify="space-between">
-            <Text fw={600}>
-              {job?.status === "succeeded"
-                ? `${label}结果已归档`
-                : job
-                  ? jobStatusLabel[job.status]
-                  : `${label}提交结果待核对`}
-            </Text>
-            <Button
-              variant="subtle"
-              leftSection={<ArrowsClockwise size={16} />}
-              disabled={state.busy}
-              onClick={() => void controller.refresh()}
-            >
-              {`核对${label}任务`}
-            </Button>
-          </Group>
-          {job && (
-            <GenerationJobControls
-              job={job}
-              cancellation={record.cancellation}
-              active={active && state.access === "ready"}
-              busy={state.busy}
-              label={`本次${label}任务`}
-              requestCancellation={(target) =>
-                controller.requestCancellation(target)
-              }
-            />
-          )}
-          {(!job ||
-            ["submission_unknown", "reconciliation_required"].includes(
-              job.status,
-            )) && (
-            <Text size="sm">刷新只读取原任务，未知提交不会再次执行。</Text>
-          )}
-          {!job && (
-            <Button
-              variant="default"
-              disabled={disabled}
-              onClick={() => void controller.resumeSubmission()}
-            >
-              {`核对后恢复原${label}提交`}
-            </Button>
-          )}
-          {job?.inputOutdated && (
-            <Alert>当前来源已有变化，此任务仍保留原固定输入。</Alert>
-          )}
-          {job?.errorCode && <Text size="sm">{job.errorCode}</Text>}
-          {job?.status === "archive_failed" && (
-            <Stack>
-              <Text size="sm">
-                结果保存未完成，可恢复归档。恢复不会重新调用模型。
-              </Text>
-              <Button
-                disabled={disabled || !!draft?.archiveRequest}
-                onClick={recoverArchive}
-              >
-                {`恢复${label}归档`}
-              </Button>
-            </Stack>
-          )}
-          {draft?.archiveRequest && (
-            <Stack>
-              <Text size="sm">归档恢复结果待核对，请先读取原任务。</Text>
-              <Button
-                disabled={disabled}
-                variant="default"
-                onClick={() =>
-                  draft &&
-                  void controller
-                    .commitDraft(draft, draft, async (current) => {
-                      await api(
-                        `${tenant}/generation-jobs/${draft.archiveRequest!.jobId}`,
-                        { signal: AbortSignal.timeout(15000) },
-                      );
-                      return {
-                        ...current,
-                        archiveRequest: {
-                          ...draft.archiveRequest!,
-                          checked: true,
-                        },
-                      };
-                    })
-                    .then(() => controller.refresh())
-                }
-              >
-                核对归档恢复
-              </Button>
-              {draft.archiveRequest.checked && (
-                <Button
-                  disabled={disabled}
-                  variant="default"
-                  onClick={recoverArchive}
-                >
-                  继续原归档恢复请求
-                </Button>
-              )}
-            </Stack>
-          )}
-          {job?.status === "succeeded" &&
-            job.mediaIds.map((mediaId) => (
-              <GeneratedMediaResult
-                kind={kind}
-                key={mediaId}
-                tenantId={tenantId}
-                projectId={projectId}
-                jobId={job.id}
-                mediaId={mediaId}
-              />
-            ))}
-          {job?.status === "succeeded" &&
-            source.kind === "canvas" &&
-            !placement && (
-              <Button
-                disabled={disabled || awaitingSave}
-                onClick={reviewPlacement}
-              >
-                查看添加到画布的位置
-              </Button>
-            )}
-          {placement?.phase === "unknown" && (
-            <Alert title="添加结果待核对">
-              <Text size="sm">
-                {`原${label}与添加请求已保留。恢复会核对同一次添加，不会生成新${label}。`}
-              </Text>
-              <Button
-                disabled={disabled || job?.status !== "succeeded"}
-                onClick={materialize}
-              >
-                恢复本次添加
-              </Button>
-            </Alert>
-          )}
-          {placement?.phase === "conflict" && (
-            <Alert title="画布已有修改">
-              <Text size="sm">{`${label}尚未添加，先保存并核对当前画布。`}</Text>
-              <Button
-                disabled={disabled || awaitingSave}
-                onClick={reviewPlacement}
-              >
-                重新核对添加位置
-              </Button>
-            </Alert>
-          )}
-          {placement?.phase === "placed" && (
-            <Alert title="已添加到画布">
-              {`结果以独立${label}节点保存。`}
-              {source.kind === "canvas" && placement.placed && (
-                <Button
-                  mt="sm"
-                  variant="default"
-                  onClick={() =>
-                    source.focus(
-                      placement.placed!.placements.map((item) => item.nodeId),
-                    )
-                  }
-                >
-                  定位{label}结果
-                </Button>
-              )}
-            </Alert>
-          )}
-        </Stack>
-      )}
-      {!!record?.previous.length && (
-        <details>
-          <summary>
-            此前{label}任务（{record.previous.length}）
-          </summary>
-          <Stack mt="sm">
-            {record.previous
-              .filter((previous) => previous.jobId)
-              .map((previous) => (
-                <PastMedia
-                  kind={kind}
-                  key={previous.planId}
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  jobId={previous.jobId!}
-                />
-              ))}
-          </Stack>
-        </details>
+          <Stack gap="sm">{taskDetails}</Stack>
+        </Modal>
       )}
       <Modal
         opened={

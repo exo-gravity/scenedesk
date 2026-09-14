@@ -39,6 +39,16 @@
 .layout[data-project] {
   grid-template-columns: 68px 180px minmax(0, 1fr);
 }
+.shell[data-scene-production] > .header,
+.layout[data-scene-production] > .sidebar {
+  display: none;
+}
+.layout[data-scene-production] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.layout[data-scene-production] > .content {
+  grid-column: 1;
+}
 .sidebar {
   grid-column: 1;
   grid-row: 1 / -1;

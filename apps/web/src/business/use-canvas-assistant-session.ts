@@ -182,6 +182,7 @@ export function useCanvasAssistantSession(
     if (entry.owners === 1) {
       const unregister = registerAssistant({
         controller: {
+          getSnapshot: controller.getSnapshot,
           suspend: () => controller.suspend(),
           verify: () => controller.verify(),
           settle: () => controller.settle(),

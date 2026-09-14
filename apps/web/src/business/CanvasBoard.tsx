@@ -8,6 +8,7 @@ import {
   memo,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -23,6 +24,7 @@ import {
   Handle,
   Position,
   ReactFlow,
+  ViewportPortal,
   type Node,
   type NodeProps,
   type ReactFlowInstance,
@@ -92,10 +94,7 @@ import {
 import { importAccept } from "./media-imports";
 import { retainCanvasEditing } from "./canvas-edit-handoff";
 import { CanvasContextualEditor } from "./CanvasContextualEditor";
-import {
-  canvasEditorSafeArea,
-  type ScreenRect,
-} from "./canvas-editor-placement";
+import { canvasEditorSafeArea } from "./canvas-editor-placement";
 
 type Preference = Schema<"SaveSceneWorkspacePreference">;
 type CanvasFlowNode = Node<
@@ -105,6 +104,10 @@ type CanvasFlowNode = Node<
     playing: boolean;
     attemptLabel?: string | undefined;
     editing: boolean;
+    editorHeight?: number;
+    previewMediaId?: string;
+    focused: boolean;
+    editorOffset: (offset: number) => void;
     play: (id: string) => void;
   },
   "canvas"
@@ -116,12 +119,25 @@ const CanvasNodeView = memo(function CanvasNodeView({
   selected,
 }: NodeProps<CanvasFlowNode>) {
   const node = data.node;
+  const editorSlot = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const slot = editorSlot.current;
+    if (!slot || !data.editing) return;
+    const measure = () => {
+      if (slot.offsetParent) data.editorOffset(slot.offsetTop);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(slot.parentElement!);
+    return () => observer.disconnect();
+  }, [data.editing, data.editorOffset]);
   return (
     <article
       className={classes.node}
       data-selected={selected || undefined}
       data-editing={data.editing || undefined}
       data-content={node.content.type}
+      inert={data.focused || undefined}
       aria-label={`${node.title} · ${node.kind}`}
     >
       <div className={`${classes.nodeHeader} canvas-drag-handle`}>
@@ -136,7 +152,47 @@ const CanvasNodeView = memo(function CanvasNodeView({
               ]}
         </Text>
       </div>
-      {node.content.type === "text" ? (
+      {data.editing ? (
+        <>
+          {node.content.type === "draft" && (
+            <div className={classes.creationPreview}>
+              {data.previewMediaId ? (
+                <>
+                  <Text size="xs" c="dimmed" mb={4}>最近完成的结果</Text>
+                  <NodeMedia
+                    width={Math.max(360, node.width)}
+                    mediaId={data.previewMediaId}
+                    path={data.mediaPath}
+                    playing={data.playing}
+                    play={() => data.play(node.id)}
+                  />
+                </>
+              ) : (
+                <div className={classes.creationPlaceholder}>
+                  {node.kind === "video" ? (
+                    <FilmStrip size={32} />
+                  ) : node.kind === "audio" ? (
+                    <MusicNotes size={32} />
+                  ) : (
+                    <ImageSquare size={32} />
+                  )}
+                  <Text size="xs" c="dimmed">
+                    {data.attemptLabel
+                      ? `最近尝试 · ${data.attemptLabel}`
+                      : "写下创作描述，准备本次生成"}
+                  </Text>
+                </div>
+              )}
+            </div>
+          )}
+          <div
+            ref={editorSlot}
+            className={classes.creationSlot}
+            style={{ height: data.editorHeight ?? 260 }}
+            aria-hidden
+          />
+        </>
+      ) : node.content.type === "text" ? (
         <div className={`${classes.nodeContent} nodrag nowheel`}>
           {node.content.text || "双击或选择编辑，写下文字"}
         </div>
@@ -195,7 +251,9 @@ function NodeMedia({
         } as CSSProperties
       }
     >
-      {media.data ? (
+      {media.isError ? (
+        <Text size="xs" c="dimmed">素材当前无法读取，请重新核对访问权限。</Text>
+      ) : media.data?.id === mediaId ? (
         <>
           <MediaPreview media={media.data} path={path} thumbnail={!playing} />
           <Group justify="space-between" mt="xs">
@@ -212,7 +270,7 @@ function NodeMedia({
           </Group>
         </>
       ) : (
-        <Text>{media.isError ? "素材不可访问或已失效" : "正在读取素材…"}</Text>
+        <Text>正在读取素材…</Text>
       )}
     </div>
   );
@@ -252,6 +310,7 @@ export function CanvasBoard({
   onFocusModeChange,
   beforeEditNodeChange,
   nodeAttemptLabels,
+  nodePreviewMediaIds,
 }: {
   controller: CanvasController;
   document: CanvasDocument;
@@ -274,12 +333,27 @@ export function CanvasBoard({
   onFocusModeChange?: (focused: boolean) => void;
   beforeEditNodeChange?: () => Promise<boolean>;
   nodeAttemptLabels?: Record<string, string>;
+  nodePreviewMediaIds?: Record<string, string>;
 }) {
   const uploads = useCanvasUploads();
   const boardElement = useRef<HTMLDivElement>(null);
   const queryInput = useRef<HTMLInputElement>(null);
   const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
   const [focused, setFocused] = useState(false);
+  const [editorGeometry, setEditorGeometry] = useState({
+    height: 260,
+    offset: 40,
+  });
+  const editorOffset = useCallback((offset: number) => {
+    setEditorGeometry((current) =>
+      current.offset === offset ? current : { ...current, offset },
+    );
+  }, []);
+  const editorHeight = useCallback((height: number) => {
+    setEditorGeometry((current) =>
+      current.height === height ? current : { ...current, height },
+    );
+  }, []);
   const [switching, setSwitching] = useState(false);
   const switchingRef = useRef(false);
   const alive = useRef(true);
@@ -304,11 +378,14 @@ export function CanvasBoard({
   useEffect(() => {
     const element = boardElement.current;
     if (!element) return;
-    const measure = () =>
+    const measure = () => {
+      // A retained but hidden scene view has no new geometry to persist.
+      if (element.clientWidth <= 0 || element.clientHeight <= 0) return;
       setBoardSize({
         width: element.clientWidth,
         height: element.clientHeight,
       });
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);
@@ -449,15 +526,6 @@ export function CanvasBoard({
     overlayOpen,
     window.innerWidth,
   );
-  const screenRect = (node: CanvasNode): ScreenRect => {
-    const size = measurements[node.id];
-    return {
-      x: node.position.x * preference.viewport.zoom + preference.viewport.x,
-      y: node.position.y * preference.viewport.zoom + preference.viewport.y,
-      width: (size?.width ?? node.width) * preference.viewport.zoom,
-      height: (size?.height ?? 200) * preference.viewport.zoom,
-    };
-  };
   const nodes = useMemo<CanvasFlowNode[]>(
     () =>
       document.nodes.map((node) => ({
@@ -469,10 +537,19 @@ export function CanvasBoard({
           playing: playing === node.id,
           play,
           editing: node.id === editingNodeId,
+          ...(node.id === editingNodeId
+            ? { editorHeight: editorGeometry.height }
+            : {}),
+          ...(nodePreviewMediaIds?.[node.id]
+            ? { previewMediaId: nodePreviewMediaIds[node.id] }
+            : {}),
+          focused,
+          editorOffset,
           attemptLabel: nodeAttemptLabels?.[node.id],
         },
         position: node.position,
-        width: node.width,
+        width:
+          node.id === editingNodeId ? Math.max(360, node.width) : node.width,
         ...(measurements[node.id] ? { measured: measurements[node.id] } : {}),
         selected: preference.selectedNodeIds.includes(node.id),
         dragHandle: ".canvas-drag-handle",
@@ -487,6 +564,10 @@ export function CanvasBoard({
       measurements,
       nodeAttemptLabels,
       editingNodeId,
+      editorGeometry.height,
+      editorOffset,
+      focused,
+      nodePreviewMediaIds,
     ],
   );
   const displayedNodes: FlowNode[] = [
@@ -556,6 +637,7 @@ export function CanvasBoard({
           };
     change({ ...document, nodes: [...document.nodes, node] });
     changePreference({ selectedNodeIds: [node.id] });
+    void requestEdit(node.id);
   }
   const onNodesChange = (changes: NodeChange<FlowNode>[]) => {
     const dimensions = changes.filter((c) => c.type === "dimensions");
@@ -565,6 +647,8 @@ export function CanvasBoard({
         for (const { id, dimensions: size } of dimensions) {
           if (
             !size ||
+            size.width <= 0 ||
+            size.height <= 0 ||
             (current[id]?.width === size.width &&
               current[id]?.height === size.height)
           )
@@ -574,6 +658,7 @@ export function CanvasBoard({
         }
         return next;
       });
+    if (focused || !boardElement.current?.clientWidth) return;
     const selection = new Set(preference.selectedNodeIds);
     let selecting = false;
     for (const c of changes)
@@ -756,9 +841,43 @@ export function CanvasBoard({
         </Menu.Target>
         <Menu.Dropdown>{addItems()}</Menu.Dropdown>
       </Menu>
+      {!narrow && (
+        <>
+          <Tooltip label="选择" position="right">
+            <ActionIcon
+              variant={hand ? "subtle" : "light"}
+              aria-label="选择工具"
+              aria-pressed={!hand}
+              onClick={() => setHand(false)}
+            >
+              <Cursor size={19} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="平移画布" position="right">
+            <ActionIcon
+              variant={hand ? "light" : "subtle"}
+              aria-label="手形工具"
+              aria-pressed={hand}
+              onClick={() => setHand(true)}
+            >
+              <Hand size={19} />
+            </ActionIcon>
+          </Tooltip>
+        </>
+      )}
       <Tooltip label="素材" position="right">
         <ActionIcon variant="subtle" aria-label="打开素材" onClick={addMedia}>
           <Images size={19} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="文字" position="right">
+        <ActionIcon
+          variant="subtle"
+          aria-label="添加文字"
+          disabled={readOnly}
+          onClick={() => add("text")}
+        >
+          <TextT size={19} />
         </ActionIcon>
       </Tooltip>
       <Tooltip label="查找" position="right">
@@ -774,18 +893,6 @@ export function CanvasBoard({
           <MagnifyingGlass size={19} />
         </ActionIcon>
       </Tooltip>
-      {navigation}
-      {onOpenResults && (
-        <Tooltip label="尝试与结果" position="right">
-          <ActionIcon
-            variant="subtle"
-            aria-label="打开尝试与结果"
-            onClick={onOpenResults}
-          >
-            <ClockCounterClockwise size={19} />
-          </ActionIcon>
-        </Tooltip>
-      )}
     </div>
   );
   const editHistoryTools = (
@@ -799,6 +906,14 @@ export function CanvasBoard({
         <Menu.Label>
           {document.nodes.length} 项内容 · {document.edges.length} 项引用
         </Menu.Label>
+        {onOpenResults && (
+          <Menu.Item
+            leftSection={<ClockCounterClockwise size={16} />}
+            onClick={onOpenResults}
+          >
+            尝试与结果
+          </Menu.Item>
+        )}
         <Menu.Item
           disabled={readOnly || !controller.canUndo}
           leftSection={<ArrowCounterClockwise size={16} />}
@@ -830,16 +945,6 @@ export function CanvasBoard({
       wrap="nowrap"
       aria-label="画布视口工具"
     >
-      <Button
-        size="xs"
-        variant="subtle"
-        aria-pressed={hand}
-        onClick={() => setHand(!hand)}
-        aria-label={hand ? "手形" : "选择"}
-        title={hand ? "手形" : "选择"}
-      >
-        {hand ? <Hand size={16} /> : <Cursor size={16} />}
-      </Button>
       <Button
         size="xs"
         variant="subtle"
@@ -880,6 +985,7 @@ export function CanvasBoard({
       >
         <CornersOut size={16} />
       </Button>
+      {navigation}
       {editHistoryTools}
     </Group>
   );
@@ -1025,192 +1131,257 @@ export function CanvasBoard({
       <div className={classes.boardError}>
         <ErrorNotice error={error} />
       </div>
-      <div className={classes.canvasSurface} inert={focused || undefined}>
-        {narrow ? (
-          <div className={classes.empty}>
+      <div
+        className={classes.canvasSurface}
+        data-focused={focused || undefined}
+      >
+        {narrow && (
+          <div className={classes.empty} inert={focused || undefined}>
             <Text>窄屏以列表查看内容；完整空间制作请使用桌面宽度。</Text>
             {railTools}
             <Group justify="center">{editHistoryTools}</Group>
           </div>
-        ) : (
-          <div
-            className={classes.flow}
-            data-editing={!!editing || undefined}
-            onDragOver={(event) => {
-              if (event.dataTransfer.types.includes("Files")) {
-                event.preventDefault();
-                event.dataTransfer.dropEffect =
-                  readOnly || uploads?.readOnly || uploads?.busy
-                    ? "none"
-                    : "copy";
+        )}
+        <div
+          className={classes.flow}
+          data-narrow={narrow || undefined}
+          data-focused={focused || undefined}
+          data-editing={!!editing || undefined}
+          onDragOver={(event) => {
+            if (event.dataTransfer.types.includes("Files")) {
+              event.preventDefault();
+              event.dataTransfer.dropEffect =
+                readOnly || uploads?.readOnly || uploads?.busy
+                  ? "none"
+                  : "copy";
+            }
+          }}
+          onDrop={(event) => {
+            if (focused || !event.dataTransfer.types.includes("Files")) return;
+            event.preventDefault();
+            if (readOnly || uploads?.readOnly || uploads?.busy) return;
+            uploads?.begin(
+              [...event.dataTransfer.files],
+              flow.current?.screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+              }) ?? { x: 80, y: 80 },
+            );
+          }}
+        >
+          <ReactFlow<FlowNode>
+            nodes={displayedNodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onInit={(instance) => {
+              flow.current = instance;
+            }}
+            defaultViewport={preference.viewport}
+            minZoom={CANVAS_MIN_ZOOM}
+            maxZoom={CANVAS_MAX_ZOOM}
+            onMoveEnd={(_, viewport) => {
+              if (
+                !boardElement.current?.clientWidth ||
+                !boardElement.current.clientHeight
+              )
+                return;
+              const legal = constrainCanvasViewport(viewport);
+              if (legal !== viewport) {
+                // setViewport emits the final, legal onMoveEnd. Persist only
+                // that event so the saved view matches the visible position.
+                void flow.current?.setViewport(legal, { duration: 0 });
+                return;
+              }
+              changePreference({ viewport });
+            }}
+            onNodesChange={onNodesChange}
+            onNodeDragStop={() => void controller.save()}
+            onConnect={(connection) => {
+              if (!focused) connect(connection);
+            }}
+            onPaneClick={() => {
+              if (focused) return;
+              if (editingNodeId) void requestEdit(undefined);
+            }}
+            onNodeDoubleClick={(event, node) => {
+              if (focused) return;
+              if (
+                (event.target as HTMLElement).closest(
+                  "button,input,textarea,video,audio,media-controller",
+                )
+              )
+                return;
+              if (node.type !== "canvas") return;
+              if (node.data.node.content.type === "media") openPreview(node.id);
+              else if (!readOnly) void requestEdit(node.id);
+            }}
+            onDoubleClickCapture={(e) => {
+              // In selection mode React Flow forwards pointer-up through
+              // onPaneClick (detail is zero). Use the actual double click,
+              // limited to the empty pane so node editors keep their behavior.
+              if (
+                !readOnly &&
+                !focused &&
+                e.target instanceof Element &&
+                e.target.classList.contains("react-flow__pane")
+              ) {
+                e.preventDefault();
+                setAddPoint({
+                  screen: { x: e.clientX, y: e.clientY },
+                  canvas: flow.current?.screenToFlowPosition({
+                    x: e.clientX,
+                    y: e.clientY,
+                  }) ?? { x: 80, y: 80 },
+                });
               }
             }}
-            onDrop={(event) => {
-              if (!event.dataTransfer.types.includes("Files")) return;
-              event.preventDefault();
-              if (readOnly || uploads?.readOnly || uploads?.busy) return;
-              uploads?.begin(
-                [...event.dataTransfer.files],
-                flow.current?.screenToFlowPosition({
-                  x: event.clientX,
-                  y: event.clientY,
-                }) ?? { x: 80, y: 80 },
-              );
+            zoomOnDoubleClick={false}
+            nodesDraggable={!readOnly && !hand && !focused}
+            nodesConnectable={!readOnly && !focused}
+            nodesFocusable={!focused}
+            edgesFocusable={!focused}
+            panActivationKeyCode={focused ? null : "Space"}
+            selectionKeyCode={focused ? null : "Shift"}
+            elementsSelectable={!hand && !focused}
+            panOnDrag={focused ? false : hand ? true : [1, 2]}
+            panOnScroll={!focused}
+            zoomOnScroll={!focused}
+            zoomOnPinch={!focused}
+            selectionOnDrag={!hand && !focused}
+            deleteKeyCode={null}
+            onlyRenderVisibleElements
+            ariaLabelConfig={{
+              "node.a11yDescription.default": "按方向键移动节点，按回车选中。",
+              "controls.fitView.ariaLabel": "适应全部内容",
             }}
           >
-            <ReactFlow<FlowNode>
-              nodes={displayedNodes}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              onInit={(instance) => {
-                flow.current = instance;
-              }}
-              defaultViewport={preference.viewport}
-              minZoom={CANVAS_MIN_ZOOM}
-              maxZoom={CANVAS_MAX_ZOOM}
-              onMoveEnd={(_, viewport) => {
-                const legal = constrainCanvasViewport(viewport);
-                if (legal !== viewport) {
-                  // setViewport emits the final, legal onMoveEnd. Persist only
-                  // that event so the saved view matches the visible position.
-                  void flow.current?.setViewport(legal, { duration: 0 });
-                  return;
-                }
-                changePreference({ viewport });
-              }}
-              onNodesChange={onNodesChange}
-              onNodeDragStop={() => void controller.save()}
-              onConnect={connect}
-              onPaneClick={() => {
-                if (editingNodeId) void requestEdit(undefined);
-              }}
-              onNodeDoubleClick={(event, node) => {
-                if (
-                  (event.target as HTMLElement).closest(
-                    "button,input,textarea,video,audio,media-controller",
-                  )
-                )
-                  return;
-                if (node.type !== "canvas") return;
-                if (node.data.node.content.type === "media")
-                  openPreview(node.id);
-                else if (!readOnly) void requestEdit(node.id);
-              }}
-              onDoubleClickCapture={(e) => {
-                // In selection mode React Flow forwards pointer-up through
-                // onPaneClick (detail is zero). Use the actual double click,
-                // limited to the empty pane so node editors keep their behavior.
-                if (
-                  !readOnly &&
-                  e.target instanceof Element &&
-                  e.target.classList.contains("react-flow__pane")
-                ) {
-                  e.preventDefault();
-                  setAddPoint({
-                    screen: { x: e.clientX, y: e.clientY },
-                    canvas: flow.current?.screenToFlowPosition({
-                      x: e.clientX,
-                      y: e.clientY,
-                    }) ?? { x: 80, y: 80 },
-                  });
-                }
-              }}
-              zoomOnDoubleClick={false}
-              nodesDraggable={!readOnly && !hand}
-              nodesConnectable={!readOnly}
-              elementsSelectable={!hand}
-              panOnDrag={hand ? true : [1, 2]}
-              panOnScroll
-              selectionOnDrag={!hand}
-              deleteKeyCode={null}
-              onlyRenderVisibleElements
-              ariaLabelConfig={{
-                "node.a11yDescription.default":
-                  "按方向键移动节点，按回车选中。",
-                "controls.fitView.ariaLabel": "适应全部内容",
-              }}
-            >
-              <MeasuredCanvasFocus
-                request={focused ? undefined : localFocus}
-                complete={finishFocus}
-              />
-              <CanvasSelectionTools
-                nodes={nodes.filter((node) => selectedSet.has(node.id))}
-                auxiliaryOpen={overlayOpen}
-                hidden={
-                  !!editing &&
+            <MeasuredCanvasFocus
+              request={focused ? undefined : localFocus}
+              complete={finishFocus}
+            />
+            <CanvasSelectionTools
+              nodes={nodes.filter((node) => selectedSet.has(node.id))}
+              auxiliaryOpen={overlayOpen}
+              hidden={
+                !!narrow ||
+                focused ||
+                (!!editing &&
                   selected.length === 1 &&
-                  selected[0] === editing.id
-                }
-              >
-                {selectionActions}
-              </CanvasSelectionTools>
-              <Background color="var(--ws-canvas-dot)" gap={24} size={1} />
-            </ReactFlow>
-            {viewportTools}
-            {railTools}
-            {addPoint && (
-              <Menu
-                opened
-                onChange={(opened) => {
-                  if (!opened) setAddPoint(null);
-                }}
-                position="bottom-start"
-                withinPortal
-              >
-                <Menu.Target>
-                  <UnstyledButton
-                    aria-label="在此添加内容"
-                    className={classes.pointAnchor}
-                    style={{ left: addPoint.screen.x, top: addPoint.screen.y }}
+                  selected[0] === editing.id)
+              }
+            >
+              {selectionActions}
+            </CanvasSelectionTools>
+            <ViewportPortal>
+              {editing && (
+                <CanvasContextualEditor
+                  key={editing.id}
+                  title={editing.title}
+                  nodePosition={{
+                    x: editing.position.x + 1,
+                    y: editing.position.y + editorGeometry.offset,
+                  }}
+                  nodeWidth={Math.max(360, editing.width) - 2}
+                  boardSize={boardSize}
+                  onHeight={editorHeight}
+                  safe={safe}
+                  focused={focused}
+                  onFocus={setFocusMode}
+                  busy={switching}
+                  onClose={() => void requestEdit(undefined)}
+                  onLocate={() => focus([editing.id])}
+                  preview={
+                    <CanvasFocusReferences
+                      node={editing}
+                      document={document}
+                      mediaPath={mediaPath}
+                    />
+                  }
+                >
+                  <ErrorNotice error={error} />
+                  <CanvasComposer
+                    node={editing}
+                    controller={controller}
+                    document={document}
+                    readOnly={readOnly || switching}
+                    composing={(value) => {
+                      composingInput.current = value;
+                      controller.setComposing(value);
+                    }}
+                    change={change}
+                    focus={focus}
+                    focusAllowed={!focused}
+                    mediaPath={mediaPath}
                   />
-                </Menu.Target>
-                <Menu.Dropdown>{addItems(addPoint.canvas)}</Menu.Dropdown>
-              </Menu>
-            )}
-            {!document.nodes.length && (
-              <div className={classes.canvasStart}>
-                <Text className={classes.startEyebrow}>自由画布</Text>
-                <Text className={classes.startTitle}>一个想法，从这里展开</Text>
-                <Text size="sm" c="dimmed">
-                  放入参考，写下灵感，再逐步创作这一场的画面与声音。
-                </Text>
-                <Group justify="center" gap="sm">
-                  <Button
-                    disabled={readOnly}
-                    variant="default"
-                    leftSection={<TextT size={16} />}
-                    onClick={() => add("text")}
-                  >
-                    写一个想法
-                  </Button>
-                  <Button
-                    disabled={readOnly}
-                    variant="default"
-                    leftSection={<ImageSquare size={16} />}
-                    onClick={addMedia}
-                  >
-                    导入参考
-                  </Button>
-                  <Menu position="bottom" keepMounted>
-                    <Menu.Target>
-                      <Button
-                        disabled={readOnly}
-                        leftSection={<Plus size={16} />}
-                      >
-                        开始创作
-                      </Button>
-                    </Menu.Target>
-                    <Menu.Dropdown>{addItems()}</Menu.Dropdown>
-                  </Menu>
-                </Group>
-                <Text size="xs" c="dimmed">
-                  也可以拖入文件，或双击空白选择内容类型
-                </Text>
-              </div>
-            )}
-          </div>
-        )}
+                  {generation}
+                </CanvasContextualEditor>
+              )}
+            </ViewportPortal>
+            <Background color="var(--ws-canvas-dot)" gap={24} size={1} />
+          </ReactFlow>
+          {!narrow && viewportTools}
+          {!narrow && railTools}
+          {addPoint && (
+            <Menu
+              opened
+              onChange={(opened) => {
+                if (!opened) setAddPoint(null);
+              }}
+              position="bottom-start"
+              withinPortal
+            >
+              <Menu.Target>
+                <UnstyledButton
+                  aria-label="在此添加内容"
+                  className={classes.pointAnchor}
+                  style={{ left: addPoint.screen.x, top: addPoint.screen.y }}
+                />
+              </Menu.Target>
+              <Menu.Dropdown>{addItems(addPoint.canvas)}</Menu.Dropdown>
+            </Menu>
+          )}
+          {!document.nodes.length && (
+            <div className={classes.canvasStart}>
+              <Text className={classes.startEyebrow}>自由画布</Text>
+              <Text className={classes.startTitle}>一个想法，从这里展开</Text>
+              <Text size="sm" c="dimmed">
+                放入参考，写下灵感，再逐步创作这一场的画面与声音。
+              </Text>
+              <Group justify="center" gap="sm">
+                <Button
+                  disabled={readOnly}
+                  variant="default"
+                  leftSection={<TextT size={16} />}
+                  onClick={() => add("text")}
+                >
+                  写一个想法
+                </Button>
+                <Button
+                  disabled={readOnly}
+                  variant="default"
+                  leftSection={<ImageSquare size={16} />}
+                  onClick={addMedia}
+                >
+                  导入参考
+                </Button>
+                <Menu position="bottom" keepMounted>
+                  <Menu.Target>
+                    <Button
+                      disabled={readOnly}
+                      leftSection={<Plus size={16} />}
+                    >
+                      开始创作
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>{addItems()}</Menu.Dropdown>
+                </Menu>
+              </Group>
+              <Text size="xs" c="dimmed">
+                也可以拖入文件，或双击空白选择内容类型
+              </Text>
+            </div>
+          )}
+        </div>
         {narrow && selected.length > 0 && (
           <div className={classes.mobileSelection}>{selectionActions}</div>
         )}
@@ -1359,51 +1530,6 @@ export function CanvasBoard({
           </div>
         )}
       </div>
-      {editing && (
-        <CanvasContextualEditor
-          key={editing.id}
-          title={editing.title}
-          anchor={screenRect(editing)}
-          safe={safe}
-          references={document.edges
-            .filter((edge) => edge.targetNodeId === editing.id && edge.enabled)
-            .flatMap((edge) => {
-              const source = document.nodes.find(
-                (node) => node.id === edge.sourceNodeId,
-              );
-              return source ? [screenRect(source)] : [];
-            })}
-          focused={focused}
-          onFocus={setFocusMode}
-          busy={switching}
-          onClose={() => void requestEdit(undefined)}
-          onLocate={() => focus([editing.id])}
-          preview={
-            <CanvasFocusReferences
-              node={editing}
-              document={document}
-              mediaPath={mediaPath}
-            />
-          }
-        >
-          <ErrorNotice error={error} />
-          <CanvasComposer
-            node={editing}
-            controller={controller}
-            document={document}
-            readOnly={readOnly || switching}
-            composing={(value) => {
-              composingInput.current = value;
-              controller.setComposing(value);
-            }}
-            change={change}
-            focus={focus}
-            focusAllowed={!focused}
-            mediaPath={mediaPath}
-          />
-          {generation}
-        </CanvasContextualEditor>
-      )}
       <Modal
         opened={!!previewId}
         onClose={() => setPreviewId(undefined)}
@@ -1434,9 +1560,18 @@ function MeasuredCanvasFocus({
 }) {
   const initialized = useNodesInitialized(),
     { fitView } = useReactFlow();
+  const width = useStore((state) => state.width);
+  const height = useStore((state) => state.height);
   const handled = useRef<typeof request>(undefined);
   useEffect(() => {
-    if (!request || !initialized || handled.current === request) return;
+    if (
+      !request ||
+      !initialized ||
+      !width ||
+      !height ||
+      handled.current === request
+    )
+      return;
     let second = 0;
     const first = requestAnimationFrame(() => {
       second = requestAnimationFrame(() => {
@@ -1457,7 +1592,7 @@ function MeasuredCanvasFocus({
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
     };
-  }, [request, initialized, fitView, complete]);
+  }, [request, initialized, width, height, fitView, complete]);
   return null;
 }
 

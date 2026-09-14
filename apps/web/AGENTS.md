@@ -1,5 +1,7 @@
 # Frontend implementation rules
 
+Latest approved structure (2026-09-14): the user confirmed [the primary canvas design](../../docs/design/primary-canvas-approved-2026-09-14.md) and its full-screen mockup. Default scene entry is canvas; preserve the full storyboard mode. Center `画布 / 分镜` in the whole desktop header; place a compact episode/scene navigator at the left. Use one scene header, a narrow canvas tool rail, truly node-local creation, and the flush right conversation sidebar. Preserve mode/scene editing state and all durable execution/recovery semantics. This supersedes the v0.5 screen-overlay placement rule for node editing; the approved image is a layout reference, never permission to fabricate media or model results.
+
 Product naming (user correction, 2026-09-14): display the English brand `SceneDesk` (exact capitalization) by default, without a Chinese brand name. Apply this to navigation, entry pages and browser titles; business interface text remains Chinese.
 
 Latest correction (2026-09-14, during end-to-end review): the AI assistant must use a conversation-driven interface in a full-height, flush right sidebar, not a floating overlay or a capability-selection form. Opening this sidebar gives it layout space while preserving the canvas viewport and selection; this explicitly supersedes the v0.5 overlay rule for the assistant. Keep node editing contextual. User messages, actual suggestions and action confirmations must remain grounded in durable requests/results; do not simulate a conversation or silently execute model work.
