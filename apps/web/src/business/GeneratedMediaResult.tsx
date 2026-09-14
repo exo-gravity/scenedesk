@@ -98,6 +98,7 @@ function ComparedOutput({
   const path = tenantPath(item.tenantId);
   const media = useResource<Schema<"Media">>(`${path}/media/${item.mediaId}`);
   const valid =
+    !media.error &&
     media.data?.id === item.mediaId &&
     media.data.sourceJobId === item.jobId &&
     media.data.kind === item.kind &&
@@ -111,7 +112,7 @@ function ComparedOutput({
       </Group>
       <Text size="xs" c="dimmed">
         固定尝试 {item.planId.slice(0, 8)} ·{" "}
-        {media.data?.displayName ?? "正在读取"}
+        {valid ? media.data?.displayName : "等待权限与文件核对"}
       </Text>
       <ErrorNotice error={media.error} retry={() => void media.refetch()} />
       {!media.data && !media.error ? (

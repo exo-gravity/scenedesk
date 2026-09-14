@@ -110,6 +110,21 @@ test("explicit canvas assistance preserves node identity, authorization and CAS 
     assert.equal((await f.job(j.id)).status,"succeeded");assert.equal(calls,3);
     assert.equal((await f.admin.query(`SELECT count(*)::int n FROM ${f.scope}.generation_attempts WHERE job_id=$1`,[j.id])).rows[0].n,1);
   });
+  await t.test("cached preparation rechecks current selected content and both model capabilities",async()=>{
+    const body=input(),key=randomUUID();
+    const first=await f.request("POST",`${f.base}/generation-plans`,body,undefined,key);
+    assert.equal(first.statusCode,201,first.body);
+    for (const capabilityId of [f.input.capabilityId,cap]) {
+      await f.admin.query(`UPDATE ${f.scope}.generation_capabilities SET enabled=false WHERE id=$1`,[capabilityId]);
+      try {
+        const retry=await f.request("POST",`${f.base}/generation-plans`,body,undefined,key);
+        assert.equal(retry.statusCode,503,retry.body);
+      } finally { await f.admin.query(`UPDATE ${f.scope}.generation_capabilities SET enabled=true WHERE id=$1`,[capabilityId]); }
+    }
+    const changed=structuredClone(canvas.document);changed.nodes.find((n:any)=>n.id===textId).content.text="同 key 不能掩盖新的来源正文";await save(changed);
+    assert.equal((await f.request("POST",`${f.base}/generation-plans`,body,undefined,key)).statusCode,412);
+    assert.equal((await f.admin.query(`SELECT count(*)::int n FROM ${f.scope}.generation_plans WHERE id=$1`,[first.json().id])).rows[0].n,1);
+  });
   await t.test("read, execute retry, and first dispatch retain current media authority",async()=>{
     const p=await f.ok("POST",`${f.base}/generation-plans`,input([mediaNode])),j=await f.execute(p.id);
     await f.admin.query(`UPDATE ${f.scope}.media SET status='archived',revision=revision+1 WHERE id=$1`,[mediaId]);
@@ -136,5 +151,38 @@ test("explicit canvas assistance preserves node identity, authorization and CAS 
     }
     const sql=await f.runtime.connect();
     try{await assert.rejects(sql.query(`DELETE FROM ${f.scope}.canvas_assistance_applications`),(e:any)=>e.code==="42501");}finally{sql.release();}
+  });
+  await t.test("revoked project access cannot replay plans, jobs or permanent application receipts",async()=>{
+    const member=await f.identity("canvas-helper"),membership=randomUUID();
+    await f.admin.query(`INSERT INTO ${f.scope}.memberships(id,tenant_id,user_id,role,status) VALUES($1,$2,$3,'member','active')`,[membership,f.tenant.id,member.userId]);
+    await f.admin.query(`INSERT INTO ${f.scope}.project_memberships(id,tenant_id,project_id,membership_id,role) VALUES($1,$2,$3,$4,'collaborator')`,[randomUUID(),f.tenant.id,f.project.id,membership]);
+    const fixed=input([textId]),prepareKey=randomUUID(),executeKey=randomUUID(),applicationKey=randomUUID();
+    const prepared=await f.request("POST",`${f.base}/generation-plans`,fixed,undefined,prepareKey,member);
+    assert.equal(prepared.statusCode,201,prepared.body);
+    const executeBody={planId:prepared.json().id};
+    const started=await f.request("POST",`${f.base}/generation-jobs`,executeBody,undefined,executeKey,member);
+    assert.equal(started.statusCode,202,started.body);
+    await worker.process(started.json().id);
+    const done=await f.job(started.json().id);
+    const suggestion=await f.request("GET",`${f.path}/assistance-artifacts/${done.assistanceArtifactId}`,undefined,undefined,randomUUID(),member);
+    assert.equal(suggestion.statusCode,200,suggestion.body);
+    const body={applicationId:randomUUID(),artifactId:done.assistanceArtifactId,artifactRevision:1,nodeId:draftId,mode:"replace"},base=canvas.revision;
+    const applied=await f.request("POST",`${f.path}/canvases/${canvas.id}/assistance-applications`,body,base,applicationKey,member);
+    assert.equal(applied.statusCode,200,applied.body);canvas=applied.json().canvas;
+    const pending=await f.request("POST",`${f.base}/generation-plans`,input([textId]),undefined,randomUUID(),member);
+    assert.equal(pending.statusCode,201,pending.body);
+    const queued=await f.request("POST",`${f.base}/generation-jobs`,{planId:pending.json().id},undefined,randomUUID(),member);
+    assert.equal(queued.statusCode,202,queued.body);
+    await f.admin.query(`DELETE FROM ${f.scope}.project_memberships WHERE project_id=$1 AND membership_id=$2`,[f.project.id,membership]);
+    const blocked=[
+      await f.request("POST",`${f.base}/generation-plans`,fixed,undefined,prepareKey,member),
+      await f.request("POST",`${f.base}/generation-jobs`,executeBody,undefined,executeKey,member),
+      await f.request("GET",`${f.path}/assistance-artifacts/${done.assistanceArtifactId}`,undefined,undefined,randomUUID(),member),
+      await f.request("GET",`${f.path}/canvases/${canvas.id}/assistance-applications/${body.applicationId}`,undefined,undefined,randomUUID(),member),
+      await f.request("POST",`${f.path}/canvases/${canvas.id}/assistance-applications`,body,base,applicationKey,member),
+    ];
+    for (const response of blocked) assert.ok([403,404].includes(response.statusCode),response.body);
+    const before=calls;await worker.process(queued.json().id);assert.equal(calls,before);
+    assert.equal((await f.admin.query(`SELECT status FROM ${f.scope}.generation_jobs WHERE id=$1`,[queued.json().id])).rows[0].status,"cancelled");
   });
 });

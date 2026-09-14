@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Badge,
@@ -80,10 +81,18 @@ function CanvasAssistantContent({
     id: string;
     revision: number;
   }>();
+  const cache = useQueryClient();
+  const artifactListPath = `${path}/assistance-artifacts?canvasId=${canvasId}&kind=prepare_prompt`;
   const savedArtifacts = useList<Schema<"AssistanceArtifact">>(
-    `${path}/assistance-artifacts?canvasId=${canvasId}&kind=prepare_prompt`,
+    artifactListPath,
     state.access === "ready",
   );
+  useEffect(() => {
+    if (job?.assistanceArtifactId)
+      void cache.invalidateQueries({
+        queryKey: ["user", session.userId, artifactListPath],
+      });
+  }, [cache, session.userId, artifactListPath, job?.assistanceArtifactId]);
   const historyArtifact = useResource<Schema<"AssistanceArtifact">>(
     `${path}/assistance-artifacts/${inspectedArtifact?.id ?? "unavailable"}/revisions/${inspectedArtifact?.revision ?? 1}`,
     state.access === "ready" && !!inspectedArtifact,

@@ -927,6 +927,18 @@ async function start() {
     },
     pref.revision,
   );
+  // A second synthetic canvas lets independent browser reviewers avoid shared CAS edits.
+  const editorScene = await f.ok("POST", `${f.path}/scenes`, {
+    episodeId: episode.id, title: "编辑器独立验收", position: 2,
+    summary: "无镜头的独立画布交互验收", state: {}, status: "active",
+  }, await f.next());
+  const editorEnsure = await f.request("POST", `${f.path}/scenes/${editorScene.id}/canvas`);
+  assert([200, 201].includes(editorEnsure.statusCode), editorEnsure.body);
+  const editorCanvas = editorEnsure.json().canvas;
+  const editorIds = new Map(nodes.map(node => [node.id, randomUUID()]));
+  const editorNodes = nodes.map(node => ({...structuredClone(node), id: editorIds.get(node.id)}));
+  const editorEdges = edges.map(edge => ({...edge, id: randomUUID(), sourceNodeId: editorIds.get(edge.sourceNodeId), targetNodeId: editorIds.get(edge.targetNodeId)}));
+  await f.ok("PUT", `${f.path}/canvases/${editorCanvas.id}`, {schemaVersion: 1, document: {nodes: editorNodes, edges: editorEdges, groups: []}}, editorCanvas.revision);
   const fixture = {
     runId,
     origin,
@@ -935,6 +947,7 @@ async function start() {
     projectId: f.project.id,
     sceneId: scene.id,
     emptySceneId: emptyScene.id,
+    editor: {sceneId: editorScene.id, canvasId: editorCanvas.id, draftId: editorIds.get(draftId), textId: editorIds.get(textId), refId: editorIds.get(refId)},
     canvasId: canvas.id,
     draftId,
     textId,

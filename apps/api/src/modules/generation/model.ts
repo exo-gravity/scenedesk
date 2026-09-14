@@ -125,6 +125,12 @@ export function generationScope(
     if (kind === "input" && source.canvasSources) {
       // This runs before an encrypted HTTP replay can return the original plan.
       await resolveCanvasSources(tx, source.canvasSources, true);
+      const assistant = (await tx.sql.query(
+        "SELECT enabled,definition FROM generation_capabilities WHERE tenant_id=$1 AND id=$2 AND connection_id=$3",
+        [tx.tenantId,source.capabilityId,source.connectionId],
+      )).rows[0];
+      requireThat(assistant?.enabled && assistant.definition.purpose === "creative_assistance",
+        503,"MODEL_NOT_CONFIGURED","所选助手能力已不可用，请保留原输入核对。");
       const target = (await tx.sql.query("SELECT revision,enabled FROM generation_capabilities WHERE tenant_id=$1 AND id=$2",
         [tx.tenantId,source.assistance.targetCapabilityId])).rows[0];
       requireThat(target?.enabled,503,"TARGET_CAPABILITY_UNAVAILABLE","目标能力已不可用，请保留原输入核对。");
