@@ -4,9 +4,9 @@ import { requireThat, versionMatches } from "../../kernel/errors.js";
 import { registerAction, type ApiContext } from "../../kernel/routes.js";
 import { appendCanvas, canvasRoot, readCanvas } from "../canvas/model.js";
 import type { Schema } from "../content/model.js";
-import { assertCanvasAssistanceAccess, assertCanvasAssistanceCurrent } from "./canvas-assistance.js";
+import { assertCanvasAssistanceAccess } from "./canvas-assistance.js";
 import { safeText } from "./input-sources.js";
-import { validateReference } from "./prompt-input.js";
+import { assertSelectedCurrent, validateReference } from "./prompt-input.js";
 
 async function artifact(tx: Transaction, id: string, revision: number) {
   const row = (await tx.sql.query(
@@ -57,7 +57,7 @@ export function canvasApplicationRoutes(app: FastifyInstance, context: ApiContex
       return {body:{canvas,application:receipt(saved)},etag:canvas.revision};
     }
     versionMatches(canvas.revision,input.version);
-    await assertCanvasAssistanceCurrent(tx,advice.resolved_input);
+    await assertSelectedCurrent(tx,advice.resolved_input);
     const document=structuredClone(canvas.document), node=document.nodes.find((n)=>n.id===body.nodeId.toLowerCase()),
       request=advice.input.assistance as Schema<"AssistanceRequest">,
       target=(await tx.sql.query("SELECT * FROM generation_capabilities WHERE tenant_id=$1 AND id=$2",[tx.tenantId,request.targetCapabilityId])).rows[0];

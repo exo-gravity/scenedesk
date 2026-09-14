@@ -185,4 +185,34 @@ test("explicit canvas assistance preserves node identity, authorization and CAS 
     const before=calls;await worker.process(queued.json().id);assert.equal(calls,before);
     assert.equal((await f.admin.query(`SELECT status FROM ${f.scope}.generation_jobs WHERE id=$1`,[queued.json().id])).rows[0].status,"cancelled");
   });
+  await t.test("archived mixed shot context blocks new applications while the prior successful receipt remains readable",async()=>{
+    const mixed={...input([textId]),shotSources:f.input.shotSources};
+    const p=await f.ok("POST",`${f.base}/generation-plans`,mixed),j=await f.execute(p.id);
+    await worker.process(j.id);
+    const done=await f.job(j.id),advice=await f.ok("GET",`${f.path}/assistance-artifacts/${done.assistanceArtifactId}`);
+    assert.equal(advice.resolvedInput.shots[0].shotRevisionId,f.shot.specRevisionId);
+    const body={applicationId:randomUUID(),artifactId:advice.id,artifactRevision:advice.revision,nodeId:draftId,mode:"append"},base=canvas.revision;
+    const applied=await f.request("POST",`${f.path}/canvases/${canvas.id}/assistance-applications`,body,base);
+    assert.equal(applied.statusCode,200,applied.body);canvas=applied.json().canvas;
+    await f.ok("PUT",`${f.path}/shots/${f.shot.id}`,{
+      sceneId:f.scene.id,label:f.shot.label,position:f.shot.position,status:"archived",spec:f.shot.spec,
+    },f.shot.revision);
+    const before=structuredClone(canvas),rejected=await f.request("POST",`${f.path}/canvases/${canvas.id}/assistance-applications`,{...body,applicationId:randomUUID()},canvas.revision);
+    assert.equal(rejected.statusCode,409,rejected.body);
+    assert.equal(rejected.json().code,"ASSISTANCE_SHOT_UNAVAILABLE");
+    assert.deepEqual(await f.ok("GET",`${f.path}/canvases/${canvas.id}`),before);
+    const receipt=await f.ok("GET",`${f.path}/canvases/${canvas.id}/assistance-applications/${body.applicationId}`);
+    assert.deepEqual(receipt.application,applied.json().application);
+    const replay=await f.request("POST",`${f.path}/canvases/${canvas.id}/assistance-applications`,body,base);
+    assert.equal(replay.statusCode,200,replay.body);
+    assert.deepEqual(replay.json().application,applied.json().application);
+    assert.equal(replay.json().canvas.revision,before.revision);
+    const sql=await f.runtime.connect();
+    try {
+      await sql.query("BEGIN");await sql.query(`SET LOCAL search_path TO ${f.scope},pg_catalog`);
+      await sql.query("SELECT set_config('app.user_id',$1,true),set_config('app.tenant_id',$2,true)",[f.owner.userId,f.tenant.id]);
+      await assert.rejects(sql.query(`INSERT INTO canvas_assistance_applications(id,tenant_id,project_id,canvas_id,node_id,artifact_id,artifact_revision,mode,base_revision,result_revision,before_prompt,after_prompt,created_by)
+        SELECT $2,tenant_id,project_id,canvas_id,node_id,artifact_id,artifact_revision,mode,base_revision,result_revision,before_prompt,after_prompt,created_by FROM canvas_assistance_applications WHERE id=$1`,[body.applicationId,randomUUID()]),(error:any)=>error.code==="23514");
+    } finally {await sql.query("ROLLBACK");sql.release();}
+  });
 });

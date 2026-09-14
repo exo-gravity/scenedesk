@@ -366,7 +366,9 @@ function SceneCanvasSession({
   )) {
     if (nodeAttemptLabels[entry.origin.nodeId]) continue;
     nodeAttemptLabels[entry.origin.nodeId] = entry.jobStatus
-      ? jobStatusLabel[entry.jobStatus]
+      ? entry.jobStatus === "succeeded"
+        ? "成果已就绪"
+        : jobStatusLabel[entry.jobStatus]
       : entry.jobId
         ? "任务已受理"
         : {

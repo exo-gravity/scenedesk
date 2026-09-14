@@ -6,6 +6,7 @@ import {
   applicationPrompt,
   assertCanvasApplication,
   canvasApplicationError,
+  canvasApplicationWasRefused,
   verifyCanvasAssistantSources,
   type CanvasApplication,
   type CanvasApplicationResult,
@@ -210,6 +211,63 @@ test("the server's structured VERSION_CONFLICT remains a known refusal, not an u
   assert.equal(conflict.code, "VERSION_CONFLICT");
 });
 
+test("only verified first input refusals release review; identity conflicts and uncertain resends retain the original application", () => {
+  const review: CanvasApplication = { ...intent, phase: "review" };
+  for (const [status, code] of [
+    [412, "VERSION_CONFLICT"],
+    [409, "PLAN_INPUT_CHANGED"],
+    [409, "TARGET_CAPABILITY_CHANGED"],
+    [422, "CANVAS_ASSISTANCE_TARGET_MISMATCH"],
+    [422, "CANVAS_CONTEXT_UNAVAILABLE"],
+    [422, "GENERATION_CONTEXT_TOO_LARGE"],
+  ] as const) {
+    const failure = canvasApplicationError(status, {
+      code,
+      message: "declined",
+      requestId: "api-request",
+    });
+    assert.equal(canvasApplicationWasRefused(review, failure), true, code);
+    assert.equal(
+      canvasApplicationWasRefused(intent, failure),
+      false,
+      `${code}:unknown`,
+    );
+    assert.equal(
+      canvasApplicationWasRefused({ ...intent, phase: "missing" }, failure),
+      false,
+      `${code}:resend`,
+    );
+    assert.equal(
+      canvasApplicationWasRefused(
+        review,
+        canvasApplicationError(status, { code, message: "proxy" }),
+      ),
+      false,
+    );
+  }
+  for (const [status, code] of [
+    [409, "CANVAS_ASSISTANCE_CONFLICT"],
+    [409, "IDEMPOTENCY_CONFLICT"],
+    [409, "CANVAS_ASSISTANCE_UNAVAILABLE"],
+    [422, "ASSISTANCE_REFERENCE_UNAVAILABLE"],
+    [403, "FORBIDDEN"],
+    [404, "NOT_FOUND"],
+    [500, "INTERNAL_ERROR"],
+  ] as const) {
+    assert.equal(
+      canvasApplicationWasRefused(
+        review,
+        canvasApplicationError(status, {
+          code,
+          message: "denied",
+          requestId: "api-request",
+        }),
+      ),
+      false,
+      code,
+    );
+  }
+});
 test("restoring an unsent assistant draft checks exact media and asset access before showing its snapshot", async () => {
   const reads: string[] = [];
   await assert.rejects(

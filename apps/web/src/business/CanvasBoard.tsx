@@ -32,6 +32,8 @@ import {
 import "@xyflow/react/dist/base.css";
 import {
   Alert,
+  ActionIcon,
+  Tooltip,
   Button,
   FileButton,
   Group,
@@ -64,6 +66,10 @@ import {
   PencilSimple,
   DotsThree,
   Eye,
+  MagnifyingGlass,
+  Images,
+  ClockCounterClockwise,
+  X,
 } from "@phosphor-icons/react";
 import {
   inspectCanvasDocument,
@@ -139,9 +145,11 @@ const CanvasNodeView = memo(function CanvasNodeView({
           <Text className={classes.prose} lineClamp={5}>
             {node.content.prompt || "双击或选择编辑，描述想要的内容"}
           </Text>
-          <Text size="xs" c="dimmed">
-            草稿{data.attemptLabel ? ` · 最近尝试：${data.attemptLabel}` : ""}
-          </Text>
+          {data.attemptLabel && (
+            <Text size="xs" c="dimmed">
+              最近尝试 · {data.attemptLabel}
+            </Text>
+          )}
         </div>
       ) : (
         <NodeMedia
@@ -267,6 +275,7 @@ export function CanvasBoard({
 }) {
   const uploads = useCanvasUploads();
   const boardElement = useRef<HTMLDivElement>(null);
+  const queryInput = useRef<HTMLInputElement>(null);
   const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
   const [focused, setFocused] = useState(false);
   const [switching, setSwitching] = useState(false);
@@ -344,6 +353,9 @@ export function CanvasBoard({
   const narrow = useMediaQuery("(max-width: 760px)"),
     flow = useRef<ReactFlowInstance<FlowNode> | null>(null);
   const showNodeList = narrow || listExpanded;
+  useEffect(() => {
+    if (listExpanded) queryInput.current?.focus({ preventScroll: true });
+  }, [listExpanded]);
   const showGroups =
     groupsExpanded ||
     Object.keys(controller.getSnapshot().local?.buffers ?? {}).some((key) =>
@@ -702,6 +714,53 @@ export function CanvasBoard({
       </>
     );
   };
+  const railTools = (
+    <div className={classes.canvasNavigation} aria-label="画布创作工具">
+      <Menu position={narrow ? "bottom-start" : "right-start"} keepMounted>
+        <Menu.Target>
+          <ActionIcon
+            size="lg"
+            variant="filled"
+            aria-label="新建画布内容"
+            title="新建"
+          >
+            <Plus size={20} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>{addItems()}</Menu.Dropdown>
+      </Menu>
+      <Tooltip label="素材" position="right">
+        <ActionIcon variant="subtle" aria-label="打开素材" onClick={addMedia}>
+          <Images size={19} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="查找" position="right">
+        <ActionIcon
+          variant="subtle"
+          aria-label="查找画布内容"
+          aria-pressed={showNodeList}
+          onClick={() => {
+            if (narrow) queryInput.current?.focus({ preventScroll: true });
+            else setListExpanded((open) => !open);
+          }}
+        >
+          <MagnifyingGlass size={19} />
+        </ActionIcon>
+      </Tooltip>
+      {navigation}
+      {onOpenResults && (
+        <Tooltip label="尝试与结果" position="right">
+          <ActionIcon
+            variant="subtle"
+            aria-label="打开尝试与结果"
+            onClick={onOpenResults}
+          >
+            <ClockCounterClockwise size={19} />
+          </ActionIcon>
+        </Tooltip>
+      )}
+    </div>
+  );
   const viewportTools = (
     <Group
       className={classes.viewportTools}
@@ -709,91 +768,88 @@ export function CanvasBoard({
       wrap="nowrap"
       aria-label="画布视口工具"
     >
-      <Group gap="xs">
-        <Button
-          size="xs"
-          aria-label="撤销画布编辑"
-          disabled={readOnly || !controller.canUndo}
-          onClick={() => controller.undo()}
-        >
-          <ArrowCounterClockwise size={16} />
-        </Button>
-        <Button
-          size="xs"
-          aria-label="重做画布编辑"
-          disabled={readOnly || !controller.canRedo}
-          onClick={() => controller.redo()}
-        >
-          <ArrowClockwise size={16} />
-        </Button>
-        <Button
-          size="xs"
-          aria-pressed={hand}
-          onClick={() => setHand(!hand)}
-          aria-label={hand ? "手形" : "选择"}
-          title={hand ? "手形" : "选择"}
-        >
-          {hand ? <Hand size={16} /> : <Cursor size={16} />}
-        </Button>
-        <Button
-          size="xs"
-          aria-label="缩小画布"
-          onClick={() => void flow.current?.zoomOut()}
-        >
-          −
-        </Button>
-        <Button
-          size="xs"
-          aria-label="画布缩放到百分之百"
-          onClick={() => void flow.current?.zoomTo(1)}
-        >
-          100%
-        </Button>
-        <Button
-          size="xs"
-          aria-label="放大画布"
-          onClick={() => void flow.current?.zoomIn()}
-        >
-          ＋
-        </Button>
-        <Button
-          size="xs"
-          disabled={!selected.length}
-          onClick={() => focus(selected)}
-          aria-label="定位当前内容"
-          title="定位当前内容"
-        >
-          <Crosshair size={16} />
-        </Button>
-        <Button
-          size="xs"
-          aria-label="适应内容"
-          title="适应内容"
-          onClick={() =>
-            void flow.current?.fitView({
-              padding: 0.2,
-              minZoom: CANVAS_MIN_ZOOM,
-              maxZoom: 1,
-            })
-          }
-        >
-          <CornersOut size={16} />
-        </Button>
-      </Group>
-      <Text
+      <Button
         size="xs"
-        className={classes.canvasCount}
-        title={`${document.nodes.length} / 2,000 节点 · ${document.edges.length} / 5,000 引用 · 缩放 ${canvasZoomLabel(preference.viewport.zoom)}`}
+        variant="subtle"
+        aria-pressed={hand}
+        onClick={() => setHand(!hand)}
+        aria-label={hand ? "手形" : "选择"}
+        title={hand ? "手形" : "选择"}
       >
-        {document.nodes.length} 项
-      </Text>
-      <Menu position="top-start" keepMounted>
+        {hand ? <Hand size={16} /> : <Cursor size={16} />}
+      </Button>
+      <Button
+        size="xs"
+        variant="subtle"
+        aria-label="缩小画布"
+        onClick={() => void flow.current?.zoomOut()}
+      >
+        −
+      </Button>
+      <Button
+        size="xs"
+        variant="subtle"
+        aria-label="画布缩放到百分之百"
+        title={`当前缩放 ${canvasZoomLabel(preference.viewport.zoom)}`}
+        onClick={() => void flow.current?.zoomTo(1)}
+      >
+        {canvasZoomLabel(preference.viewport.zoom)}
+      </Button>
+      <Button
+        size="xs"
+        variant="subtle"
+        aria-label="放大画布"
+        onClick={() => void flow.current?.zoomIn()}
+      >
+        ＋
+      </Button>
+      <Button
+        size="xs"
+        variant="subtle"
+        aria-label="适应内容"
+        title="适应内容"
+        onClick={() =>
+          void flow.current?.fitView({
+            padding: 0.2,
+            minZoom: CANVAS_MIN_ZOOM,
+            maxZoom: 1,
+          })
+        }
+      >
+        <CornersOut size={16} />
+      </Button>
+      <Menu position="top-start">
         <Menu.Target>
-          <Button size="xs" leftSection={<Plus size={16} />}>
-            添加
-          </Button>
+          <ActionIcon variant="subtle" aria-label="更多画布操作">
+            <DotsThree size={18} />
+          </ActionIcon>
         </Menu.Target>
-        <Menu.Dropdown>{addItems()}</Menu.Dropdown>
+        <Menu.Dropdown>
+          <Menu.Label>
+            {document.nodes.length} 项内容 · {document.edges.length} 项引用
+          </Menu.Label>
+          <Menu.Item
+            disabled={readOnly || !controller.canUndo}
+            leftSection={<ArrowCounterClockwise size={16} />}
+            onClick={() => controller.undo()}
+          >
+            撤销画布编辑
+          </Menu.Item>
+          <Menu.Item
+            disabled={readOnly || !controller.canRedo}
+            leftSection={<ArrowClockwise size={16} />}
+            onClick={() => controller.redo()}
+          >
+            重做画布编辑
+          </Menu.Item>
+          <Menu.Item
+            disabled={!selected.length}
+            leftSection={<Crosshair size={16} />}
+            onClick={() => focus(selected)}
+          >
+            定位当前内容
+          </Menu.Item>
+        </Menu.Dropdown>
       </Menu>
     </Group>
   );
@@ -913,6 +969,8 @@ export function CanvasBoard({
       ref={boardElement}
       className={classes.board}
       data-focused={focused || undefined}
+      data-auxiliary={auxiliaryOpen || undefined}
+      inert={(narrow && auxiliaryOpen && !focused) || undefined}
       onKeyDown={(e) => {
         if (
           readOnly ||
@@ -941,6 +999,7 @@ export function CanvasBoard({
         {narrow ? (
           <div className={classes.empty}>
             <Text>窄屏以列表查看内容；完整空间制作请使用桌面宽度。</Text>
+            {railTools}
             {viewportTools}
           </div>
         ) : (
@@ -1059,14 +1118,7 @@ export function CanvasBoard({
               <Background color="var(--ws-canvas-dot)" gap={24} size={1} />
             </ReactFlow>
             {viewportTools}
-            {navigation && (
-              <div
-                className={classes.canvasNavigation}
-                aria-label="场次创作资源"
-              >
-                {navigation}
-              </div>
-            )}
+            {railTools}
             {addPoint && (
               <Menu
                 opened
@@ -1132,51 +1184,70 @@ export function CanvasBoard({
         {narrow && selected.length > 0 && (
           <div className={classes.mobileSelection}>{selectionActions}</div>
         )}
-        <div className={classes.utilities}>
-          <details
-            open={showNodeList}
-            onToggle={(event) => setListExpanded(event.currentTarget.open)}
-          >
-            <summary>节点列表与键盘定位</summary>
-            {showNodeList && (
-              <>
-                <TextInput
-                  label="查找节点"
-                  value={query}
-                  onChange={(e) => setQuery(e.currentTarget.value)}
-                />
-                <Text size="xs" c="dimmed">
-                  按住 Shift 点击可多选，再共同作为参考。
-                </Text>
-                <div className={classes.nodeList}>
-                  {document.nodes
-                    .filter((n) =>
-                      `${n.title} ${n.content.type === "text" ? n.content.text : n.content.type === "draft" ? n.content.prompt : ""}`.includes(
-                        query,
-                      ),
-                    )
-                    .map((n) => (
-                      <Button
-                        key={n.id}
-                        variant={selectedSet.has(n.id) ? "filled" : "subtle"}
-                        onClick={(event) =>
-                          focus(
-                            event.shiftKey
-                              ? selectedSet.has(n.id)
-                                ? selected.filter((id) => id !== n.id)
-                                : [...selected, n.id]
-                              : [n.id],
-                          )
-                        }
-                      >
-                        {n.title}
-                      </Button>
-                    ))}
-                </div>
-              </>
-            )}
-          </details>
-        </div>
+        {showNodeList && (
+          <section className={classes.utilities} aria-label="画布查找与定位">
+            <Group justify="space-between" mb="xs">
+              <Text size="xs" fw={600}>
+                查找内容
+              </Text>
+              {!narrow && (
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  aria-label="收起查找"
+                  onClick={() => setListExpanded(false)}
+                >
+                  <X size={15} />
+                </ActionIcon>
+              )}
+            </Group>
+            <TextInput
+              ref={queryInput}
+              aria-label="查找节点"
+              placeholder="名称或文字…"
+              value={query}
+              onChange={(e) => setQuery(e.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Escape" &&
+                  !event.nativeEvent.isComposing &&
+                  !narrow
+                ) {
+                  event.stopPropagation();
+                  setListExpanded(false);
+                }
+              }}
+            />
+            <Text size="xs" c="dimmed" mt="xs">
+              按住 Shift 点击可多选
+            </Text>
+            <div className={classes.nodeList}>
+              {document.nodes
+                .filter((n) =>
+                  `${n.title} ${n.content.type === "text" ? n.content.text : n.content.type === "draft" ? n.content.prompt : ""}`.includes(
+                    query,
+                  ),
+                )
+                .map((n) => (
+                  <Button
+                    key={n.id}
+                    variant={selectedSet.has(n.id) ? "filled" : "subtle"}
+                    onClick={(event) =>
+                      focus(
+                        event.shiftKey
+                          ? selectedSet.has(n.id)
+                            ? selected.filter((id) => id !== n.id)
+                            : [...selected, n.id]
+                          : [n.id],
+                      )
+                    }
+                  >
+                    {n.title}
+                  </Button>
+                ))}
+            </div>
+          </section>
+        )}
         {!!document.groups.length && (
           <details
             className={classes.groupMenu}

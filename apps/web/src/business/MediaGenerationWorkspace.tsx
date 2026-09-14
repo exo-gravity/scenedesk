@@ -430,6 +430,25 @@ function GenerationWorkspace({
         output?: Schema<"OutputOptions">;
       })
     | undefined;
+  const shotSourcePicker =
+    source.kind === "canvas" && draft && !frozen && !inspection ? (
+      <details className={classes.shotSourceDisclosure}>
+        <summary>
+          固定镜头来源{" "}
+          <span>{draft.shotSources?.length ?? 0} 项 · 可独立探索</span>
+        </summary>
+        <CanvasShotSources
+          path={path}
+          projectId={projectId}
+          sceneId={source.sceneId}
+          sources={draft.shotSources}
+          disabled={disabled || !content}
+          onChange={(shotSources) =>
+            controller.updateDraft({ ...draft, shotSources })
+          }
+        />
+      </details>
+    ) : null;
   const specificationFields = (
     <>
       {kind !== "audio" && (
@@ -530,7 +549,12 @@ function GenerationWorkspace({
     </>
   );
   return (
-    <Stack className={classes.panel} gap="sm" aria-label={`生成${single}`}>
+    <Stack
+      className={classes.panel}
+      data-compact-controls={(compact && !plan) || undefined}
+      gap="sm"
+      aria-label={`生成${single}`}
+    >
       {!compact && (
         <Group justify="space-between" className={classes.generationContext}>
           <Text size="xs" fw={500}>{`生成${single}`}</Text>
@@ -589,24 +613,7 @@ function GenerationWorkspace({
           {`打开所选的固定${label}任务`}
         </Button>
       )}
-      {source.kind === "canvas" && draft && !frozen && !inspection && (
-        <details className={classes.shotSourceDisclosure}>
-          <summary>
-            固定镜头来源{" "}
-            <span>{draft.shotSources?.length ?? 0} 项 · 可独立探索</span>
-          </summary>
-          <CanvasShotSources
-            path={path}
-            projectId={projectId}
-            sceneId={source.sceneId}
-            sources={draft.shotSources}
-            disabled={disabled || !content}
-            onChange={(shotSources) =>
-              controller.updateDraft({ ...draft, shotSources })
-            }
-          />
-        </details>
-      )}
+      {!compact && shotSourcePicker}
       {source.kind === "canvas" && record?.planRequest && !plan && (
         <Text size="sm">
           原请求已固定 {record.planRequest.input.input.shotSources?.length ?? 0}{" "}
@@ -661,6 +668,9 @@ function GenerationWorkspace({
                     output.seed !== undefined
                       ? `种子 ${output.seed}`
                       : undefined,
+                    draft?.shotSources?.length
+                      ? `${draft.shotSources.length} 镜头`
+                      : undefined,
                   ]
                     .filter(Boolean)
                     .join(" · ")}{" "}
@@ -670,6 +680,7 @@ function GenerationWorkspace({
               <Popover.Dropdown>
                 <div className={classes.specificationFields}>
                   {specificationFields}
+                  {shotSourcePicker}
                 </div>
               </Popover.Dropdown>
             </Popover>

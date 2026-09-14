@@ -28,6 +28,7 @@ import {
   sameCanvasSources,
   requestCanvasApplication,
   CanvasApplicationError,
+  canvasApplicationWasRefused,
   type CanvasAssistantDraft,
   type FixedCanvasSource,
 } from "./canvas-assistant";
@@ -340,13 +341,7 @@ function CanvasAssistantContent({
               application: { ...intent, phase: "applied", result },
             };
           } catch (cause) {
-            if (
-              cause instanceof CanvasApplicationError &&
-              cause.verified &&
-              ((cause.status === 412 && cause.code === "VERSION_CONFLICT") ||
-                (cause.status === 409 &&
-                  cause.code === "CANVAS_ASSISTANCE_CONFLICT"))
-            )
+            if (canvasApplicationWasRefused(intent, cause))
               return {
                 ...current,
                 application: { ...intent, phase: "blocked" },
@@ -851,8 +846,8 @@ function CanvasAssistantContent({
             </Alert>
           )}
           {application.phase === "blocked" && (
-            <Alert title="画布版本或应用身份冲突">
-              原修改与本次应用意图已保留。先核对当前画布，再明确查看新的应用差异。
+            <Alert title="这次应用未执行">
+              画布版本、固定来源或目标输入未通过核对。原修改与应用意图已保留；请检查当前画布或重新准备建议，再明确查看新的应用差异。
             </Alert>
           )}
           {application.phase === "applied" && (

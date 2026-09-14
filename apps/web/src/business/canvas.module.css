@@ -85,6 +85,7 @@
   overflow: hidden;
   background: var(--ws-canvas);
   position: relative;
+  isolation: isolate;
 }
 .toolbar {
   padding: 6px 16px;
@@ -221,10 +222,17 @@
 }
 .utilities {
   position: absolute;
-  z-index: 5;
-  top: 48px;
-  right: 16px;
-  max-width: min(320px, 80%);
+  z-index: 8;
+  top: 12px;
+  left: 64px;
+  width: min(300px, calc(100% - 80px));
+  max-height: calc(100% - 88px);
+  overflow: auto;
+  padding: 12px;
+  background: var(--ws-panel);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-floating-radius);
+  box-shadow: var(--mantine-shadow-sm);
   font-size: var(--mantine-font-size-xs);
 }
 .utilities details,
@@ -442,6 +450,10 @@
   background: var(--ws-panel);
   box-shadow: var(--mantine-shadow-xs);
 }
+.canvasNavigation :global(.mantine-ActionIcon-root) {
+  width: 36px;
+  height: 36px;
+}
 .contextualEditor {
   position: absolute;
   z-index: 14;
@@ -625,6 +637,20 @@
   top: 12px;
 }
 @media (max-width: 760px) {
+  .board[data-auxiliary]:not([data-focused]) > * {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .canvasNavigation {
+    position: static;
+    flex-direction: row;
+    align-self: center;
+  }
+  .utilities {
+    width: auto;
+    max-height: none;
+    overflow: visible;
+  }
   .viewportTools {
     position: static;
     max-width: 100%;

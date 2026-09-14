@@ -221,6 +221,31 @@ export class CanvasApplicationError extends Error {
     super(message);
   }
 }
+/** Only a first, verified refusal after the endpoint's receipt lookup can release review. */
+export function canvasApplicationWasRefused(
+  intent: CanvasApplication,
+  cause: unknown,
+): boolean {
+  if (
+    intent.phase !== "review" ||
+    !(cause instanceof CanvasApplicationError) ||
+    !cause.verified
+  )
+    return false;
+  if (cause.status === 412) return cause.code === "VERSION_CONFLICT";
+  if (cause.status === 409)
+    return ["PLAN_INPUT_CHANGED", "TARGET_CAPABILITY_CHANGED"].includes(
+      cause.code,
+    );
+  if (cause.status === 422)
+    return [
+      "CANVAS_ASSISTANCE_TARGET_MISMATCH",
+      "CANVAS_CONTEXT_UNAVAILABLE",
+      "GENERATION_CONTEXT_TOO_LARGE",
+    ].includes(cause.code);
+  return false;
+}
+
 /** A proxy status or a partial Problem cannot authorize replacing an uncertain intent. */
 export function canvasApplicationError(status: number, body: unknown) {
   const problem = body as Partial<Schema<"Error">> | null;

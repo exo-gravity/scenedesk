@@ -88,10 +88,25 @@ export function CanvasContextualEditor({
         }}
         onKeyDown={(event) => {
           event.stopPropagation();
+          // Mantine closes a dropdown in capture phase. Its layout may already
+          // be gone when this bubble handler runs, but the native event keeps
+          // the original path. One Escape belongs to that inner layer only.
+          const fromFloatingLayer = event.nativeEvent
+            .composedPath()
+            .some(
+              (target) =>
+                target instanceof Element &&
+                target !== root.current &&
+                target.matches(
+                  '[role="dialog"], [role="listbox"], [role="menu"], .mantine-Popover-dropdown',
+                ),
+            );
           if (
             event.key === "Escape" &&
+            !event.defaultPrevented &&
             !event.nativeEvent.isComposing &&
             !composing.current &&
+            !fromFloatingLayer &&
             !Array.from(
               window.document.querySelectorAll(
                 '[data-mantine-portal] [role="dialog"], [data-mantine-portal] [role="listbox"], [data-mantine-portal] [role="menu"], [data-mantine-portal] .mantine-Popover-dropdown',
@@ -99,7 +114,8 @@ export function CanvasContextualEditor({
             ).some(
               (element) =>
                 element.getClientRects().length > 0 &&
-                window.getComputedStyle(element).visibility !== "hidden",
+                window.getComputedStyle(element).visibility !== "hidden" &&
+                !element.closest('[hidden], [inert], [aria-hidden="true"]'),
             )
           ) {
             event.preventDefault();
