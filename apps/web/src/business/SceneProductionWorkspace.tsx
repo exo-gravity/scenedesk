@@ -44,6 +44,11 @@ import { useCanvas } from "./use-canvas";
 import { EditingPresence } from "./EditingPresence";
 import { CanvasBoard } from "./CanvasBoard";
 import { CanvasUploads } from "./CanvasUploads";
+import {
+  SceneTaskPanel,
+  SceneTasksButton,
+  type SceneTaskView,
+} from "./SceneTaskPanel";
 import { SceneAssistant } from "./SceneAssistant";
 import { CanvasAssistant } from "./CanvasAssistant";
 import { AssistantProposal } from "./AssistantProposal";
@@ -306,6 +311,11 @@ function SceneCanvasSession({
     nonce: number;
   }>();
   const [inspectedPlanId, setInspectedPlanId] = useState<string>();
+  const [taskView, setTaskView] = useState<SceneTaskView | null>(null);
+  const inspectPlan = (planId: string) => {
+    setInspectedPlanId(planId);
+    setTaskView("generation");
+  };
   const [assistantView, setAssistantView] = useState<"canvas" | "scene">(
     "canvas",
   );
@@ -554,16 +564,11 @@ function SceneCanvasSession({
                   保存画布
                 </Button>
               )}
-            <Button
-              size="xs"
-              variant="subtle"
-              hidden={preference.mode !== "canvas"}
-              aria-pressed={dock === "results"}
-              ref={auxiliaryFallback}
+            <SceneTasksButton
+              open={dock === "results"}
+              buttonRef={auxiliaryFallback}
               onClick={() => selectDock("results")}
-            >
-              任务与结果
-            </Button>
+            />
             {preference.mode !== "canvas" && (
               <Button
                 size="xs"
@@ -700,7 +705,7 @@ function SceneCanvasSession({
                       onRetainDraft={registerGenerationDraft}
                       selectedNodeId={editingNodeId}
                       onInspectPlan={(planId) => {
-                        setInspectedPlanId(planId);
+                        inspectPlan(planId);
                         if (dock !== "results") selectDock("results");
                       }}
                       readOnly={readOnly}
@@ -887,18 +892,20 @@ function SceneCanvasSession({
                 />
               </AuxiliaryPanel>
               <AuxiliaryPanel open={dock === "results"}>
-                <CanvasImageGeneration
-                  mode="history"
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  sceneId={sceneId}
-                  controller={controller}
-                  readOnly={readOnly}
-                  inspectedPlanId={inspectedPlanId}
-                  onInspectPlan={setInspectedPlanId}
-                  onCloseInspection={() => setInspectedPlanId(undefined)}
-                  focus={focusNodes}
-                />
+                <SceneTaskPanel view={taskView} onChange={setTaskView}>
+                  <CanvasImageGeneration
+                    mode="history"
+                    tenantId={tenantId}
+                    projectId={projectId}
+                    sceneId={sceneId}
+                    controller={controller}
+                    readOnly={readOnly}
+                    inspectedPlanId={inspectedPlanId}
+                    onInspectPlan={inspectPlan}
+                    onCloseInspection={() => setInspectedPlanId(undefined)}
+                    focus={focusNodes}
+                  />
+                </SceneTaskPanel>
               </AuxiliaryPanel>
               <AuxiliaryPanel open={dock === "shots"}>
                 <Stack>

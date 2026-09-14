@@ -279,12 +279,11 @@
 .uploadList {
   display: grid;
   gap: var(--mantine-spacing-md);
-  max-height: 400px;
-  overflow: auto;
-  padding: var(--mantine-spacing-md);
-  border: 1px solid var(--ws-border);
-  border-radius: var(--ws-card-radius);
-  background: var(--ws-panel);
+  min-width: 0;
+}
+.uploadList > article {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .fields {
   display: grid;

@@ -49,6 +49,9 @@ type Uploads = {
   rows: CanvasUploadRow[];
   busy: boolean;
   readOnly: boolean;
+  loading: boolean;
+  error: Error | null;
+  retry: () => void;
   begin: (files: File[], point: Point) => void;
   resume: (row: CanvasUploadRow, file: File | null) => void;
   place: (row: CanvasUploadRow) => void;
@@ -59,10 +62,10 @@ const Context = createContext<Uploads | null>(null);
 export const useCanvasUploads = () => useContext(Context);
 const labels: Record<Schema<"UploadIntent">["status"], string> = {
   pending: "等待上传",
-  uploaded: "等待验收",
-  verifying: "正在验收",
-  accepted: "文件已导入 · 待放入画布",
-  rejected: "文件未通过验收",
+  uploaded: "等待处理",
+  verifying: "正在处理",
+  accepted: "已导入 · 待添加到画布",
+  rejected: "导入失败",
   expired: "上传已过期",
 };
 
@@ -500,6 +503,13 @@ export function CanvasUploads({
     rows,
     busy,
     readOnly: readOnly || !loaded || pending.isError,
+    loading: !loaded || pending.isPending,
+    error: error ?? pending.error,
+    retry: () => {
+      setError(null);
+      if (!loaded) setLoadAttempt((attempt) => attempt + 1);
+      void pending.refetch();
+    },
     begin,
     resume,
     pause: () => current.current?.abort(),
@@ -567,35 +577,46 @@ export function CanvasUploads({
     }
   }, [revoked, controller]);
   return (
-    <Context.Provider value={value}>
-      <ErrorNotice
-        error={error ?? pending.error}
-        retry={() => {
-          setError(null);
-          if (!loaded) setLoadAttempt((attempt) => attempt + 1);
-          void pending.refetch();
-        }}
-      />
+    <Context.Provider value={revoked ? { ...value, rows: [] } : value}>
       {children}
-      {!revoked && rows.length > 0 && (
-        <section className={classes.uploadList} aria-label="画布文件导入与恢复">
+    </Context.Provider>
+  );
+}
+
+export function CanvasUploadPanel() {
+  const uploads = useCanvasUploads();
+  if (!uploads) return null;
+  return (
+    <section className={classes.uploadList} aria-label="文件导入记录">
+      <ErrorNotice error={uploads.error} retry={uploads.retry} />
+      {uploads.loading && !uploads.error && (
+        <Text size="sm" role="status">
+          正在读取导入记录…
+        </Text>
+      )}
+      {!uploads.loading && !uploads.error && !uploads.rows.length && (
+        <Text size="sm" c="dimmed">
+          没有需要处理的文件导入。
+        </Text>
+      )}
+      {uploads.rows.length > 0 && (
+        <>
           <Group justify="space-between">
-            <Text fw={600}>待处理文件 · {rows.length}</Text>
-            {busy && (
-              <Button size="xs" onClick={value.pause}>
+            <Text size="xs" c="dimmed">
+              导入完成后可添加到画布。移除记录不会删除已导入的素材。
+            </Text>
+            {uploads.busy && (
+              <Button size="xs" onClick={uploads.pause}>
                 暂停上传
               </Button>
             )}
           </Group>
-          <Text size="xs" c="dimmed">
-            验收通过才放入画布。刷新后可重新选择原文件续办；已完成的文件保留在素材库。
-          </Text>
-          {rows.map((row) => (
-            <CanvasUploadItem key={row.id} row={row} uploads={value} />
+          {uploads.rows.map((row) => (
+            <CanvasUploadItem key={row.id} row={row} uploads={uploads} />
           ))}
-        </section>
+        </>
       )}
-    </Context.Provider>
+    </section>
   );
 }
 
@@ -695,7 +716,7 @@ function CanvasUploadItem({
             disabled={uploads.busy || uploads.readOnly}
             onClick={() => uploads.dismiss(row)}
           >
-            {row.entry ? "移除待处理呈现" : "移除过期本机记录"}
+            移除记录
           </Button>
         )}
       </Group>
