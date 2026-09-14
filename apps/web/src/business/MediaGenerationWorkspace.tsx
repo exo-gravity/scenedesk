@@ -1,5 +1,6 @@
 import { CanvasShotSources, FixedPlanShotSources } from "./CanvasShotSources";
 import { fixedShotSources } from "./canvas-shot-sources";
+import { canvasResultPosition } from "./canvas-result-position";
 import { GenerationJobControls } from "./GenerationJobControls";
 import { reworkScope } from "./prompt-draft";
 import { useQueryClient } from "@tanstack/react-query";
@@ -328,13 +329,18 @@ function GenerationWorkspace({
       !job ||
       job.status !== "succeeded" ||
       source.kind !== "canvas" ||
-      !job.mediaIds.length
+      !job.mediaIds.length ||
+      (draft.placement && draft.placement.phase !== "conflict")
     )
       return;
     void controller.commitDraft(draft, draft, async (current) => {
       const canvas = await source.save();
       if (canvas.id !== source.canvas.id) throw Error("结果接收画布已改变。");
-      const origin = canvas.document.nodes.find((n) => n.id === source.nodeId);
+      const position = canvasResultPosition(
+        canvas.document.nodes,
+        source.nodeId,
+        job.mediaIds.length,
+      );
       return {
         ...current,
         placement: {
@@ -345,10 +351,7 @@ function GenerationWorkspace({
           input: {
             jobId: job.id,
             mediaIds: [...job.mediaIds],
-            position: {
-              x: origin ? origin.position.x + origin.width + 64 : 80,
-              y: origin?.position.y ?? 80,
-            },
+            position,
           },
         },
       };

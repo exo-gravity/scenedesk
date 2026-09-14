@@ -1,5 +1,6 @@
 import { services, type MediaContext } from "../media/model.js";
 import { randomUUID } from "node:crypto";
+import { CANVAS_RESULT_LAYOUT } from "@drama/domain";
 import type { FastifyInstance } from "fastify";
 import { requireThat, versionMatches } from "../../kernel/errors.js";
 import { page, searchPattern } from "../../kernel/pages.js";
@@ -82,7 +83,9 @@ export function canvasGenerationRoutes(
         (row) => ({
           plan: planRecord(row),
           origin: row.origin,
-          ...(row.job_id ? { jobId: row.job_id, jobStatus: row.job_status } : {}),
+          ...(row.job_id
+            ? { jobId: row.job_id, jobStatus: row.job_status }
+            : {}),
         }),
       ),
     };
@@ -147,9 +150,9 @@ export function canvasGenerationRoutes(
             id: nodeId,
             kind: media.kind,
             title: media.display_name,
-            width: 320,
+            width: CANVAS_RESULT_LAYOUT.width,
             position: {
-              x: input.body.position.x + index * 340,
+              x: input.body.position.x + index * CANVAS_RESULT_LAYOUT.stepX,
               y: input.body.position.y,
             },
             content: { type: "media", mediaId },

@@ -247,7 +247,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
     }
   }, [session.data, session.error, session.isError, cache, runEditingCleanup]);
   useEffect(() => {
-    document.title = "创作工作台 · scenedesk";
+    document.title = "创作工作台 · SceneDesk";
   }, []);
   return (
     <div className={classes.shell} ref={shell}>
@@ -265,7 +265,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
       />
       <header className={classes.header}>
         <Anchor href="#/app" className={classes.brand}>
-          scenedesk
+          SceneDesk
         </Anchor>
         <Group gap="lg" wrap="nowrap" className={classes.headerStatus}>
           {health.data?.providerMode === "mock" && (

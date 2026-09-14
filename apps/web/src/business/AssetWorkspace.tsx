@@ -94,7 +94,7 @@ function AssetBrowser(
     canWrite = props.projectId ? props.project?.status === "active" : manager,
     canConfirm = manager || props.project?.leadMembershipId === props.own.id;
   useEffect(() => {
-    document.title = `${props.project?.name ?? "工作室共享"} · 资产 · scenedesk`;
+    document.title = `${props.project?.name ?? "工作室共享"} · 资产 · SceneDesk`;
   }, [props.project?.name]);
   return (
     <Stack

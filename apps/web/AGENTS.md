@@ -1,6 +1,6 @@
 # Frontend implementation rules
 
-Product naming (user correction, 2026-09-14): display the English brand `scenedesk` by default, without a Chinese brand name. Apply this to navigation, entry pages and browser titles; business interface text remains Chinese.
+Product naming (user correction, 2026-09-14): display the English brand `SceneDesk` (exact capitalization) by default, without a Chinese brand name. Apply this to navigation, entry pages and browser titles; business interface text remains Chinese.
 
 Latest correction (2026-09-14, during end-to-end review): the AI assistant must use a conversation-driven interface in a full-height, flush right sidebar, not a floating overlay or a capability-selection form. Opening this sidebar gives it layout space while preserving the canvas viewport and selection; this explicitly supersedes the v0.5 overlay rule for the assistant. Keep node editing contextual. User messages, actual suggestions and action confirmations must remain grounded in durable requests/results; do not simulate a conversation or silently execute model work.
 

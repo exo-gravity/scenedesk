@@ -111,7 +111,7 @@ function MediaBrowser(
     ? props.project?.status === "active"
     : ["owner", "admin"].includes(props.own.role);
   useEffect(() => {
-    document.title = `${props.project?.name ?? "工作室共享"} · 素材 · scenedesk`;
+    document.title = `${props.project?.name ?? "工作室共享"} · 素材 · SceneDesk`;
   }, [props.project?.name]);
   return (
     <Stack gap="lg" className={classes.workspace}>

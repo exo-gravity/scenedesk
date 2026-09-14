@@ -43,7 +43,7 @@ export default function MyWork({
     }),
   });
   useEffect(() => {
-    document.title = "我的工作 · scenedesk";
+    document.title = "我的工作 · SceneDesk";
   }, []);
   const items = queries.flatMap((query, index) =>
     (query.data ?? [])

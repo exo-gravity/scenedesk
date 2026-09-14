@@ -113,7 +113,7 @@ function SceneWorkspace({
   const scene = content.data?.scenes.find((s) => s.id === sceneId),
     episode = content.data?.episodes.find((e) => e.id === scene?.episodeId);
   useEffect(() => {
-    document.title = `${scene?.title ?? "场次"} · 镜头制作 · scenedesk`;
+    document.title = `${scene?.title ?? "场次"} · 镜头制作 · SceneDesk`;
   }, [scene?.title]);
   const active =
     project.data?.status === "active" &&
