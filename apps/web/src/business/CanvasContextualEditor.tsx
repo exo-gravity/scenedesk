@@ -34,7 +34,6 @@ export function CanvasContextualEditor({
   preview?: ReactNode;
 }) {
   const prior = useRef<EditorPlacement>(undefined);
-  const root = useRef<HTMLElement>(null);
   const composing = useRef(false);
   const focusReturn = useRef<HTMLElement | null>(null);
   const placement = placeCanvasEditor({
@@ -63,7 +62,6 @@ export function CanvasContextualEditor({
   return (
     <FocusTrap active={focused}>
       <section
-        ref={root}
         className={classes.contextualEditor}
         data-focused={focused || undefined}
         data-compact={compact || undefined}
@@ -96,7 +94,7 @@ export function CanvasContextualEditor({
             .some(
               (target) =>
                 target instanceof Element &&
-                target !== root.current &&
+                target !== event.currentTarget &&
                 target.matches(
                   '[role="dialog"], [role="listbox"], [role="menu"], .mantine-Popover-dropdown',
                 ),
