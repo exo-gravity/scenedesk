@@ -1,5 +1,5 @@
 import { GenerationJobControls } from "./GenerationJobControls";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   Alert,
   Accordion,
@@ -17,6 +17,8 @@ import {
 import {
   ArrowBendDownRight,
   ArrowsClockwise,
+  CaretDown,
+  CaretUp,
   Sparkle,
 } from "@phosphor-icons/react";
 import { api, ApiError, useList, useSession, type Schema } from "./api";
@@ -90,7 +92,10 @@ function PromptContent({
       void controller.verify();
     }
   }, [capabilities.error, savedArtifacts.error, controller]);
-  const [collapsed, setCollapsed] = useState(false);
+  const ordinary = !assistantOnly && !rework;
+  const [collapsed, setCollapsed] = useState(ordinary);
+  const [generationType, setGenerationType] = useState<string | null>(null);
+  const inputBodyId = useId();
   const [error, setError] = useState<string>(),
     [confirmation, setConfirmation] = useState<PromptDraft>();
   useEffect(() => {
@@ -251,21 +256,59 @@ function PromptContent({
             : `${layout.promptComposer} ${creative.composer}`
       }
       data-collapsed={collapsed || undefined}
+      data-generation-open={(ordinary && !!generationType) || undefined}
       gap="xs"
       aria-label={rework ? "按意见准备修改" : "本次创作输入"}
     >
-      <Group justify="space-between">
-        <Text fw={600}>
-          {rework ? "按意见准备修改" : "本次创作输入"} · {draft?.label}
-        </Text>
-        <Group gap="xs">
-          <Text size="xs" c="dimmed" role="status">
-            {state.draftSaved ? "本机已保留" : "正在保留"}
+      <Group
+        justify="space-between"
+        className={ordinary ? creative.toolbar : undefined}
+      >
+        <div className={ordinary ? creative.summary : undefined}>
+          <Text
+            fw={ordinary ? 500 : 600}
+            {...(ordinary ? { size: "sm", lineClamp: 1 } : {})}
+            title={ordinary && collapsed ? draft?.prompt : undefined}
+          >
+            {ordinary ? (
+              collapsed ? (
+                draft?.prompt.trim() || "描述画面、动作或声音"
+              ) : (
+                "创作输入"
+              )
+            ) : (
+              <>
+                {rework ? "按意见准备修改" : "本次创作输入"} · {draft?.label}
+              </>
+            )}
           </Text>
-          {!assistantOnly && !rework && (
+          {ordinary && collapsed && generationType && (
+            <Text size="xs" c="dimmed">
+              {{ image: "图片", video: "视频", audio: "声音" }[generationType]}
+              创作 · 展开查看生成任务
+            </Text>
+          )}
+        </div>
+        <Group
+          gap="xs"
+          className={ordinary ? creative.toolbarActions : undefined}
+        >
+          <Text size="xs" c="dimmed" role="status">
+            {!state.draftSaved
+              ? "正在保留"
+              : state.busy
+                ? "本机已保留 · 正在处理"
+                : "本机已保留"}
+          </Text>
+          {ordinary && (
             <Button
               size="xs"
               variant="subtle"
+              aria-expanded={!collapsed}
+              aria-controls={inputBodyId}
+              rightSection={
+                collapsed ? <CaretUp size={14} /> : <CaretDown size={14} />
+              }
               onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? "展开创作输入" : "收起创作输入"}
@@ -273,13 +316,36 @@ function PromptContent({
           )}
         </Group>
       </Group>
+      {ordinary &&
+        collapsed &&
+        (job || record?.execution || (record?.planRequest && !plan)) && (
+          <Text size="xs" c="dimmed" role="status">
+            提示准备 ·{" "}
+            {job
+              ? jobStatusLabel[job.status]
+              : record?.execution
+                ? "任务结果待核对"
+                : "计划结果待核对"}
+          </Text>
+        )}
+      {ordinary && collapsed && (state.error || error) && (
+        <Alert role="alert" title="创作输入需要处理">
+          {state.error ?? error}
+        </Alert>
+      )}
       <div
-        className={!assistantOnly && !rework ? layout.promptBody : undefined}
+        id={inputBodyId}
+        className={
+          ordinary ? `${layout.promptBody} ${creative.body}` : undefined
+        }
         hidden={collapsed}
       >
-        <Text size="xs" c="dimmed" lineClamp={1}>
-          固定镜头要求：{draft?.intent}。切换镜头后，可返回此修订继续本次输入。
-        </Text>
+        {!ordinary && (
+          <Text size="xs" c="dimmed" lineClamp={1}>
+            固定镜头要求：{draft?.intent}
+            。切换镜头后，可返回此修订继续本次输入。
+          </Text>
+        )}
         {draft?.rework && (
           <div className={classes.selection}>
             <Text size="sm">
@@ -304,9 +370,9 @@ function PromptContent({
             aria-label="本次提示"
             label={rework ? "本次提示" : undefined}
             placeholder="描述本次想要的画面、动作或声音"
-            minRows={2}
+            minRows={ordinary ? 3 : 2}
             autosize
-            maxRows={3}
+            maxRows={ordinary ? 6 : 3}
             className={!rework ? layout.promptField : undefined}
             value={draft?.prompt ?? ""}
             disabled={disabled}
@@ -327,7 +393,8 @@ function PromptContent({
         )}
         {!assistantOnly && draft && (
           <Tabs
-            defaultValue={null}
+            value={generationType}
+            onChange={setGenerationType}
             allowTabDeactivation
             keepMounted
             className={creative.generationTypes}

@@ -293,7 +293,7 @@ function SceneWorkspace({
           disabled={navigating}
           onClick={() => switchMode("storyboard")}
         >
-          分镜
+          分镜台
         </Button>
       </Group>
     </>
@@ -322,6 +322,7 @@ function SceneWorkspace({
           toolbar={modeTools}
           registerBeforeLeave={registerBeforeLeave}
           navigating={navigating}
+          onNavigate={navigate}
         />
       ) : mode === "storyboard" ? (
         <SceneWithoutCanvasAssistant
@@ -333,6 +334,7 @@ function SceneWorkspace({
           open={view.assistantOpen}
           changeOpen={(assistantOpen) => preference.change({ assistantOpen })}
           toolbar={modeTools}
+          onNavigate={navigate}
         />
       ) : (
         <Stack>
@@ -384,6 +386,7 @@ function SceneCanvasSession({
   toolbar,
   registerBeforeLeave,
   navigating,
+  onNavigate,
 }: {
   tenantId: string;
   projectId: string;
@@ -396,6 +399,7 @@ function SceneCanvasSession({
   toolbar: ReactNode;
   registerBeforeLeave: (retain: (() => Promise<void>) | undefined) => void;
   navigating: boolean;
+  onNavigate: (destination: string) => Promise<void>;
 }) {
   const { controller, state, error, retry } = useCanvas(
       tenantId,
@@ -885,7 +889,7 @@ function SceneCanvasSession({
                   </SceneModePanel>
                   <SceneModePanel
                     visible={preference.mode === "storyboard"}
-                    label="分镜工作区"
+                    label="分镜台工作区"
                   >
                     <CandidateWorkspace
                       tenantId={tenantId}
@@ -893,6 +897,7 @@ function SceneCanvasSession({
                       embedded
                       externalDockOpen={!!dock}
                       closeExternalDock={() => selectDock(null)}
+                      onNavigate={onNavigate}
                       selectedShotId={preference.selectedShotId}
                       onSelectShot={(selectedShotId) =>
                         changePreference({ selectedShotId })
@@ -1379,6 +1384,7 @@ function SceneWithoutCanvasAssistant({
   open,
   changeOpen,
   toolbar,
+  onNavigate,
 }: {
   tenantId: string;
   projectId: string;
@@ -1388,6 +1394,7 @@ function SceneWithoutCanvasAssistant({
   open: boolean;
   changeOpen: (open: boolean) => void;
   toolbar: ReactNode;
+  onNavigate: (destination: string) => Promise<void>;
 }) {
   const [proposalId, setProposalId] = useState<string>();
   return (
@@ -1421,6 +1428,7 @@ function SceneWithoutCanvasAssistant({
               embedded
               externalDockOpen={open}
               closeExternalDock={() => changeOpen(false)}
+              onNavigate={onNavigate}
             />
           )}
         </div>

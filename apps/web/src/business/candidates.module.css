@@ -1,29 +1,47 @@
-.production {
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
+.production,
+.shotFocus,
 .shotProduction {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-height: 0;
   min-width: 0;
 }
+.production {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  container-type: inline-size;
+  container-name: storyboard;
+}
+.shotFocus,
+.shotProduction {
+  flex: 1;
+}
+.shotFocus[hidden] {
+  display: none;
+}
 .previewHeader {
   flex: 0 0 auto;
-  min-height: 56px;
-  padding: 8px 24px;
-  gap: 8px;
+  padding: 14px 24px 10px;
+  gap: 12px;
+}
+.previewIdentity {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
 }
 .title {
   margin: 0;
-  font-size: var(--mantine-font-size-lg);
+  font-size: var(--mantine-font-size-md);
   font-weight: 600;
+}
+.shotSummary {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--ws-secondary);
+  font-size: var(--mantine-font-size-xs);
 }
 .workspace {
   display: flex;
@@ -43,41 +61,102 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 0;
+  min-height: 220px;
+  min-width: 0;
+}
+.previewStage {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 140px;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 24px 12px;
+  container-type: size;
 }
 .hero {
-  flex: 1;
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding-inline: 24px;
-  min-height: 120px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   --ws-preview-height: 100%;
+  container-type: inline-size;
+  container-name: candidate-media;
+}
+.hero[data-ratio] {
+  /* Media Chrome overlays its controls; the picture keeps its full aspect ratio. */
+  width: min(100%, calc(100cqh * var(--ws-media-aspect)));
+  height: min(100%, calc(100cqw / var(--ws-media-aspect)));
 }
 .hero > div {
-  height: 100%;
   width: 100%;
+  height: 100%;
   min-height: 0;
+  aspect-ratio: auto;
   border: 0;
   background: transparent;
 }
-.previewCaption {
-  min-height: 30px;
-  padding: 4px 24px;
-  flex: 0 0 auto;
+.hero :global(media-controller) {
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
 }
-.previewCaption p {
-  font-size: var(--mantine-font-size-xs);
+.hero video {
+  flex: 1;
+  width: 100%;
+  height: 0;
+  min-height: 0;
+  max-height: 100%;
+  object-fit: contain;
+}
+.hero :global(media-control-bar) {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  background: var(--ws-media);
+  --media-control-padding: 6px;
+  --media-control-height: 18px;
+}
+.hero :global(media-time-range) {
+  min-width: 0;
+}
+@container candidate-media (max-width: 280px) {
+  .hero :global(media-time-display) {
+    display: none;
+  }
+  .hero :global(media-control-bar) {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    --media-control-padding: 4px;
+  }
+  .hero :global(media-time-range) {
+    min-height: 0;
+    height: 18px;
+    flex: 0 0 100%;
+    order: -1;
+    --media-control-height: 10px;
+  }
+}
+.previewCaption {
+  flex: 0 0 auto;
+  min-height: 64px;
+  padding: 10px 24px 14px;
+  gap: 16px;
+}
+.captionIdentity,
+.candidateIdentity {
+  min-width: 0;
+  flex: 1;
 }
 .previewActions {
-  min-height: 38px;
-  padding: 4px 24px;
-  justify-content: flex-end;
   flex: 0 0 auto;
-}
-.previewActions button {
-  height: 28px;
-  font-size: var(--mantine-font-size-xs);
+  max-width: 100%;
 }
 .dock {
   width: 360px;
@@ -93,6 +172,10 @@
 }
 .dock[hidden] {
   display: none;
+}
+.productionDock {
+  width: 320px;
+  flex-basis: 320px;
 }
 .composer {
   width: min(100%, 720px);
@@ -110,59 +193,30 @@
   gap: var(--mantine-spacing-md);
 }
 .promptComposer {
-  flex: 0 0 208px;
+  flex: 0 0 auto;
   min-height: 0;
   min-width: 0;
-  margin: 0 20px 12px;
-  padding: 10px 16px;
-  border: 1px solid var(--ws-border);
-  border-radius: var(--ws-floating-radius, var(--ws-card-radius));
   background: var(--ws-panel);
   overflow: hidden;
 }
-.promptComposer[data-collapsed] {
-  flex-basis: 44px;
-}
-.promptComposer:has(.generationChoices [data-active]),
-.promptComposer:has(.inputHistory[open]) {
-  flex-basis: min(300px, 32dvh);
-}
 .promptBody {
   min-height: 0;
+  flex: 1;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
+  scrollbar-gutter: stable;
 }
 .promptBody[hidden] {
   display: none;
 }
+.promptBody > * {
+  flex-shrink: 0;
+}
 .promptField :global(.mantine-Textarea-input) {
   background: transparent;
   resize: none;
-}
-.generationChoices {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.generationChoices :global(.mantine-Accordion-item) {
-  display: contents;
-}
-.generationChoices :global(.mantine-Accordion-control) {
-  grid-row: 1;
-  min-height: 30px;
-  padding-inline: 8px;
-}
-.generationChoices :global(.mantine-Accordion-label) {
-  padding-block: 5px;
-  font-size: var(--mantine-font-size-xs);
-}
-.generationChoices :global(.mantine-Accordion-panel) {
-  grid-row: 2;
-  grid-column: 1 / -1;
-}
-.generationChoices :global(.mantine-Accordion-content) {
-  padding: 10px 0;
 }
 .inputHistory {
   font-size: var(--mantine-font-size-xs);
@@ -170,7 +224,16 @@
 .inputHistory > summary {
   cursor: pointer;
   color: var(--ws-secondary);
-  padding-block: 3px;
+  padding-block: 6px;
+}
+.storyboardRail {
+  flex: 0 0 auto;
+  min-height: 0;
+  border-top: 1px solid var(--ws-border);
+  background: var(--ws-panel);
+}
+.railHeader {
+  padding: 6px 20px 0;
 }
 .strip {
   display: flex;
@@ -184,6 +247,13 @@
   border-top: 1px solid var(--ws-border);
   background: var(--ws-panel);
 }
+.storyboardRail .strip {
+  gap: 8px;
+  scroll-padding-inline: 20px;
+  padding: 8px 20px 10px;
+  border: 0;
+  scrollbar-width: thin;
+}
 .shot {
   display: flex;
   align-items: center;
@@ -195,73 +265,110 @@
   border: 1px solid transparent;
   border-radius: var(--ws-tool-radius, var(--ws-card-radius));
 }
+.storyboardRail .shot {
+  gap: 10px;
+  flex-basis: 172px;
+  max-width: 230px;
+  height: 68px;
+}
+.shot:hover,
+.candidate:hover {
+  background: var(--ws-hover);
+}
 .shotText {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 3px;
+  gap: 4px;
 }
 .shotText p {
   font-size: var(--mantine-font-size-xs);
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shotText p:not(:first-child) {
+  color: var(--ws-secondary);
 }
 .shotThumbnail {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 36px;
-  width: 36px;
-  height: 58px;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 54px;
   overflow: hidden;
   background: var(--ws-raised);
   border-radius: var(--ws-media-radius, var(--ws-card-radius));
 }
-.shotThumbnail > div {
+.shotThumbnail > div,
+.candidateThumbnail > div {
   width: 100%;
   height: 100%;
   min-height: 0;
 }
 .candidate {
-  padding: var(--mantine-spacing-sm);
-  border-bottom: 1px solid var(--ws-border);
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ws-tool-radius);
   display: grid;
-  gap: var(--mantine-spacing-xs);
+  gap: 8px;
+  min-width: 0;
 }
 .candidate[data-selected],
 .shot[data-selected] {
   border-color: var(--ws-accent);
   background: var(--ws-raised);
 }
-.allShots {
-  position: sticky;
-  right: 0;
-  flex: 0 0 72px;
-  height: 64px;
-  background: var(--ws-panel);
-  border-left: 1px solid var(--ws-border);
+.candidateSummary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.candidateThumbnail {
+  width: 56px;
+  height: 72px;
+  flex: 0 0 56px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ws-media-radius);
+  background: var(--ws-raised);
 }
 .overview {
-  position: absolute;
-  inset: 0 0 92px;
-  z-index: 3;
-  background: var(--ws-canvas);
-  padding: 20px;
+  flex: 1;
+  min-height: 0;
+  padding: 24px;
   overflow: auto;
+  background: var(--ws-canvas);
 }
 .overviewGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
-  padding-top: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 28px 24px;
+  padding-top: 24px;
 }
 .overviewShot {
   min-width: 0;
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
 }
 .overviewShot .shotThumbnail {
   width: 100%;
-  height: 150px;
+  height: 220px;
+  flex: 0 0 220px;
+  margin-bottom: 6px;
+  border: 1px solid var(--ws-border);
+}
+.overviewShot[data-selected] .shotThumbnail {
+  border-color: var(--ws-accent);
+}
+.overviewShot:hover .shotThumbnail {
+  background: var(--ws-hover);
 }
 .empty {
   flex: 1;
@@ -284,26 +391,21 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-@media (max-height: 820px) {
-  .promptComposer {
-    flex-basis: 178px;
-    margin-bottom: 10px;
-  }
-  .previewHeader {
-    min-height: 48px;
-  }
-  .previewActions {
-    min-height: 32px;
-  }
+.nearReference,
+.nearReference > div {
+  display: grid;
+  gap: 12px;
+}
+.referenceMedia {
+  height: 280px;
+  border-radius: var(--ws-media-radius, var(--ws-card-radius));
+  overflow: hidden;
+}
+.referenceMedia > div {
+  height: 100%;
+  aspect-ratio: auto;
 }
 @media (max-width: 760px) {
-  .production {
-    overflow: auto;
-  }
-  .shotProduction {
-    flex: none;
-    min-height: 480px;
-  }
   .workspace {
     flex-direction: column;
   }
@@ -314,210 +416,75 @@
     border-left: 0;
     border-top: 1px solid var(--ws-border);
   }
-  .promptComposer {
-    flex: 0 0 230px;
-    margin: 8px;
-  }
-  .previewHeader {
-    padding: 8px 12px;
-  }
-  .previewActions {
-    padding-inline: 12px;
-  }
   .strip {
     flex-shrink: 0;
   }
-  .hero {
-    min-height: 250px;
-  }
 }
-.previewStage {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  justify-content: center;
-  padding-inline: 20px;
-  gap: 60px;
-  align-items: center;
-  container-type: size;
-}
-.previewStage .hero {
-  flex: 1;
-  padding-inline: 0;
-}
-.hero :global(media-controller) {
-  height: 100%;
-  max-height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: transparent;
-}
-.hero video {
-  flex: 1;
-  height: 0;
-  min-height: 0;
-  max-height: 100%;
-  object-fit: contain;
-}
-.hero :global(media-control-bar) {
-  flex-shrink: 0;
-  max-width: 100%;
-  --media-control-padding: 6px;
-  --media-control-height: 18px;
-}
-.nearReference {
-  flex: 0 0 auto;
-  align-self: center;
-  max-height: 100%;
-  overflow: auto;
-  padding-bottom: 10px;
-}
-.nearReference[data-open] {
-  width: 170px;
-}
-.nearReference > div {
-  display: grid;
-  gap: 6px;
-  padding-top: 5px;
-}
-.nearReference > div[hidden] {
-  display: none;
-}
-.referenceMedia {
-  height: 170px;
-  border-radius: var(--ws-media-radius, var(--ws-card-radius));
-  overflow: hidden;
-}
-.referenceMedia > div {
-  height: 100%;
-  aspect-ratio: auto;
-}
-@media (max-width: 1100px) {
-  .nearReference[data-open] {
-    width: 130px;
-  }
-  .referenceMedia {
-    height: 130px;
-  }
-  .previewStage {
-    gap: 12px;
-    padding-inline: 12px;
-  }
-}
-@media (max-width: 760px) {
-  .nearReference[data-open] {
-    width: 100px;
-  }
-  .referenceMedia {
-    height: 100px;
-  }
-  .previewStage {
-    min-height: 260px;
-  }
-}
-.previewStage .hero {
-  flex: 0 1 560px;
-  min-width: 0;
-  container-type: inline-size;
-  container-name: candidate-media;
-}
-.previewStage .hero[data-ratio] {
-  flex: 0 1 auto;
-  width: calc(100cqh * var(--ws-media-aspect));
-  max-width: 100%;
-  height: auto;
-  min-height: 0;
-  aspect-ratio: var(--ws-media-aspect);
-}
-.hero :global(media-time-range) {
-  min-width: 0;
-}
-@container candidate-media (max-width: 280px) {
-  .hero :global(media-time-display) {
-    display: none;
-  }
-  .hero :global(media-control-bar) {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    --media-control-padding: 4px;
-  }
-  .hero :global(media-time-range) {
-    /* Media Chrome's slotted range defaults to min-height: 100%. In a wrapped
-       bar that would fill both rows before the playback buttons are laid out. */
-    min-height: 0;
-    height: 18px;
-    flex: 0 0 100%;
-    order: -1;
-    --media-control-height: 10px;
-  }
-}
-
-.promptBody > * {
-  flex-shrink: 0;
-}
-.previewStage {
-  min-height: 120px;
-}
-.takeView {
-  min-height: 205px;
-}
-.shotText p {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-@media (max-height: 820px) {
-  .nearReference[data-open] {
-    width: 130px;
-  }
-  .referenceMedia {
-    height: 120px;
-  }
-  .nearReference {
-    padding-bottom: 0;
-  }
-  .nearReference > div {
-    gap: 4px;
-  }
-}
-.previewHeader {
-  min-height: 44px;
-  padding: 6px 24px;
-}
-.previewIdentity {
-  flex: 1;
-  min-width: 0;
-}
-.previewIdentity .title {
-  flex-shrink: 0;
-  font-size: var(--mantine-font-size-md);
-}
-.shotSummary {
-  min-width: 0;
-  max-width: 480px;
-}
-.previewIdentity > :last-child {
-  flex-shrink: 0;
-}
-@media (max-width: 1100px) {
-  .shotSummary {
-    max-width: 200px;
-  }
-  .previewHeader {
-    padding-inline: 14px;
-  }
-}
-@media (max-width: 760px) {
+@container storyboard (max-width: 800px) {
   .previewHeader {
     flex-wrap: wrap;
+    padding: 10px 14px;
   }
   .previewIdentity {
     flex-basis: 100%;
   }
-  .shotSummary {
-    max-width: none;
-    flex: 1;
+  .previewCaption {
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    gap: 8px;
+  }
+  .captionIdentity {
+    flex-basis: 100%;
+  }
+  .previewActions {
+    margin-inline-start: auto;
+  }
+  .productionDock {
+    width: 280px;
+    flex-basis: 280px;
+  }
+}
+@container storyboard (max-width: 600px) {
+  .shotFocus {
+    overflow-y: auto;
+  }
+  .shotProduction {
+    flex: 1 0 380px;
+  }
+  .shotProduction > .workspace {
+    flex-direction: column;
+    overflow: auto;
+  }
+  .shotProduction .stage {
+    flex-shrink: 0;
+    min-height: 260px;
+  }
+  .productionDock {
+    width: 100%;
+    flex: 0 0 auto;
+    max-height: 52dvh;
+    border-left: 0;
+    border-top: 1px solid var(--ws-border);
+  }
+  .previewStage {
+    padding-inline: 12px;
+  }
+  .railHeader {
+    padding-inline: 12px;
+  }
+  .storyboardRail .strip {
+    padding-inline: 12px;
+    scroll-padding-inline: 12px;
+  }
+  .overview {
+    padding: 16px;
+  }
+  .overviewGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 12px;
+  }
+  .overviewShot .shotThumbnail {
+    height: 180px;
+    flex-basis: 180px;
   }
 }
