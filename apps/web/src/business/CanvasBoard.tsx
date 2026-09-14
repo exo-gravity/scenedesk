@@ -245,6 +245,7 @@ export function CanvasBoard({
   editingNodeId,
   onEditNode,
   auxiliaryOpen = false,
+  auxiliaryDocked = false,
   onOpenResults,
   onAddAssistantContext,
   navigation,
@@ -266,6 +267,7 @@ export function CanvasBoard({
   editingNodeId?: string | undefined;
   onEditNode: (id?: string) => void;
   auxiliaryOpen?: boolean;
+  auxiliaryDocked?: boolean;
   onOpenResults?: () => void;
   onAddAssistantContext?: (ids: string[]) => void;
   navigation?: ReactNode;
@@ -323,7 +325,24 @@ export function CanvasBoard({
     canvas: { x: number; y: number };
   } | null>(null);
   const [localFocus, setLocalFocus] = useState(focusRequest);
-  useEffect(() => setLocalFocus(focusRequest), [focusRequest]);
+  const seenFocusRequest = useRef(focusRequest?.nonce);
+  useEffect(() => {
+    setLocalFocus(focusRequest);
+    if (!focusRequest || seenFocusRequest.current === focusRequest.nonce)
+      return;
+    seenFocusRequest.current = focusRequest.nonce;
+    const state = controller.getSnapshot();
+    if (
+      !alive.current ||
+      !state.local ||
+      state.accessChecking ||
+      state.phase === "forbidden"
+    )
+      return;
+    // A new explicit Locate is the only operation that exits focus and then
+    // moves the canvas. Resizing a dock never creates/replays this request.
+    setFocusMode(false);
+  }, [focusRequest]);
   const finishFocus = useCallback(
     (nonce: number) => {
       setLocalFocus((current) =>
@@ -352,6 +371,13 @@ export function CanvasBoard({
   }, [document.nodes, uploads?.rows]);
   const narrow = useMediaQuery("(max-width: 760px)"),
     flow = useRef<ReactFlowInstance<FlowNode> | null>(null);
+  useEffect(() => {
+    if (!narrow || !localFocus) return;
+    // The narrow view has already selected the object in its list. Do not
+    // retain an invisible fit that would unexpectedly run when widened later.
+    setLocalFocus(undefined);
+    focusCompleted(localFocus.nonce);
+  }, [narrow, localFocus, focusCompleted]);
   const showNodeList = narrow || listExpanded;
   useEffect(() => {
     if (listExpanded) queryInput.current?.focus({ preventScroll: true });
@@ -416,10 +442,11 @@ export function CanvasBoard({
     setFocusMode(false);
     onEditNode(undefined);
   }, [editingNodeId, !!editing]);
+  const overlayOpen = auxiliaryOpen && (!auxiliaryDocked || !!narrow);
   const safe = canvasEditorSafeArea(
     boardSize.width,
     boardSize.height,
-    auxiliaryOpen,
+    overlayOpen,
     window.innerWidth,
   );
   const screenRect = (node: CanvasNode): ScreenRect => {
@@ -761,6 +788,41 @@ export function CanvasBoard({
       )}
     </div>
   );
+  const editHistoryTools = (
+    <Menu position="top-start">
+      <Menu.Target>
+        <ActionIcon variant="subtle" aria-label="更多画布操作">
+          <DotsThree size={18} />
+        </ActionIcon>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>
+          {document.nodes.length} 项内容 · {document.edges.length} 项引用
+        </Menu.Label>
+        <Menu.Item
+          disabled={readOnly || !controller.canUndo}
+          leftSection={<ArrowCounterClockwise size={16} />}
+          onClick={() => controller.undo()}
+        >
+          撤销画布编辑
+        </Menu.Item>
+        <Menu.Item
+          disabled={readOnly || !controller.canRedo}
+          leftSection={<ArrowClockwise size={16} />}
+          onClick={() => controller.redo()}
+        >
+          重做画布编辑
+        </Menu.Item>
+        <Menu.Item
+          disabled={!selected.length || !!narrow}
+          leftSection={<Crosshair size={16} />}
+          onClick={() => focus(selected)}
+        >
+          定位当前内容
+        </Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
+  );
   const viewportTools = (
     <Group
       className={classes.viewportTools}
@@ -818,39 +880,7 @@ export function CanvasBoard({
       >
         <CornersOut size={16} />
       </Button>
-      <Menu position="top-start">
-        <Menu.Target>
-          <ActionIcon variant="subtle" aria-label="更多画布操作">
-            <DotsThree size={18} />
-          </ActionIcon>
-        </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Label>
-            {document.nodes.length} 项内容 · {document.edges.length} 项引用
-          </Menu.Label>
-          <Menu.Item
-            disabled={readOnly || !controller.canUndo}
-            leftSection={<ArrowCounterClockwise size={16} />}
-            onClick={() => controller.undo()}
-          >
-            撤销画布编辑
-          </Menu.Item>
-          <Menu.Item
-            disabled={readOnly || !controller.canRedo}
-            leftSection={<ArrowClockwise size={16} />}
-            onClick={() => controller.redo()}
-          >
-            重做画布编辑
-          </Menu.Item>
-          <Menu.Item
-            disabled={!selected.length}
-            leftSection={<Crosshair size={16} />}
-            onClick={() => focus(selected)}
-          >
-            定位当前内容
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
+      {editHistoryTools}
     </Group>
   );
   const selectionActions = (
@@ -1000,7 +1030,7 @@ export function CanvasBoard({
           <div className={classes.empty}>
             <Text>窄屏以列表查看内容；完整空间制作请使用桌面宽度。</Text>
             {railTools}
-            {viewportTools}
+            <Group justify="center">{editHistoryTools}</Group>
           </div>
         ) : (
           <div
@@ -1106,7 +1136,7 @@ export function CanvasBoard({
               />
               <CanvasSelectionTools
                 nodes={nodes.filter((node) => selectedSet.has(node.id))}
-                auxiliaryOpen={auxiliaryOpen}
+                auxiliaryOpen={overlayOpen}
                 hidden={
                   !!editing &&
                   selected.length === 1 &&

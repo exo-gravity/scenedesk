@@ -10,9 +10,20 @@ import type {
   CanvasAssistantDraft,
   CanvasAssistanceInput,
 } from "./canvas-assistant";
-import { verifyCanvasAssistantSources } from "./canvas-assistant";
+import {
+  verifyCanvasAssistantSources,
+  sendCanvasAssistantMessage,
+  type CanvasAssistantSource,
+} from "./canvas-assistant";
+import {
+  CanvasPlanDelivery,
+  canvasPlanError,
+  returnRejectedCanvasPlan,
+  type CanvasPlanDeliveries,
+} from "./canvas-plan-delivery";
 type Entry = {
   controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>;
+  delivery: CanvasPlanDelivery;
   owners: number;
   loaded: boolean;
   cleanup?: (() => void) | undefined;
@@ -35,6 +46,16 @@ export function useCanvasAssistantSession(
       CanvasAssistantDraft,
       CanvasAssistanceInput
     >(session.userId, `${path}/${subjectPath}`, session.id);
+    const deliveryStorage = assistantStorage<CanvasPlanDeliveries>(
+      session.userId,
+      `${path}/${subjectPath}/plan-delivery`,
+      session.id,
+    );
+    const delivery = new CanvasPlanDelivery({
+      read: async () => (await deliveryStorage.read())?.draft,
+      write: async (draft) =>
+        deliveryStorage.write({ schemaVersion: 1, draft, previous: [] }),
+    });
     const post = <T>(
       url: string,
       body: unknown,
@@ -53,6 +74,7 @@ export function useCanvasAssistantSession(
         body: JSON.stringify(body),
       });
     const created: Entry = {
+      delivery,
       owners: 0,
       loaded: false,
       controller: new AssistantSession(storage, {
@@ -65,6 +87,7 @@ export function useCanvasAssistantSession(
           await api(`${path}/canvases/${canvasId}`, {
             signal: AbortSignal.timeout(15000),
           });
+          await delivery.load();
           const saved = await storage.read();
           await verifyCanvasAssistantSources(
             saved?.draft,
@@ -92,7 +115,33 @@ export function useCanvasAssistantSession(
           }
         },
         createPlan: (request, key) =>
-          post(`${tenant}/generation-plans`, request, key),
+          delivery.submit(
+            request,
+            key,
+            async () => {
+              const response = await fetch(`${tenant}/generation-plans`, {
+                method: "POST",
+                credentials: "same-origin",
+                cache: "no-store",
+                signal: AbortSignal.timeout(15000),
+                headers: {
+                  "X-CSRF-Token": session.csrfToken,
+                  "Idempotency-Key": key,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(request),
+              });
+              const body: unknown = await response
+                .json()
+                .catch(() => undefined);
+              if (!response.ok) throw canvasPlanError(response.status, body);
+              return body as Schema<"GenerationPlan">;
+            },
+            (id) =>
+              api(`${tenant}/generation-plans/${id}`, {
+                signal: AbortSignal.timeout(15000),
+              }),
+          ),
         getPlan: (id) =>
           api(`${tenant}/generation-plans/${id}`, {
             signal: AbortSignal.timeout(15000),
@@ -124,11 +173,23 @@ export function useCanvasAssistantSession(
   });
   const controller = entry.controller,
     state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
+  const deliveries = useSyncExternalStore(
+    entry.delivery.subscribe,
+    entry.delivery.getSnapshot,
+  );
   useEffect(() => {
     entry.owners++;
     if (entry.owners === 1) {
       const unregister = registerAssistant({
-        controller,
+        controller: {
+          suspend: () => controller.suspend(),
+          verify: () => controller.verify(),
+          settle: () => controller.settle(),
+          retire: () => {
+            entry.delivery.retire();
+            return controller.retire();
+          },
+        },
         userId: session.userId,
         sessionId: session.id,
         tenantId,
@@ -160,6 +221,7 @@ export function useCanvasAssistantSession(
         void controller.load({
           sources: [],
           instruction: "",
+          nextInstruction: "",
           capabilityId: "",
           targetCapabilityId: "",
         });
@@ -191,5 +253,29 @@ export function useCanvasAssistantSession(
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [state.record, state.draftSaved]);
-  return { controller, state };
+  const sendMessage = (
+    assistant: Schema<"Capability">,
+    target: Schema<"Capability">,
+    verifySources: (sources: CanvasAssistantSource[]) => Promise<void>,
+  ) =>
+    sendCanvasAssistantMessage(
+      controller,
+      projectId,
+      assistant,
+      target,
+      verifySources,
+      (input, next) =>
+        entry.delivery.newMessage(input, () =>
+          controller.prepareFrom(next, async () => input),
+        ),
+    );
+  const returnRejectedToEditing = () =>
+    returnRejectedCanvasPlan(entry.delivery, controller);
+  return {
+    controller,
+    state,
+    deliveries,
+    sendMessage,
+    returnRejectedToEditing,
+  };
 }

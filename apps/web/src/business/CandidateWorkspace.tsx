@@ -62,7 +62,7 @@ export default function CandidateWorkspace({
   const base = `#/app/t/${tenantId}/p/${projectId}`,
     contentHref = `${base}/content?scene=${sceneId ?? ""}`;
   useEffect(() => {
-    document.title = `${scene?.title ?? "场次"} · 镜头制作 · 幕序`;
+    document.title = `${scene?.title ?? "场次"} · 镜头制作 · scenedesk`;
   }, [scene?.title]);
   if (project.isError || content.isError)
     return (

@@ -53,6 +53,58 @@
 .dock[hidden] {
   display: none;
 }
+.dock > .dockHeading {
+  margin-inline: -16px;
+  padding-inline: 16px;
+}
+.assistantDock {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.assistantDock > .dockHeading {
+  position: static;
+  flex: 0 0 auto;
+  min-height: 48px;
+  margin: 0;
+  padding: 8px 14px;
+}
+.assistantTabs {
+  flex: 0 0 auto;
+  padding: 4px 12px 8px;
+}
+.assistantChatSlot {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.assistantSceneSlot {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 14px 14px;
+}
+.assistantChatSlot[hidden],
+.assistantSceneSlot[hidden] {
+  display: none;
+}
+@media (min-width: 761px) {
+  .body[data-mode="canvas"] .assistantDock {
+    position: relative;
+    inset: auto;
+    align-self: stretch;
+    flex: 0 0 360px;
+    width: 360px;
+    max-width: none;
+    border: 0;
+    border-left: 1px solid var(--ws-border);
+    border-radius: initial;
+    box-shadow: none;
+  }
+}
 .body[data-mode="storyboard"] .dock {
   position: relative;
   inset: auto;
@@ -62,8 +114,15 @@
 .body[data-focused] .dock {
   visibility: hidden;
 }
+.body[data-focused][data-mode="canvas"] .assistantDock {
+  display: none;
+}
 @media (min-width: 1800px) {
   .dock {
+    width: 400px;
+  }
+  .body[data-mode="canvas"] .assistantDock {
+    flex-basis: 400px;
     width: 400px;
   }
 }
@@ -96,5 +155,11 @@
     position: absolute;
     inset: 8px;
     flex: none;
+  }
+  .body[data-mode] .assistantDock {
+    inset: 0;
+    border: 0;
+    border-radius: initial;
+    box-shadow: none;
   }
 }

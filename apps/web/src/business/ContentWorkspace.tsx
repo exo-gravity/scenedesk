@@ -150,9 +150,9 @@ export function ContentWorkspace({
     scripts.isSuccess,
   ]);
   useEffect(() => {
-    if (blockedAccess) document.title = "内容不可访问 · 幕序";
+    if (blockedAccess) document.title = "内容不可访问 · scenedesk";
     else if (project.data)
-      document.title = `${project.data.name} · ${scriptView ? "剧本与设定" : "场次"} · 幕序`;
+      document.title = `${project.data.name} · ${scriptView ? "剧本与设定" : "场次"} · scenedesk`;
   }, [project.data?.name, blockedAccess, scriptView]);
   if (
     blockedAccess ||

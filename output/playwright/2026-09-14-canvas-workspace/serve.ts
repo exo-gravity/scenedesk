@@ -517,8 +517,14 @@ async function start() {
       if (
         ["rejected", "archived"].includes(current.status) ||
         (current.issue && !current.issue.retryable)
-      )
-        throw Error(`FIXTURE_MEDIA_REJECTED ${key}`);
+      ) {
+        await writeFile(resolve(evidence, `media-${key}-failure.json`), JSON.stringify({
+          status: current.status,
+          issue: current.issue,
+          derivatives: current.derivatives.map((d: any) => ({ kind: d.kind, status: d.status, issue: d.issue })),
+        }, null, 2));
+        throw Error(`FIXTURE_MEDIA_REJECTED ${key} ${current.issue?.code ?? "NO_ISSUE_CODE"}`);
+      }
       await new Promise((r) => setTimeout(r, 500));
     }
     throw Error(`FIXTURE_MEDIA_TIMEOUT ${key}`);
@@ -599,6 +605,14 @@ async function start() {
           "prop",
         ],
         maxReferences: 20,
+        inputRules: [{
+          kind: "image",
+          purposes: ["composition", "identity", "look", "location", "action", "style", "start_frame", "end_frame", "prop"],
+          mimeTypes: ["image/png", "image/jpeg"],
+          minCount: 0,
+          maxCount: 20,
+          maxBytes: 16 * 1024 * 1024,
+        }],
         allowedResolutions: [fixtureResolution],
         allowedAspectRatios: ["9:16"],
         minDurationSeconds: fixtureDurationSeconds,
@@ -941,6 +955,7 @@ async function start() {
   await f.ok("PUT", `${f.path}/canvases/${editorCanvas.id}`, {schemaVersion: 1, document: {nodes: editorNodes, edges: editorEdges, groups: []}}, editorCanvas.revision);
   const fixture = {
     runId,
+    apiSourceCommit: process.env.CREATIVE_API_SHA,
     origin,
     path: f.path,
     tenantId: f.tenant.id,
@@ -1017,6 +1032,7 @@ async function start() {
     localAssistantCalls,
     localVideoCalls,
   }));
+  app.get("/__fixture/requests", async () => ({ requests, localAssistantCalls, localVideoCalls, providerCalls: 0 }));
   app.get("/__fixture/build", async () => {
     const selected = JSON.parse(await readFile(distControl, "utf8"));
     const html = await readFile(resolve(selected.path, "index.html"), "utf8");

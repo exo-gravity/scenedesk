@@ -113,7 +113,7 @@ function SceneWorkspace({
   const scene = content.data?.scenes.find((s) => s.id === sceneId),
     episode = content.data?.episodes.find((e) => e.id === scene?.episodeId);
   useEffect(() => {
-    document.title = `${scene?.title ?? "场次"} · 镜头制作 · 幕序`;
+    document.title = `${scene?.title ?? "场次"} · 镜头制作 · scenedesk`;
   }, [scene?.title]);
   const active =
     project.data?.status === "active" &&
@@ -670,6 +670,7 @@ function SceneCanvasSession({
                     return true;
                   }}
                   auxiliaryOpen={!!dock}
+                  auxiliaryDocked={dock === "assistant"}
                   onFocusModeChange={setFocusMode}
                   onOpenResults={() => selectDock("results")}
                   onAddAssistantContext={(nodeIds) => {
@@ -743,12 +744,12 @@ function SceneCanvasSession({
               )}
             </div>
             <aside
-              className={layout.dock}
+              className={`${layout.dock} ${layout.assistantDock}`}
               aria-label="AI 创作助手"
               inert={focusMode || undefined}
               hidden={dock !== "assistant"}
             >
-              <div className={classes.dockHeading}>
+              <div className={`${classes.dockHeading} ${layout.dockHeading}`}>
                 <Group justify="space-between">
                   <Text fw={600}>AI 创作助手</Text>
                   <Button
@@ -761,7 +762,11 @@ function SceneCanvasSession({
                 </Group>
               </div>
               {preference.mode === "canvas" && (
-                <Group gap="xs" aria-label="助手上下文">
+                <Group
+                  gap={4}
+                  className={layout.assistantTabs}
+                  aria-label="助手上下文"
+                >
                   <Button
                     size="xs"
                     variant="subtle"
@@ -781,6 +786,7 @@ function SceneCanvasSession({
                 </Group>
               )}
               <div
+                className={layout.assistantChatSlot}
                 hidden={
                   preference.mode !== "canvas" || assistantView !== "canvas"
                 }
@@ -800,6 +806,7 @@ function SceneCanvasSession({
                 />
               </div>
               <div
+                className={layout.assistantSceneSlot}
                 hidden={
                   preference.mode === "canvas" && assistantView !== "scene"
                 }
@@ -833,7 +840,7 @@ function SceneCanvasSession({
                         : "AI 创作助手"
               }
             >
-              <div className={classes.dockHeading}>
+              <div className={`${classes.dockHeading} ${layout.dockHeading}`}>
                 <Group justify="space-between">
                   <Text fw={600}>
                     {dock === "media"

@@ -68,7 +68,7 @@ export default function CutWorkspace({
   const base = `#/app/t/${tenantId}/p/${projectId}`,
     href = `${base}/editing?scene=${sceneId ?? ""}`;
   useEffect(() => {
-    document.title = `${scene?.title ?? "场次"} · 剪辑 · 幕序`;
+    document.title = `${scene?.title ?? "场次"} · 剪辑 · scenedesk`;
   }, [scene?.title]);
   if (project.error || content.error || cuts.error || requestedError)
     return (

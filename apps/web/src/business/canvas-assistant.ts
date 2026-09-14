@@ -1,4 +1,5 @@
 import { editingCanonical } from "@drama/domain";
+import { jobFinished, type AssistantSession } from "./assistant-session.js";
 import type { components } from "@drama/contracts";
 type Schema<T extends keyof components["schemas"]> = components["schemas"][T];
 export type FixedCanvasSource = {
@@ -51,6 +52,9 @@ export type CanvasAssistanceInput = Schema<"PlanInput"> & {
 export type CanvasAssistantDraft = {
   sources: CanvasAssistantSource[];
   instruction: string;
+  nextInstruction?: string | undefined;
+  nextSources?: CanvasAssistantSource[] | undefined;
+  replyTo?: { artifactId: string; revision: number } | undefined;
   capabilityId: string;
   targetCapabilityId: string;
   targetCapabilityRevision?: number;
@@ -115,6 +119,9 @@ export function canvasAssistancePlan(
     connectionId: assistant.connectionId,
     capabilityId: assistant.id,
     purpose: "creative_assistance",
+    ...(draft.replyTo
+      ? { assistanceSource: structuredClone(draft.replyTo) }
+      : {}),
     prompt: draft.instruction,
     shotSources: [],
     output: {},
@@ -129,6 +136,62 @@ export function canvasAssistancePlan(
       targetCapabilityRevision: target.revision,
     },
   };
+}
+/** A message archives only a known plan; unresolved requests keep their original identity. */
+export async function sendCanvasAssistantMessage(
+  controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
+  projectId: string,
+  assistant: Schema<"Capability">,
+  target: Schema<"Capability">,
+  verifySources?: (sources: CanvasAssistantSource[]) => Promise<void>,
+  prepareNew?: (
+    input: CanvasAssistanceInput,
+    next: CanvasAssistantDraft,
+  ) => Promise<void>,
+) {
+  const state = controller.getSnapshot(),
+    record = state.record;
+  if (!record || state.access !== "ready" || state.busy)
+    throw Error("请等待本次本机保留或访问核对完成。");
+  if (record.planRequest && !record.planId)
+    throw Error("上一条消息的计划结果待核对；后续输入已保留，不会换新请求。");
+  if (record.execution && !jobFinished(state.job))
+    throw Error("请先核对上一轮任务的最终结果；后续输入会继续保留。");
+  if (
+    record.draft.application &&
+    ["review", "unknown", "missing"].includes(record.draft.application.phase)
+  )
+    throw Error("请先完成或核对当前建议应用；后续输入会继续保留。");
+  const draft = record.draft;
+  const instruction =
+    draft.nextInstruction ?? (record.planId ? "" : draft.instruction);
+  if (!instruction.trim()) throw Error("先写下这次想讨论或调整的内容。");
+  const next: CanvasAssistantDraft = {
+    ...draft,
+    sources: structuredClone(draft.nextSources ?? draft.sources),
+    instruction,
+    nextInstruction: "",
+    nextSources: undefined,
+    artifact: undefined,
+    application: undefined,
+    previousApplications: draft.application
+      ? [...(draft.previousApplications ?? []), draft.application]
+      : draft.previousApplications,
+  };
+  const input = canvasAssistancePlan(next, projectId, assistant, target);
+  await verifySources?.(next.sources);
+  if (record.planId) await controller.revise(next, draft);
+  else await controller.commitDraft(draft, next);
+  const retained = controller.getSnapshot();
+  if (
+    retained.access !== "ready" ||
+    !retained.draftSaved ||
+    JSON.stringify(retained.record?.draft) !== JSON.stringify(next) ||
+    retained.record?.planId
+  )
+    throw Error(retained.error ?? "消息尚未完成本机保留，未发送新请求。");
+  if (prepareNew) await prepareNew(input, next);
+  else await controller.prepareFrom(next, async () => input);
 }
 export function applicationPrompt(
   before: string,
@@ -184,7 +247,12 @@ export async function verifyCanvasAssistantSources(
   if (!Array.isArray(draft.sources) || draft.sources.length > 20)
     throw Error("本机助手上下文需要核对，尚未显示原内容。");
   const checked = new Set<string>();
-  for (const source of draft.sources) {
+  if (
+    draft.nextSources &&
+    (!Array.isArray(draft.nextSources) || draft.nextSources.length > 20)
+  )
+    throw Error("下一条消息的节点附件需要核对，尚未显示原内容。");
+  for (const source of [...draft.sources, ...(draft.nextSources ?? [])]) {
     if (source.source?.canvasId !== canvasId)
       throw Error("本机来源不属于当前画布，尚未显示原内容。");
     if (source.content?.type !== "media") continue;
@@ -197,6 +265,12 @@ export async function verifyCanvasAssistantSources(
       checked.add(`${kind}:${id}`);
     }
   }
+  if (draft.replyTo)
+    await read(
+      "assistance-artifacts",
+      draft.replyTo.artifactId,
+      draft.replyTo.revision,
+    );
   if (draft.artifact)
     await read(
       "assistance-artifacts",
