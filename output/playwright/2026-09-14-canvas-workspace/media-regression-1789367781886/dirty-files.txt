@@ -1,0 +1,4 @@
+apps/web/AGENTS.md
+docs/design/canvas-redesign-v0.5-2026-09-14.md
+docs/implementation/64-contextual-canvas-workspace.md
+output/playwright/2026-09-14-canvas-workspace/serve.ts

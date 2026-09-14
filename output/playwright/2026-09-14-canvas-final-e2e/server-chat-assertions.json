@@ -1,0 +1,9 @@
+{
+  "twoExplicitPlansAndExecutions": true,
+  "zeroShotSources": true,
+  "fixedPreviousBodyAndInstruction": true,
+  "oldSourceR2Preserved": true,
+  "confirmedNextSourceR3": true,
+  "oneApplicationChangedOnlyTargetPrompt": true,
+  "noThirdPlanAfterRefresh": true
+}

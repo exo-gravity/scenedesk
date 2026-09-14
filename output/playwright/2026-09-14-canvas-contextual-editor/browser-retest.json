@@ -1,0 +1,29 @@
+{
+  "status": "partial_stopped_for_user_chat_direction",
+  "sourceCommit": "5a8540a7ae1b76dc6ae4c2208974aab0fa1fec92",
+  "actualScript": "/assets/index-DARG20sN.js",
+  "apiBaseline": "e9825a1",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "passed": [
+    "explicit existing no-reference video draft edit retains current prompt",
+    "model/specification/prepare controls visibly unobscured in compact400x280 editor",
+    "first Escape from seed73 field closes specification popover and retains region editor/prompt",
+    "media node recent success reads 成果已就绪"
+  ],
+  "screenshot": "retest-compact-1440.png",
+  "screenshotInspected": true,
+  "notRun": [
+    "two-reference original draft after-fix paint",
+    "390 auxiliary overlap after-fix",
+    "after-fix dark variant",
+    "after-fix result materialization uniqueness"
+  ],
+  "notes": [
+    "Same-tab goto did not refresh same hash; explicit reload then verified script.",
+    "A read-only Runtime.evaluate after screenshot timed out; getAXState immediately succeeded, no repeated business request.",
+    "User changed priority to conversational assistant. Earlier e982 history/media materialization evidence remains separate."
+  ]
+}

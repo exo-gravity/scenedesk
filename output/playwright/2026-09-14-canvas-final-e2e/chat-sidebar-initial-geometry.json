@@ -1,0 +1,33 @@
+{
+  "canvas": {
+    "bottom": 720,
+    "height": 628,
+    "left": 68,
+    "right": 920,
+    "top": 92,
+    "width": 852,
+    "x": 68,
+    "y": 92
+  },
+  "height": 720,
+  "overflow": false,
+  "panel": {
+    "bottom": 720,
+    "height": 628,
+    "left": 920,
+    "right": 1280,
+    "top": 92,
+    "width": 360,
+    "x": 920,
+    "y": 92
+  },
+  "panelStyle": {
+    "borderRadius": "0px",
+    "boxShadow": "none",
+    "position": "relative"
+  },
+  "selected": 1,
+  "title": "咖啡厅 · 日 · 镜头制作 · scenedesk",
+  "transform": "transform: translate(36px, 30px) scale(0.8);",
+  "width": 1280
+}

@@ -1,0 +1,23 @@
+{
+  "documentWidth": 1440,
+  "editor": {
+    "bottom": 592,
+    "height": 280,
+    "left": 618,
+    "right": 1018,
+    "top": 312,
+    "width": 400,
+    "x": 618,
+    "y": 312
+  },
+  "input": {
+    "id": "mantine-8vgkc364y",
+    "value": "手指与钥匙接触更自然，保留原节奏。"
+  },
+  "transform": "transform: translate(0px, 0px) scale(1);",
+  "url": "http://localhost:4327/#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/p/43dc861e-a6bc-40b8-8e47-8a4e55476d4e/production?scene=309c5fa5-cab8-4cd4-8cef-2eda77fce6c8&mode=canvas",
+  "viewport": {
+    "height": 900,
+    "width": 1440
+  }
+}

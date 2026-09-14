@@ -1,0 +1,19 @@
+{
+  "borderRadius": "0px",
+  "boxShadow": "none",
+  "documentWidth": 390,
+  "height": 844,
+  "panel": {
+    "bottom": 658.0859375,
+    "height": 535.390625,
+    "left": 60,
+    "right": 390,
+    "top": 122.6953125,
+    "width": 330,
+    "x": 60,
+    "y": 122.6953125
+  },
+  "panelClientWidth": 330,
+  "panelScrollWidth": 330,
+  "width": 390
+}

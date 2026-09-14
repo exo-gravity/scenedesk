@@ -1,0 +1,36 @@
+{
+  "active": null,
+  "dialog": {
+    "bottom": 888,
+    "height": 784,
+    "left": 80,
+    "right": 1428,
+    "top": 104,
+    "width": 1348,
+    "x": 80,
+    "y": 104
+  },
+  "inert": [
+    {
+      "class": "_header_19erh_1 m_4081bf90 mantine-Group-root",
+      "tag": "DIV"
+    },
+    {
+      "class": "_canvasSurface_1crek_420",
+      "tag": "DIV"
+    },
+    {
+      "class": "_dock_19erh_36 _assistantDock_19erh_60",
+      "tag": "ASIDE"
+    },
+    {
+      "class": "_dock_19erh_36",
+      "tag": "ASIDE"
+    }
+  ],
+  "input": {
+    "id": "mantine-klhp3pkf7",
+    "value": "最终验收：保留铜钥匙与动作要求参考，缓慢推近；预制静帧视频技术测试。"
+  },
+  "transform": "transform: translate(0px, 0px) scale(1);"
+}

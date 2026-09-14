@@ -1,0 +1,89 @@
+- banner:
+  - link "SceneDesk":
+    - /url: "#/app"
+  - paragraph: 未连接真实模型
+  - paragraph: 本地测试身份
+  - button "切换深色":
+- navigation "工作室导航":
+  - button "切换工作室":
+    - generic: 业务验收
+  - link "项目":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4"
+    - generic: 项目
+  - link "我的工作":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/work"
+    - generic: 我的工作
+  - link "资产":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/assets"
+    - generic: 资产
+  - button "账号与退出登录":
+- main:
+  - link "返回场次目录":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/p/43dc861e-a6bc-40b8-8e47-8a4e55476d4e/content?scene=309c5fa5-cab8-4cd4-8cef-2eda77fce6c8"
+  - generic "旧钥匙 / 第 1 集 · 重逢 / 编辑器独立验收":
+    - paragraph: 旧钥匙 / 第 1 集 · 重逢
+    - paragraph: 编辑器独立验收
+  - generic "制作模式":
+    - button "分镜":
+      - generic: 分镜
+    - button "自由画布" [pressed]:
+      - generic: 自由画布
+  - button "画布保存状态：已保存":
+    - status: 已保存
+  - button "任务与结果":
+    - generic: 任务与结果
+  - button "画布恢复与协作":
+  - button "AI 助手":
+    - generic: AI 助手
+  - application:
+    - group "动作优化 · 创作草稿":
+      - article "动作优化 · 创作草稿 · video":
+        - generic: 动作优化 · 创作草稿
+        - paragraph: 草稿
+        - paragraph: 落点复验：保持两份参考，继续缓慢推近；这是预制视频技术测试的第二次明确尝试。
+        - paragraph: 最近尝试 · 成果已就绪
+        - generic "接收参考"
+    - group "固定视频 · 已采用区间":
+      - article "固定视频 · 已采用区间 · video":
+        - generic: 固定视频 · 已采用区间
+        - button "播放预览":
+          - generic: 播放预览
+        - generic "作为参考"
+    - group "生成视频（显式技术测试）":
+      - article "生成视频（显式技术测试） · video":
+        - generic: 生成视频（显式技术测试）
+        - button "播放预览":
+          - generic: 播放预览
+        - generic "作为参考"
+    - group "生成视频（显式技术测试）":
+      - article "生成视频（显式技术测试） · video":
+        - generic: 生成视频（显式技术测试）
+        - button "播放预览":
+          - generic: 播放预览
+        - generic "作为参考"
+    - generic "所选内容操作":
+      - paragraph: 已选 · 生成视频（显式技术测试）
+      - button "预览":
+        - generic: 预览
+      - button "继续创作":
+        - generic: 继续创作
+      - button "更多所选内容操作":
+    - link "React Flow attribution":
+      - /url: https://reactflow.dev?utm_source=attribution
+      - text: React Flow
+  - generic "画布视口工具":
+    - button "选择":
+    - button "缩小画布":
+      - generic: −
+    - button "画布缩放到百分之百":
+      - generic: 99%
+    - button "放大画布":
+      - generic: ＋
+    - button "适应内容":
+    - button "更多画布操作":
+  - generic "画布创作工具":
+    - button "新建画布内容":
+    - button "打开素材":
+    - button "查找画布内容":
+    - button "本场镜头与探索":
+    - button "打开尝试与结果":

@@ -1,0 +1,91 @@
+- banner:
+  - link "scenedesk":
+    - /url: "#/app"
+  - paragraph: 本地测试身份
+  - button "切换深色":
+- navigation "工作室导航":
+  - button "切换工作室":
+    - generic: 业务验收
+  - link "项目":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4"
+    - generic: 项目
+  - link "我的工作":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/work"
+    - generic: 我的工作
+  - link "资产":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/assets"
+    - generic: 资产
+  - button "账号与退出登录":
+- main:
+  - link "返回场次目录":
+    - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/p/43dc861e-a6bc-40b8-8e47-8a4e55476d4e/content?scene=309c5fa5-cab8-4cd4-8cef-2eda77fce6c8"
+  - generic "旧钥匙 / 第 1 集 · 重逢 / 编辑器独立验收":
+    - paragraph: 旧钥匙 / 第 1 集 · 重逢
+    - paragraph: 编辑器独立验收
+  - generic "制作模式":
+    - button "分镜":
+      - generic: 分镜
+    - button "自由画布" [pressed]:
+      - generic: 自由画布
+  - button "画布保存状态：已保存":
+    - status: 已保存
+  - button "任务与结果" [pressed]:
+    - generic: 任务与结果
+  - button "画布恢复与协作":
+  - button "AI 助手":
+    - generic: AI 助手
+  - complementary "任务与结果":
+    - paragraph: 任务与结果
+    - button "收起":
+      - generic: 收起
+    - region "固定尝试与结果":
+      - paragraph: 固定尝试 · 只读输入
+      - button "返回尝试列表":
+        - generic: 返回尝试列表
+      - generic "生成单段视频":
+        - paragraph: 生成单段视频
+        - status: 本机已保留
+        - paragraph: 来源：动作优化 · 创作草稿 · 输入已固定
+        - button "打开所选的固定视频任务":
+          - generic: 打开所选的固定视频任务
+        - generic "固定视频计划":
+          - paragraph: 固定视频计划
+          - generic: 已提交
+          - alert "受控测试视频":
+            - generic: 受控测试视频
+            - generic: 用于验证生成与归档流程，不代表真实模型效果。
+          - paragraph: 模型：隔离验收 · 预制静帧视频（非模型） · 720x1280
+          - paragraph: 9 秒 · 无声视频
+          - paragraph: 画幅：9:16 · 随机种子：默认（未指定）
+          - generic "查看固定提示全文"
+          - paragraph: 固定参考 1 个。有效至 2026/9/14 16:19:58。
+          - generic "核对固定来源 · 0 个镜头 / 1 个参考"
+        - paragraph: 视频结果已归档
+        - button "核对视频任务":
+          - generic: 核对视频任务
+        - generic "本次视频任务取消状态"
+        - generic "独立视频结果":
+          - paragraph: 生成视频（显式技术测试）
+          - generic: 独立视频结果
+          - paragraph: 9 秒 · 无声音。预览和取回不会绑定对白或改变采用。
+          - region "视频播放器":
+            - generic "生成视频（显式技术测试） · 代理预览"
+            - button "播放" [active]:
+              - generic: 播放
+            - slider "跳转": "1"
+            - generic: en 0:00
+            - button "播放时间": 0:09 / 0:09
+            - button "静音":
+              - generic: 静音
+            - button "进入全屏":
+              - generic: 进入全屏
+          - button "关闭视频预览":
+            - generic: 关闭视频预览
+          - link "在素材中取回原片":
+            - /url: "#/app/t/a97915c9-65f7-40a8-b208-68fb74ca05c4/p/43dc861e-a6bc-40b8-8e47-8a4e55476d4e/media?media=d4ab54e4-18f8-462b-8e3c-e1dc509e7fc4"
+            - generic: 在素材中取回原片
+        - alert "已添加到画布":
+          - generic: 已添加到画布
+          - text: 结果以独立视频节点保存。
+          - button "定位视频结果":
+            - generic: 定位视频结果

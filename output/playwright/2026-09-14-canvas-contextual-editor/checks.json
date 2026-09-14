@@ -1,0 +1,51 @@
+{
+  "status": "targeted_checks_passed_same_candidate_browser_partial_new_paint_pending",
+  "scope": "isolated local test fixture only; no real provider calls",
+  "baseline": "f4f005c981ea195dbca56c1c5d570de66470f994",
+  "sourceAtPreparation": "e9825a179f537913f121c5c9a8f078819cd93ac1",
+  "checks": [
+    {
+      "command": "node --import tsx --test tests/canvas-assistant-session.test.ts tests/assistant-session.test.ts tests/image-generation.test.ts tests/video-generation.test.ts tests/audio-generation.test.ts tests/prompt-assistance.test.ts",
+      "passed": 47,
+      "failed": 0,
+      "stage": "initial integrated source including 7 new assistant tests"
+    },
+    {
+      "command": "node --import tsx --test tests/canvas-assistant-session.test.ts",
+      "passed": 8,
+      "failed": 0,
+      "stage": "after narrow first-refusal versus unknown-resend classification"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit --pretty false",
+      "exitCode": 0,
+      "stage": "after classification"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p apps/web/tsconfig.json --pretty false",
+      "exitCode": 0,
+      "stage": "after classification"
+    },
+    {
+      "command": "npm run ui:check",
+      "passed": true,
+      "stage": "initial integrated source, 146 files and selected opaque contrast pairs; not composed browser acceptance"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p apps/web/tsconfig.json --pretty false",
+      "exitCode": 0,
+      "stage": "after model/specification/prepare footer containment fix; not yet in live e982 candidate"
+    },
+    {
+      "command": "npm run ui:check",
+      "passed": true,
+      "files": 146,
+      "stage": "after footer fix; selected opaque contrast and source checks, not browser paint"
+    }
+  ],
+  "limitations": [
+    "browser-initial.json and browser-followup.json record e982 real local-fixture behavior and actual remaining UI defects. New footer/Escape/layer source needs a rebuilt production candidate and paint verification.",
+    "Recovery classifications use deterministic public client behavior; real API/database/browser evidence belongs to root integration.",
+    "The CUA API does not return a persistent DOM ElementHandle; same-node DOM identity will not be claimed from string IDs alone."
+  ]
+}

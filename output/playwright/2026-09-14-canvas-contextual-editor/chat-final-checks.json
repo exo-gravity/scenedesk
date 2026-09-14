@@ -1,0 +1,40 @@
+{
+  "stage": "conversational_assistant_final_source_after_5a8540a",
+  "status": "targeted_checks_passed_browser_pending",
+  "tests": {
+    "command": "node --import tsx --test tests/canvas-assistant-session.test.ts",
+    "passed": 17,
+    "failed": 0,
+    "durationMs": 466.079417
+  },
+  "checks": {
+    "command": "npm run typecheck",
+    "rootAndWebTypeScript": "passed",
+    "uiSourceAndOpaqueContrast": {
+      "passed": true,
+      "files": 148
+    },
+    "diffWhitespace": "passed"
+  },
+  "verifiedBehaviorSeams": [
+    "Fixed user request and immutable reply remain separate from durable next message and selected next attachments.",
+    "Unknown plan, nonterminal job and unresolved application prevent a new request identity.",
+    "Explicit attachment freshness failure happens before plan intent creation or POST.",
+    "Only a complete verified first business refusal is durably rejected; explicit edit return checks the original canonical input and retains its old receipt.",
+    "Legacy requests and unknown resends remain unknown even after a later business refusal.",
+    "Pre-POST local write failure makes zero POSTs; malformed or mismatched successful responses retain original uncertainty.",
+    "Accepted delivery recovery reads only the original plan ID and requires the same fixed input.",
+    "Current access is rechecked for unsent node sources, future attachments and exact replied artifact revision."
+  ],
+  "presentationSourceCheck": {
+    "attachmentReviewInstances": 1,
+    "location": "composer, outside model settings popover"
+  },
+  "boundaries": [
+    "No generic AssistantSession implementation changed.",
+    "No service, database, production build, user demo or paid provider calls were run by this final check.",
+    "Continuation uses server-resolved assistanceSource artifact ID/revision, never client-concatenated prior output.",
+    "Actual conversation paint, follow-up and guarded application require the next matching production build and isolated API fixture; root owns this acceptance.",
+    "Earlier 12-case stage and previous browser failures remain in separate evidence files."
+  ]
+}

@@ -1,0 +1,315 @@
+{
+  "runId": "8a2e8b77-08cc-477b-8a56-b6d999081033",
+  "origin": "http://localhost:4317",
+  "path": "/v1/tenants/e4570124-7746-4e36-a293-184e4543a82c/projects/8257ae23-e6a1-4148-b418-36bc219d308b",
+  "tenantId": "e4570124-7746-4e36-a293-184e4543a82c",
+  "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+  "sceneId": "942e3885-10d0-4118-8849-8506b0cabc88",
+  "emptySceneId": "3e920d6a-bb8d-469b-820d-7cd0e8ec7741",
+  "editor": {
+    "sceneId": "008c3088-23c6-4a70-b3d9-f05f2aacc47a",
+    "canvasId": "4fbfd16d-28e0-49cd-964f-7362ddabae1e",
+    "draftId": "d6663ba4-1164-4e77-a96a-29515c1ebc12",
+    "textId": "c339e361-c426-4dc7-aaf8-6a414aa180fd",
+    "refId": "79cc375a-c9a7-4989-813a-c95db0f44d45"
+  },
+  "canvasId": "967e0e19-b337-4a03-96be-798c19913195",
+  "draftId": "bf806ced-21a1-4c41-9b85-37e887c9cf03",
+  "textId": "017d101e-75f2-42ea-ac76-265f04a75450",
+  "refId": "86eaf15c-1577-4fd3-98f4-236033b6b8ea",
+  "shots": [
+    {
+      "id": "d91e456d-ec13-482b-83f3-50df653a81c1",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "sceneId": "942e3885-10d0-4118-8849-8506b0cabc88",
+      "label": "SH-01",
+      "position": 0,
+      "status": "active",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:22.877Z",
+      "updatedAt": "2026-09-14T04:30:22.877Z",
+      "specRevisionId": "c16a1932-90f9-49dd-93e6-9d131a487f6d",
+      "spec": {
+        "intent": "相对而坐",
+        "references": [
+          {
+            "note": "固定 v1 道具参考",
+            "mediaId": "9eda09d7-b8f5-4210-8f1e-c3663cd2a80b",
+            "purpose": "prop",
+            "subjectAssetId": "004f64dd-5720-41fd-be07-936773df3e2b",
+            "assetRevisionId": "0873e42b-fad3-4a48-9e3f-9dc59f525785"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bf516a3a-9e71-4ca2-9ee6-204631a075a1",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "sceneId": "942e3885-10d0-4118-8849-8506b0cabc88",
+      "label": "SH-02",
+      "position": 1,
+      "status": "active",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:24.666Z",
+      "updatedAt": "2026-09-14T04:30:24.666Z",
+      "specRevisionId": "79982982-ff33-4744-bf2e-f3408f299f2a",
+      "spec": {
+        "intent": "迟来的追问",
+        "references": [
+          {
+            "note": "固定 v1 道具参考",
+            "mediaId": "9eda09d7-b8f5-4210-8f1e-c3663cd2a80b",
+            "purpose": "prop",
+            "subjectAssetId": "004f64dd-5720-41fd-be07-936773df3e2b",
+            "assetRevisionId": "0873e42b-fad3-4a48-9e3f-9dc59f525785"
+          }
+        ]
+      }
+    },
+    {
+      "id": "28234a51-735c-4791-b7c0-843f12b096b5",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "sceneId": "942e3885-10d0-4118-8849-8506b0cabc88",
+      "label": "SH-03",
+      "position": 2,
+      "status": "active",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:26.980Z",
+      "updatedAt": "2026-09-14T04:30:26.980Z",
+      "specRevisionId": "ac2d9586-cae3-4806-94fc-3228d42c34d9",
+      "spec": {
+        "intent": "欲言又止",
+        "references": [
+          {
+            "note": "固定 v1 道具参考",
+            "mediaId": "9eda09d7-b8f5-4210-8f1e-c3663cd2a80b",
+            "purpose": "prop",
+            "subjectAssetId": "004f64dd-5720-41fd-be07-936773df3e2b",
+            "assetRevisionId": "0873e42b-fad3-4a48-9e3f-9dc59f525785"
+          }
+        ]
+      }
+    },
+    {
+      "id": "d17783ba-d145-4ada-975a-342c76dea2e8",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "sceneId": "942e3885-10d0-4118-8849-8506b0cabc88",
+      "label": "SH-04",
+      "position": 3,
+      "status": "active",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:29.951Z",
+      "updatedAt": "2026-09-14T04:30:29.951Z",
+      "specRevisionId": "079acabb-67ab-4ed9-a926-47d12f4e17fe",
+      "spec": {
+        "intent": "拿起旧钥匙",
+        "references": [
+          {
+            "note": "固定 v1 道具参考",
+            "mediaId": "9eda09d7-b8f5-4210-8f1e-c3663cd2a80b",
+            "purpose": "prop",
+            "subjectAssetId": "004f64dd-5720-41fd-be07-936773df3e2b",
+            "assetRevisionId": "0873e42b-fad3-4a48-9e3f-9dc59f525785"
+          }
+        ]
+      }
+    },
+    {
+      "id": "35ff4981-b16b-4373-89cc-dd3a3b4cf9af",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "sceneId": "942e3885-10d0-4118-8849-8506b0cabc88",
+      "label": "SH-05",
+      "position": 4,
+      "status": "active",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:31.671Z",
+      "updatedAt": "2026-09-14T04:30:31.671Z",
+      "specRevisionId": "085df4d8-fb3a-4a7e-babb-f9a8be83e9e9",
+      "spec": {
+        "intent": "被唤起的记忆",
+        "references": [
+          {
+            "note": "固定 v1 道具参考",
+            "mediaId": "9eda09d7-b8f5-4210-8f1e-c3663cd2a80b",
+            "purpose": "prop",
+            "subjectAssetId": "004f64dd-5720-41fd-be07-936773df3e2b",
+            "assetRevisionId": "0873e42b-fad3-4a48-9e3f-9dc59f525785"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c1dcc2eb-5842-4ffe-a8d7-a7714252abbb",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "sceneId": "942e3885-10d0-4118-8849-8506b0cabc88",
+      "label": "SH-06",
+      "position": 5,
+      "status": "active",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:36.070Z",
+      "updatedAt": "2026-09-14T04:30:36.070Z",
+      "specRevisionId": "ad1ea4c2-ba98-421e-85ba-a7845caee273",
+      "spec": {
+        "intent": "尚未建立候选",
+        "references": [
+          {
+            "note": "固定 v1 道具参考",
+            "mediaId": "9eda09d7-b8f5-4210-8f1e-c3663cd2a80b",
+            "purpose": "prop",
+            "subjectAssetId": "004f64dd-5720-41fd-be07-936773df3e2b",
+            "assetRevisionId": "0873e42b-fad3-4a48-9e3f-9dc59f525785"
+          }
+        ]
+      }
+    }
+  ],
+  "takes": [
+    {
+      "id": "545dc093-138d-4ddf-87d5-0b4a597db2e1",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "shotId": "d91e456d-ec13-482b-83f3-50df653a81c1",
+      "shotRevisionId": "c16a1932-90f9-49dd-93e6-9d131a487f6d",
+      "mediaId": "f85155b4-a817-4380-8b5d-7b7153b40a58",
+      "note": "预制静帧动画技术候选；无模型调用",
+      "createdBy": "55d74747-fca4-4bd8-9c47-99f949daceb8",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:23.597Z",
+      "range": {
+        "inUs": 0,
+        "outUs": 9000000
+      }
+    },
+    {
+      "id": "e68dc8cb-5feb-479f-a098-f492f32a822a",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "shotId": "bf516a3a-9e71-4ca2-9ee6-204631a075a1",
+      "shotRevisionId": "79982982-ff33-4744-bf2e-f3408f299f2a",
+      "mediaId": "f85155b4-a817-4380-8b5d-7b7153b40a58",
+      "note": "预制静帧动画技术候选；无模型调用",
+      "createdBy": "55d74747-fca4-4bd8-9c47-99f949daceb8",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:25.666Z",
+      "range": {
+        "inUs": 0,
+        "outUs": 9000000
+      }
+    },
+    {
+      "id": "6dca6a71-cf79-4548-9dbc-f6a5095f448c",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "shotId": "28234a51-735c-4791-b7c0-843f12b096b5",
+      "shotRevisionId": "ac2d9586-cae3-4806-94fc-3228d42c34d9",
+      "mediaId": "f85155b4-a817-4380-8b5d-7b7153b40a58",
+      "note": "预制静帧动画技术候选；无模型调用",
+      "createdBy": "55d74747-fca4-4bd8-9c47-99f949daceb8",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:28.356Z",
+      "range": {
+        "inUs": 0,
+        "outUs": 9000000
+      }
+    },
+    {
+      "id": "b42d4cd4-2290-42cb-9545-0efd0c0087f5",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "shotId": "d17783ba-d145-4ada-975a-342c76dea2e8",
+      "shotRevisionId": "079acabb-67ab-4ed9-a926-47d12f4e17fe",
+      "mediaId": "f85155b4-a817-4380-8b5d-7b7153b40a58",
+      "note": "预制静帧动画技术候选；无模型调用",
+      "createdBy": "55d74747-fca4-4bd8-9c47-99f949daceb8",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:30.746Z",
+      "range": {
+        "inUs": 0,
+        "outUs": 9000000
+      }
+    },
+    {
+      "id": "324763c0-d557-4891-8d3c-b96e8424e125",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "shotId": "35ff4981-b16b-4373-89cc-dd3a3b4cf9af",
+      "shotRevisionId": "085df4d8-fb3a-4a7e-babb-f9a8be83e9e9",
+      "mediaId": "f85155b4-a817-4380-8b5d-7b7153b40a58",
+      "note": "预制静帧动画技术候选；无模型调用",
+      "createdBy": "55d74747-fca4-4bd8-9c47-99f949daceb8",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:34.111Z",
+      "range": {
+        "inUs": 0,
+        "outUs": 9000000
+      }
+    },
+    {
+      "id": "3fe3d506-eee9-46b3-b4ee-5aedd8ef3478",
+      "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+      "shotId": "d17783ba-d145-4ada-975a-342c76dea2e8",
+      "shotRevisionId": "079acabb-67ab-4ed9-a926-47d12f4e17fe",
+      "mediaId": "f85155b4-a817-4380-8b5d-7b7153b40a58",
+      "note": "同一真实原视频的不同固定区间；未采用",
+      "createdBy": "55d74747-fca4-4bd8-9c47-99f949daceb8",
+      "revision": 1,
+      "createdAt": "2026-09-14T04:30:36.749Z",
+      "range": {
+        "inUs": 1000000,
+        "outUs": 4000000
+      }
+    }
+  ],
+  "assetId": "004f64dd-5720-41fd-be07-936773df3e2b",
+  "firstRevision": "0873e42b-fad3-4a48-9e3f-9dc59f525785",
+  "secondRevision": "04f49bb9-73b9-4afc-81ed-5d5f908285eb",
+  "characterId": "acfe2cff-5a89-4f53-aec3-5cd6157235d4",
+  "characterRevisionId": "ee0b7b2b-b514-4e27-83a6-6743f10e1d52",
+  "lookIds": [
+    "826b3897-a51e-4e52-bf58-8b5e278781ee",
+    "bf3fcd06-dace-400a-b229-55a876d3a182"
+  ],
+  "noImageId": "ba2b7d66-5c90-4ff0-974d-f72cdd1ee2ba",
+  "archivedId": "9112ebe3-2ff0-44a2-a8a4-d7337c3ab834",
+  "scriptId": "50ecb910-95ef-4d9c-bf8f-15ed15e2d0c2",
+  "media": {
+    "key": {
+      "id": "9eda09d7-b8f5-4210-8f1e-c3663cd2a80b",
+      "displayName": "旧铜钥匙-真实参考.png",
+      "sha256": "0d172aa5d602e1af7ff3ba0c7baee8ef00ad476f153358a6ebbc68eca76970bc",
+      "bytes": 2318884,
+      "width": 1254,
+      "height": 1254
+    },
+    "hand": {
+      "id": "7b5b0b6b-01b9-4ac1-a575-c088b8113e2c",
+      "displayName": "手部-固定参考.png",
+      "sha256": "3595886b5e7444e29c395553a80ed23052794bbc08447446c7c24ba1ea6d8bf8",
+      "bytes": 1700579,
+      "width": 941,
+      "height": 1672
+    },
+    "character": {
+      "id": "46cabd91-876a-4aa3-a642-00267393c4ea",
+      "displayName": "林夏-固定参考.jpg",
+      "sha256": "2a6ae8617855002dab45783f2a4c67719cc0e7145f666233f7d33632f5f2b840",
+      "bytes": 74916,
+      "width": 720,
+      "height": 1280
+    },
+    "video": {
+      "id": "f85155b4-a817-4380-8b5d-7b7153b40a58",
+      "displayName": "旧钥匙-预制画面演示-非模型.mp4",
+      "sha256": "060ec344bf2543a46de5a8c944bca341116c94f19039e56896d8b2807c658e17",
+      "bytes": 816245,
+      "durationUs": 9000000,
+      "width": 720,
+      "height": 1280
+    }
+  },
+  "mediaProvenance": {
+    "key": "existing_approved_source",
+    "hand": "existing_approved_source",
+    "character": "existing_approved_source",
+    "video": "existing_approved_source"
+  },
+  "providerCalls": 0,
+  "generationExecutorStarted": "local_text_and_prebuilt_video_fixture_only",
+  "assistantCapabilityId": "976e74ac-a6e6-4f9e-a31d-17c7a5536553",
+  "targetCapabilityId": "d794768a-663b-48de-bd06-d57eceab9fff"
+}

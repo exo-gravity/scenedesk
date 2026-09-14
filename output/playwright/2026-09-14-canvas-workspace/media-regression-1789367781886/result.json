@@ -1,0 +1,52 @@
+{
+  "command": "npm run test:media",
+  "partial": true,
+  "exitCode": 1,
+  "baseHead": "5a8540a7ae1b76dc6ae4c2208974aab0fa1fec92",
+  "workingTreeChangedDuringRun": true,
+  "observedTapPoints": {
+    "passedIncludingParents": 6,
+    "failedIncludingParents": 13,
+    "finalSummaryAvailable": false
+  },
+  "completedFiles": [
+    "audio-generation.test.ts",
+    "audio-production.test.ts",
+    "audio-source.test.ts",
+    "business.test.ts",
+    "image-generation.test.ts"
+  ],
+  "interruptedFile": "probe.test.ts",
+  "notStartedFiles": [
+    "production-jobs.test.ts",
+    "production-recovery.test.ts",
+    "production-storage.test.ts",
+    "production-worker.test.ts",
+    "sandbox-stream.test.ts",
+    "storage.test.ts",
+    "video-generation.test.ts",
+    "video-production.test.ts",
+    "video-source.test.ts"
+  ],
+  "failureKinds": [
+    "MEDIA_TIMEOUT",
+    "Local storage fixture did not become ready",
+    "Storage permission fixture admin/policy/attach timed out"
+  ],
+  "termination": {
+    "signal": "SIGINT",
+    "targetRunnerPid": 73414,
+    "confirmedEndedPids": [
+      73384,
+      73414,
+      96846,
+      99124
+    ]
+  },
+  "cleanup": "No owned test processes remain. Existing Created/Exited scenedesk-media containers were not deleted because their exact provenance was not captured before interruption; no claim of complete daemon cleanup.",
+  "limitsUnchanged": true,
+  "paidProviderCalls": 0,
+  "realDemoTouched": false,
+  "logSha256": "d61db953ce0a7370425bc48a2b9130d17b0e510a50c605c5ac526b7639294b17",
+  "logSecretPatternScan": "pass"
+}

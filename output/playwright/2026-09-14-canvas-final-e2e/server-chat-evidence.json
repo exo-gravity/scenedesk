@@ -1,0 +1,522 @@
+{
+  "jobs": [
+    {
+      "id": "6ccefbbb-3d45-4348-9755-4d1b9fb8ec31",
+      "planId": "5995cc30-e948-4b5e-bc29-0c34bfadfbb5",
+      "status": "succeeded",
+      "artifactId": "6ccefbbb-3d45-4348-9755-4d1b9fb8ec31"
+    },
+    {
+      "id": "6c9918ae-66cc-46d9-aa06-5ddf68de3758",
+      "planId": "9d903f62-43bd-4522-884b-a35712144fb5",
+      "status": "succeeded",
+      "artifactId": "6c9918ae-66cc-46d9-aa06-5ddf68de3758"
+    }
+  ],
+  "plans": [
+    {
+      "id": "5995cc30-e948-4b5e-bc29-0c34bfadfbb5",
+      "input": {
+        "scope": "project",
+        "output": {},
+        "prompt": "请细化右手先接触匙环、停顿，再拿起钥匙的动作，保留窗边光线和铜色。",
+        "purpose": "creative_assistance",
+        "projectId": "43dc861e-a6bc-40b8-8e47-8a4e55476d4e",
+        "assistance": {
+          "kind": "prepare_prompt",
+          "targetCapabilityId": "cd19fa44-a065-40b5-8909-5986e72e743c",
+          "targetCapabilityRevision": 1
+        },
+        "shotSources": [],
+        "capabilityId": "5f0b50e9-229e-487b-82c1-736d27d3948d",
+        "connectionId": "d323b026-4cae-401b-8eba-3ac335584bc0",
+        "promptPolicy": "append",
+        "canvasSources": [
+          {
+            "nodeId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "canvasId": "cfb4cc04-bcdf-46c9-b9c9-5c2262f89b88",
+            "canvasRevision": 2
+          }
+        ],
+        "contextSources": [],
+        "referenceOverrides": [],
+        "additionalReferences": []
+      },
+      "status": "consumed",
+      "resolved": {
+        "shots": [],
+        "prompt": "请细化右手先接触匙环、停顿，再拿起钥匙的动作，保留窗边光线和铜色。",
+        "references": [],
+        "dependencies": [
+          {
+            "kind": "canvas_node",
+            "objectId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "revision": 2,
+            "tracking": "current",
+            "contentHash": "991e2cf70509e80da55abe52f08674d38d10df515b7217e880775b3744d08a72"
+          }
+        ],
+        "canvasSnapshots": [
+          {
+            "kind": "text",
+            "source": {
+              "nodeId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+              "canvasId": "cfb4cc04-bcdf-46c9-b9c9-5c2262f89b88",
+              "canvasRevision": 2
+            },
+            "content": {
+              "text": "保留光线、铜色与节奏。\n右手先接触匙环，再自然收拢。",
+              "type": "text"
+            },
+            "contentHash": "991e2cf70509e80da55abe52f08674d38d10df515b7217e880775b3744d08a72"
+          }
+        ],
+        "resolverVersion": "canvas-assistance/1",
+        "contextSnapshots": [],
+        "assistanceRequest": {
+          "kind": "prepare_prompt",
+          "targetCapabilityId": "cd19fa44-a065-40b5-8909-5986e72e743c",
+          "targetCapabilityRevision": 1
+        },
+        "targetCapabilitySnapshot": {
+          "id": "cd19fa44-a065-40b5-8909-5986e72e743c",
+          "mode": "video_fixture_v1",
+          "enabled": true,
+          "purpose": "video",
+          "revision": 1,
+          "inputRules": [
+            {
+              "kind": "image",
+              "maxBytes": 16777216,
+              "maxCount": 20,
+              "minCount": 0,
+              "purposes": [
+                "composition",
+                "identity",
+                "look",
+                "location",
+                "action",
+                "style",
+                "start_frame",
+                "end_frame",
+                "prop"
+              ],
+              "mimeTypes": [
+                "image/png",
+                "image/jpeg"
+              ]
+            }
+          ],
+          "audioOutput": false,
+          "connectionId": "d323b026-4cae-401b-8eba-3ac335584bc0",
+          "modelVersion": "隔离验收 · 预制静帧视频（非模型）",
+          "executionMode": "test_fixture",
+          "maxReferences": 20,
+          "supportedPurposes": [
+            "composition",
+            "identity",
+            "look",
+            "location",
+            "action",
+            "style",
+            "start_frame",
+            "end_frame",
+            "prop"
+          ],
+          "allowedResolutions": [
+            "720x1280"
+          ],
+          "maxDurationSeconds": 9,
+          "minDurationSeconds": 9,
+          "allowedAspectRatios": [
+            "9:16"
+          ]
+        },
+        "targetConnectionVersionId": "ed8db98e-a3e3-42a1-bcae-419fe1715952"
+      },
+      "inputHash": "41b139071be429956002c386f0be0c7354fa30a6a1085ca1a7d40eb5a8553ac3"
+    },
+    {
+      "id": "9d903f62-43bd-4522-884b-a35712144fb5",
+      "input": {
+        "scope": "project",
+        "output": {},
+        "prompt": "基于上一份建议，把接触匙环后的停顿缩短，但继续保留窗边光线与铜色。",
+        "purpose": "creative_assistance",
+        "projectId": "43dc861e-a6bc-40b8-8e47-8a4e55476d4e",
+        "assistance": {
+          "kind": "prepare_prompt",
+          "targetCapabilityId": "cd19fa44-a065-40b5-8909-5986e72e743c",
+          "targetCapabilityRevision": 1
+        },
+        "shotSources": [],
+        "capabilityId": "5f0b50e9-229e-487b-82c1-736d27d3948d",
+        "connectionId": "d323b026-4cae-401b-8eba-3ac335584bc0",
+        "promptPolicy": "append",
+        "canvasSources": [
+          {
+            "nodeId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "canvasId": "cfb4cc04-bcdf-46c9-b9c9-5c2262f89b88",
+            "canvasRevision": 3
+          }
+        ],
+        "contextSources": [],
+        "assistanceSource": {
+          "revision": 1,
+          "artifactId": "6ccefbbb-3d45-4348-9755-4d1b9fb8ec31"
+        },
+        "referenceOverrides": [],
+        "additionalReferences": []
+      },
+      "status": "consumed",
+      "resolved": {
+        "shots": [],
+        "prompt": "基于上一份建议，把接触匙环后的停顿缩短，但继续保留窗边光线与铜色。",
+        "references": [],
+        "dependencies": [
+          {
+            "kind": "canvas_node",
+            "objectId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "revision": 3,
+            "tracking": "current",
+            "contentHash": "991e2cf70509e80da55abe52f08674d38d10df515b7217e880775b3744d08a72"
+          },
+          {
+            "kind": "assistance_artifact",
+            "objectId": "6ccefbbb-3d45-4348-9755-4d1b9fb8ec31",
+            "revision": 1,
+            "tracking": "fixed",
+            "contentHash": "02ae6c1bf20ad647a6d79e510f0f0c88a5ddf922abc3b3856de7e44457fb485c"
+          }
+        ],
+        "canvasSnapshots": [
+          {
+            "kind": "text",
+            "source": {
+              "nodeId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+              "canvasId": "cfb4cc04-bcdf-46c9-b9c9-5c2262f89b88",
+              "canvasRevision": 3
+            },
+            "content": {
+              "text": "保留光线、铜色与节奏。\n右手先接触匙环，再自然收拢。",
+              "type": "text"
+            },
+            "contentHash": "991e2cf70509e80da55abe52f08674d38d10df515b7217e880775b3744d08a72"
+          }
+        ],
+        "resolverVersion": "canvas-assistance/1",
+        "contextSnapshots": [],
+        "assistanceRequest": {
+          "kind": "prepare_prompt",
+          "targetCapabilityId": "cd19fa44-a065-40b5-8909-5986e72e743c",
+          "targetCapabilityRevision": 1
+        },
+        "assistanceSnapshot": {
+          "notes": "无真实模型调用。此建议仅验证固定输入、耐久执行与人工修订；不会解决评论、采用候选或替换画布内容。",
+          "change": [
+            "由制作人员核对后再应用到创作输入"
+          ],
+          "prompt": "显式测试 fixture：请细化右手先接触匙环、停顿，再拿起钥匙的动作，保留窗边光线和铜色。",
+          "retain": [
+            "保留明确选定的画布节点正文、媒体与参考版本"
+          ],
+          "referenceSuggestions": []
+        },
+        "assistanceInstruction": "请细化右手先接触匙环、停顿，再拿起钥匙的动作，保留窗边光线和铜色。",
+        "targetCapabilitySnapshot": {
+          "id": "cd19fa44-a065-40b5-8909-5986e72e743c",
+          "mode": "video_fixture_v1",
+          "enabled": true,
+          "purpose": "video",
+          "revision": 1,
+          "inputRules": [
+            {
+              "kind": "image",
+              "maxBytes": 16777216,
+              "maxCount": 20,
+              "minCount": 0,
+              "purposes": [
+                "composition",
+                "identity",
+                "look",
+                "location",
+                "action",
+                "style",
+                "start_frame",
+                "end_frame",
+                "prop"
+              ],
+              "mimeTypes": [
+                "image/png",
+                "image/jpeg"
+              ]
+            }
+          ],
+          "audioOutput": false,
+          "connectionId": "d323b026-4cae-401b-8eba-3ac335584bc0",
+          "modelVersion": "隔离验收 · 预制静帧视频（非模型）",
+          "executionMode": "test_fixture",
+          "maxReferences": 20,
+          "supportedPurposes": [
+            "composition",
+            "identity",
+            "look",
+            "location",
+            "action",
+            "style",
+            "start_frame",
+            "end_frame",
+            "prop"
+          ],
+          "allowedResolutions": [
+            "720x1280"
+          ],
+          "maxDurationSeconds": 9,
+          "minDurationSeconds": 9,
+          "allowedAspectRatios": [
+            "9:16"
+          ]
+        },
+        "targetConnectionVersionId": "ed8db98e-a3e3-42a1-bcae-419fe1715952"
+      },
+      "inputHash": "0d35cf999cff1606209c5fd1fdedc4519cb6e32d232addddb887a1a44aea7749"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "6ccefbbb-3d45-4348-9755-4d1b9fb8ec31",
+      "body": {
+        "notes": "无真实模型调用。此建议仅验证固定输入、耐久执行与人工修订；不会解决评论、采用候选或替换画布内容。",
+        "change": [
+          "由制作人员核对后再应用到创作输入"
+        ],
+        "prompt": "显式测试 fixture：请细化右手先接触匙环、停顿，再拿起钥匙的动作，保留窗边光线和铜色。",
+        "retain": [
+          "保留明确选定的画布节点正文、媒体与参考版本"
+        ],
+        "referenceSuggestions": []
+      },
+      "jobId": "6ccefbbb-3d45-4348-9755-4d1b9fb8ec31",
+      "revision": 1
+    },
+    {
+      "id": "6c9918ae-66cc-46d9-aa06-5ddf68de3758",
+      "body": {
+        "notes": "无真实模型调用。此建议仅验证固定输入、耐久执行与人工修订；不会解决评论、采用候选或替换画布内容。",
+        "change": [
+          "由制作人员核对后再应用到创作输入"
+        ],
+        "prompt": "显式测试 fixture：基于上一份建议，把接触匙环后的停顿缩短，但继续保留窗边光线与铜色。",
+        "retain": [
+          "保留明确选定的画布节点正文、媒体与参考版本"
+        ],
+        "referenceSuggestions": []
+      },
+      "jobId": "6c9918ae-66cc-46d9-aa06-5ddf68de3758",
+      "revision": 1
+    }
+  ],
+  "applications": [
+    {
+      "id": "521664fb-8c59-457e-a529-dba018071218",
+      "mode": "append",
+      "node_id": "b789502a-00de-41b7-9c04-6ec8ea2af880",
+      "canvas_id": "cfb4cc04-bcdf-46c9-b9c9-5c2262f89b88",
+      "tenant_id": "a97915c9-65f7-40a8-b208-68fb74ca05c4",
+      "created_at": "2026-09-14T07:31:38.258159+00:00",
+      "project_id": "43dc861e-a6bc-40b8-8e47-8a4e55476d4e",
+      "artifact_id": "6ccefbbb-3d45-4348-9755-4d1b9fb8ec31",
+      "after_prompt": "手指与钥匙接触更自然，保留原节奏。\n\n显式测试 fixture：请细化右手先接触匙环、停顿，再拿起钥匙的动作，保留窗边光线和铜色。",
+      "base_revision": 2,
+      "before_prompt": "手指与钥匙接触更自然，保留原节奏。",
+      "result_revision": 3,
+      "artifact_revision": 1
+    }
+  ],
+  "canvasRevisions": [
+    {
+      "document": {
+        "edges": [
+          {
+            "id": "15f6aa2d-facb-4e06-8d31-71798454f324",
+            "enabled": true,
+            "purpose": "prop",
+            "position": 0,
+            "sourceNodeId": "868312a3-2bcf-4713-9df3-a1f4e79564b6",
+            "targetNodeId": "b789502a-00de-41b7-9c04-6ec8ea2af880",
+            "subjectAssetId": "386dcee3-3c52-419f-94bd-2ba4fb1faf06"
+          },
+          {
+            "id": "4d5b2864-cf7d-4b22-a193-c68cdeac8822",
+            "enabled": true,
+            "purpose": "prompt",
+            "position": 1,
+            "sourceNodeId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "targetNodeId": "b789502a-00de-41b7-9c04-6ec8ea2af880"
+          }
+        ],
+        "nodes": [
+          {
+            "id": "868312a3-2bcf-4713-9df3-a1f4e79564b6",
+            "kind": "image",
+            "title": "旧铜钥匙 · 固定 v1",
+            "width": 220,
+            "content": {
+              "type": "media",
+              "mediaId": "6d82f534-476e-47fc-b578-ca9f96c13708",
+              "assetRevisionId": "7fbc71a5-c697-457a-a383-a92efaf37c5a"
+            },
+            "position": {
+              "x": 30,
+              "y": 30
+            }
+          },
+          {
+            "id": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "kind": "text",
+            "title": "本次动作要求",
+            "width": 250,
+            "content": {
+              "text": "保留光线、铜色与节奏。\n右手先接触匙环，再自然收拢。",
+              "type": "text"
+            },
+            "position": {
+              "x": 300,
+              "y": 40
+            }
+          },
+          {
+            "id": "b789502a-00de-41b7-9c04-6ec8ea2af880",
+            "kind": "video",
+            "title": "动作优化 · 创作草稿",
+            "width": 280,
+            "content": {
+              "type": "draft",
+              "output": {
+                "withAudio": false,
+                "resolution": "720x1280",
+                "aspectRatio": "9:16",
+                "durationSeconds": 9
+              },
+              "prompt": "手指与钥匙接触更自然，保留原节奏。",
+              "capabilityId": "cd19fa44-a065-40b5-8909-5986e72e743c",
+              "connectionId": "d323b026-4cae-401b-8eba-3ac335584bc0"
+            },
+            "position": {
+              "x": 610,
+              "y": 30
+            }
+          },
+          {
+            "id": "b74d3525-5784-4ac9-83b1-135f6586107c",
+            "kind": "video",
+            "title": "固定视频 · 已采用区间",
+            "width": 250,
+            "content": {
+              "type": "media",
+              "mediaId": "715d7b9d-2c3b-48e1-bb74-9b699776cd9e"
+            },
+            "position": {
+              "x": 980,
+              "y": 30
+            }
+          }
+        ],
+        "groups": []
+      },
+      "revision": 2
+    },
+    {
+      "document": {
+        "edges": [
+          {
+            "id": "15f6aa2d-facb-4e06-8d31-71798454f324",
+            "enabled": true,
+            "purpose": "prop",
+            "position": 0,
+            "sourceNodeId": "868312a3-2bcf-4713-9df3-a1f4e79564b6",
+            "targetNodeId": "b789502a-00de-41b7-9c04-6ec8ea2af880",
+            "subjectAssetId": "386dcee3-3c52-419f-94bd-2ba4fb1faf06"
+          },
+          {
+            "id": "4d5b2864-cf7d-4b22-a193-c68cdeac8822",
+            "enabled": true,
+            "purpose": "prompt",
+            "position": 1,
+            "sourceNodeId": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "targetNodeId": "b789502a-00de-41b7-9c04-6ec8ea2af880"
+          }
+        ],
+        "nodes": [
+          {
+            "id": "868312a3-2bcf-4713-9df3-a1f4e79564b6",
+            "kind": "image",
+            "title": "旧铜钥匙 · 固定 v1",
+            "width": 220,
+            "content": {
+              "type": "media",
+              "mediaId": "6d82f534-476e-47fc-b578-ca9f96c13708",
+              "assetRevisionId": "7fbc71a5-c697-457a-a383-a92efaf37c5a"
+            },
+            "position": {
+              "x": 30,
+              "y": 30
+            }
+          },
+          {
+            "id": "fc5bb0d4-b0d0-4b09-8a74-67f28872e15b",
+            "kind": "text",
+            "title": "本次动作要求",
+            "width": 250,
+            "content": {
+              "text": "保留光线、铜色与节奏。\n右手先接触匙环，再自然收拢。",
+              "type": "text"
+            },
+            "position": {
+              "x": 300,
+              "y": 40
+            }
+          },
+          {
+            "id": "b789502a-00de-41b7-9c04-6ec8ea2af880",
+            "kind": "video",
+            "title": "动作优化 · 创作草稿",
+            "width": 280,
+            "content": {
+              "type": "draft",
+              "output": {
+                "withAudio": false,
+                "resolution": "720x1280",
+                "aspectRatio": "9:16",
+                "durationSeconds": 9
+              },
+              "prompt": "手指与钥匙接触更自然，保留原节奏。\n\n显式测试 fixture：请细化右手先接触匙环、停顿，再拿起钥匙的动作，保留窗边光线和铜色。",
+              "capabilityId": "cd19fa44-a065-40b5-8909-5986e72e743c",
+              "connectionId": "d323b026-4cae-401b-8eba-3ac335584bc0"
+            },
+            "position": {
+              "x": 610,
+              "y": 30
+            }
+          },
+          {
+            "id": "b74d3525-5784-4ac9-83b1-135f6586107c",
+            "kind": "video",
+            "title": "固定视频 · 已采用区间",
+            "width": 250,
+            "content": {
+              "type": "media",
+              "mediaId": "715d7b9d-2c3b-48e1-bb74-9b699776cd9e"
+            },
+            "position": {
+              "x": 980,
+              "y": 30
+            }
+          }
+        ],
+        "groups": []
+      },
+      "revision": 3
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "status": "partial_browser_validation_control_interrupted",
+  "candidate": "e9825a1",
+  "loadedBundle": "/assets/index-BERIa8SG.js",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "origin": "http://localhost:4317",
+  "scope": {
+    "projectId": "8257ae23-e6a1-4148-b418-36bc219d308b",
+    "sceneId": "008c3088-23c6-4a70-b3d9-f05f2aacc47a",
+    "canvasId": "4fbfd16d-28e0-49cd-964f-7362ddabae1e",
+    "protectedDemoModified": false
+  },
+  "passed": [
+    "Imported image selection shows only short media actions; double click opens image modal, closing returns to the canvas.",
+    "Explicit edit of the video draft opens a local editor. Selecting text B preserves draft A as the editing target.",
+    "Focus and return preserve textarea id mantine-gjp4a75hs, edited value, and canvas transform translate(0px,0px) scale(1). This is not an ElementHandle identity assertion.",
+    "Edited prompt is visible on the node after automatic save and full reload. Reopening the original draft retains its pending plan-request recovery control.",
+    "A separately created video draft, without changing the original refused request, can be edited; model/9-second/9:16/seed73 values persist through close and reopen.",
+    "The separate no-reference plan was prepared and displayed actual 720x1280, 9:16, 9 seconds, silent video, seed73 and explicit local-test identity before execution."
+  ],
+  "observations": [
+    {
+      "kind": "product_layout",
+      "message": "Local editor is 400x280; body height229 and scrollHeight284. Model input y571.8..603.8 exceeds body bottom591 and is obscured by sticky CTA y557..591 with two default references.",
+      "screenshot": "editor-initial-1440.png"
+    },
+    {
+      "kind": "product_keyboard",
+      "message": "Escape from specification popover seed input closes the whole local editor as well as the popover; values remain saved."
+    },
+    {
+      "kind": "fixture_or_validation",
+      "message": "Original two-reference draft prepare returned actual reference type/purpose/file-parameter rejection. The original plan request was retained, not discarded or resubmitted by this test."
+    },
+    {
+      "kind": "pending_result",
+      "message": "One explicit local-test execute was clicked for the separate no-reference plan. UI moved to query/recover after about15s. No second execute was clicked. Actual server outcome and counts remain to be reconciled by the root fixture."
+    },
+    {
+      "kind": "harness_locator",
+      "message": "One waitFor(role=button,name=节点列表与键盘定位) timed out during reload; subsequent AX state confirmed a healthy loaded canvas and saved text. The native details summary is not a reliable DOM button selector."
+    },
+    {
+      "kind": "tool_control",
+      "message": "Chrome browser control lost debugger attachment. Official tabs.list still reported the original tab, while getTab/DOM/screenshot could not continue. Original tab retained; no user-owned Chrome tab was modified."
+    }
+  ],
+  "screenshots": [
+    "editor-initial-1440.png",
+    "editor-focus-1440.png",
+    "plan-reference-refusal-1440.png",
+    "fixed-plan-focus-1440.png"
+  ],
+  "remaining": [
+    "Verify next candidate footer and Escape fixes",
+    "Complete same-node fixed history/current-input separation in browser",
+    "Query the original one-shot local fixture execution and verify archived output",
+    "Narrow and dark viewport checks",
+    "Confirm cleanup/reset of the interrupted Chrome tab"
+  ],
+  "modelCalls": "No real provider was configured or called; one explicit local fixture execution was requested."
+}
