@@ -10869,6 +10869,14 @@
             }
           },
           {
+            "name": "canvasId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
             "name": "kind",
             "in": "query",
             "schema": {
@@ -12960,6 +12968,194 @@
             }
           }
         }
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/assistance-applications": {
+      "post": {
+        "operationId": "applyCanvasAssistance",
+        "tags": [
+          "PR-16"
+        ],
+        "summary": "明确将固定建议应用到指定草稿，保留原应用回执",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "canvasId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasAssistanceApplicationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-16",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCanvasAssistance"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/assistance-applications/{applicationId}": {
+      "get": {
+        "operationId": "getCanvasAssistanceApplication",
+        "tags": [
+          "PR-16"
+        ],
+        "summary": "读取原建议应用结果及当前画布，不重复修改",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "canvasId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasAssistanceApplicationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-16"
       }
     },
     "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/workspace-preference": {
@@ -16962,6 +17158,14 @@
           },
           "assistanceSource": {
             "$ref": "#/components/schemas/ArtifactSource"
+          },
+          "canvasSources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CanvasAssistanceSource"
+            },
+            "minItems": 1,
+            "maxItems": 20
           }
         },
         "required": [
@@ -17086,7 +17290,7 @@
                   "const": "project"
                 },
                 "shotSources": {
-                  "minItems": 1
+                  "maxItems": 100
                 },
                 "output": {
                   "maxProperties": 0
@@ -17115,7 +17319,21 @@
                     ]
                   }
                 ]
-              }
+              },
+              "anyOf": [
+                {
+                  "properties": {
+                    "shotSources": {
+                      "minItems": 1
+                    }
+                  }
+                },
+                {
+                  "required": [
+                    "canvasSources"
+                  ]
+                }
+              ]
             }
           },
           {
@@ -17177,6 +17395,36 @@
                 },
                 "scope": {
                   "const": "project"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "canvasSources"
+              ]
+            },
+            "then": {
+              "properties": {
+                "purpose": {
+                  "const": "creative_assistance"
+                },
+                "assistance": {
+                  "properties": {
+                    "kind": {
+                      "const": "prepare_prompt"
+                    }
+                  }
+                },
+                "contextSources": {
+                  "maxItems": 0
+                },
+                "additionalReferences": {
+                  "maxItems": 0
+                },
+                "referenceOverrides": {
+                  "maxItems": 0
                 }
               }
             }
@@ -20048,7 +20296,8 @@
               "creative_confirmation",
               "review_comment",
               "creative_basis_revision",
-              "canvas_draft"
+              "canvas_draft",
+              "canvas_node"
             ]
           },
           "objectId": {
@@ -20236,6 +20485,14 @@
               "format": "uuid"
             },
             "uniqueItems": true
+          },
+          "canvasSnapshots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CanvasAssistanceSnapshot"
+            },
+            "minItems": 1,
+            "maxItems": 20
           },
           "targetCapabilitySnapshot": {
             "$ref": "#/components/schemas/Capability"
@@ -21907,8 +22164,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ShotSource"
-            },
-            "minItems": 1
+            }
           },
           "resolvedInput": {
             "$ref": "#/components/schemas/ResolvedInput"
@@ -21942,7 +22198,30 @@
           "body",
           "inputOutdated"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "shotSources": {
+                  "maxItems": 0
+                }
+              },
+              "required": [
+                "shotSources"
+              ]
+            },
+            "then": {
+              "properties": {
+                "resolvedInput": {
+                  "required": [
+                    "canvasSnapshots"
+                  ]
+                }
+              }
+            }
+          }
+        ]
       },
       "AssistanceEdit": {
         "type": "object",
@@ -23087,6 +23366,9 @@
           "jobId": {
             "type": "string",
             "format": "uuid"
+          },
+          "jobStatus": {
+            "$ref": "#/components/schemas/GenerationJob/properties/status"
           }
         },
         "required": [
@@ -23315,6 +23597,264 @@
           "viewport",
           "assetPanelOpen",
           "assistantOpen"
+        ],
+        "additionalProperties": false
+      },
+      "CanvasAssistanceSource": {
+        "type": "object",
+        "properties": {
+          "canvasId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "canvasRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "nodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "identity",
+              "look",
+              "location",
+              "action",
+              "composition",
+              "style",
+              "voice",
+              "start_frame",
+              "end_frame",
+              "prop"
+            ]
+          }
+        },
+        "required": [
+          "canvasId",
+          "canvasRevision",
+          "nodeId"
+        ],
+        "additionalProperties": false
+      },
+      "CanvasAssistanceSnapshot": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/CanvasAssistanceSource"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "video",
+              "audio"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CanvasTextContent"
+              },
+              {
+                "$ref": "#/components/schemas/CanvasDraftContent"
+              },
+              {
+                "$ref": "#/components/schemas/CanvasMediaContent"
+              }
+            ]
+          },
+          "contentHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "source",
+          "kind",
+          "content",
+          "contentHash"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "text"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "content": {
+                  "$ref": "#/components/schemas/CanvasTextContent"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "content": {
+                  "properties": {
+                    "type": {
+                      "const": "media"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                }
+              },
+              "required": [
+                "content"
+              ]
+            },
+            "then": {
+              "properties": {
+                "source": {
+                  "required": [
+                    "purpose"
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "image",
+                    "video",
+                    "audio"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ApplyCanvasAssistance": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artifactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artifactRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "nodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "replace",
+              "append"
+            ]
+          }
+        },
+        "required": [
+          "applicationId",
+          "artifactId",
+          "artifactRevision",
+          "nodeId",
+          "mode"
+        ],
+        "additionalProperties": false
+      },
+      "CanvasAssistanceApplication": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "canvasId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artifactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artifactRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "replace",
+              "append"
+            ]
+          },
+          "baseCanvasRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "resultCanvasRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "beforePrompt": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "afterPrompt": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "canvasId",
+          "nodeId",
+          "artifactId",
+          "artifactRevision",
+          "mode",
+          "baseCanvasRevision",
+          "resultCanvasRevision",
+          "beforePrompt",
+          "afterPrompt",
+          "appliedAt"
+        ],
+        "additionalProperties": false
+      },
+      "CanvasAssistanceApplicationResult": {
+        "type": "object",
+        "properties": {
+          "canvas": {
+            "$ref": "#/components/schemas/Canvas"
+          },
+          "application": {
+            "$ref": "#/components/schemas/CanvasAssistanceApplication"
+          }
+        },
+        "required": [
+          "canvas",
+          "application"
         ],
         "additionalProperties": false
       },

@@ -7,6 +7,7 @@ import { page, searchPattern } from "../../kernel/pages.js";
 import { registerAction, type ApiContext } from "../../kernel/routes.js";
 import type { Schema } from "../content/model.js";
 import { assertPromptCurrent, validateReference } from "./prompt-input.js";
+import { assertCanvasAssistanceAccess } from "./canvas-assistance.js";
 
 const identity = (reference: Schema<"Reference">) => {
   const { note: _note, ...value } = reference;
@@ -60,6 +61,7 @@ async function serialize(
   tx: Transaction,
   row: Record<string, any>,
 ): Promise<Schema<"AssistanceArtifact">> {
+  await assertCanvasAssistanceAccess(tx, row.resolved_input);
   let outdated = false;
   try {
     await assertPromptCurrent(tx, row);
@@ -79,7 +81,7 @@ async function serialize(
     projectId: row.project_id,
     generationJobId: row.generation_job_id,
     request: row.input.assistance,
-    shotSources: row.input.shotSources,
+    shotSources: row.input.shotSources ?? [],
     resolvedInput: row.resolved_input,
     body: row.body,
     inputOutdated: outdated,
@@ -122,13 +124,14 @@ export function assistanceArtifactRoutes(
       context.secrets,
       "listAssistanceArtifacts",
       input.query,
-      `${select} WHERE a.tenant_id=$1 AND a.project_id=$2 AND r.number=a.revision AND ($3::text IS NULL OR p.input->'assistance'->>'kind'=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM generation_plan_shots s WHERE s.plan_id=p.id AND s.shot_id=$4)) AND r.body->>'prompt' ILIKE $5`,
+      `${select} WHERE a.tenant_id=$1 AND a.project_id=$2 AND r.number=a.revision AND ($3::text IS NULL OR p.input->'assistance'->>'kind'=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM generation_plan_shots s WHERE s.plan_id=p.id AND s.shot_id=$4)) AND r.body->>'prompt' ILIKE $5 AND ($6::uuid IS NULL OR EXISTS(SELECT 1 FROM generation_canvas_contexts c WHERE c.plan_id=p.id AND c.canvas_id=$6))`,
       [
         tx.tenantId,
         tx.projectId,
         input.query.kind ?? null,
         input.query.shotId ?? null,
         searchPattern(input.query),
+        input.query.canvasId ?? null,
       ],
       (row) => row,
     );

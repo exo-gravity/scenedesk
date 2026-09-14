@@ -1,0 +1,100 @@
+.header {
+  flex: 0 0 auto;
+  min-height: 58px;
+  padding: 6px 16px 6px 10px;
+  gap: var(--mantine-spacing-xs);
+  border-bottom: 1px solid var(--ws-border);
+  background: var(--ws-panel);
+  position: relative;
+  z-index: 4;
+}
+.contextTools {
+  min-width: 0;
+}
+.scenePath {
+  min-width: 60px;
+  max-width: 220px;
+  padding-inline: 2px 18px;
+}
+.body {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.central {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.dock {
+  position: absolute;
+  z-index: 3;
+  inset: 12px 12px 12px auto;
+  width: 360px;
+  max-width: calc(100% - 24px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  padding: 0 16px 16px;
+  overflow: auto;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-floating-radius, var(--ws-card-radius));
+  background: var(--ws-panel);
+  box-shadow: var(--mantine-shadow-sm);
+}
+.dock[hidden] {
+  display: none;
+}
+.body[data-mode="storyboard"] .dock {
+  position: relative;
+  inset: auto;
+  flex: 0 0 360px;
+  border-radius: initial;
+}
+.body[data-focused] .dock {
+  visibility: hidden;
+}
+@media (min-width: 1800px) {
+  .dock {
+    width: 400px;
+  }
+}
+@media (max-width: 1000px) {
+  .scenePath {
+    max-width: 150px;
+    padding-right: 4px;
+  }
+  .header {
+    padding-inline: 8px;
+  }
+}
+@media (max-width: 760px) {
+  .header {
+    flex-wrap: wrap;
+  }
+  .contextTools {
+    flex: 1 1 100%;
+  }
+  .scenePath {
+    flex: 1;
+    max-width: none;
+  }
+  .dock {
+    inset: 8px;
+    width: auto;
+    max-width: none;
+  }
+  .body[data-mode="storyboard"] .dock {
+    position: absolute;
+    inset: 8px;
+    flex: none;
+  }
+}

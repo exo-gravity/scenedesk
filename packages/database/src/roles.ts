@@ -115,6 +115,9 @@ export async function grantRuntimeAccess(
   await client.query(
     `GRANT SELECT,INSERT ON ${scope}.generation_rework_inputs TO ${target}`,
   );
+  await client.query(`GRANT SELECT,INSERT ON ${scope}.generation_canvas_contexts,${scope}.canvas_assistance_applications TO ${target}`);
+  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_snapshot(uuid,uuid,jsonb,boolean),${scope}.canvas_assistance_access(uuid,uuid,jsonb) TO ${target}`);
+  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_references_supported(uuid,uuid,jsonb,jsonb) TO ${target}`);
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.rework_input_hash(jsonb,jsonb,bigint,uuid),${scope}.rework_source_current(uuid) TO ${target}`,
   );
@@ -424,6 +427,8 @@ export async function hardenAuthorizationFunctions(
   await client.query(
     `GRANT SELECT ON ${scope}.generation_rework_inputs,${scope}.shots TO ${target}`,
   );
+  await client.query(`GRANT SELECT ON ${scope}.generation_canvas_contexts,${scope}.canvas_assistance_applications TO ${target}`);
+  await client.query(`GRANT EXECUTE ON FUNCTION ${scope}.canvas_assistance_access(uuid,uuid,jsonb) TO ${target}`);
   await client.query(
     `GRANT EXECUTE ON FUNCTION ${scope}.rework_input_hash(jsonb,jsonb,bigint,uuid),${scope}.rework_source_current(uuid),${scope}.creative_canonical(jsonb) TO ${target}`,
   );

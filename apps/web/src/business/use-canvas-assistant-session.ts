@@ -6,45 +6,35 @@ import { AssistantSession } from "./assistant-session";
 import { assistantStorage } from "./assistant-storage";
 import { registerAssistant } from "./assistant-lifecycle";
 import { subscribeEditingAccess } from "./editing-access";
-import type { ImageDraft, ImageRequest } from "./image-generation";
-import {
-  generationSessionPath,
-  type GenerationSubject,
-} from "./generation-session-key";
-export type ImageSubject = GenerationSubject;
+import type {
+  CanvasAssistantDraft,
+  CanvasAssistanceInput,
+} from "./canvas-assistant";
+import { verifyCanvasAssistantSources } from "./canvas-assistant";
 type Entry = {
-  controller: AssistantSession<ImageDraft, ImageRequest>;
+  controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>;
   owners: number;
   loaded: boolean;
   cleanup?: (() => void) | undefined;
 };
 const entries = new Map<string, Entry>();
-export function useGenerationSession(
+export function useCanvasAssistantSession(
   tenantId: string,
   projectId: string,
-  subject: ImageSubject,
-  kind: "image" | "video" | "audio",
-  inspectionPlanId?: string,
+  canvasId: string,
 ) {
   const session = useSession(),
     path = projectPath(tenantId, projectId),
     tenant = tenantPath(tenantId);
-  const subjectPath = generationSessionPath(subject, inspectionPlanId);
+  const subjectPath = `canvases/${canvasId}/assistant`;
   const [entry] = useState(() => {
-    const key = JSON.stringify([
-      session.id,
-      session.userId,
-      path,
-      subjectPath,
-      kind,
-    ]);
+    const key = JSON.stringify([session.id, session.userId, path, subjectPath]);
     const prior = entries.get(key);
     if (prior) return prior;
-    const storage = assistantStorage<ImageDraft, ImageRequest>(
-      session.userId,
-      `${path}/${subjectPath}/${kind}-generation`,
-      session.id,
-    );
+    const storage = assistantStorage<
+      CanvasAssistantDraft,
+      CanvasAssistanceInput
+    >(session.userId, `${path}/${subjectPath}`, session.id);
     const post = <T>(
       url: string,
       body: unknown,
@@ -72,23 +62,21 @@ export function useGenerationSession(
           });
           if (current.id !== session.id || current.userId !== session.userId)
             throw new ApiError(401, "SESSION_CHANGED", "登录会话已改变。");
-          if (subject.kind === "canvas")
-            await api(`${path}/canvases/${subject.canvasId}`, {
-              signal: AbortSignal.timeout(15000),
-            });
-          else {
-            const content = await api<Schema<"ContentTree">>(
-              `${path}/content`,
-              { signal: AbortSignal.timeout(15000) },
-            );
-            if (!content.shots.some((s) => s.id === subject.shotId))
-              throw new ApiError(
-                404,
-                "SHOT_NOT_AVAILABLE",
-                "当前镜头不可访问。",
-              );
-          }
+          await api(`${path}/canvases/${canvasId}`, {
+            signal: AbortSignal.timeout(15000),
+          });
           const saved = await storage.read();
+          await verifyCanvasAssistantSources(
+            saved?.draft,
+            canvasId,
+            (kind, id, revision) =>
+              api(
+                `${kind === "assistance-artifacts" ? path : tenant}/${kind}/${id}${revision === undefined ? "" : `/revisions/${revision}`}`,
+                {
+                  signal: AbortSignal.timeout(15000),
+                },
+              ),
+          );
           if (saved?.execution?.jobId) {
             const job = await api<Schema<"GenerationJob">>(
               `${tenant}/generation-jobs/${saved.execution.jobId}`,
@@ -103,17 +91,8 @@ export function useGenerationSession(
             );
           }
         },
-        createPlan: async (request, key) =>
-          request.kind === "shot"
-            ? post(`${tenant}/generation-plans`, request.input, key)
-            : (
-                await post<Schema<"CanvasPlanEntry">>(
-                  `${path}/scenes/${request.sceneId}/canvas/generation-plans`,
-                  request.input,
-                  key,
-                  request.canvasRevision,
-                )
-              ).plan,
+        createPlan: (request, key) =>
+          post(`${tenant}/generation-plans`, request, key),
         getPlan: (id) =>
           api(`${tenant}/generation-plans/${id}`, {
             signal: AbortSignal.timeout(15000),
@@ -178,7 +157,12 @@ export function useGenerationSession(
       };
       if (!entry.loaded) {
         entry.loaded = true;
-        void controller.load({ capabilityId: "", output: {} });
+        void controller.load({
+          sources: [],
+          instruction: "",
+          capabilityId: "",
+          targetCapabilityId: "",
+        });
       } else void controller.verify();
     }
     return () => {

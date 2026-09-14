@@ -51,7 +51,7 @@ def schemas():
     ]}
     s["PrepareCanvasGeneration"] = obj({"nodeId": ID, "shotSources": array(ref("ShotSource"), 100), "referenceOverrides": array(ref("ReferenceOverride"), 100), "promptPolicy": enum("append", "replace")}, ["nodeId", "shotSources", "referenceOverrides", "promptPolicy"])
     s["CanvasPlanOrigin"] = obj({"canvasId": ID, "nodeId": ID, "canvasRevision": POS, "inputFingerprint": HASH, "sourceNodeIds": array(ID, 2000)}, ["canvasId", "nodeId", "canvasRevision", "inputFingerprint", "sourceNodeIds"])
-    s["CanvasPlanEntry"] = obj({"plan": ref("GenerationPlan"), "origin": ref("CanvasPlanOrigin"), "jobId": ID}, ["plan", "origin"])
+    s["CanvasPlanEntry"] = obj({"plan": ref("GenerationPlan"), "origin": ref("CanvasPlanOrigin"), "jobId": ID, "jobStatus": {"$ref":"#/components/schemas/GenerationJob/properties/status"}}, ["plan", "origin"])
     s["CanvasPlanEntryPage"] = obj({"items": array(ref("CanvasPlanEntry"), 100), "nextCursor": {"type": "string"}}, ["items"])
     s["MaterializeCanvasResults"] = obj({"jobId": ID, "mediaIds": {**array(ID, 100, 1), "uniqueItems": True}, "position": ref("CanvasPoint")}, ["jobId", "mediaIds", "position"])
     s["CanvasResultPlacement"] = obj({"canvas": ref("Canvas"), "placements": array(obj({"mediaId": ID, "nodeId": ID}, ["mediaId", "nodeId"]), 100, 1)}, ["canvas", "placements"])
@@ -79,6 +79,8 @@ def register_routes(route, paths):
     route("post", scene + "/canvas/generation-plans", "prepareCanvasGeneration", "PR-16", "固定画布草稿与明确镜头输入，只准备不执行", "CanvasPlanEntry", "PrepareCanvasGeneration", cas=True)
     route("get", canvas + "/generation-plans", "listCanvasPlans", "PR-16", "查询画布来源的计划与任务身份", "CanvasPlanEntryPage", listing=True)
     route("post", canvas + "/results", "materializeCanvasResults", "PR-16", "将已归档结果添加或恢复到画布", "CanvasResultPlacement", "MaterializeCanvasResults", cas=True)
+    route("post", canvas + "/assistance-applications", "applyCanvasAssistance", "PR-16", "明确将固定建议应用到指定草稿，保留原应用回执", "CanvasAssistanceApplicationResult", "ApplyCanvasAssistance", code=200, cas=True)
+    route("get", canvas + "/assistance-applications/{applicationId}", "getCanvasAssistanceApplication", "PR-16", "读取原建议应用结果及当前画布，不重复修改", "CanvasAssistanceApplicationResult")
     route("get", scene + "/workspace-preference", "getSceneWorkspacePreference", "PR-17", "读取本人偏好，无记录返回revision0默认值", "SceneWorkspacePreference")
     route("put", scene + "/workspace-preference", "saveSceneWorkspacePreference", "PR-17", "保存本人模式与视口，不改共同画布", "SceneWorkspacePreference", "SaveSceneWorkspacePreference", cas=True)
     names = {"getCanvas", "getCanvasRevision", "saveCanvas", "materializeCanvasResults", "ensureSceneCanvas", "getSceneCanvas", "bindSceneCanvasNode", "unbindSceneCanvasNode", "prepareCanvasGeneration", "listCanvasPlans", "getSceneWorkspacePreference", "saveSceneWorkspacePreference", "listCanvasUploads", "getCanvasUpload", "getCanvasUploadRequest", "dismissCanvasUpload"}

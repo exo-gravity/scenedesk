@@ -2,7 +2,8 @@ import { CanvasShotSources, FixedPlanShotSources } from "./CanvasShotSources";
 import { fixedShotSources } from "./canvas-shot-sources";
 import { GenerationJobControls } from "./GenerationJobControls";
 import { reworkScope } from "./prompt-draft";
-import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Checkbox,
@@ -12,6 +13,7 @@ import {
   Loader,
   Modal,
   NumberInput,
+  Popover,
   Select,
   Stack,
   Text,
@@ -80,6 +82,10 @@ export type MediaGenerationProps = {
   source: MediaInputSource;
   active: boolean;
   historyPlanId?: string | undefined;
+  /** A fixed attempt uses a separate durable session and never edits a node. */
+  inspection?: boolean | undefined;
+  onRetainDraft?:
+    ((retain: (() => Promise<void>) | undefined) => void) | undefined;
 };
 export function MediaGenerationWorkspace(
   props: MediaGenerationProps & { kind: "image" | "video" | "audio" },
@@ -91,7 +97,7 @@ export function MediaGenerationWorkspace(
       : `${props.source.canvas.id}:${props.source.nodeId}`;
   return (
     <GenerationWorkspace
-      key={`${session.id}:${props.kind}:${key}`}
+      key={`${session.id}:${props.kind}:${key}:${props.inspection ? props.historyPlanId : "editor"}`}
       {...props}
     />
   );
@@ -103,6 +109,8 @@ function GenerationWorkspace({
   source,
   active,
   historyPlanId,
+  inspection = false,
+  onRetainDraft,
 }: MediaGenerationProps & { kind: "image" | "video" | "audio" }) {
   const label = { image: "图片", video: "视频", audio: "音频" }[kind],
     single = { image: "单张图片", video: "单段视频", audio: "单段音频" }[kind],
@@ -113,6 +121,7 @@ function GenerationWorkspace({
   const session = useSession(),
     tenant = tenantPath(tenantId),
     path = projectPath(tenantId, projectId);
+  const cache = useQueryClient();
   const subject =
     source.kind === "shot"
       ? {
@@ -131,7 +140,66 @@ function GenerationWorkspace({
     projectId,
     subject,
     kind,
+    inspection ? historyPlanId : undefined,
   );
+  const sourceCanvasId =
+    source.kind === "canvas" ? source.canvas.id : undefined;
+  useEffect(() => {
+    if (sourceCanvasId && state.plan?.id)
+      void cache.invalidateQueries({
+        queryKey: [
+          "user",
+          session.userId,
+          `${path}/canvases/${sourceCanvasId}/generation-plans`,
+        ],
+      });
+  }, [
+    cache,
+    path,
+    session.userId,
+    sourceCanvasId,
+    state.plan?.id,
+    state.job?.id,
+    state.job?.status,
+  ]);
+  useEffect(() => {
+    if (inspection || !onRetainDraft) return;
+    onRetainDraft(async () => {
+      await controller.settle();
+      const current = controller.getSnapshot();
+      if (current.access !== "ready" || !current.draftSaved)
+        throw Error("当前生成输入尚未保留，请先处理保存或权限提示。");
+    });
+    return () => onRetainDraft(undefined);
+  }, [controller, inspection, onRetainDraft]);
+  const openedAttempt = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (
+      !inspection ||
+      !historyPlanId ||
+      state.access !== "ready" ||
+      state.busy ||
+      openedAttempt.current === historyPlanId
+    )
+      return;
+    openedAttempt.current = historyPlanId;
+    void controller.openExisting(historyPlanId, (fixed) => {
+      if (
+        fixed.id !== historyPlanId ||
+        fixed.input.projectId !== projectId ||
+        fixed.input.purpose !== kind
+      )
+        throw Error("这份固定尝试不属于当前工作区。");
+    });
+  }, [
+    inspection,
+    historyPlanId,
+    state.access,
+    state.busy,
+    controller,
+    projectId,
+    kind,
+  ]);
   const capabilities = useList<ImageCapability>(
       `${tenant}/capabilities?purpose=${kind}`,
     ),
@@ -159,6 +227,7 @@ function GenerationWorkspace({
     frozen = !!record?.planId || !!record?.planRequest,
     disabled = !active || state.busy || !draft;
   const placement = draft?.placement;
+  const compact = source.kind === "canvas" && !inspection;
   const awaitingSave = source.kind === "canvas" && source.awaitingSave;
   useEffect(() => {
     if (
@@ -275,7 +344,7 @@ function GenerationWorkspace({
           revision: canvas.revision,
           input: {
             jobId: job.id,
-            mediaIds: [job.mediaIds[0]!],
+            mediaIds: [...job.mediaIds],
             position: {
               x: origin ? origin.position.x + origin.width + 64 : 80,
               y: origin?.position.y ?? 80,
@@ -361,20 +430,123 @@ function GenerationWorkspace({
         output?: Schema<"OutputOptions">;
       })
     | undefined;
+  const specificationFields = (
+    <>
+      {kind !== "audio" && (
+        <Group grow align="start">
+          <Select
+            label={`${label}尺寸`}
+            value={output.resolution ?? null}
+            disabled={disabled || frozen || !capability}
+            data={capability?.allowedResolutions ?? []}
+            onChange={(resolution) => {
+              const {
+                aspectRatio: _aspect,
+                resolution: _resolution,
+                ...rest
+              } = output;
+              change(capabilityId ?? "", {
+                ...rest,
+                ...(resolution ? { resolution } : {}),
+              });
+            }}
+          />
+          <Select
+            label="画幅"
+            placeholder={`按${label}尺寸`}
+            clearable
+            value={output.aspectRatio ?? null}
+            disabled={disabled || frozen || !capability}
+            data={capability?.allowedAspectRatios ?? []}
+            onChange={(aspectRatio) => {
+              const { aspectRatio: _old, ...rest } = output;
+              change(capabilityId ?? "", {
+                ...rest,
+                ...(aspectRatio ? { aspectRatio } : {}),
+              });
+            }}
+          />
+        </Group>
+      )}
+      {kind !== "image" && (
+        <Stack gap="sm">
+          <NumberInput
+            label={`${label}时长（秒）`}
+            allowDecimal={false}
+            min={capability?.minDurationSeconds ?? 1}
+            max={capability?.maxDurationSeconds ?? Number.MAX_SAFE_INTEGER}
+            value={output.durationSeconds ?? ""}
+            disabled={disabled || frozen || !capability}
+            onChange={(value) => {
+              const { durationSeconds: _old, ...rest } = output;
+              change(capabilityId ?? "", {
+                ...rest,
+                ...(typeof value === "number"
+                  ? { durationSeconds: value }
+                  : {}),
+              });
+            }}
+          />
+          {kind === "video" &&
+            (capability?.audioOutput === true ? (
+              <Checkbox
+                label="同时生成声音"
+                checked={output.withAudio === true}
+                disabled={disabled || frozen}
+                onChange={(event) =>
+                  change(capabilityId ?? "", {
+                    ...output,
+                    withAudio: event.currentTarget.checked,
+                  })
+                }
+              />
+            ) : (
+              <Text size="xs" c="dimmed">
+                {capability?.audioOutput === false
+                  ? "当前模型生成无声视频。"
+                  : "声音生成能力尚未确认。"}
+              </Text>
+            ))}
+        </Stack>
+      )}
+      <details className={classes.advanced}>
+        <summary>更多参数</summary>
+        <NumberInput
+          label="随机种子（可选）"
+          min={0}
+          max={2147483647}
+          allowDecimal={false}
+          value={output.seed ?? ""}
+          disabled={disabled || frozen || !capability}
+          onChange={(value) => {
+            const { seed: _old, ...rest } = output;
+            change(capabilityId ?? "", {
+              ...rest,
+              ...(typeof value === "number" ? { seed: value } : {}),
+            });
+          }}
+        />
+      </details>
+    </>
+  );
   return (
     <Stack className={classes.panel} gap="sm" aria-label={`生成${single}`}>
-      <Group justify="space-between" className={classes.generationContext}>
-        <Text size="xs" fw={500}>{`生成${single}`}</Text>
-        <Text size="xs" c="dimmed" role="status">
-          {state.draftSaved ? "本机已保留" : "正在保留"}
+      {!compact && (
+        <Group justify="space-between" className={classes.generationContext}>
+          <Text size="xs" fw={500}>{`生成${single}`}</Text>
+          <Text size="xs" c="dimmed" role="status">
+            {state.draftSaved ? "本机已保留" : "正在保留"}
+          </Text>
+        </Group>
+      )}
+      {!compact && (
+        <Text size="xs" c="dimmed">
+          {source.kind === "shot"
+            ? `来源：${source.creation.label}的本次提示`
+            : `来源：${node?.title ?? `已删除的${label}草稿`}`}
+          {plan ? " · 输入已固定" : ""}
         </Text>
-      </Group>
-      <Text size="xs" c="dimmed">
-        {source.kind === "shot"
-          ? `来源：${source.creation.label}的本次提示`
-          : `来源：${node?.title ?? `已删除的${label}草稿`}`}
-        {plan ? " · 输入已固定" : ""}
-      </Text>
+      )}
       {(error || state.error) && (
         <Alert title="需要处理" role="alert">
           {error ?? state.error}
@@ -384,11 +556,22 @@ function GenerationWorkspace({
         error={capabilities.error}
         retry={() => void capabilities.refetch()}
       />
-      {!capabilities.isLoading && !capabilities.error && !models.length && (
-        <Alert title={`${label}生成暂不可用`}>
-          {`尚未配置可执行的${label}模型。提示目标描述不能直接执行，你的创作输入仍保留。`}
-        </Alert>
-      )}
+      {!inspection &&
+        !capabilities.isLoading &&
+        !capabilities.error &&
+        !models.length &&
+        (compact ? (
+          <details className={classes.unavailableNote}>
+            <summary>{label}生成暂不可用 · 输入已保留</summary>
+            <Text size="xs">
+              尚未配置可执行模型。准备和执行都需要实际可用能力；演示能力不代表真实模型效果。
+            </Text>
+          </details>
+        ) : (
+          <Alert title={`${label}生成暂不可用`}>
+            {`尚未配置可执行的${label}模型。提示目标描述不能直接执行，你的创作输入仍保留。`}
+          </Alert>
+        ))}
       {historyPlanId && (
         <Button
           variant="default"
@@ -406,7 +589,7 @@ function GenerationWorkspace({
           {`打开所选的固定${label}任务`}
         </Button>
       )}
-      {source.kind === "canvas" && draft && !frozen && (
+      {source.kind === "canvas" && draft && !frozen && !inspection && (
         <details className={classes.shotSourceDisclosure}>
           <summary>
             固定镜头来源{" "}
@@ -430,10 +613,14 @@ function GenerationWorkspace({
           个镜头来源，恢复时使用原版本与顺序。
         </Text>
       )}
-      {!plan && (
-        <div className={classes.parameters}>
+      {!plan && !inspection && (
+        <div
+          className={compact ? classes.compactParameters : classes.parameters}
+        >
           <Select
-            label={`${label}生成模型`}
+            label={compact ? undefined : `${label}生成模型`}
+            aria-label={`${label}生成模型`}
+            placeholder="选择模型"
             value={capabilityId || null}
             disabled={
               disabled || frozen || (source.kind === "canvas" && !content)
@@ -456,110 +643,49 @@ function GenerationWorkspace({
               });
             }}
           />
-          {kind !== "audio" && (
-            <Group grow align="start">
-              <Select
-                label={`${label}尺寸`}
-                value={output.resolution ?? null}
-                disabled={disabled || frozen || !capability}
-                data={capability?.allowedResolutions ?? []}
-                onChange={(resolution) => {
-                  const {
-                    aspectRatio: _aspect,
-                    resolution: _resolution,
-                    ...rest
-                  } = output;
-                  change(capabilityId ?? "", {
-                    ...rest,
-                    ...(resolution ? { resolution } : {}),
-                  });
-                }}
-              />
-              <Select
-                label="画幅"
-                placeholder={`按${label}尺寸`}
-                clearable
-                value={output.aspectRatio ?? null}
-                disabled={disabled || frozen || !capability}
-                data={capability?.allowedAspectRatios ?? []}
-                onChange={(aspectRatio) => {
-                  const { aspectRatio: _old, ...rest } = output;
-                  change(capabilityId ?? "", {
-                    ...rest,
-                    ...(aspectRatio ? { aspectRatio } : {}),
-                  });
-                }}
-              />
-            </Group>
+          {compact ? (
+            <Popover position="bottom-end" width={320} trapFocus returnFocus>
+              <Popover.Target>
+                <Button
+                  variant="default"
+                  size="xs"
+                  className={classes.specificationButton}
+                >
+                  {[
+                    kind !== "audio"
+                      ? (output.aspectRatio ?? output.resolution ?? "尺寸")
+                      : "声音",
+                    kind !== "image"
+                      ? `${output.durationSeconds ?? "—"} 秒`
+                      : undefined,
+                    output.seed !== undefined
+                      ? `种子 ${output.seed}`
+                      : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}{" "}
+                  · 规格
+                </Button>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <div className={classes.specificationFields}>
+                  {specificationFields}
+                </div>
+              </Popover.Dropdown>
+            </Popover>
+          ) : (
+            <>{specificationFields}</>
           )}
-          {kind !== "image" && (
-            <Stack gap="sm">
-              <NumberInput
-                label={`${label}时长（秒）`}
-                allowDecimal={false}
-                min={capability?.minDurationSeconds ?? 1}
-                max={capability?.maxDurationSeconds ?? Number.MAX_SAFE_INTEGER}
-                value={output.durationSeconds ?? ""}
-                disabled={disabled || frozen || !capability}
-                onChange={(value) => {
-                  const { durationSeconds: _old, ...rest } = output;
-                  change(capabilityId ?? "", {
-                    ...rest,
-                    ...(typeof value === "number"
-                      ? { durationSeconds: value }
-                      : {}),
-                  });
-                }}
-              />
-              {kind === "video" &&
-                (capability?.audioOutput === true ? (
-                  <Checkbox
-                    label="同时生成声音"
-                    checked={output.withAudio === true}
-                    disabled={disabled || frozen}
-                    onChange={(event) =>
-                      change(capabilityId ?? "", {
-                        ...output,
-                        withAudio: event.currentTarget.checked,
-                      })
-                    }
-                  />
-                ) : (
-                  <Text size="xs" c="dimmed">
-                    {capability?.audioOutput === false
-                      ? "当前模型生成无声视频。"
-                      : "声音生成能力尚未确认。"}
-                  </Text>
-                ))}
-            </Stack>
-          )}
-          <details className={classes.advanced}>
-            <summary>更多参数</summary>
-            <NumberInput
-              label="随机种子（可选）"
-              min={0}
-              max={2147483647}
-              allowDecimal={false}
-              value={output.seed ?? ""}
-              disabled={disabled || frozen || !capability}
-              onChange={(value) => {
-                const { seed: _old, ...rest } = output;
-                change(capabilityId ?? "", {
-                  ...rest,
-                  ...(typeof value === "number" ? { seed: value } : {}),
-                });
-              }}
-            />
-          </details>
         </div>
       )}
-      {!plan && awaitingSave && (
+      {!plan && !inspection && awaitingSave && (
         <Text role="status" size="sm">
           先完成画布保存或核对，完成后可准备生成。
         </Text>
       )}
-      {!plan && (
+      {!plan && !inspection && (
         <Button
+          className={compact ? classes.generationAction : undefined}
           leftSection={<Symbol size={16} />}
           disabled={
             disabled ||
@@ -572,7 +698,9 @@ function GenerationWorkspace({
         >
           {record?.planRequest
             ? `恢复原${label}计划请求`
-            : `查看${label}生成计划`}
+            : compact
+              ? "准备生成"
+              : `查看${label}生成计划`}
         </Button>
       )}
       {plan && (
@@ -636,9 +764,12 @@ function GenerationWorkspace({
             随机种子：
             {(resolved?.output ?? plan.input.output).seed ?? "默认（未指定）"}
           </Text>
-          <Text size="sm" className={classes.prose}>
-            {resolved?.prompt}
-          </Text>
+          <details className={classes.fixedDetails}>
+            <summary>查看固定提示全文</summary>
+            <Text size="sm" className={classes.prose}>
+              {resolved?.prompt}
+            </Text>
+          </details>
           <Text size="xs" c="dimmed">
             固定参考 {resolved?.references.length ?? 0} 个
             {plan.input.assistanceSource
@@ -646,9 +777,15 @@ function GenerationWorkspace({
               : ""}
             。有效至 {new Date(plan.expiresAt).toLocaleString()}。
           </Text>
-          {resolved && <FixedPlanShotSources resolved={resolved} />}
-          {kind === "audio" && resolved && (
-            <AudioPlanSources resolved={resolved} />
+          {resolved && (
+            <details className={classes.fixedDetails}>
+              <summary>
+                核对固定来源 · {resolved.shots.length} 个镜头 /{" "}
+                {resolved.references.length} 个参考
+              </summary>
+              <FixedPlanShotSources resolved={resolved} />
+              {kind === "audio" && <AudioPlanSources resolved={resolved} />}
+            </details>
           )}
           {plan.blockingReasons.map((reason) => (
             <Text size="sm" c="red" key={reason}>
@@ -662,12 +799,13 @@ function GenerationWorkspace({
                 plan.status !== "ready" ||
                 Date.parse(plan.expiresAt) <= Date.now()
               }
+              className={compact ? classes.generationAction : undefined}
               onClick={() => void controller.execute()}
             >
               {`确认执行${label}生成`}
             </Button>
           )}
-          {(!record?.execution || jobFinished(job)) && (
+          {!inspection && (!record?.execution || jobFinished(job)) && (
             <Button
               variant="subtle"
               disabled={disabled || placement?.phase === "unknown"}
@@ -891,6 +1029,14 @@ function GenerationWorkspace({
       >
         <Stack>
           <Text>{`将已归档的${label}作为独立节点添加到画布。`}</Text>
+          <Text size="sm">
+            本次固定 {placement?.input.mediaIds.length ?? 0}{" "}
+            份结果；曾移除的结果复用原呈现身份。原草稿已删除时使用已核对的替代落点。
+          </Text>
+          <Text size="sm">
+            位置：{placement?.input.position?.x ?? 0}，
+            {placement?.input.position?.y ?? 0}
+          </Text>
           <Button
             disabled={disabled || job?.status !== "succeeded"}
             onClick={materialize}

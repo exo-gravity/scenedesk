@@ -147,6 +147,8 @@
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/generation-plans` | `prepareCanvasGeneration` | `project_member` |
 | PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-plans` | `listCanvasPlans` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/results` | `materializeCanvasResults` | `project_member` |
+| PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/assistance-applications` | `applyCanvasAssistance` | `project_member` |
+| PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/assistance-applications/{applicationId}` | `getCanvasAssistanceApplication` | `project_member` |
 | PR-17 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/workspace-preference` | `getSceneWorkspacePreference` | `project_member` |
 | PR-17 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/workspace-preference` | `saveSceneWorkspacePreference` | `project_member` |
 | PR-10 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/cuts/{cutId}/work-draft` | `getCutWorkDraft` | `project_member` |

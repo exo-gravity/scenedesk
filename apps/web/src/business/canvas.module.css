@@ -117,6 +117,10 @@
   border-color: var(--ws-accent);
   outline: 1px solid var(--ws-accent);
 }
+.node[data-editing] {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 4px;
+}
 .nodeHeader {
   display: flex;
   justify-content: space-between;
@@ -157,22 +161,6 @@
   align-content: center;
   gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-lg);
-}
-.localPanel {
-  flex: 0 0 auto;
-  max-height: min(290px, 34dvh);
-  min-height: 0;
-  overflow: auto;
-  margin: 0 20px 12px;
-  border: 1px solid var(--ws-border);
-  border-radius: var(--ws-floating-radius, var(--ws-card-radius));
-  background: var(--ws-panel);
-}
-.localPanel > * {
-  max-width: none;
-  margin: 0;
-  border: 0;
-  border-radius: initial;
 }
 .composer {
   padding: 10px 16px;
@@ -338,10 +326,6 @@
   .fields {
     grid-template-columns: minmax(0, 1fr);
   }
-  .localPanel {
-    max-height: 50dvh;
-    margin: 8px;
-  }
   .contextHeader {
     padding-inline: 8px;
   }
@@ -424,6 +408,197 @@
 }
 .flow {
   position: relative;
+}
+.canvasSurface {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.canvasSurface[inert] {
+  pointer-events: none;
+}
+.boardError {
+  position: absolute;
+  top: 12px;
+  left: 72px;
+  z-index: 16;
+  max-width: min(480px, calc(100% - 96px));
+}
+.boardError:empty {
+  display: none;
+}
+.canvasNavigation {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 5px;
+  border-radius: var(--ws-floating-radius);
+  background: var(--ws-panel);
+  box-shadow: var(--mantine-shadow-xs);
+}
+.contextualEditor {
+  position: absolute;
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-floating-radius);
+  background: var(--ws-panel);
+  box-shadow: var(--mantine-shadow-md);
+  color: var(--ws-text);
+}
+.contextualEditor[data-compact] {
+  left: 72px;
+  bottom: 68px;
+  max-width: calc(100% - 96px);
+  width: 400px;
+}
+.contextualEditor[data-focused] {
+  inset: 12px;
+  z-index: 30;
+  width: auto;
+  height: auto;
+}
+.editorHeader {
+  padding: 8px 10px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--ws-border);
+}
+.editorIdentity {
+  flex: 1;
+  min-width: 0;
+}
+.editorColumns {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.editorColumns[hidden] {
+  display: none;
+}
+.editorInput {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.editorInput > * {
+  margin: 0;
+  max-width: none;
+  border: 0;
+  border-radius: initial;
+}
+.contextualEditor .composer {
+  padding: 10px 14px;
+}
+.contextualEditor .referenceStrip {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.contextualEditor .referenceChip {
+  flex: 0 0 auto;
+}
+.referenceCard {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 4px;
+  max-width: 200px;
+}
+.referenceThumbnail {
+  width: 44px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: var(--ws-media-radius);
+  flex: 0 0 auto;
+}
+.referenceThumbnail > div {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+}
+.referenceThumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.referenceCard .referenceChip {
+  flex: 1;
+  min-width: 0;
+  max-width: 150px;
+  gap: 4px;
+  padding: 4px 6px;
+}
+.referenceCard .referenceChip > span {
+  max-width: 76px;
+}
+.referenceCard .referenceChip > small {
+  white-space: nowrap;
+}
+.editorOptions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+.editorOptions > details[open] {
+  grid-column: 1 / -1;
+}
+.editorOptions > details > summary {
+  min-height: 24px;
+  padding-block: 2px;
+}
+.editorOptions > details > summary span {
+  font-size: var(--mantine-font-size-xs);
+  margin-left: 4px;
+}
+.focusReferences {
+  flex: 1;
+  min-width: 0;
+  padding: 28px;
+  overflow: auto;
+  background: var(--ws-canvas);
+}
+.contextualEditor[data-focused] .editorInput {
+  flex: 0 0 min(46%, 560px);
+  padding: 16px;
+}
+.focusReferences section {
+  max-width: 540px;
+  margin-inline: auto;
+}
+@media (max-width: 760px) {
+  .canvasSurface {
+    overflow: auto;
+  }
+  .contextualEditor[data-focused] {
+    inset: 8px;
+  }
+  .contextualEditor[data-focused] .editorInput {
+    flex: 1;
+    padding: 8px;
+  }
+  .focusReferences {
+    display: none;
+  }
+  .contextualEditor[data-compact] {
+    left: 8px;
+    max-width: calc(100% - 16px);
+  }
+  .editorHeader {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 .viewportTools {
   position: absolute;
@@ -529,13 +704,6 @@
   white-space: nowrap;
   padding-inline: 6px;
 }
-.localPanel {
-  width: min(900px, calc(100% - 40px));
-  align-self: center;
-  max-height: min(370px, 42dvh);
-  margin: 0 20px 14px;
-  box-shadow: var(--mantine-shadow-xs);
-}
 .composer {
   padding: 14px 18px 8px;
 }
@@ -608,11 +776,6 @@
   background: var(--ws-raised);
 }
 @media (max-width: 760px) {
-  .localPanel {
-    width: calc(100% - 16px);
-    max-height: 55dvh;
-    margin: 8px;
-  }
   .composer {
     padding: 12px;
   }

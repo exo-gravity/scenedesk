@@ -118,3 +118,161 @@
     padding: 10px 12px;
   }
 }
+
+/* Canvas editors have their own narrow container, independent of window width. */
+.canvasGeneration {
+  container-type: inline-size;
+  padding: 8px 0 0;
+}
+.parameters {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.parameters > :global(.mantine-Stack-root) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.fixedDetails {
+  font-size: var(--mantine-font-size-xs);
+}
+.fixedDetails > summary {
+  cursor: pointer;
+  color: var(--ws-secondary);
+  padding-block: 5px;
+}
+.attemptRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--ws-border);
+}
+.attemptRow:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
+}
+.attemptThumbnail {
+  display: grid;
+  place-items: center;
+  flex: 0 0 64px;
+  height: 64px;
+  overflow: hidden;
+  background: var(--ws-canvas);
+  border-radius: var(--ws-media-radius);
+}
+.attemptThumbnail > div {
+  width: 100%;
+  height: 100%;
+}
+.attemptDescription {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.comparisonSelection {
+  position: sticky;
+  bottom: 0;
+  background: var(--ws-panel);
+  border-top: 1px solid var(--ws-border);
+  padding-block: 10px;
+  z-index: 2;
+}
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.comparedOutput {
+  min-width: 0;
+}
+.comparisonPreview {
+  height: min(60dvh, 560px);
+  --ws-preview-height: 100%;
+}
+.comparisonPreview > div {
+  height: 100%;
+}
+.canvasAssistant {
+  min-width: 0;
+}
+.assistantSource {
+  padding-block: 8px;
+  border-bottom: 1px solid var(--ws-border);
+}
+.assistantSource details > summary {
+  color: var(--ws-secondary);
+  cursor: pointer;
+  font-size: var(--mantine-font-size-xs);
+  padding-block: 6px;
+}
+.assistantModels {
+  display: grid;
+  gap: 10px;
+}
+.applicationReview {
+  padding-block: 12px;
+  border-block: 1px solid var(--ws-border);
+}
+.promptDiff {
+  display: grid;
+  gap: 12px;
+}
+.promptDiff > div {
+  padding-inline-start: 12px;
+  border-left: 2px solid var(--ws-border);
+}
+@media (max-width: 760px) {
+  .comparisonGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .comparisonPreview {
+    height: 45dvh;
+  }
+}
+.compactParameters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+.compactParameters > :global(.mantine-InputWrapper-root) {
+  flex: 1;
+  min-width: 0;
+}
+.compactParameters :global(.mantine-Input-input) {
+  height: 32px;
+  min-height: 32px;
+  font-size: var(--mantine-font-size-xs);
+}
+.specificationButton {
+  flex: 0 1 auto;
+  max-width: 52%;
+  white-space: normal;
+  height: auto;
+  min-height: 32px;
+}
+.specificationFields {
+  display: grid;
+  gap: 12px;
+}
+.specificationFields :global(.mantine-Group-root) {
+  align-items: flex-start;
+}
+.unavailableNote {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-secondary);
+}
+.unavailableNote > summary {
+  cursor: pointer;
+  padding-block: 4px;
+}
+.generationAction {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  flex-shrink: 0;
+  align-self: stretch !important;
+  min-height: 34px;
+}

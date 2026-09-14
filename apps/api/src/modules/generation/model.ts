@@ -5,6 +5,7 @@ import {
 } from "./media-input.js";
 import { resolvePrompt, assertPromptCurrent } from "./prompt-input.js";
 import { safeText, resolveContext } from "./input-sources.js";
+import { assertCanvasAssistanceAccess, resolveCanvasSources } from "./canvas-assistance.js";
 import { randomUUID } from "node:crypto";
 import type { Transaction } from "../../kernel/database.js";
 import { bindResourceProject } from "../../kernel/database.js";
@@ -72,6 +73,7 @@ function jobRecord(
   };
 }
 export async function serializeJob(tx: Transaction, row: Record<string, any>) {
+  await assertCanvasAssistanceAccess(tx, row.resolved_input);
   let outdated = false;
   try {
     await assertAnalysisCurrent(tx, row);
@@ -119,6 +121,15 @@ export function generationScope(
       "请明确选择生成任务所属项目。",
     );
     await bindResourceProject(tx, id.toLowerCase(), write);
+    if (source.resolved_input) await assertCanvasAssistanceAccess(tx, source.resolved_input);
+    if (kind === "input" && source.canvasSources) {
+      // This runs before an encrypted HTTP replay can return the original plan.
+      await resolveCanvasSources(tx, source.canvasSources, true);
+      const target = (await tx.sql.query("SELECT revision,enabled FROM generation_capabilities WHERE tenant_id=$1 AND id=$2",
+        [tx.tenantId,source.assistance.targetCapabilityId])).rows[0];
+      requireThat(target?.enabled,503,"TARGET_CAPABILITY_UNAVAILABLE","目标能力已不可用，请保留原输入核对。");
+      versionMatches(Number(target.revision),source.assistance.targetCapabilityRevision);
+    }
   };
 }
 export async function resolveAnalysis(
@@ -260,6 +271,7 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
   input.projectId = tx.projectId!;
   input.connectionId = input.connectionId.toLowerCase();
   input.capabilityId = input.capabilityId.toLowerCase();
+  if (input.canvasSources) input.canvasSources = input.canvasSources.map((s) => ({...s, canvasId:s.canvasId.toLowerCase(), nodeId:s.nodeId.toLowerCase()}));
   if (input.sourceScriptRevisionId)
     input.sourceScriptRevisionId = input.sourceScriptRevisionId.toLowerCase();
   if (input.proposalTarget?.mode === "append_to_scene") {
@@ -282,6 +294,16 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
       ? await resolvePrompt(tx, input)
       : await resolveAnalysis(tx, input);
   const reasons: string[] = [];
+  if (input.canvasSources) {
+    requireThat(resolved.references.every((r) => cap.definition.supportedPurposes?.includes(r.reference.purpose)) &&
+      resolved.references.length <= (cap.definition.maxReferences ?? 100), 422,
+      "ASSISTANCE_REFERENCE_UNSUPPORTED", "所选助手能力不支持本次明确媒体的用途或数量。");
+    for (const definition of [cap.definition,resolved.targetCapabilitySnapshot]) {
+      requireThat((await tx.sql.query("SELECT canvas_assistance_references_supported($1,$2,$3,$4) AS supported",
+        [tx.tenantId,tx.projectId,JSON.stringify(resolved.references),definition])).rows[0].supported,
+        422,"ASSISTANCE_REFERENCE_UNSUPPORTED","实际媒体类型、大小、时长或数量不符合助手或目标能力规则。");
+    }
+  }
   if (!cap.enabled) reasons.push("MODEL_DISABLED");
   // No unverified real provider or implicit paid path can become ready.
   if (cap.execution_mode !== "test_fixture")
@@ -299,7 +321,7 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
   // creative-rework/1 uses the database JSONB canonical representation, shared with
   // its integrity guard. Earlier resolver hashes are deliberately unchanged.
   const rework = input.assistance?.kind === "prepare_rework";
-  const inputHash = rework
+  const inputHash = rework || !!input.canvasSources
     ? (
         await tx.sql.query(
           "SELECT rework_input_hash($1::jsonb,$2::jsonb,$3::bigint,$4::uuid) AS hash",
@@ -368,5 +390,8 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
       ],
     );
   }
+  for (const [position, saved] of (resolved.canvasSnapshots ?? []).entries())
+    await tx.sql.query("INSERT INTO generation_canvas_contexts(tenant_id,project_id,plan_id,position,canvas_id,node_id,canvas_revision,snapshot) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
+      [tx.tenantId,tx.projectId,row.id,position,saved.source.canvasId,saved.source.nodeId,saved.source.canvasRevision,saved]);
   return planRecord(row);
 }

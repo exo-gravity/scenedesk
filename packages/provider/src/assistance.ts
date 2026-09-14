@@ -126,7 +126,9 @@ export function localAssistanceFixtureOutput(submission: AssistanceSubmission) {
     retain: [
       rework
         ? "保留原候选对应的固定镜头版本及明确参考；具体保留项由制作人员核对"
-        : "保留明确选定的镜头与参考版本",
+        : submission.resolvedInput.canvasSnapshots?.length
+          ? "保留明确选定的画布节点正文、媒体与参考版本"
+          : "保留明确选定的镜头与参考版本",
     ],
     change: [
       rework
