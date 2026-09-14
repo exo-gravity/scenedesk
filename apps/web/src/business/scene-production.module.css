@@ -1,3 +1,8 @@
+.navigationNotice {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: initial;
+}
 .header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);

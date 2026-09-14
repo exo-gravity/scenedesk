@@ -172,6 +172,7 @@ export class TakeFeedbackSession {
   private queue = Promise.resolve();
   private epoch = 0;
   private retired = false;
+  private accessCheck: { promise: Promise<void>; resolve(): void } | undefined;
   constructor(
     private storage: FeedbackStorage,
     private transport: FeedbackTransport,
@@ -184,6 +185,8 @@ export class TakeFeedbackSession {
     return () => this.listeners.delete(listener);
   };
   getSnapshot = () => this.state;
+  hasUnretainedDraft = () =>
+    !this.state.saved && !!(this.state.draft ?? this.hidden);
   private publish(patch: Partial<State>) {
     this.state = { ...this.state, ...patch };
     this.listeners.forEach((l) => l());
@@ -193,7 +196,10 @@ export class TakeFeedbackSession {
       throw new Error("原意见窗口已停止操作。");
   }
   settle = () => this.queue;
+  settleAccess = () => this.accessCheck?.promise;
   suspend() {
+    const accessCheck = this.accessCheck;
+    this.accessCheck = undefined;
     this.hidden = this.state.draft ?? this.hidden;
     this.epoch++;
     this.publish({
@@ -202,6 +208,7 @@ export class TakeFeedbackSession {
       access: "checking",
       busy: false,
     });
+    accessCheck?.resolve();
   }
   async retire() {
     this.suspend();
@@ -223,6 +230,14 @@ export class TakeFeedbackSession {
   async verify() {
     if (this.retired || this.state.busy) return;
     const epoch = this.epoch;
+    let resolve!: () => void;
+    const accessCheck = {
+      promise: new Promise<void>((done) => {
+        resolve = done;
+      }),
+      resolve: () => resolve(),
+    };
+    this.accessCheck = accessCheck;
     this.publish({ access: "checking", busy: true });
     try {
       const data = await this.transport.read();
@@ -294,6 +309,8 @@ export class TakeFeedbackSession {
         });
     } finally {
       if (epoch === this.epoch && !this.retired) this.publish({ busy: false });
+      if (this.accessCheck === accessCheck) this.accessCheck = undefined;
+      accessCheck.resolve();
     }
   }
   edit(patch: Partial<Pick<FeedbackDraft, "body" | "started">>) {

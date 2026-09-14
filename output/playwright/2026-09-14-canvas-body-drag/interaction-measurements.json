@@ -1,0 +1,96 @@
+{
+  "image": {
+    "before": "translate(0px, 0px)",
+    "after": "translate(104.407px, 21.356px)",
+    "persisted": "z-index: 1000; transform: translate(104.407px, 21.356px); pointer-events: all; visibility: visible; width: 210px;",
+    "restored": "translate(-1.42109e-14px, 0px)"
+  },
+  "multiSelect": {
+    "before": [
+      {
+        "id": "8a8b7310-559d-4ea5-b20c-b1fe8e3eaf09",
+        "transform": "translate(-1.42109e-14px, 0px)"
+      },
+      {
+        "id": "299f3313-ea6e-4279-ad3f-d24333ba1088",
+        "transform": "translate(235px, 0px)"
+      }
+    ],
+    "after": [
+      {
+        "id": "8a8b7310-559d-4ea5-b20c-b1fe8e3eaf09",
+        "transform": "translate(104.407px, 21.356px)"
+      },
+      {
+        "id": "299f3313-ea6e-4279-ad3f-d24333ba1088",
+        "transform": "translate(339.407px, 21.356px)"
+      }
+    ],
+    "undo": true
+  },
+  "text": {
+    "before": "translate(870px, 730px)",
+    "after": "translate(995.763px, 813.051px)",
+    "undo": true,
+    "inputSelection": [
+      2,
+      50
+    ],
+    "positionUnchangedDuringInput": true,
+    "modeRoundTripRetained": true,
+    "originalRestored": true
+  },
+  "draft": {
+    "before": "translate(782px, 709px)",
+    "after": "translate(698.949px, 647.305px)",
+    "undo": true
+  },
+  "video": {
+    "before": "translate(870px, 0px)",
+    "after": "translate(995.763px, 42.712px)",
+    "undo": true,
+    "playerDrag": {
+      "node": "translate(870px, 0px)",
+      "time": 0.50636
+    }
+  },
+  "handPan": {
+    "before": {
+      "node": "translate(-1.42109e-14px, 0px)",
+      "viewport": "translate(198.04px, 85.9734px) scale(0.421427)"
+    },
+    "after": {
+      "node": "translate(-1.42109e-14px, 0px)",
+      "viewport": "translate(258.04px, 125.973px) scale(0.421427)"
+    }
+  },
+  "storyboard": {
+    "promptRefresh": "UI 验收：右手拿起旧钥匙，保持桌面构图。",
+    "cleaned": true,
+    "adoptionCancelled": true,
+    "beforeOverview": [
+      {
+        "paused": false,
+        "time": 0.369808
+      }
+    ],
+    "overviewPauses": true,
+    "escapeRestoresFocus": true
+  },
+  "layout": {
+    "desktop": [
+      1280,
+      720
+    ],
+    "sidebar": [
+      920,
+      64,
+      360,
+      656
+    ],
+    "modeCenterX": 640,
+    "narrowWidth": 390,
+    "narrowScrollWidth": 390
+  },
+  "browserErrors": []
+}

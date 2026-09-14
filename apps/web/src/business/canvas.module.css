@@ -121,6 +121,13 @@
   border: 1px solid var(--ws-border);
   border-radius: var(--ws-card-radius);
   overflow: visible;
+  user-select: none;
+}
+.flow :global(.react-flow__node.draggable) .node {
+  cursor: grab;
+}
+.flow :global(.react-flow__node.dragging) .node {
+  cursor: grabbing;
 }
 .node[data-selected] {
   border-color: var(--ws-accent);
@@ -138,7 +145,6 @@
   gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
   border-bottom: 1px solid var(--ws-border);
-  cursor: grab;
 }
 .nodeHeader > span {
   min-width: 0;
@@ -148,7 +154,6 @@
   padding: var(--mantine-spacing-md);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  user-select: text;
   max-height: 200px;
   overflow: auto;
 }
