@@ -27,6 +27,7 @@ export type CanvasMediaGenerationProps = {
   /** Explicit editing target. Canvas selection must not change it implicitly. */
   selectedNodeId?: string | undefined;
   mode?: "editor" | "history";
+  presentation?: "node" | "detail" | undefined;
   inspectedPlanId?: string | undefined;
   onInspectPlan?: ((planId: string) => void) | undefined;
   onCloseInspection?: (() => void) | undefined;
@@ -43,6 +44,7 @@ export function CanvasMediaGeneration({
   controller,
   selectedNodeId,
   mode = "editor",
+  presentation,
   inspectedPlanId,
   onInspectPlan,
   onCloseInspection,
@@ -221,6 +223,8 @@ export function CanvasMediaGeneration({
           active={!readOnly}
           historyPlanId={history?.plan.id}
           inspection={mode === "history"}
+          presentation={presentation ?? (mode === "editor" ? "node" : "detail")}
+          onInspectPlan={onInspectPlan}
           onRetainDraft={onRetainDraft}
           source={{
             kind: "canvas",

@@ -10883,7 +10883,8 @@
               "type": "string",
               "enum": [
                 "prepare_prompt",
-                "prepare_rework"
+                "prepare_rework",
+                "discuss"
               ]
             }
           }
@@ -17164,7 +17165,6 @@
             "items": {
               "$ref": "#/components/schemas/CanvasAssistanceSource"
             },
-            "minItems": 1,
             "maxItems": 20
           }
         },
@@ -17326,7 +17326,26 @@
                 {
                   "required": [
                     "canvasSources"
-                  ]
+                  ],
+                  "properties": {
+                    "canvasSources": {
+                      "minItems": 1
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "assistance": {
+                      "properties": {
+                        "kind": {
+                          "const": "discuss"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
                 }
               ]
             }
@@ -17413,7 +17432,10 @@
                     "assistance": {
                       "properties": {
                         "kind": {
-                          "const": "prepare_prompt"
+                          "enum": [
+                            "prepare_prompt",
+                            "discuss"
+                          ]
                         }
                       }
                     }
@@ -17436,9 +17458,54 @@
                 "assistance": {
                   "properties": {
                     "kind": {
-                      "const": "prepare_prompt"
+                      "enum": [
+                        "prepare_prompt",
+                        "discuss"
+                      ]
                     }
                   }
+                },
+                "contextSources": {
+                  "maxItems": 0
+                },
+                "additionalReferences": {
+                  "maxItems": 0
+                },
+                "referenceOverrides": {
+                  "maxItems": 0
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "assistance": {
+                  "properties": {
+                    "kind": {
+                      "const": "discuss"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "assistance"
+              ]
+            },
+            "then": {
+              "required": [
+                "prompt",
+                "canvasSources"
+              ],
+              "properties": {
+                "prompt": {
+                  "minLength": 1
+                },
+                "shotSources": {
+                  "maxItems": 0
                 },
                 "contextSources": {
                   "maxItems": 0
@@ -20514,12 +20581,37 @@
             "items": {
               "$ref": "#/components/schemas/CanvasAssistanceSnapshot"
             },
-            "minItems": 1,
             "maxItems": 20
           },
           "assistanceInstruction": {
             "type": "string",
             "maxLength": 20000
+          },
+          "assistanceHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssistanceTurn"
+            },
+            "minItems": 1,
+            "maxItems": 20
+          },
+          "canvasScope": {
+            "type": "object",
+            "properties": {
+              "canvasId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "sceneId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "canvasId",
+              "sceneId"
+            ],
+            "additionalProperties": false
           },
           "targetCapabilitySnapshot": {
             "$ref": "#/components/schemas/Capability"
@@ -22058,8 +22150,13 @@
             "type": "string",
             "enum": [
               "prepare_prompt",
-              "prepare_rework"
+              "prepare_rework",
+              "discuss"
             ]
+          },
+          "canvasId": {
+            "type": "string",
+            "format": "uuid"
           },
           "targetCapabilityId": {
             "type": "string",
@@ -22083,12 +22180,82 @@
           }
         },
         "required": [
-          "kind",
-          "targetCapabilityId",
-          "targetCapabilityRevision"
+          "kind"
         ],
         "additionalProperties": false,
         "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "discuss"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "canvasId"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "targetCapabilityId"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "targetCapabilityRevision"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "feedback"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "sourceTakeId"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "sourceCutRevisionId"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "prepare_prompt",
+                    "prepare_rework"
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "targetCapabilityId",
+                "targetCapabilityRevision"
+              ],
+              "not": {
+                "required": [
+                  "canvasId"
+                ]
+              }
+            }
+          },
           {
             "if": {
               "properties": {
@@ -22130,6 +22297,11 @@
       "AssistanceBody": {
         "type": "object",
         "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          },
           "prompt": {
             "type": "string",
             "maxLength": 20000
@@ -22245,6 +22417,56 @@
           {
             "if": {
               "properties": {
+                "request": {
+                  "properties": {
+                    "kind": {
+                      "const": "discuss"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "request"
+              ]
+            },
+            "then": {
+              "properties": {
+                "body": {
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "prompt": {
+                      "const": ""
+                    },
+                    "notes": {
+                      "const": ""
+                    },
+                    "retain": {
+                      "maxItems": 0
+                    },
+                    "change": {
+                      "maxItems": 0
+                    },
+                    "referenceSuggestions": {
+                      "maxItems": 0
+                    }
+                  }
+                },
+                "resolvedInput": {
+                  "required": [
+                    "canvasScope"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
                 "shotSources": {
                   "maxItems": 0
                 }
@@ -22293,6 +22515,29 @@
         "required": [
           "artifactId",
           "revision"
+        ],
+        "additionalProperties": false
+      },
+      "AssistanceTurn": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/ArtifactSource"
+          },
+          "instruction": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          }
+        },
+        "required": [
+          "source",
+          "instruction",
+          "message"
         ],
         "additionalProperties": false
       },

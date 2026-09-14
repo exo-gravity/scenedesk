@@ -114,6 +114,7 @@
   --xy-attribution-background-color: var(--ws-panel);
 }
 .node {
+  position: relative;
   width: 100%;
   background: var(--ws-raised);
   color: var(--ws-text);
@@ -126,8 +127,9 @@
   outline: 1px solid var(--ws-accent);
 }
 .node[data-editing] {
-  outline: 2px solid var(--ws-focus);
-  outline-offset: 4px;
+  border-color: var(--ws-focus);
+  outline: 1px solid var(--ws-focus);
+  outline-offset: 0;
 }
 .nodeHeader {
   display: flex;
@@ -279,12 +281,11 @@
 .uploadList {
   display: grid;
   gap: var(--mantine-spacing-md);
-  max-height: 400px;
-  overflow: auto;
-  padding: var(--mantine-spacing-md);
-  border: 1px solid var(--ws-border);
-  border-radius: var(--ws-card-radius);
-  background: var(--ws-panel);
+  min-width: 0;
+}
+.uploadList > article {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .fields {
   display: grid;
@@ -434,6 +435,68 @@
 .canvasSurface[inert] {
   pointer-events: none;
 }
+.creationSlot {
+  width: 100%;
+  pointer-events: none;
+}
+.creationPreview {
+  padding: 0 10px;
+}
+.creationPreview .nodeMedia > div:first-child {
+  max-height: 280px;
+}
+.creationPlaceholder {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: var(--ws-media-radius);
+  background: var(--ws-canvas);
+  color: var(--ws-secondary);
+}
+.creationFocusBackdrop {
+  position: absolute;
+  z-index: 28;
+  background: var(--ws-canvas);
+  pointer-events: auto;
+}
+.creationLocator {
+  position: absolute;
+  z-index: 16;
+  pointer-events: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-panel);
+  box-shadow: var(--mantine-shadow-xs);
+}
+.flow[data-focused] {
+  z-index: 25;
+}
+.flow :global(.react-flow__viewport-portal) {
+  z-index: 2000;
+}
+.canvasSurface[data-focused] > :not(.flow),
+.flow[data-focused] > :not(:global(.react-flow)) {
+  visibility: hidden;
+  pointer-events: none;
+}
+.flow[data-narrow] {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.flow[data-narrow][data-focused] {
+  visibility: visible;
+  pointer-events: auto;
+}
+.flow[data-narrow]:not([data-focused]) .creationLocator {
+  visibility: visible;
+  pointer-events: auto;
+}
 .boardError {
   position: absolute;
   top: 12px;
@@ -447,15 +510,15 @@
 .canvasNavigation {
   position: absolute;
   top: 12px;
-  left: 12px;
+  left: 6px;
   z-index: 7;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 5px;
-  border-radius: var(--ws-floating-radius);
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--ws-tool-radius);
   background: var(--ws-panel);
-  box-shadow: var(--mantine-shadow-xs);
+  border: 1px solid var(--ws-border);
 }
 .canvasNavigation :global(.mantine-ActionIcon-root) {
   width: 36px;
@@ -468,28 +531,25 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--ws-border);
-  border-radius: var(--ws-floating-radius);
+  border: 0;
+  border-radius: var(--ws-tool-radius);
   background: var(--ws-panel);
-  box-shadow: var(--mantine-shadow-md);
   color: var(--ws-text);
-}
-.contextualEditor[data-compact] {
-  left: 72px;
-  bottom: 68px;
-  max-width: calc(100% - 96px);
-  width: 400px;
+  pointer-events: auto;
+  user-select: text;
 }
 .contextualEditor[data-focused] {
-  inset: 12px;
   z-index: 30;
-  width: auto;
-  height: auto;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-floating-radius);
+  box-shadow: var(--mantine-shadow-lg);
+}
+.contextualEditor[data-world-editor] .editorInput {
+  max-height: 520px;
 }
 .editorHeader {
-  padding: 8px 10px;
+  padding: 8px 12px 0;
   flex: 0 0 auto;
-  border-bottom: 1px solid var(--ws-border);
 }
 .editorIdentity {
   flex: 1;
@@ -517,15 +577,26 @@
   border-radius: initial;
 }
 .contextualEditor .composer {
-  padding: 10px 14px;
+  padding: 8px 12px;
 }
 .contextualEditor .referenceStrip {
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   padding-bottom: 4px;
 }
 .contextualEditor .referenceChip {
-  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  padding: 4px;
+  gap: 4px;
+}
+.contextualEditor .referenceCard {
+  min-width: 0;
+  max-width: none;
+}
+.contextualEditor .referenceChip svg,
+.contextualEditor .referenceChip small {
+  flex-shrink: 0;
 }
 .referenceCard {
   display: flex;
@@ -533,6 +604,9 @@
   flex: 0 0 auto;
   gap: 4px;
   max-width: 200px;
+  padding: 3px;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-media-radius);
 }
 .referenceThumbnail {
   width: 44px;
@@ -601,7 +675,7 @@
     overflow: auto;
   }
   .contextualEditor[data-focused] {
-    inset: 8px;
+    border-radius: var(--ws-tool-radius);
   }
   .contextualEditor[data-focused] .editorInput {
     flex: 1;
@@ -610,10 +684,6 @@
   .focusReferences {
     display: none;
   }
-  .contextualEditor[data-compact] {
-    left: 8px;
-    max-width: calc(100% - 16px);
-  }
   .editorHeader {
     flex-wrap: wrap;
     gap: 8px;
@@ -621,10 +691,10 @@
 }
 .viewportTools {
   position: absolute;
-  left: 20px;
+  left: 64px;
   bottom: 12px;
   z-index: 5;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 80px);
   padding: 5px;
   border: 1px solid var(--ws-border);
   border-radius: var(--ws-floating-radius, var(--ws-card-radius));
@@ -645,6 +715,10 @@
 }
 @media (max-width: 760px) {
   .board[data-auxiliary]:not([data-focused]) > * {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .board[data-auxiliary]:not([data-focused]) .creationLocator {
     visibility: hidden;
     pointer-events: none;
   }

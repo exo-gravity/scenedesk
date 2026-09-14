@@ -28,6 +28,10 @@ import { GenerationJobControls } from "./GenerationJobControls";
 import { referencePurposes, options } from "./asset-queries";
 import { useCanvasAssistantSession } from "./use-canvas-assistant-session";
 import {
+  canvasAssistantReply,
+  retainCanvasAssistantReply,
+  canvasReplyContinuationPending,
+  isCanvasDiscussion,
   applicationPrompt,
   assertCanvasApplication,
   captureCanvasSources,
@@ -92,7 +96,7 @@ function CanvasAssistantContent({
     revision: number;
   }>();
   const cache = useQueryClient();
-  const artifactListPath = `${path}/assistance-artifacts?canvasId=${canvasId}&kind=prepare_prompt`;
+  const artifactListPath = `${path}/assistance-artifacts?canvasId=${canvasId}`;
   const savedArtifacts = useList<Schema<"AssistanceArtifact">>(
     artifactListPath,
     state.access === "ready",
@@ -115,8 +119,12 @@ function CanvasAssistantContent({
       : undefined
     : draft?.artifact;
   const frozen = !!record?.planId || !!record?.planRequest;
+  const messageKind = draft?.nextKind ?? draft?.kind ?? "prepare_prompt";
+  const discussion = messageKind === "discuss";
+  const fixedDiscussion = plan?.input.assistance?.kind === "discuss";
   const disabled = !active || !visible || state.busy || !draft;
   const [error, setError] = useState<string>();
+  const [executionDetails, setExecutionDetails] = useState<string>();
   const [targetNodeId, setTargetNodeId] = useState<string | null>(null);
   const [applyMode, setApplyMode] = useState<"replace" | "append">("replace");
   const [attachmentReview, setAttachmentReview] = useState<{
@@ -127,6 +135,8 @@ function CanvasAssistantContent({
   const seenContext = useRef<number | undefined>(undefined);
   const readAttempt = useRef<string | undefined>(undefined);
   const conversation = useRef<HTMLDivElement>(null);
+  const conversationContent = useRef<HTMLDivElement>(null);
+  const followLatest = useRef(true);
   const canvasState = canvasController.getSnapshot();
   const assistant = capabilities.data?.find(
     (c) => c.id === draft?.capabilityId,
@@ -249,19 +259,18 @@ function CanvasAssistantContent({
       if (
         found.projectId !== projectId ||
         found.generationJobId !== job.id ||
-        found.request.kind !== "prepare_prompt" ||
-        found.request.targetCapabilityId !==
-          plan.input.assistance?.targetCapabilityId ||
-        found.request.targetCapabilityRevision !==
-          plan.input.assistance?.targetCapabilityRevision ||
+        editingCanonical(found.request) !==
+          editingCanonical(plan.input.assistance) ||
+        (isCanvasDiscussion(found) && found.request.canvasId !== canvasId) ||
         !sameCanvasSources(
           sources,
           current.sources.map((item) => item.source),
         )
       )
         throw Error("这份建议与本次固定来源不一致，原输入仍保留。");
+      canvasAssistantReply(found);
       setInspectedArtifact(undefined);
-      return { ...current, artifact: found };
+      return retainCanvasAssistantReply(current, found);
     });
   };
   useEffect(() => {
@@ -270,7 +279,7 @@ function CanvasAssistantContent({
     const defaults: Partial<CanvasAssistantDraft> = {};
     if (!draft.capabilityId && textModels.length === 1)
       defaults.capabilityId = textModels[0]!.id;
-    if (!draft.targetCapabilityId && targets.length === 1) {
+    if (!discussion && !draft.targetCapabilityId && targets.length === 1) {
       defaults.targetCapabilityId = targets[0]!.id;
       defaults.targetCapabilityRevision = targets[0]!.revision;
     }
@@ -283,7 +292,7 @@ function CanvasAssistantContent({
       state.busy ||
       !job?.assistanceArtifactId ||
       !plan ||
-      draft?.artifact ||
+      (draft?.artifact && !canvasReplyContinuationPending(draft)) ||
       readAttempt.current === job.assistanceArtifactId
     )
       return;
@@ -298,20 +307,51 @@ function CanvasAssistantContent({
     plan,
   ]);
   useEffect(() => {
-    if (visible && conversation.current)
-      conversation.current.scrollTop = conversation.current.scrollHeight;
-  }, [
-    record?.planId,
-    job?.assistanceArtifactId,
-    draft?.artifact?.revision,
-    visible,
-  ]);
+    const scroller = conversation.current,
+      content = conversationContent.current;
+    if (!visible || !scroller || !content) return;
+    let contentHeight = scroller.scrollHeight,
+      viewportHeight = scroller.clientHeight;
+    const follow = () => {
+      contentHeight = scroller.scrollHeight;
+      viewportHeight = scroller.clientHeight;
+      if (followLatest.current) scroller.scrollTop = contentHeight;
+    };
+    const onScroll = () => {
+      // Resizing or loading an older turn is not a request to read history.
+      if (
+        contentHeight !== scroller.scrollHeight ||
+        viewportHeight !== scroller.clientHeight
+      ) {
+        follow();
+        return;
+      }
+      followLatest.current =
+        scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop < 32;
+    };
+    const observer = new ResizeObserver(follow);
+    observer.observe(content);
+    observer.observe(scroller);
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    follow();
+    return () => {
+      observer.disconnect();
+      scroller.removeEventListener("scroll", onScroll);
+    };
+  }, [visible, state.access, canvasState.accessChecking, canvasState.phase]);
   const sendMessage = () => {
     setError(undefined);
-    if (!assistant || !target) {
-      setError("请在对话设置中选择已配置的助手与目标生成能力。");
+    if (!assistant || (!discussion && !target)) {
+      setError(
+        discussion
+          ? "请在设置中选择已配置的文字助手，消息会保留。"
+          : "请为具体生成提示选择助手与目标能力。",
+      );
       return;
     }
+    followLatest.current = true;
+    if (conversation.current)
+      conversation.current.scrollTop = conversation.current.scrollHeight;
     void sendRetainedMessage(assistant, target, async (sources) => {
       const saved = await api<Schema<"Canvas">>(
         `${path}/canvases/${canvasId}`,
@@ -329,6 +369,7 @@ function CanvasAssistantContent({
         throw Error(
           "节点附件仍是旧画布版本。请先核对当前附件并明确确认，再发送；尚未提交新计划。",
         );
+      if (!sources.length) return;
       const fresh = captureCanvasSources(
         saved,
         sources.map((source) => source.source.nodeId),
@@ -423,14 +464,22 @@ function CanvasAssistantContent({
         found.id !== fixed.id ||
         found.revision !== fixed.revision ||
         found.projectId !== projectId ||
-        found.generationJobId !== fixed.generationJobId
+        found.generationJobId !== fixed.generationJobId ||
+        (isCanvasDiscussion(found) && found.request.canvasId !== canvasId)
       )
         throw Error("这份历史建议未通过当前权限与固定版本核对。");
+      canvasAssistantReply(found);
       return {
         ...current,
         replyTo: { artifactId: found.id, revision: found.revision },
-        targetCapabilityId: found.request.targetCapabilityId,
-        targetCapabilityRevision: found.request.targetCapabilityRevision,
+        replyChoice: "explicit",
+        nextKind: isCanvasDiscussion(found) ? "discuss" : "prepare_prompt",
+        ...(isCanvasDiscussion(found)
+          ? {}
+          : {
+              targetCapabilityId: found.request.targetCapabilityId!,
+              targetCapabilityRevision: found.request.targetCapabilityRevision,
+            }),
       };
     });
   };
@@ -438,6 +487,7 @@ function CanvasAssistantContent({
     if (
       !draft ||
       !artifact ||
+      isCanvasDiscussion(artifact) ||
       !targetNodeId ||
       application?.phase === "unknown" ||
       application?.phase === "missing"
@@ -631,451 +681,519 @@ function CanvasAssistantContent({
         className={classes.conversation}
         ref={conversation}
         role="log"
+        tabIndex={0}
         aria-label="画布助手对话"
         aria-live="polite"
         aria-relevant="additions"
       >
-        {!fixedInput && !record?.previous.length && !olderArtifacts.length && (
-          <div className={classes.welcome}>
-            <Sparkle size={24} weight="light" aria-hidden="true" />
-            <Text fw={600}>从画布上的想法接着聊</Text>
-            <Text size="sm" c="dimmed">
-              选中对象并加入上下文，告诉我你想保留什么、调整什么。
-            </Text>
-          </div>
-        )}
-        <ErrorNotice
-          error={savedArtifacts.error}
-          retry={() => void savedArtifacts.refetch()}
-        />
-        {deliveries.receipts.some(
-          (item) =>
-            item.phase === "rejected" && item.key !== record?.planRequest?.key,
-        ) && (
-          <details>
-            <summary>未创建的计划记录</summary>
-            {deliveries.receipts
-              .filter(
-                (item) =>
-                  item.phase === "rejected" &&
-                  item.key !== record?.planRequest?.key,
-              )
-              .map((item) => (
-                <div className={classes.executionCard} key={item.key}>
-                  <Text size="xs" c="dimmed">
-                    原请求 {item.key.slice(0, 8)} · 明确未创建
-                  </Text>
-                  <Text className={classes.prose} size="sm">
-                    {item.input.prompt}
-                  </Text>
-                  <Text size="xs">{item.refusal?.message}</Text>
-                </div>
-              ))}
-          </details>
-        )}
-        {olderArtifacts.map((item) => (
-          <SavedCanvasConversation
-            key={item.id}
-            path={path}
-            tenant={tenant}
-            projectId={projectId}
-            artifactSummary={item}
-            disabled={disabled || pendingApplication}
-            onInspect={setInspectedArtifact}
-            onContinue={continueFrom}
+        <div className={classes.conversationContent} ref={conversationContent}>
+          {!fixedInput &&
+            !record?.previous.length &&
+            !olderArtifacts.length && (
+              <div className={classes.welcome}>
+                <Sparkle size={24} weight="light" aria-hidden="true" />
+                <Text fw={600}>想创作什么？直接聊聊</Text>
+                <Text size="sm" c="dimmed">
+                  从故事、人物或一个画面开始。需要具体参考时，再把画布对象作为附件加入。
+                </Text>
+              </div>
+            )}
+          <ErrorNotice
+            error={savedArtifacts.error}
+            retry={() => void savedArtifacts.refetch()}
           />
-        ))}
-        {record?.previous.map((entry) => (
-          <SavedCanvasConversation
-            key={entry.planId}
-            path={path}
-            tenant={tenant}
-            projectId={projectId}
-            entry={entry}
-            disabled={disabled || pendingApplication}
-            onInspect={setInspectedArtifact}
-            onContinue={continueFrom}
-          />
-        ))}
-        {fixedInput && (
-          <article className={classes.userMessage} aria-label="本轮已发送消息">
-            <Text size="xs" c="dimmed">
-              你 ·{" "}
-              {plan?.createdAt
-                ? new Date(plan.createdAt).toLocaleString()
-                : "本轮固定消息"}
-            </Text>
-            <Text className={classes.prose} size="sm">
-              {fixedInput.prompt || "（仅固定节点上下文）"}
-            </Text>
-            <SourceAttachments sources={draft?.sources ?? []} readonly />
-            {fixedInput.assistanceSource && (
-              <Text size="xs" c="dimmed">
-                基于建议 {fixedInput.assistanceSource.artifactId.slice(0, 8)} ·
-                r{fixedInput.assistanceSource.revision}
-              </Text>
-            )}
-          </article>
-        )}
-        {pendingPlan && (
-          <div className={classes.executionCard} role="status">
-            {currentDelivery?.phase === "rejected" ? (
-              <>
-                <Text fw={500} size="sm">
-                  这条消息未创建计划
-                </Text>
-                <Text size="sm">{currentDelivery.refusal?.message}</Text>
-                <Text size="xs" c="dimmed">
-                  首次明确拒绝。原正文与请求记录保留，可以返回编辑后再发送。
-                </Text>
-                <Button
-                  variant="default"
-                  size="xs"
-                  disabled={disabled}
-                  onClick={() =>
-                    void returnRejectedToEditing().catch((cause) =>
-                      setError(
-                        cause instanceof Error
-                          ? cause.message
-                          : "原请求仍保留。",
-                      ),
-                    )
-                  }
-                >
-                  保留拒绝记录，返回编辑
-                </Button>
-              </>
-            ) : (
-              <>
-                <Text fw={500} size="sm">
-                  消息计划待核对
-                </Text>
-                <Text size="sm">
-                  原消息与请求身份已保留。恢复只核对原计划。
-                </Text>
-                <Button
-                  variant="default"
-                  size="xs"
-                  disabled={disabled}
-                  onClick={() =>
-                    void controller.prepare(record!.planRequest!.input)
-                  }
-                >
-                  恢复原助手计划
-                </Button>
-              </>
-            )}
-          </div>
-        )}
-        {plan && (
-          <div className={classes.executionCard} aria-label="本轮助手执行">
-            <Group justify="space-between">
-              <Text size="sm" fw={600}>
-                {record?.execution
-                  ? job?.status === "succeeded"
-                    ? "建议已准备"
-                    : job
-                      ? jobStatusLabel[job.status]
-                      : "提交结果待核对"
-                  : "计划已固定，等待确认"}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {plan.id.slice(0, 8)}
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed">
-              {draft?.sources.length ?? 0} 个节点 · 助手 r
-              {plan.capabilityRevision} · 目标 r
-              {plan.input.assistance?.targetCapabilityRevision}
-            </Text>
-            {plan.executionMode === "test_fixture" && (
-              <Text size="xs" c="dimmed">
-                本地受控测试 · 执行不代表真实模型效果
-              </Text>
-            )}
+          {deliveries.receipts.some(
+            (item) =>
+              item.phase === "rejected" &&
+              item.key !== record?.planRequest?.key,
+          ) && (
             <details>
-              <summary>查看固定输入与执行设置</summary>
-              <Text size="xs">
-                助手 {plan.input.capabilityId} · r{plan.capabilityRevision}
-              </Text>
-              <Text size="xs">
-                目标 {plan.input.assistance?.targetCapabilityId} · r
-                {plan.input.assistance?.targetCapabilityRevision}
-              </Text>
-              <Text size="xs">
-                有效至 {new Date(plan.expiresAt).toLocaleString()}
+              <summary>未创建的计划记录</summary>
+              {deliveries.receipts
+                .filter(
+                  (item) =>
+                    item.phase === "rejected" &&
+                    item.key !== record?.planRequest?.key,
+                )
+                .map((item) => (
+                  <div className={classes.executionCard} key={item.key}>
+                    <Text size="xs" c="dimmed">
+                      原请求 {item.key.slice(0, 8)} · 明确未创建
+                    </Text>
+                    <Text className={classes.prose} size="sm">
+                      {item.input.prompt}
+                    </Text>
+                    <Text size="xs">{item.refusal?.message}</Text>
+                  </div>
+                ))}
+            </details>
+          )}
+          {olderArtifacts.map((item) => (
+            <SavedCanvasConversation
+              key={item.id}
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              artifactSummary={item}
+              disabled={disabled || pendingApplication}
+              onInspect={setInspectedArtifact}
+              onContinue={continueFrom}
+            />
+          ))}
+          {record?.previous.map((entry) => (
+            <SavedCanvasConversation
+              key={entry.planId}
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              entry={entry}
+              disabled={disabled || pendingApplication}
+              onInspect={setInspectedArtifact}
+              onContinue={continueFrom}
+            />
+          ))}
+          {fixedInput && (
+            <article
+              className={classes.userMessage}
+              aria-label="本轮已发送消息"
+            >
+              <Text size="xs" c="dimmed">
+                你 ·{" "}
+                {plan?.createdAt
+                  ? new Date(plan.createdAt).toLocaleString()
+                  : "本轮固定消息"}
               </Text>
               <Text className={classes.prose} size="sm">
-                {plan.resolvedInput.prompt}
+                {fixedInput.prompt || "（仅固定节点上下文）"}
               </Text>
-            </details>
-            {plan.blockingReasons.map((reason) => (
-              <Text key={reason} size="sm" c="red">
-                {reason}
-              </Text>
-            ))}
-            {!record?.execution && (
-              <Button
-                disabled={
-                  disabled ||
-                  plan.status !== "ready" ||
-                  Date.parse(plan.expiresAt) <= Date.now()
-                }
-                onClick={() => void controller.execute()}
-              >
-                确认执行助手准备
-              </Button>
-            )}
-            {record?.execution && (
-              <>
-                <Group gap="xs">
-                  <Button
-                    variant="subtle"
-                    size="compact-xs"
-                    leftSection={<ArrowsClockwise size={14} />}
-                    disabled={state.busy}
-                    onClick={() => void controller.refresh()}
-                  >
-                    查询原助手任务
-                  </Button>
-                  {!job && (
-                    <Button
-                      variant="subtle"
-                      size="compact-xs"
-                      disabled={disabled}
-                      onClick={() => void controller.resumeSubmission()}
-                    >
-                      核对后恢复原助手提交
-                    </Button>
-                  )}
-                </Group>
-                {job && (
-                  <GenerationJobControls
-                    job={job}
-                    cancellation={record.cancellation}
-                    active={active && visible}
-                    busy={state.busy}
-                    label="这次画布助手任务"
-                    requestCancellation={(intent) =>
-                      controller.requestCancellation(intent)
-                    }
-                  />
-                )}
-                {job?.assistanceArtifactId && !draft?.artifact && (
+              <SourceAttachments sources={draft?.sources ?? []} readonly />
+              {fixedInput.assistanceSource && (
+                <Text
+                  size="xs"
+                  c="dimmed"
+                  title={`${fixedInput.assistanceSource.artifactId} · r${fixedInput.assistanceSource.revision}`}
+                >
+                  {fixedInput.assistance?.kind === "discuss"
+                    ? "引用已选回复"
+                    : `基于建议 ${fixedInput.assistanceSource.artifactId.slice(0, 8)} · r${fixedInput.assistanceSource.revision}`}
+                </Text>
+              )}
+            </article>
+          )}
+          {pendingPlan && (
+            <div className={classes.executionCard} role="status">
+              {currentDelivery?.phase === "rejected" ? (
+                <>
+                  <Text fw={500} size="sm">
+                    这条消息未创建计划
+                  </Text>
+                  <Text size="sm">{currentDelivery.refusal?.message}</Text>
+                  <Text size="xs" c="dimmed">
+                    首次明确拒绝。原正文与请求记录保留，可以返回编辑后再发送。
+                  </Text>
                   <Button
                     variant="default"
                     size="xs"
                     disabled={disabled}
-                    onClick={readArtifact}
+                    onClick={() =>
+                      void returnRejectedToEditing().catch((cause) =>
+                        setError(
+                          cause instanceof Error
+                            ? cause.message
+                            : "原请求仍保留。",
+                        ),
+                      )
+                    }
                   >
-                    读取原任务的固定建议
+                    保留拒绝记录，返回编辑
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Text fw={500} size="sm">
+                    消息计划待核对
+                  </Text>
+                  <Text size="sm">
+                    原消息与请求身份已保留。恢复只核对原计划。
+                  </Text>
+                  <Button
+                    variant="default"
+                    size="xs"
+                    disabled={disabled}
+                    onClick={() =>
+                      void controller.prepare(record!.planRequest!.input)
+                    }
+                  >
+                    恢复原助手计划
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+          {plan &&
+            (!fixedDiscussion ||
+              !artifact ||
+              job?.status !== "succeeded" ||
+              executionDetails === plan.id) && (
+              <div className={classes.executionCard} aria-label="本轮助手执行">
+                <Group justify="space-between">
+                  <Text size="sm" fw={600}>
+                    {record?.execution
+                      ? job?.status === "succeeded"
+                        ? fixedDiscussion
+                          ? "回复已就绪"
+                          : "建议已准备"
+                        : job
+                          ? jobStatusLabel[job.status]
+                          : "提交结果待核对"
+                      : fixedDiscussion
+                        ? "原讨论计划已保留，尚未执行"
+                        : "计划已固定，等待确认"}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {plan.id.slice(0, 8)}
+                  </Text>
+                </Group>
+                <Text size="xs" c="dimmed">
+                  {draft?.sources.length ?? 0} 个附件 · 助手 r
+                  {plan.capabilityRevision}
+                  {!fixedDiscussion && (
+                    <>
+                      {" "}
+                      · 目标 r{plan.input.assistance?.targetCapabilityRevision}
+                    </>
+                  )}
+                </Text>
+                {plan.executionMode === "test_fixture" && (
+                  <Text size="xs" c="dimmed">
+                    本地受控测试 · 执行不代表真实模型效果
+                  </Text>
+                )}
+                <details>
+                  <summary>查看固定输入与执行设置</summary>
+                  <Text size="xs">
+                    助手 {plan.input.capabilityId} · r{plan.capabilityRevision}
+                  </Text>
+                  {!fixedDiscussion && (
+                    <Text size="xs">
+                      目标 {plan.input.assistance?.targetCapabilityId} · r
+                      {plan.input.assistance?.targetCapabilityRevision}
+                    </Text>
+                  )}
+                  <Text size="xs">
+                    有效至 {new Date(plan.expiresAt).toLocaleString()}
+                  </Text>
+                  <Text className={classes.prose} size="sm">
+                    {plan.resolvedInput.prompt}
+                  </Text>
+                </details>
+                {plan.blockingReasons.map((reason) => (
+                  <Text key={reason} size="sm" c="red">
+                    {reason}
+                  </Text>
+                ))}
+                {!record?.execution && (
+                  <Button
+                    disabled={
+                      disabled ||
+                      plan.status !== "ready" ||
+                      Date.parse(plan.expiresAt) <= Date.now()
+                    }
+                    onClick={() => void controller.execute()}
+                  >
+                    {fixedDiscussion ? "继续原讨论回复" : "确认执行助手准备"}
                   </Button>
                 )}
-              </>
+                {record?.execution && (
+                  <>
+                    <Group gap="xs">
+                      <Button
+                        variant="subtle"
+                        size="compact-xs"
+                        leftSection={<ArrowsClockwise size={14} />}
+                        disabled={state.busy}
+                        onClick={() => void controller.refresh()}
+                      >
+                        查询原助手任务
+                      </Button>
+                      {!job && (
+                        <Button
+                          variant="subtle"
+                          size="compact-xs"
+                          disabled={disabled}
+                          onClick={() => void controller.resumeSubmission()}
+                        >
+                          核对后恢复原助手提交
+                        </Button>
+                      )}
+                    </Group>
+                    {job && (
+                      <GenerationJobControls
+                        job={job}
+                        cancellation={record.cancellation}
+                        active={active && visible}
+                        busy={state.busy}
+                        label="这次画布助手任务"
+                        requestCancellation={(intent) =>
+                          controller.requestCancellation(intent)
+                        }
+                      />
+                    )}
+                    {job?.assistanceArtifactId && !draft?.artifact && (
+                      <Button
+                        variant="default"
+                        size="xs"
+                        disabled={disabled}
+                        onClick={readArtifact}
+                      >
+                        读取原任务的固定建议
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
             )}
-          </div>
-        )}
-        {inspectedArtifact && (
-          <Group>
-            <Text size="xs">
-              正在查看固定历史建议 r{inspectedArtifact.revision}，本次要求未改变
-            </Text>
-            <Button
-              variant="subtle"
-              size="xs"
-              onClick={() => setInspectedArtifact(undefined)}
-            >
-              返回本次建议
-            </Button>
-          </Group>
-        )}
-        <ErrorNotice
-          error={historyArtifact.error}
-          retry={() => void historyArtifact.refetch()}
-        />
-        {artifact && (
-          <Stack className={classes.result} gap="sm" aria-label="固定画布建议">
-            <Group justify="space-between">
-              <Text size="sm" fw={600}>
-                画布助手
-              </Text>
-              <Text size="xs" c="dimmed">
-                固定建议 r{artifact.revision}
-              </Text>
-            </Group>
-            {artifact.executionMode === "test_fixture" && (
-              <Text size="xs" c="dimmed">
-                受控测试输出 · 非真实模型回复
-              </Text>
-            )}
-            {artifact.inputOutdated && (
-              <Alert>
-                原来源已变化。固定建议保留，请重新核对；不能应用过期来源。
-              </Alert>
-            )}
-            <Text className={classes.prose} size="sm">
-              {artifact.body.prompt}
-            </Text>
-            <details>
-              <summary>保留、修改与参考建议</summary>
-              <Text className={classes.prose} size="sm">
-                {[
-                  ...artifact.body.retain.map((s) => `保留：${s}`),
-                  ...artifact.body.change.map((s) => `修改：${s}`),
-                  artifact.body.notes,
-                ]
-                  .filter(Boolean)
-                  .join("\n")}
-              </Text>
-              {artifact.body.referenceSuggestions.map((r, i) => (
-                <Text key={i} size="sm">
-                  参考建议 {i + 1} · {r.purpose} · {r.mediaId}
-                </Text>
-              ))}
-              <Text size="xs" c="dimmed">
-                应用只修改提示正文，不自动连线、更换模型或采用成果。
-              </Text>
-            </details>
+          {inspectedArtifact && (
             <Group>
+              <Text size="xs">
+                正在查看固定历史建议 r{inspectedArtifact.revision}
+                ，本次要求未改变
+              </Text>
               <Button
                 variant="subtle"
-                size="compact-sm"
-                disabled={disabled}
-                onClick={() => continueFrom(artifact)}
+                size="xs"
+                onClick={() => setInspectedArtifact(undefined)}
               >
-                基于这份建议继续
+                返回本次建议
               </Button>
             </Group>
-            <details className={classes.applyOptions}>
-              <summary>应用到画布草稿</summary>
-              <Select
-                label="明确应用到哪个草稿"
-                value={targetNodeId}
-                data={applicable.map((n) => ({ value: n.id, label: n.title }))}
-                disabled={
-                  disabled ||
-                  (!!application &&
-                    ["review", "unknown", "missing"].includes(
-                      application.phase,
-                    ))
-                }
-                onChange={setTargetNodeId}
-              />
-              {!applicable.length && (
-                <Text size="sm">
-                  请先给目标草稿配置与建议相同的媒体类型及生成能力。
-                </Text>
-              )}
-              <Select
-                label="应用方式"
-                value={applyMode}
-                disabled={
-                  disabled ||
-                  (!!application &&
-                    ["review", "unknown", "missing"].includes(
-                      application.phase,
-                    ))
-                }
-                data={[
-                  { value: "replace", label: "替换提示正文" },
-                  { value: "append", label: "追加到现有提示" },
-                ]}
-                onChange={(value) =>
-                  setApplyMode(value === "append" ? "append" : "replace")
-                }
-              />
-              {(!application ||
-                ["applied", "blocked"].includes(application.phase)) && (
-                <Button
-                  variant="default"
-                  disabled={disabled || !targetNodeId || artifact.inputOutdated}
-                  onClick={reviewApplication}
+          )}
+          <ErrorNotice
+            error={historyArtifact.error}
+            retry={() => void historyArtifact.refetch()}
+          />
+          {artifact && (
+            <Stack
+              className={classes.result}
+              gap="sm"
+              aria-label="固定画布建议"
+            >
+              <Group justify="space-between">
+                <Text
+                  size="sm"
+                  fw={600}
+                  title={`${artifact.id} · r${artifact.revision}`}
                 >
-                  查看应用差异
-                </Button>
-              )}
-            </details>
-          </Stack>
-        )}
-        {application && (
-          <Stack
-            className={classes.applicationReview}
-            gap="sm"
-            aria-label="画布建议应用核对"
-          >
-            <Text fw={600}>
-              应用到 {application.targetTitle} · 画布 r{application.revision}
-            </Text>
-            <div className={classes.promptDiff}>
-              <div>
-                <Text size="xs" c="dimmed">
-                  原提示
+                  {isCanvasDiscussion(artifact) ? "AI 助手" : "画布助手"}
                 </Text>
-                <Text size="sm" className={classes.prose}>
-                  {application.beforePrompt || "（空）"}
-                </Text>
-              </div>
-              <div>
-                <Text size="xs" c="dimmed">
-                  应用后
-                </Text>
-                <Text size="sm" className={classes.prose}>
-                  {application.afterPrompt}
-                </Text>
-              </div>
-            </div>
-            {application.phase === "review" && (
-              <Group>
-                <Button disabled={disabled} onClick={apply}>
-                  确认应用这份建议
-                </Button>
-                <Button
-                  variant="subtle"
-                  disabled={disabled}
-                  onClick={() => update({ application: undefined })}
-                >
-                  返回检查建议
-                </Button>
+                {!isCanvasDiscussion(artifact) && (
+                  <Text size="xs" c="dimmed">
+                    固定建议 r{artifact.revision}
+                  </Text>
+                )}
               </Group>
-            )}
-            {application.phase === "unknown" && (
-              <Alert title="应用结果待核对">
-                <Text size="sm">
-                  原目标、正文和版本已保留。查询不会重新生成或新建应用。
+              {artifact.executionMode === "test_fixture" && (
+                <Text size="xs" c="dimmed">
+                  受控测试输出 · 非真实模型回复
                 </Text>
-                <Button disabled={disabled} onClick={recoverApplication}>
-                  查询原应用记录
-                </Button>
-              </Alert>
-            )}
-            {application.phase === "missing" && (
-              <Alert title="尚未找到原应用">
-                <Button disabled={disabled} onClick={apply}>
-                  明确重送原应用请求
-                </Button>
+              )}
+              {artifact.inputOutdated && (
+                <Alert>
+                  {isCanvasDiscussion(artifact)
+                    ? "这份回复的附件已有变化。固定讨论保留，继续时请明确核对附件。"
+                    : "原来源已变化。固定建议保留，请重新核对；不能应用过期来源。"}
+                </Alert>
+              )}
+              <Text className={classes.prose} size="sm">
+                <CanvasReplyText artifact={artifact} />
+              </Text>
+              {!isCanvasDiscussion(artifact) && (
+                <details>
+                  <summary>保留、修改与参考建议</summary>
+                  <Text className={classes.prose} size="sm">
+                    {[
+                      ...artifact.body.retain.map((s) => `保留：${s}`),
+                      ...artifact.body.change.map((s) => `修改：${s}`),
+                      artifact.body.notes,
+                    ]
+                      .filter(Boolean)
+                      .join("\n")}
+                  </Text>
+                  {artifact.body.referenceSuggestions.map((r, i) => (
+                    <Text key={i} size="sm">
+                      参考建议 {i + 1} · {r.purpose} · {r.mediaId}
+                    </Text>
+                  ))}
+                  <Text size="xs" c="dimmed">
+                    应用只修改提示正文，不自动连线、更换模型或采用成果。
+                  </Text>
+                </details>
+              )}
+              <Group>
                 <Button
                   variant="subtle"
+                  size="compact-sm"
                   disabled={disabled}
-                  onClick={recoverApplication}
+                  onClick={() => continueFrom(artifact)}
                 >
-                  再次查询原记录
+                  {isCanvasDiscussion(artifact)
+                    ? "继续讨论"
+                    : "基于这份建议继续"}
                 </Button>
-              </Alert>
-            )}
-            {application.phase === "blocked" && (
-              <Alert title="这次应用未执行">
-                画布版本、固定来源或目标输入未通过核对。原修改与应用意图已保留；请检查当前画布或重新准备建议，再明确查看新的应用差异。
-              </Alert>
-            )}
-            {application.phase === "applied" && (
-              <Alert title="建议已应用">
-                服务器已保存为画布 r
-                {application.result?.application.resultCanvasRevision}
-                。其他节点、参考、模型与当前采用保持不变。
-              </Alert>
-            )}
-          </Stack>
-        )}
+                {isCanvasDiscussion(artifact) &&
+                  plan &&
+                  artifact.generationJobId === job?.id && (
+                    <Button
+                      variant="subtle"
+                      size="compact-xs"
+                      onClick={() =>
+                        setExecutionDetails(
+                          executionDetails === plan.id ? undefined : plan.id,
+                        )
+                      }
+                    >
+                      执行记录
+                    </Button>
+                  )}
+              </Group>
+              {!isCanvasDiscussion(artifact) && (
+                <details className={classes.applyOptions}>
+                  <summary>应用到画布草稿</summary>
+                  <Select
+                    label="明确应用到哪个草稿"
+                    value={targetNodeId}
+                    data={applicable.map((n) => ({
+                      value: n.id,
+                      label: n.title,
+                    }))}
+                    disabled={
+                      disabled ||
+                      (!!application &&
+                        ["review", "unknown", "missing"].includes(
+                          application.phase,
+                        ))
+                    }
+                    onChange={setTargetNodeId}
+                  />
+                  {!applicable.length && (
+                    <Text size="sm">
+                      请先给目标草稿配置与建议相同的媒体类型及生成能力。
+                    </Text>
+                  )}
+                  <Select
+                    label="应用方式"
+                    value={applyMode}
+                    disabled={
+                      disabled ||
+                      (!!application &&
+                        ["review", "unknown", "missing"].includes(
+                          application.phase,
+                        ))
+                    }
+                    data={[
+                      { value: "replace", label: "替换提示正文" },
+                      { value: "append", label: "追加到现有提示" },
+                    ]}
+                    onChange={(value) =>
+                      setApplyMode(value === "append" ? "append" : "replace")
+                    }
+                  />
+                  {(!application ||
+                    ["applied", "blocked"].includes(application.phase)) && (
+                    <Button
+                      variant="default"
+                      disabled={
+                        disabled || !targetNodeId || artifact.inputOutdated
+                      }
+                      onClick={reviewApplication}
+                    >
+                      查看应用差异
+                    </Button>
+                  )}
+                </details>
+              )}
+            </Stack>
+          )}
+          {application && (
+            <Stack
+              className={classes.applicationReview}
+              gap="sm"
+              aria-label="画布建议应用核对"
+            >
+              <Text fw={600}>
+                应用到 {application.targetTitle} · 画布 r{application.revision}
+              </Text>
+              <div className={classes.promptDiff}>
+                <div>
+                  <Text size="xs" c="dimmed">
+                    原提示
+                  </Text>
+                  <Text size="sm" className={classes.prose}>
+                    {application.beforePrompt || "（空）"}
+                  </Text>
+                </div>
+                <div>
+                  <Text size="xs" c="dimmed">
+                    应用后
+                  </Text>
+                  <Text size="sm" className={classes.prose}>
+                    {application.afterPrompt}
+                  </Text>
+                </div>
+              </div>
+              {application.phase === "review" && (
+                <Group>
+                  <Button disabled={disabled} onClick={apply}>
+                    确认应用这份建议
+                  </Button>
+                  <Button
+                    variant="subtle"
+                    disabled={disabled}
+                    onClick={() => update({ application: undefined })}
+                  >
+                    返回检查建议
+                  </Button>
+                </Group>
+              )}
+              {application.phase === "unknown" && (
+                <Alert title="应用结果待核对">
+                  <Text size="sm">
+                    原目标、正文和版本已保留。查询不会重新生成或新建应用。
+                  </Text>
+                  <Button disabled={disabled} onClick={recoverApplication}>
+                    查询原应用记录
+                  </Button>
+                </Alert>
+              )}
+              {application.phase === "missing" && (
+                <Alert title="尚未找到原应用">
+                  <Button disabled={disabled} onClick={apply}>
+                    明确重送原应用请求
+                  </Button>
+                  <Button
+                    variant="subtle"
+                    disabled={disabled}
+                    onClick={recoverApplication}
+                  >
+                    再次查询原记录
+                  </Button>
+                </Alert>
+              )}
+              {application.phase === "blocked" && (
+                <Alert title="这次应用未执行">
+                  画布版本、固定来源或目标输入未通过核对。原修改与应用意图已保留；请检查当前画布或重新准备建议，再明确查看新的应用差异。
+                </Alert>
+              )}
+              {application.phase === "applied" && (
+                <Alert title="建议已应用">
+                  服务器已保存为画布 r
+                  {application.result?.application.resultCanvasRevision}
+                  。其他节点、参考、模型与当前采用保持不变。
+                </Alert>
+              )}
+            </Stack>
+          )}
+        </div>
       </div>
       <form
         className={classes.composer}
@@ -1179,25 +1297,43 @@ function CanvasAssistantContent({
         )}
         {draft?.replyTo && (
           <div className={classes.replyAttachment}>
-            <Text size="xs">
-              基于建议 {draft.replyTo.artifactId.slice(0, 8)} · r
-              {draft.replyTo.revision}
+            <Text
+              size="xs"
+              title={`${draft.replyTo.artifactId} · r${draft.replyTo.revision}`}
+            >
+              {discussion
+                ? draft.replyChoice === "automatic"
+                  ? "承接上一轮对话"
+                  : "引用已选回复"
+                : `基于固定回复 ${draft.replyTo.artifactId.slice(0, 8)} · r${draft.replyTo.revision}`}
             </Text>
             <ActionIcon
               variant="subtle"
               size="sm"
               aria-label="移除所承接的建议"
               disabled={disabled}
-              onClick={() => update({ replyTo: undefined })}
+              onClick={() =>
+                update({ replyTo: undefined, replyChoice: "none" })
+              }
             >
               <X size={14} />
             </ActionIcon>
           </div>
         )}
+        {draft && canvasReplyContinuationPending(draft) && (
+          <Button
+            size="compact-xs"
+            variant="subtle"
+            disabled={disabled}
+            onClick={readArtifact}
+          >
+            核对最新回复与续聊上下文
+          </Button>
+        )}
         <Textarea
           aria-label="发送给画布助手"
           placeholder={
-            frozen ? "继续说说想调整的地方…" : "想从这些内容中完成什么？"
+            discussion ? "说说你的创作想法…" : "描述希望准备的生成提示…"
           }
           minRows={3}
           maxRows={7}
@@ -1225,10 +1361,11 @@ function CanvasAssistantContent({
                 variant="subtle"
                 size="compact-xs"
                 leftSection={<SlidersHorizontal size={15} />}
-                aria-label="对话模型与目标设置"
+                aria-label="对话设置"
               >
                 {assistant ? modelLabel(assistant) : "选择助手"}
-                {target ? ` · ${target.purpose}` : " · 选择目标"}
+                {!discussion &&
+                  (target ? ` · ${target.purpose}` : " · 选择目标")}
               </Button>
             </Popover.Target>
             <Popover.Dropdown>
@@ -1248,31 +1385,53 @@ function CanvasAssistantContent({
                   onChange={(id) => update({ capabilityId: id ?? "" })}
                 />
                 <Select
-                  label="建议用于"
+                  label="本条消息"
                   size="sm"
-                  value={draft?.targetCapabilityId || null}
-                  data={targets.map((c) => ({
-                    value: c.id,
-                    label: `${modelLabel(c)} · ${c.purpose}`,
-                  }))}
+                  value={messageKind}
+                  data={[
+                    { value: "discuss", label: "自由讨论" },
+                    { value: "prepare_prompt", label: "准备生成提示" },
+                  ]}
                   disabled={disabled || !!draft?.replyTo}
-                  onChange={(id) => {
-                    const cap = targets.find((c) => c.id === id);
+                  onChange={(value) =>
                     update({
-                      targetCapabilityId: id ?? "",
-                      ...(cap
-                        ? { targetCapabilityRevision: cap.revision }
-                        : {}),
-                    });
-                  }}
+                      nextKind:
+                        value === "prepare_prompt"
+                          ? "prepare_prompt"
+                          : "discuss",
+                    })
+                  }
                 />
+                {!discussion && (
+                  <Select
+                    label="建议用于"
+                    size="sm"
+                    value={draft?.targetCapabilityId || null}
+                    data={targets.map((c) => ({
+                      value: c.id,
+                      label: `${modelLabel(c)} · ${c.purpose}`,
+                    }))}
+                    disabled={disabled || !!draft?.replyTo}
+                    onChange={(id) => {
+                      const cap = targets.find((c) => c.id === id);
+                      update({
+                        targetCapabilityId: id ?? "",
+                        ...(cap
+                          ? { targetCapabilityRevision: cap.revision }
+                          : {}),
+                      });
+                    }}
+                  />
+                )}
                 {draft?.replyTo && (
                   <Text size="xs" c="dimmed">
-                    这条消息承接固定建议，沿用其目标能力。更换目标前请明确移除该建议附件。
+                    这条消息承接固定回复，沿用其讨论或提示类型。切换类型前请明确移除该回复附件。
                   </Text>
                 )}
                 <Text size="xs" c="dimmed">
-                  发送仅准备计划。执行和应用到画布分别需要确认。
+                  {discussion
+                    ? "发送即请求这一条文字回复，不生成媒体或修改画布。"
+                    : "发送准备固定提示计划；执行和应用到画布分别确认。"}
                 </Text>
               </Stack>
             </Popover.Dropdown>
@@ -1280,14 +1439,13 @@ function CanvasAssistantContent({
           <Button
             type="submit"
             size="compact-sm"
-            aria-label="发送消息并核对计划"
+            aria-label={discussion ? "发送讨论消息" : "发送消息并核对计划"}
             leftSection={<PaperPlaneRight size={15} />}
             disabled={
               disabled ||
               !composerText.trim() ||
               !assistant ||
-              !target ||
-              !composerSources.length ||
+              (!discussion && (!target || !composerSources.length)) ||
               pendingPlan ||
               pendingJob ||
               pendingApplication
@@ -1347,9 +1505,9 @@ function SourceAttachments({
   onChange?: (sources: CanvasAssistantSource[]) => void;
 }) {
   if (!sources.length)
-    return (
+    return readonly ? null : (
       <Text size="xs" c="dimmed">
-        从画布选择对象，加入这条消息的上下文。
+        附件可选：需要具体参考时，从画布明确加入对象。
       </Text>
     );
   return (
@@ -1505,11 +1663,13 @@ function SavedCanvasConversation({
       />
       {plan && (
         <article className={classes.userMessage}>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" c="dimmed" title={plan.id}>
             你 ·{" "}
             {plan.createdAt
               ? new Date(plan.createdAt).toLocaleString()
-              : `固定计划 ${plan.id.slice(0, 8)}`}
+              : plan.input.assistance?.kind === "discuss"
+                ? "已发送"
+                : `固定计划 ${plan.id.slice(0, 8)}`}
           </Text>
           <Text className={classes.prose} size="sm">
             {plan.input.prompt || "（仅固定节点上下文）"}
@@ -1518,12 +1678,18 @@ function SavedCanvasConversation({
       )}
       {result ? (
         <article className={classes.assistantMessage}>
-          <Text size="xs" c="dimmed">
-            {artifactSummary ? "固定建议" : "原任务回复"} · r{result.revision}
+          <Text
+            size="xs"
+            c="dimmed"
+            title={`${result.id} · r${result.revision}`}
+          >
+            {isCanvasDiscussion(result)
+              ? "AI 助手"
+              : `${artifactSummary ? "固定建议" : "原任务回复"} · r${result.revision}`}
             {result.executionMode === "test_fixture" ? " · 受控测试" : ""}
           </Text>
           <Text className={classes.prose} size="sm">
-            {result.body.prompt}
+            <CanvasReplyText artifact={result} />
           </Text>
           <Group gap="xs">
             <Button
@@ -1532,7 +1698,7 @@ function SavedCanvasConversation({
               disabled={disabled}
               onClick={() => onContinue(result)}
             >
-              基于这份建议继续
+              {isCanvasDiscussion(result) ? "继续讨论" : "基于这份建议继续"}
             </Button>
             <Button
               variant="subtle"
@@ -1542,7 +1708,9 @@ function SavedCanvasConversation({
                 onInspect({ id: result.id, revision: result.revision })
               }
             >
-              查看建议与应用差异
+              {isCanvasDiscussion(result)
+                ? "查看固定讨论"
+                : "查看建议与应用差异"}
             </Button>
           </Group>
         </article>
@@ -1603,4 +1771,20 @@ function sourceText(item: CanvasAssistantSource) {
     : item.content.type === "draft"
       ? item.content.prompt
       : `固定媒体 ${item.content.mediaId}${item.content.assetRevisionId ? ` · 资产版本 ${item.content.assetRevisionId}` : ""}`;
+}
+
+function CanvasReplyText({
+  artifact,
+}: {
+  artifact: Schema<"AssistanceArtifact">;
+}) {
+  try {
+    return <>{canvasAssistantReply(artifact)}</>;
+  } catch (cause) {
+    return (
+      <Text component="span" size="sm" c="red">
+        {cause instanceof Error ? cause.message : "回复尚未核对。"}
+      </Text>
+    );
+  }
 }

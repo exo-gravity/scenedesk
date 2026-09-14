@@ -3,6 +3,8 @@ import { test } from "node:test";
 import {
   captureCanvasSources,
   canvasAssistancePlan,
+  canvasAssistantReply,
+  retainCanvasAssistantReply,
   sendCanvasAssistantMessage,
   type CanvasAssistanceInput,
   applicationPrompt,
@@ -321,6 +323,26 @@ function transport(): AssistantTransport {
       throw Error("not called");
     },
     findJob: async () => undefined,
+  };
+}
+function discussionJob(
+  changes: Pick<Schema<"GenerationJob">, "id" | "planId" | "status"> &
+    Partial<Schema<"GenerationJob">>,
+): Schema<"GenerationJob"> {
+  return {
+    revision: 1,
+    scope: "project",
+    projectId: "project",
+    mediaIds: [],
+    reservationStatus: "held",
+    inputOutdated: false,
+    connectionVersionId: "fixture-version",
+    costStatus: "unavailable",
+    confirmedCost: { amountMicros: "0", currency: "CNY" },
+    reservationRemaining: { amountMicros: "0", currency: "CNY" },
+    recoveryEpoch: 0,
+    executionMode: "test_fixture",
+    ...changes,
   };
 }
 test("opening the same node's fixed attempt preserves the unsent editing draft and its recovery record", async () => {
@@ -953,4 +975,559 @@ test("a mismatched local refusal cannot release another original plan request", 
     /待核对/,
   );
   assert.equal(chat.getSnapshot().record?.planRequest?.key, "key");
+});
+
+test("free discussion fixes its canvas scope without media target or node attachments and validates the actual reply", () => {
+  const discussion: CanvasAssistantDraft = {
+    ...draft,
+    kind: "discuss",
+    sources: [],
+    instruction: "想拍一段雨夜重逢",
+    targetCapabilityId: "",
+  };
+  const request = canvasAssistancePlan(
+    discussion,
+    "project",
+    assistant,
+    undefined,
+    canvas.id,
+  );
+  assert.deepEqual(request.assistance, {
+    kind: "discuss",
+    canvasId: canvas.id,
+  });
+  assert.deepEqual(request.canvasSources, []);
+  assert.deepEqual(request.shotSources, []);
+  assert.throws(
+    () => canvasAssistancePlan(discussion, "project", assistant),
+    /当前画布/,
+  );
+  assert.throws(
+    () =>
+      canvasAssistancePlan(
+        { ...discussion, sources: draft.sources },
+        "project",
+        assistant,
+        undefined,
+        "other-canvas",
+      ),
+    /不属于/,
+  );
+  const reply = {
+    request: request.assistance,
+    body: {
+      message: "先明确雨夜重逢的人物关系。",
+      prompt: "",
+      retain: [],
+      change: [],
+      notes: "",
+      referenceSuggestions: [],
+    },
+  } as unknown as Schema<"AssistanceArtifact">;
+  assert.equal(canvasAssistantReply(reply), "先明确雨夜重逢的人物关系。");
+  assert.throws(
+    () =>
+      canvasAssistantReply({ ...reply, body: { ...reply.body, message: "" } }),
+    /正文/,
+  );
+  assert.equal(
+    canvasAssistancePlan(draft, "project", assistant, target).assistance?.kind,
+    "prepare_prompt",
+    "legacy unsent inputs keep their original kind",
+  );
+});
+
+test("one discussion send fixes and executes only one request while rapid repeated sends await the same source check", async () => {
+  const records = new Map<
+    string,
+    AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+  >();
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let plans = 0,
+    executions = 0;
+  let prepared: Schema<"GenerationPlan">;
+  const remote: AssistantTransport<CanvasAssistanceInput> = {
+    ...transport(),
+    createPlan: async (request) => {
+      plans++;
+      return (prepared = { ...fixedPlan, input: request });
+    },
+    getPlan: async () => prepared,
+    execute: async (planId) => {
+      executions++;
+      return {
+        id: "discussion-job",
+        planId,
+        status: "queued",
+        mediaIds: [],
+      } as unknown as Schema<"GenerationJob">;
+    },
+  };
+  const chat = new AssistantSession(storage(records, "discussion"), remote);
+  await chat.load({
+    ...draft,
+    kind: "discuss",
+    sources: [],
+    instruction: "",
+    nextInstruction: "只讨论雨夜的色调",
+    targetCapabilityId: "",
+  });
+  const sending = sendCanvasAssistantMessage(
+    chat,
+    "project",
+    assistant,
+    undefined,
+    async () => gate,
+    undefined,
+    canvas.id,
+  );
+  await assert.rejects(
+    sendCanvasAssistantMessage(
+      chat,
+      "project",
+      assistant,
+      undefined,
+      undefined,
+      undefined,
+      canvas.id,
+    ),
+    /正在发送/,
+  );
+  release();
+  await sending;
+  assert.equal(plans, 1);
+  assert.equal(executions, 1);
+  assert.equal(chat.getSnapshot().record?.execution?.jobId, "discussion-job");
+  assert.equal(chat.getSnapshot().record?.draft.kind, "discuss");
+});
+
+test("a lost discussion plan response survives refresh without executing or replacing the original message", async () => {
+  const records = new Map<
+    string,
+    AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+  >();
+  let plans = 0,
+    executions = 0;
+  const remote: AssistantTransport<CanvasAssistanceInput> = {
+    ...transport(),
+    createPlan: async () => {
+      plans++;
+      throw Error("plan committed, response lost");
+    },
+    execute: async () => {
+      executions++;
+      throw Error("must not execute");
+    },
+  };
+  const local = storage(records, "discussion-unknown");
+  const chat = new AssistantSession(local, remote);
+  await chat.load({
+    ...draft,
+    kind: "discuss",
+    sources: [],
+    instruction: "",
+    nextInstruction: "讨论人物动机",
+  });
+  await assert.rejects(
+    sendCanvasAssistantMessage(
+      chat,
+      "project",
+      assistant,
+      undefined,
+      undefined,
+      undefined,
+      canvas.id,
+    ),
+    /response lost/,
+  );
+  const original = structuredClone(chat.getSnapshot().record?.planRequest);
+  const reopened = new AssistantSession(local, remote);
+  await reopened.load(draft);
+  await reopened.refresh();
+  assert.equal(plans, 1);
+  assert.equal(executions, 0);
+  assert.deepEqual(reopened.getSnapshot().record?.planRequest, original);
+  await assert.rejects(
+    sendCanvasAssistantMessage(
+      reopened,
+      "project",
+      assistant,
+      undefined,
+      undefined,
+      undefined,
+      canvas.id,
+    ),
+    /上一条/,
+  );
+  assert.equal(plans, 1);
+});
+
+test("a discussion execute with a lost accepted response restores the original job by GET with no automatic second execution", async () => {
+  const records = new Map<
+    string,
+    AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+  >();
+  let executions = 0;
+  let prepared: Schema<"GenerationPlan">;
+  let accepted: Schema<"GenerationJob"> | undefined;
+  const remote: AssistantTransport<CanvasAssistanceInput> = {
+    ...transport(),
+    createPlan: async (request) =>
+      (prepared = { ...fixedPlan, input: request }),
+    getPlan: async () => prepared,
+    execute: async (planId) => {
+      executions++;
+      accepted = {
+        id: "accepted-discussion",
+        planId,
+        status: "queued",
+        mediaIds: [],
+      } as unknown as Schema<"GenerationJob">;
+      throw Error("accepted response lost");
+    },
+    findJob: async () => accepted,
+    getJob: async () => accepted!,
+  };
+  const local = storage(records, "discussion-execute");
+  const chat = new AssistantSession(local, remote);
+  await chat.load({
+    ...draft,
+    kind: "discuss",
+    sources: [],
+    instruction: "",
+    nextInstruction: "讨论镜头节奏",
+  });
+  await sendCanvasAssistantMessage(
+    chat,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  const key = chat.getSnapshot().record?.execution?.key;
+  assert.ok(key);
+  const reopened = new AssistantSession(local, remote);
+  await reopened.load(draft);
+  await reopened.refresh();
+  assert.equal(executions, 1);
+  assert.equal(reopened.getSnapshot().record?.execution?.key, key);
+  assert.equal(
+    reopened.getSnapshot().record?.execution?.jobId,
+    "accepted-discussion",
+  );
+});
+
+test("three ordinary discussion sends follow the latest durably verified reply without manually selecting history", async () => {
+  const records = new Map<
+    string,
+    AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+  >();
+  const inputs: CanvasAssistanceInput[] = [];
+  const plans = new Map<string, Schema<"GenerationPlan">>();
+  const remote: AssistantTransport<CanvasAssistanceInput> = {
+    ...transport(),
+    createPlan: async (input) => {
+      inputs.push(structuredClone(input));
+      const plan = {
+        ...fixedPlan,
+        id: `discussion-plan-${inputs.length}`,
+        input,
+      };
+      plans.set(plan.id, plan);
+      return plan;
+    },
+    getPlan: async (id) => plans.get(id)!,
+    execute: async (planId) =>
+      discussionJob({
+        id: `job-${inputs.length}`,
+        planId,
+        status: "succeeded",
+        mediaIds: [],
+        assistanceArtifactId: `reply-${inputs.length}`,
+      }),
+  };
+  const chat = new AssistantSession(storage(records, "continuous"), remote);
+  await chat.load({
+    ...draft,
+    kind: "discuss",
+    sources: [],
+    instruction: "",
+    nextInstruction: "建立两个人的关系",
+  });
+  for (let round = 1; round <= 3; round++) {
+    if (round > 1) {
+      chat.updateDraft(
+        {
+          ...chat.getSnapshot().record!.draft,
+          nextInstruction: `继续第${round}轮`,
+        },
+        true,
+      );
+      await chat.settle();
+    }
+    await sendCanvasAssistantMessage(
+      chat,
+      "project",
+      assistant,
+      undefined,
+      undefined,
+      undefined,
+      canvas.id,
+    );
+    assert.deepEqual(
+      inputs[round - 1]?.assistanceSource,
+      round === 1
+        ? undefined
+        : { artifactId: `reply-${round - 1}`, revision: 1 },
+    );
+    const fixedReply = {
+      id: `reply-${round}`,
+      revision: 1,
+      projectId: "project",
+      generationJobId: `job-${round}`,
+      request: { kind: "discuss", canvasId: canvas.id },
+      body: {
+        message: `第${round}轮实际固定回复`,
+        prompt: "",
+        notes: "",
+        retain: [],
+        change: [],
+        referenceSuggestions: [],
+      },
+    } as unknown as Schema<"AssistanceArtifact">;
+    const current = chat.getSnapshot().record!.draft;
+    await chat.commitDraft(current, current, async (captured) =>
+      retainCanvasAssistantReply(captured, fixedReply),
+    );
+    assert.deepEqual(records.get("continuous")?.draft.replyTo, {
+      artifactId: `reply-${round}`,
+      revision: 1,
+    });
+  }
+  assert.equal(inputs.length, 3);
+  assert.deepEqual(
+    plans.get("discussion-plan-2")?.input.assistanceSource,
+    { artifactId: "reply-1", revision: 1 },
+    "a later reply never changes an earlier fixed request",
+  );
+});
+
+test("a late reply preserves explicit history and explicit removal for the next message", () => {
+  const latest = {
+    id: "latest",
+    revision: 2,
+    request: { kind: "discuss", canvasId: canvas.id },
+    body: { message: "核对后的新回复" },
+  } as unknown as Schema<"AssistanceArtifact">;
+  const selected = {
+    ...draft,
+    kind: "discuss" as const,
+    replyChoice: "explicit" as const,
+    replyTo: { artifactId: "chosen-old", revision: 3 },
+  };
+  assert.deepEqual(
+    retainCanvasAssistantReply(selected, latest).replyTo,
+    selected.replyTo,
+  );
+  const removed = retainCanvasAssistantReply(
+    { ...selected, replyChoice: "none", replyTo: undefined },
+    latest,
+  );
+  assert.equal(removed.replyTo, undefined);
+  assert.equal(removed.replyChoice, "none");
+  assert.equal(
+    canvasAssistancePlan(removed, "project", assistant, undefined, canvas.id)
+      .assistanceSource,
+    undefined,
+  );
+});
+
+test("failure to retain the latest discussion reply prevents a next plan even when the user keeps typing", async () => {
+  const records = new Map<
+    string,
+    AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+  >();
+  const local = storage(records, "reply-write-failure");
+  let planCount = 0;
+  let prepared: Schema<"GenerationPlan">;
+  const remote: AssistantTransport<CanvasAssistanceInput> = {
+    ...transport(),
+    createPlan: async (input) => {
+      planCount++;
+      return (prepared = { ...fixedPlan, input });
+    },
+    getPlan: async () => prepared,
+    execute: async (planId) =>
+      discussionJob({
+        id: "reply-job",
+        planId,
+        status: "succeeded",
+        mediaIds: [],
+        assistanceArtifactId: "reply-failed-write",
+      }),
+  };
+  const chat = new AssistantSession(
+    {
+      ...local,
+      write: async (record) => {
+        if (record.draft.artifact?.id === "reply-failed-write")
+          throw Error("local disk write failed");
+        await local.write(record);
+      },
+    },
+    remote,
+  );
+  await chat.load({
+    ...draft,
+    kind: "discuss",
+    sources: [],
+    instruction: "",
+    nextInstruction: "先讨论人物",
+  });
+  await sendCanvasAssistantMessage(
+    chat,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  const current = chat.getSnapshot().record!.draft;
+  const reply = {
+    id: "reply-failed-write",
+    revision: 1,
+    request: { kind: "discuss", canvasId: canvas.id },
+    body: { message: "已完成但本机未保留的回复" },
+  } as unknown as Schema<"AssistanceArtifact">;
+  await chat.commitDraft(current, current, async (captured) =>
+    retainCanvasAssistantReply(captured, reply),
+  );
+  chat.updateDraft(
+    { ...chat.getSnapshot().record!.draft, nextInstruction: "后续文字仍保留" },
+    true,
+  );
+  await chat.settle();
+  await assert.rejects(
+    sendCanvasAssistantMessage(
+      chat,
+      "project",
+      assistant,
+      undefined,
+      undefined,
+      undefined,
+      canvas.id,
+    ),
+    /最新回复/,
+  );
+  assert.equal(planCount, 1);
+  assert.equal(
+    records.get("reply-write-failure")?.draft.nextInstruction,
+    "后续文字仍保留",
+  );
+  assert.equal(records.get("reply-write-failure")?.draft.artifact, undefined);
+});
+
+test("a verified first discussion limit refusal retains the message and only an explicitly detached new topic executes", async () => {
+  for (const code of ["ASSISTANCE_HISTORY_LIMIT", "ASSISTANCE_INPUT_LIMIT"]) {
+    const records = new Map<
+      string,
+      AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+    >();
+    let receipts: CanvasPlanDeliveries | undefined;
+    const delivery = new CanvasPlanDelivery({
+      read: async () => structuredClone(receipts),
+      write: async (next) => {
+        receipts = structuredClone(next);
+      },
+    });
+    const inputs: CanvasAssistanceInput[] = [];
+    let executions = 0;
+    let prepared: Schema<"GenerationPlan">;
+    const remote: AssistantTransport<CanvasAssistanceInput> = {
+      ...transport(),
+      createPlan: (input, key) =>
+        delivery.submit(
+          input,
+          key,
+          async () => {
+            inputs.push(structuredClone(input));
+            if (input.assistanceSource)
+              throw canvasPlanError(422, {
+                code,
+                message: "对话已达到上限，请明确开启新话题。",
+                requestId: "verified-refusal",
+              });
+            return (prepared = { ...fixedPlan, id: "new-topic-plan", input });
+          },
+          async () => prepared,
+        ),
+      getPlan: async () => prepared,
+      execute: async (planId) => {
+        executions++;
+        return discussionJob({
+          id: "new-topic-job",
+          planId,
+          status: "queued",
+          mediaIds: [],
+        });
+      },
+    };
+    const chat = new AssistantSession(storage(records, code), remote);
+    const originalText = "我写好的新问题不能丢失";
+    await chat.load({
+      ...draft,
+      kind: "discuss",
+      sources: [],
+      instruction: "",
+      nextInstruction: originalText,
+      replyTo: { artifactId: "bounded-discussion", revision: 1 },
+      replyChoice: "explicit",
+    });
+    const send = () =>
+      sendCanvasAssistantMessage(
+        chat,
+        "project",
+        assistant,
+        undefined,
+        undefined,
+        (input, next) =>
+          delivery.newMessage(input, () =>
+            chat.prepareFrom(next, async () => input),
+          ),
+        canvas.id,
+      );
+    await assert.rejects(send(), /达到上限/);
+    assert.equal(executions, 0);
+    assert.equal(receipts?.receipts[0]?.phase, "rejected");
+    assert.equal(
+      chat.getSnapshot().record?.planRequest?.input.prompt,
+      originalText,
+    );
+    const rejected = structuredClone(receipts!.receipts[0]);
+    await returnRejectedCanvasPlan(delivery, chat);
+    const editable = chat.getSnapshot().record!.draft;
+    assert.equal(editable.nextInstruction, originalText);
+    assert.deepEqual(editable.replyTo, {
+      artifactId: "bounded-discussion",
+      revision: 1,
+    });
+    chat.updateDraft(
+      { ...editable, replyTo: undefined, replyChoice: "none" },
+      true,
+    );
+    await chat.settle();
+    assert.equal(inputs.length, 1, "removing context alone never submits");
+    await send();
+    assert.equal(inputs.length, 2);
+    assert.equal(inputs[1]?.prompt, originalText);
+    assert.equal(inputs[1]?.assistanceSource, undefined);
+    assert.equal(executions, 1);
+    assert.deepEqual(receipts?.receipts[0], rejected);
+  }
 });

@@ -50,11 +50,16 @@ export type CanvasAssistanceInput = Schema<"PlanInput"> & {
   canvasSources: FixedCanvasSource[];
 };
 export type CanvasAssistantDraft = {
+  /** Missing on older records means their original prepare_prompt workflow. */
+  kind?: "discuss" | "prepare_prompt";
+  nextKind?: "discuss" | "prepare_prompt" | undefined;
   sources: CanvasAssistantSource[];
   instruction: string;
   nextInstruction?: string | undefined;
   nextSources?: CanvasAssistantSource[] | undefined;
   replyTo?: { artifactId: string; revision: number } | undefined;
+  /** Explicit choices apply to the next message and win over a late result read. */
+  replyChoice?: "automatic" | "explicit" | "none";
   capabilityId: string;
   targetCapabilityId: string;
   targetCapabilityRevision?: number;
@@ -62,6 +67,57 @@ export type CanvasAssistantDraft = {
   application?: CanvasApplication | undefined;
   previousApplications?: CanvasApplication[] | undefined;
 };
+export function canvasAssistantReply(
+  artifact: Schema<"AssistanceArtifact">,
+): string {
+  if (artifact.request.kind !== "discuss") return artifact.body.prompt;
+  const message = artifact.body.message;
+  if (typeof message !== "string" || !message.trim())
+    throw Error("讨论回复正文尚未核对，请重新读取原结果。");
+  return message;
+}
+export function isCanvasDiscussion(
+  artifact: Schema<"AssistanceArtifact">,
+): boolean {
+  return artifact.request.kind === "discuss";
+}
+function followsLatestReply(draft: CanvasAssistantDraft) {
+  return (
+    draft.replyChoice === "automatic" || (!draft.replyChoice && !draft.replyTo)
+  );
+}
+/** Only a currently authorized, fixed result reaches this transition. */
+export function retainCanvasAssistantReply(
+  draft: CanvasAssistantDraft,
+  artifact: Schema<"AssistanceArtifact">,
+): CanvasAssistantDraft {
+  canvasAssistantReply(artifact);
+  const next = { ...draft, artifact };
+  if (
+    isCanvasDiscussion(artifact) &&
+    (draft.nextKind ?? draft.kind) === "discuss" &&
+    followsLatestReply(draft)
+  )
+    return {
+      ...next,
+      replyChoice: "automatic",
+      replyTo: { artifactId: artifact.id, revision: artifact.revision },
+    };
+  return next;
+}
+export function canvasReplyContinuationPending(draft: CanvasAssistantDraft) {
+  if (
+    !draft.artifact ||
+    !isCanvasDiscussion(draft.artifact) ||
+    (draft.nextKind ?? draft.kind) !== "discuss" ||
+    !followsLatestReply(draft)
+  )
+    return false;
+  return (
+    draft.replyTo?.artifactId !== draft.artifact.id ||
+    draft.replyTo?.revision !== draft.artifact.revision
+  );
+}
 export function captureCanvasSources(
   canvas: Schema<"Canvas">,
   ids: readonly string[],
@@ -96,10 +152,22 @@ export function canvasAssistancePlan(
   draft: CanvasAssistantDraft,
   projectId: string,
   assistant: Schema<"Capability">,
-  target: Schema<"Capability">,
+  target?: Schema<"Capability">,
+  canvasId?: string,
 ): CanvasAssistanceInput {
-  if (!draft.sources.length || draft.sources.length > 20)
-    throw Error("请先加入明确的画布上下文。");
+  const kind = draft.kind ?? "prepare_prompt";
+  if (
+    draft.sources.length > 20 ||
+    (kind === "prepare_prompt" && !draft.sources.length)
+  )
+    throw Error("准备生成提示需要明确的画布上下文；自由讨论可不带附件。");
+  if (kind === "discuss" && (!canvasId || !draft.instruction.trim()))
+    throw Error("请在当前画布写下想讨论的内容。");
+  if (
+    canvasId &&
+    draft.sources.some((item) => item.source.canvasId !== canvasId)
+  )
+    throw Error("消息附件不属于当前画布，尚未提交。");
   if (
     !assistant.enabled ||
     assistant.id !== draft.capabilityId ||
@@ -107,10 +175,12 @@ export function canvasAssistancePlan(
   )
     throw Error("请选择可用的助手能力。");
   if (
-    !target.enabled ||
-    target.id !== draft.targetCapabilityId ||
-    target.revision !== draft.targetCapabilityRevision ||
-    !["image", "video", "audio"].includes(target.purpose)
+    kind === "prepare_prompt" &&
+    (!target ||
+      !target.enabled ||
+      target.id !== draft.targetCapabilityId ||
+      target.revision !== draft.targetCapabilityRevision ||
+      !["image", "video", "audio"].includes(target.purpose))
   )
     throw Error("目标能力或版本已经改变，请重新选择。");
   return {
@@ -130,68 +200,122 @@ export function canvasAssistancePlan(
     promptPolicy: "append",
     contextSources: [],
     canvasSources: draft.sources.map((s) => structuredClone(s.source)),
-    assistance: {
-      kind: "prepare_prompt",
-      targetCapabilityId: target.id,
-      targetCapabilityRevision: target.revision,
-    },
+    assistance:
+      kind === "discuss"
+        ? { kind, canvasId: canvasId! }
+        : {
+            kind: "prepare_prompt",
+            targetCapabilityId: target!.id,
+            targetCapabilityRevision: target!.revision,
+          },
   };
 }
+const sendingMessages = new WeakSet<object>();
 /** A message archives only a known plan; unresolved requests keep their original identity. */
 export async function sendCanvasAssistantMessage(
   controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
   projectId: string,
   assistant: Schema<"Capability">,
-  target: Schema<"Capability">,
+  target: Schema<"Capability"> | undefined,
   verifySources?: (sources: CanvasAssistantSource[]) => Promise<void>,
   prepareNew?: (
     input: CanvasAssistanceInput,
     next: CanvasAssistantDraft,
   ) => Promise<void>,
+  canvasId?: string,
 ) {
-  const state = controller.getSnapshot(),
-    record = state.record;
-  if (!record || state.access !== "ready" || state.busy)
-    throw Error("请等待本次本机保留或访问核对完成。");
-  if (record.planRequest && !record.planId)
-    throw Error("上一条消息的计划结果待核对；后续输入已保留，不会换新请求。");
-  if (record.execution && !jobFinished(state.job))
-    throw Error("请先核对上一轮任务的最终结果；后续输入会继续保留。");
-  if (
-    record.draft.application &&
-    ["review", "unknown", "missing"].includes(record.draft.application.phase)
-  )
-    throw Error("请先完成或核对当前建议应用；后续输入会继续保留。");
-  const draft = record.draft;
-  const instruction =
-    draft.nextInstruction ?? (record.planId ? "" : draft.instruction);
-  if (!instruction.trim()) throw Error("先写下这次想讨论或调整的内容。");
-  const next: CanvasAssistantDraft = {
-    ...draft,
-    sources: structuredClone(draft.nextSources ?? draft.sources),
-    instruction,
-    nextInstruction: "",
-    nextSources: undefined,
-    artifact: undefined,
-    application: undefined,
-    previousApplications: draft.application
-      ? [...(draft.previousApplications ?? []), draft.application]
-      : draft.previousApplications,
-  };
-  const input = canvasAssistancePlan(next, projectId, assistant, target);
-  await verifySources?.(next.sources);
-  if (record.planId) await controller.revise(next, draft);
-  else await controller.commitDraft(draft, next);
-  const retained = controller.getSnapshot();
-  if (
-    retained.access !== "ready" ||
-    !retained.draftSaved ||
-    JSON.stringify(retained.record?.draft) !== JSON.stringify(next) ||
-    retained.record?.planId
-  )
-    throw Error(retained.error ?? "消息尚未完成本机保留，未发送新请求。");
-  if (prepareNew) await prepareNew(input, next);
-  else await controller.prepareFrom(next, async () => input);
+  if (sendingMessages.has(controller))
+    throw Error("本条消息正在发送，请等待原请求核对。");
+  sendingMessages.add(controller);
+  try {
+    const state = controller.getSnapshot(),
+      record = state.record;
+    if (!record || state.access !== "ready" || state.busy)
+      throw Error("请等待本次本机保留或访问核对完成。");
+    if (record.planRequest && !record.planId)
+      throw Error("上一条消息的计划结果待核对；后续输入已保留，不会换新请求。");
+    if (record.execution && !jobFinished(state.job))
+      throw Error("请先核对上一轮任务的最终结果；后续输入会继续保留。");
+    if (
+      record.draft.application &&
+      ["review", "unknown", "missing"].includes(record.draft.application.phase)
+    )
+      throw Error("请先完成或核对当前建议应用；后续输入会继续保留。");
+    const draft = record.draft;
+    const kind = draft.nextKind ?? draft.kind ?? "prepare_prompt";
+    if (
+      kind === "discuss" &&
+      followsLatestReply(draft) &&
+      state.job?.status === "succeeded" &&
+      state.job.assistanceArtifactId &&
+      (draft.artifact?.id !== state.job.assistanceArtifactId ||
+        canvasReplyContinuationPending(draft))
+    )
+      throw Error(
+        "最新回复及续聊上下文尚未完成本机保留，请先核对原回复；下一条文字已保留。",
+      );
+    const instruction =
+      draft.nextInstruction ?? (record.planId ? "" : draft.instruction);
+    if (!instruction.trim()) throw Error("先写下这次想讨论或调整的内容。");
+    const next: CanvasAssistantDraft = {
+      ...draft,
+      sources: structuredClone(draft.nextSources ?? draft.sources),
+      instruction,
+      kind,
+      replyChoice: "automatic",
+      nextKind: undefined,
+      nextInstruction: "",
+      nextSources: undefined,
+      artifact: undefined,
+      application: undefined,
+      previousApplications: draft.application
+        ? [...(draft.previousApplications ?? []), draft.application]
+        : draft.previousApplications,
+    };
+    const input = canvasAssistancePlan(
+      next,
+      projectId,
+      assistant,
+      target,
+      canvasId,
+    );
+    await verifySources?.(next.sources);
+    if (record.planId) await controller.revise(next, draft);
+    else await controller.commitDraft(draft, next);
+    const retained = controller.getSnapshot();
+    if (
+      retained.access !== "ready" ||
+      !retained.draftSaved ||
+      JSON.stringify(retained.record?.draft) !== JSON.stringify(next) ||
+      retained.record?.planId
+    )
+      throw Error(retained.error ?? "消息尚未完成本机保留，未发送新请求。");
+    if (prepareNew) await prepareNew(input, next);
+    else await controller.prepareFrom(next, async () => input);
+    if (next.kind === "discuss") {
+      const confirmed = controller.getSnapshot();
+      if (
+        confirmed.access !== "ready" ||
+        confirmed.busy ||
+        !confirmed.draftSaved ||
+        confirmed.error ||
+        !confirmed.record?.planId ||
+        confirmed.record.execution ||
+        confirmed.plan?.id !== confirmed.record.planId ||
+        editingCanonical(confirmed.plan.input) !== editingCanonical(input) ||
+        JSON.stringify(confirmed.record.draft) !== JSON.stringify(next)
+      )
+        throw Error(
+          confirmed.error ??
+            "本条讨论计划尚未完整核对，未继续执行；原消息已保留。",
+        );
+      // Sending this discussion authorizes this one reply. A restored plan never
+      // enters this branch automatically; execute persists its original key first.
+      await controller.execute();
+    }
+  } finally {
+    sendingMessages.delete(controller);
+  }
 }
 export function applicationPrompt(
   before: string,

@@ -1,7 +1,10 @@
 .header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
   flex: 0 0 auto;
-  min-height: 58px;
-  padding: 6px 16px 6px 10px;
+  min-height: 64px;
+  padding: 8px 16px;
   gap: var(--mantine-spacing-xs);
   border-bottom: 1px solid var(--ws-border);
   background: var(--ws-panel);
@@ -9,12 +12,64 @@
   z-index: 4;
 }
 .contextTools {
+  grid-column: 1;
+  grid-row: 1;
   min-width: 0;
 }
-.scenePath {
-  min-width: 60px;
-  max-width: 220px;
-  padding-inline: 2px 18px;
+.brand {
+  flex: 0 0 auto;
+  font-size: var(--mantine-font-size-lg);
+  letter-spacing: -0.04em;
+}
+.projectName {
+  min-width: 0;
+  max-width: 160px;
+  padding-inline: 12px;
+  border-inline-start: 1px solid var(--ws-border);
+}
+.environment {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-hover);
+  white-space: nowrap;
+}
+.modeSwitch {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  padding: 3px;
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-raised);
+}
+.modeSwitch button {
+  min-width: 76px;
+  color: var(--ws-secondary);
+}
+.modeSwitch button[aria-pressed="true"] {
+  color: var(--ws-on-accent);
+  background: var(--ws-accent);
+}
+.headerActions {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  min-width: 0;
+}
+.headerActions [hidden] {
+  display: none;
+}
+.modePanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.modePanel[hidden] {
+  display: none;
 }
 .body {
   flex: 1;
@@ -71,7 +126,8 @@
 }
 .assistantTabs {
   flex: 0 0 auto;
-  padding: 4px 12px 8px;
+  padding: 0 16px 6px;
+  border-bottom: 1px solid var(--ws-border);
 }
 .assistantChatSlot {
   flex: 1;
@@ -127,24 +183,50 @@
   }
 }
 @media (max-width: 1000px) {
-  .scenePath {
-    max-width: 150px;
-    padding-right: 4px;
-  }
   .header {
     padding-inline: 8px;
   }
 }
+@media (max-width: 1390px) {
+  .projectName {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 4px;
+  }
+  .brand {
+    font-size: var(--mantine-font-size-sm);
+  }
+  .headerActions {
+    gap: 2px;
+  }
+  .headerActions button {
+    padding-inline: 6px;
+  }
+  .modeSwitch button {
+    min-width: 60px;
+  }
+}
 @media (max-width: 760px) {
   .header {
-    flex-wrap: wrap;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
   }
   .contextTools {
-    flex: 1 1 100%;
+    grid-column: 1 / -1;
+    padding-bottom: 4px;
   }
-  .scenePath {
-    flex: 1;
-    max-width: none;
+  .modeSwitch {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+  .headerActions {
+    grid-column: 2;
+    grid-row: 2;
   }
   .dock {
     inset: 8px;
@@ -161,5 +243,19 @@
     border: 0;
     border-radius: initial;
     box-shadow: none;
+  }
+}
+@media (max-width: 560px) {
+  .modeSwitch {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+  .headerActions {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+  }
+  .headerActions .saveAction {
+    display: none;
   }
 }

@@ -35,12 +35,16 @@ export default function CandidateWorkspace({
   embedded = false,
   externalDockOpen = false,
   closeExternalDock,
+  selectedShotId,
+  onSelectShot,
 }: {
   tenantId: string;
   projectId: string;
   embedded?: boolean;
   externalDockOpen?: boolean;
   closeExternalDock?: () => void;
+  selectedShotId?: string | null;
+  onSelectShot?: (id: string) => void;
 }) {
   const [overview, setOverview] = useState(false);
   const cache = useQueryClient(),
@@ -51,7 +55,7 @@ export default function CandidateWorkspace({
     content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const query = new URLSearchParams(location.hash.split("?")[1]),
     sceneId = query.get("scene"),
-    shotId = query.get("shot"),
+    shotId = query.get("shot") ?? selectedShotId,
     takeId = query.get("take");
   const scene = content.data?.scenes.find((s) => s.id === sceneId),
     episode = content.data?.episodes.find((e) => e.id === scene?.episodeId);
@@ -59,6 +63,9 @@ export default function CandidateWorkspace({
   const shot = shotId
     ? shots.find((s) => s.id === shotId)
     : (shots.find((s) => s.status === "active") ?? shots[0]);
+  useEffect(() => {
+    if (shot && shot.id !== selectedShotId) onSelectShot?.(shot.id);
+  }, [shot?.id, selectedShotId, onSelectShot]);
   const base = `#/app/t/${tenantId}/p/${projectId}`,
     contentHref = `${base}/content?scene=${sceneId ?? ""}`;
   useEffect(() => {
@@ -145,7 +152,7 @@ export default function CandidateWorkspace({
           takeId={takeId}
           externalDockOpen={externalDockOpen}
           closeExternalDock={closeExternalDock}
-          href={`${base}/production?scene=${scene.id}&shot=${shot.id}`}
+          href={`${base}/production?scene=${scene.id}&mode=storyboard&shot=${shot.id}`}
           contentHref={`${base}/content?shot=${shot.id}`}
         />
       )}
@@ -174,7 +181,7 @@ export default function CandidateWorkspace({
               <UnstyledButton
                 key={s.id}
                 component="a"
-                href={`${base}/production?scene=${sceneId}&shot=${s.id}`}
+                href={`${base}/production?scene=${sceneId}&mode=storyboard&shot=${s.id}`}
                 onClick={() => setOverview(false)}
                 className={classes.overviewShot}
               >
@@ -197,7 +204,7 @@ export default function CandidateWorkspace({
           <UnstyledButton
             key={s.id}
             component="a"
-            href={`${base}/production?scene=${sceneId}&shot=${s.id}`}
+            href={`${base}/production?scene=${sceneId}&mode=storyboard&shot=${s.id}`}
             className={classes.shot}
             data-selected={s.id === shot?.id || undefined}
             aria-current={s.id === shot?.id ? "true" : undefined}

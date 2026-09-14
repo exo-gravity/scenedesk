@@ -187,7 +187,7 @@ export async function resolveMedia(
   if (input.assistanceSource) {
     const source = (
       await tx.sql.query(
-        "SELECT r.body FROM assistance_artifact_revisions r WHERE tenant_id=$1 AND project_id=$2 AND artifact_id=$3 AND number=$4",
+        "SELECT r.body FROM assistance_artifact_revisions r JOIN assistance_artifacts a ON a.id=r.artifact_id JOIN generation_jobs j ON j.id=a.generation_job_id JOIN generation_plans p ON p.id=j.plan_id WHERE r.tenant_id=$1 AND r.project_id=$2 AND r.artifact_id=$3 AND r.number=$4 AND p.input->'assistance'->>'kind' IN ('prepare_prompt','prepare_rework')",
         [
           tx.tenantId,
           tx.projectId,
@@ -255,7 +255,7 @@ export async function assertMediaCurrent(
     requireThat(
       (
         await tx.sql.query(
-          "SELECT 1 FROM assistance_artifact_revisions WHERE tenant_id=$1 AND project_id=$2 AND artifact_id=$3 AND number=$4",
+          "SELECT 1 FROM assistance_artifact_revisions r JOIN assistance_artifacts a ON a.id=r.artifact_id JOIN generation_jobs j ON j.id=a.generation_job_id JOIN generation_plans p ON p.id=j.plan_id WHERE r.tenant_id=$1 AND r.project_id=$2 AND r.artifact_id=$3 AND r.number=$4 AND p.input->'assistance'->>'kind' IN ('prepare_prompt','prepare_rework')",
           [
             tx.tenantId,
             tx.projectId,

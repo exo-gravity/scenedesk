@@ -269,29 +269,9 @@
   padding-block: 4px;
 }
 .generationAction {
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
   flex-shrink: 0;
   align-self: stretch !important;
   min-height: 34px;
-}
-
-/* The whole short control area stays readable while the prompt/references scroll. */
-.canvasGeneration:has([data-compact-controls]) {
-  position: sticky;
-  bottom: 0;
-  z-index: 4;
-  max-height: 168px;
-  overflow: auto;
-  padding: 8px;
-  background: var(--ws-panel);
-  border-top: 1px solid var(--ws-border);
-}
-:global([data-focused]) .canvasGeneration:has([data-compact-controls]) {
-  position: static;
-  max-height: none;
-  overflow: visible;
 }
 .specificationFields {
   max-height: min(560px, 65dvh);

@@ -3289,7 +3289,7 @@ export interface components {
             assistance?: components["schemas"]["AssistanceRequest"];
             assistanceSource?: components["schemas"]["ArtifactSource"];
             canvasSources?: components["schemas"]["CanvasAssistanceSource"][];
-        } & (unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown);
+        } & (unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown);
         GenerationPlan: {
             /** Format: uuid */
             id: string;
@@ -3959,6 +3959,13 @@ export interface components {
             creativeBasisRevisionIds?: string[];
             canvasSnapshots?: components["schemas"]["CanvasAssistanceSnapshot"][];
             assistanceInstruction?: string;
+            assistanceHistory?: components["schemas"]["AssistanceTurn"][];
+            canvasScope?: {
+                /** Format: uuid */
+                canvasId: string;
+                /** Format: uuid */
+                sceneId: string;
+            };
             targetCapabilitySnapshot?: components["schemas"]["Capability"];
             /** Format: uuid */
             targetConnectionVersionId?: string;
@@ -4285,17 +4292,20 @@ export interface components {
         };
         AssistanceRequest: {
             /** @enum {string} */
-            kind: "prepare_prompt" | "prepare_rework";
+            kind: "prepare_prompt" | "prepare_rework" | "discuss";
             /** Format: uuid */
-            targetCapabilityId: string;
-            targetCapabilityRevision: number;
+            canvasId?: string;
+            /** Format: uuid */
+            targetCapabilityId?: string;
+            targetCapabilityRevision?: number;
             /** Format: uuid */
             sourceTakeId?: string;
             /** Format: uuid */
             sourceCutRevisionId?: string;
             feedback?: components["schemas"]["ReworkLink"];
-        } & unknown;
+        } & (unknown & unknown & unknown);
         AssistanceBody: {
+            message?: string;
             prompt: string;
             referenceSuggestions: components["schemas"]["Reference"][];
             retain: string[];
@@ -4323,7 +4333,7 @@ export interface components {
             inputOutdated: boolean;
             /** @enum {string} */
             executionMode?: "test_fixture" | "verified_provider";
-        } & unknown;
+        } & (unknown & unknown);
         AssistanceEdit: {
             body: components["schemas"]["AssistanceBody"];
         };
@@ -4331,6 +4341,11 @@ export interface components {
             /** Format: uuid */
             artifactId: string;
             revision: number;
+        };
+        AssistanceTurn: {
+            source: components["schemas"]["ArtifactSource"];
+            instruction: string;
+            message: string;
         };
         CreativeBasisInput: {
             /** @enum {string} */
@@ -9559,7 +9574,7 @@ export interface operations {
                 projectId?: string;
                 shotId?: string;
                 canvasId?: string;
-                kind?: "prepare_prompt" | "prepare_rework";
+                kind?: "prepare_prompt" | "prepare_rework" | "discuss";
             };
             header?: never;
             path: {

@@ -182,6 +182,7 @@ export function useCanvasAssistantSession(
     if (entry.owners === 1) {
       const unregister = registerAssistant({
         controller: {
+          getSnapshot: controller.getSnapshot,
           suspend: () => controller.suspend(),
           verify: () => controller.verify(),
           settle: () => controller.settle(),
@@ -219,6 +220,7 @@ export function useCanvasAssistantSession(
       if (!entry.loaded) {
         entry.loaded = true;
         void controller.load({
+          kind: "discuss",
           sources: [],
           instruction: "",
           nextInstruction: "",
@@ -255,7 +257,7 @@ export function useCanvasAssistantSession(
   }, [state.record, state.draftSaved]);
   const sendMessage = (
     assistant: Schema<"Capability">,
-    target: Schema<"Capability">,
+    target: Schema<"Capability"> | undefined,
     verifySources: (sources: CanvasAssistantSource[]) => Promise<void>,
   ) =>
     sendCanvasAssistantMessage(
@@ -268,6 +270,7 @@ export function useCanvasAssistantSession(
         entry.delivery.newMessage(input, () =>
           controller.prepareFrom(next, async () => input),
         ),
+      canvasId,
     );
   const returnRejectedToEditing = () =>
     returnRejectedCanvasPlan(entry.delivery, controller);
