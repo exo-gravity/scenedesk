@@ -1,0 +1,162 @@
+{
+  "editorAncestors": [
+    {
+      "class": "_input_kuo2q_37 _textarea_kuo2q_54 m_8fb7ebe7 mantine-Input-input mantine-Textarea-input",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "TEXTAREA"
+    },
+    {
+      "class": "m_6c018570 mantine-Input-wrapper mantine-Textarea-wrapper",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "m_46b77525 mantine-InputWrapper-root mantine-Textarea-root",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_composerFields_1crek_170",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_composer_1crek_166",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_editorInput_1crek_500",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_editorColumns_1crek_491",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_contextualEditor_1crek_457",
+      "inert": false,
+      "portal": false,
+      "role": "dialog",
+      "tag": "SECTION"
+    },
+    {
+      "class": "_board_1crek_79",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_central_19erh_28",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_body_19erh_19",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_session_1crek_28",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_workspace_1crek_1",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_main_1h90q_184",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "MAIN"
+    },
+    {
+      "class": "_content_1h90q_137",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "SECTION"
+    },
+    {
+      "class": "_layout_1h90q_30",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "_shell_1h90q_1",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "DIV"
+    },
+    {
+      "class": "",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "BODY"
+    },
+    {
+      "class": "",
+      "inert": false,
+      "portal": false,
+      "role": null,
+      "tag": "HTML"
+    }
+  ],
+  "focusedElements": [
+    {
+      "class": "_body_19erh_19",
+      "tag": "DIV",
+      "value": "true"
+    },
+    {
+      "class": "_board_1crek_79",
+      "tag": "DIV",
+      "value": "true"
+    },
+    {
+      "class": "_contextualEditor_1crek_457",
+      "tag": "SECTION",
+      "value": "true"
+    }
+  ],
+  "visible": []
+}

@@ -1,0 +1,128 @@
+{
+  "status": "normal_flow_passed_ui_defects_await_next_candidate",
+  "candidate": "e9825a1",
+  "loadedBundle": "/assets/index-BERIa8SG.js",
+  "continuation": "Official CUA recovery in a fresh tab of the same Chrome session. Original disconnected tab and its local unknown intent were not cleared. This verifies server history, not original-tab IndexedDB completion.",
+  "scope": "Same isolated editor scene/canvas as browser-initial.json; real user demo untouched.",
+  "observedResults": [
+    {
+      "name": "original one-shot execution recovered from history",
+      "outcome": "passed",
+      "mediaId": "8e354534-ecbe-4909-8d46-7cd3ca5a24f0",
+      "planPrefix": "c4d800f1",
+      "executionClicksTotal": 1
+    },
+    {
+      "name": "same-node history/edit separation",
+      "outcome": "passed",
+      "currentPrompt": "下一版仅改输入：保持独立草稿，不覆盖已完成的九秒尝试。",
+      "fixedPrompt": "独立历史验收：九秒技术静帧，保持原图。",
+      "fixedSettings": "720x1280 / 9:16 / 9 seconds / silent / seed73",
+      "screenshot": "history-and-new-draft-1440.png"
+    },
+    {
+      "name": "real archived proxy playback",
+      "outcome": "passed",
+      "media": {
+        "duration": 9,
+        "currentTime": 9,
+        "readyState": 4,
+        "videoWidth": 406,
+        "videoHeight": 722,
+        "error": null
+      },
+      "playbackClosed": true
+    },
+    {
+      "name": "explicit result materialization",
+      "outcome": "passed",
+      "reviewCoordinates": {
+        "x": 1076,
+        "y": 408
+      },
+      "nodeCountBefore": 5,
+      "nodeCountAfter": 6,
+      "unchangedCurrentPrompt": true,
+      "screenshot": "materialized-original-result-1440.png"
+    },
+    {
+      "name": "locate fixed result",
+      "outcome": "passed",
+      "selectedTitle": "生成视频（显式技术测试）",
+      "editingTitle": "视频草稿"
+    },
+    {
+      "name": "explicit edit from narrow node list",
+      "outcome": "passed",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "role": "dialog",
+      "label": "编辑 视频草稿",
+      "inputPreserved": true,
+      "documentScrollWidth": 390,
+      "screenshots": [
+        "focus-editor-390.png",
+        "focus-editor-dark-390.png"
+      ]
+    }
+  ],
+  "additionalDefects": [
+    {
+      "name": "media success status text",
+      "message": "Video draft uses script-oriented status 分镜提案可用. Result history itself correctly shows 成果已就绪."
+    },
+    {
+      "name": "auxiliary header overlap",
+      "message": "1440px node index control overlays the results header close area."
+    },
+    {
+      "name": "narrow auxiliary layering",
+      "message": "At390px an open results auxiliary is covered by viewport controls, expanded node list and compact editor. Explicitly opening editing from a closed auxiliary does correctly enter focus.",
+      "screenshot": "narrow-overlap-390.png"
+    }
+  ],
+  "screenshotDimensions": {
+    "history-and-new-draft.png": [
+      1920,
+      958
+    ],
+    "history-and-new-draft-1440.png": [
+      1440,
+      1000
+    ],
+    "materialized-original-result-1440.png": [
+      1440,
+      1000
+    ],
+    "narrow-overlap-390.png": [
+      390,
+      844
+    ],
+    "focus-editor-390.png": [
+      390,
+      844
+    ],
+    "focus-editor-dark-390.png": [
+      390,
+      844
+    ]
+  },
+  "currentBrowserState": {
+    "freshTab": "retained for next candidate",
+    "scheme": "light",
+    "viewportReset": {
+      "width": 1920,
+      "height": 958
+    },
+    "playingMedia": 0,
+    "oldTab": "still disconnected; not manipulated"
+  },
+  "notClaimed": [
+    "No real model quality/production provider acceptance",
+    "No original-tab unknown receipt completion after debugger detachment",
+    "No A/B comparison with two different outputs yet",
+    "No final passing paint for the reported footer/Escape/overlay defects"
+  ]
+}

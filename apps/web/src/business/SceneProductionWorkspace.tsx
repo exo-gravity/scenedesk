@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Alert,
+  ActionIcon,
   Button,
   Group,
   Loader,
@@ -9,11 +16,14 @@ import {
   Stack,
   Text,
   TextInput,
+  Tooltip,
 } from "@mantine/core";
 import {
   ArrowLeft,
   ClockCounterClockwise,
   Images,
+  FilmStrip,
+  DotsThree,
   Sparkle,
 } from "@phosphor-icons/react";
 import type { CanvasNode } from "@drama/domain";
@@ -21,6 +31,7 @@ import {
   api,
   ApiError,
   useCommand,
+  useList,
   usePages,
   useResource,
   useSession,
@@ -34,6 +45,7 @@ import { EditingPresence } from "./EditingPresence";
 import { CanvasBoard } from "./CanvasBoard";
 import { CanvasUploads } from "./CanvasUploads";
 import { SceneAssistant } from "./SceneAssistant";
+import { CanvasAssistant } from "./CanvasAssistant";
 import { AssistantProposal } from "./AssistantProposal";
 import { CanvasShotConnections } from "./CanvasShotConnections";
 import { useQueryClient } from "@tanstack/react-query";
@@ -42,7 +54,9 @@ import { CanvasRecovery, canvasSaveLabel } from "./CanvasRecovery";
 import { MediaPreview } from "./MediaPreview";
 import type { CanvasController } from "./canvas-controller";
 import { CanvasImageGeneration } from "./CanvasImageGeneration";
+import { jobStatusLabel } from "./assistant-session";
 import classes from "./canvas.module.css";
+import layout from "./scene-production.module.css";
 
 type Preference = Schema<"SaveSceneWorkspacePreference">;
 export default function SceneProductionWorkspace({
@@ -99,7 +113,7 @@ function SceneWorkspace({
   const scene = content.data?.scenes.find((s) => s.id === sceneId),
     episode = content.data?.episodes.find((e) => e.id === scene?.episodeId);
   useEffect(() => {
-    document.title = `${scene?.title ?? "场次"} · 镜头制作 · 幕序`;
+    document.title = `${scene?.title ?? "场次"} · 镜头制作 · SceneDesk`;
   }, [scene?.title]);
   const active =
     project.data?.status === "active" &&
@@ -136,57 +150,55 @@ function SceneWorkspace({
   if (!scene) return <Empty>本场次不存在或不属于当前项目。</Empty>;
   const view = { ...preference.view, mode };
   const modeTools = (
-    <Group gap="xs" wrap="nowrap" className={classes.modeTools}>
-      <Text fw={600} size="sm">
-        镜头制作
-      </Text>
-      <Button
-        size="xs"
-        variant="subtle"
-        aria-pressed={mode === "storyboard"}
-        onClick={() => switchMode("storyboard")}
+    <Group gap="xs" wrap="nowrap" className={layout.contextTools}>
+      <Tooltip label="返回场次目录">
+        <ActionIcon
+          component="a"
+          href={`${base}/content?scene=${sceneId}`}
+          variant="subtle"
+          aria-label="返回场次目录"
+        >
+          <ArrowLeft size={18} />
+        </ActionIcon>
+      </Tooltip>
+      <div
+        className={layout.scenePath}
+        title={`${project.data.name} / ${episode?.title} / ${scene.title}`}
       >
-        分镜
-      </Button>
-      <Button
-        size="xs"
-        variant="subtle"
-        aria-pressed={mode === "canvas"}
-        onClick={() => switchMode("canvas")}
+        <Text size="xs" c="dimmed" truncate>
+          {project.data.name} / {episode?.title}
+        </Text>
+        <Text fw={600} size="sm" truncate>
+          {scene.title}
+        </Text>
+      </div>
+      <Group
+        gap={2}
+        wrap="nowrap"
+        className={classes.modeTools}
+        aria-label="制作模式"
       >
-        自由画布
-      </Button>
+        <Button
+          size="xs"
+          variant="subtle"
+          aria-pressed={mode === "storyboard"}
+          onClick={() => switchMode("storyboard")}
+        >
+          分镜
+        </Button>
+        <Button
+          size="xs"
+          variant="subtle"
+          aria-pressed={mode === "canvas"}
+          onClick={() => switchMode("canvas")}
+        >
+          自由画布
+        </Button>
+      </Group>
     </Group>
   );
   return (
-    <div className={classes.workspace}>
-      <Group
-        justify="space-between"
-        className={classes.contextHeader}
-        wrap="nowrap"
-      >
-        <Group gap="xs" wrap="nowrap">
-          <Button
-            component="a"
-            href={`${base}/content?scene=${sceneId}`}
-            variant="subtle"
-            leftSection={<ArrowLeft size={16} />}
-          >
-            场次目录
-          </Button>
-          <div>
-            <Text fw={600}>
-              {project.data.name} / {episode?.title} / {scene.title}
-            </Text>
-            <Text size="xs" c="dimmed">
-              镜头制作
-            </Text>
-          </div>
-        </Group>
-        <Button size="xs" variant="subtle" component="a" href={`${base}/media`}>
-          素材管理
-        </Button>
-      </Group>
+    <div className={classes.workspace} data-scene-workspace>
       <ErrorNotice
         error={preference.error}
         retry={preference.retry}
@@ -220,6 +232,7 @@ function SceneWorkspace({
         />
       ) : (
         <Stack>
+          <div className={layout.header}>{modeTools}</div>
           {missing ? (
             <Empty>
               <Text fw={600}>本场的自由画布还未创建</Text>
@@ -277,7 +290,7 @@ function SceneCanvasSession({
       canvasId,
     ),
     [dock, setDock] = useState<
-      "media" | "history" | "assistant" | "shots" | null
+      "media" | "history" | "assistant" | "shots" | "results" | null
     >(
       preference.assetPanelOpen
         ? "media"
@@ -286,6 +299,28 @@ function SceneCanvasSession({
           : null,
     );
   const [assistantProposalId, setAssistantProposalId] = useState<string>();
+  const [editingNodeId, setEditingNodeId] = useState<string>();
+  const [focusMode, setFocusMode] = useState(false);
+  const [assistantContext, setAssistantContext] = useState<{
+    nodeIds: string[];
+    nonce: number;
+  }>();
+  const [inspectedPlanId, setInspectedPlanId] = useState<string>();
+  const [assistantView, setAssistantView] = useState<"canvas" | "scene">(
+    "canvas",
+  );
+  const [moreOpen, setMoreOpen] = useState(false);
+  const auxiliaryOpener = useRef<HTMLElement | null>(null);
+  const auxiliaryFallback = useRef<HTMLButtonElement>(null);
+  const retainGenerationDraft = useRef<(() => Promise<void>) | undefined>(
+    undefined,
+  );
+  const registerGenerationDraft = useCallback(
+    (retain: (() => Promise<void>) | undefined) => {
+      retainGenerationDraft.current = retain;
+    },
+    [],
+  );
   const mediaPath = tenantPath(tenantId),
     path = projectPath(tenantId, projectId);
   const cache = useQueryClient(),
@@ -294,6 +329,55 @@ function SceneCanvasSession({
     `${path}/scenes/${sceneId}/canvas`,
   );
   const content = useResource<Schema<"ContentTree">>(`${path}/content`);
+  const attempts = useList<Schema<"CanvasPlanEntry">>(
+    `${path}/canvases/${canvasId}/generation-plans`,
+    preference.mode === "canvas" &&
+      !!state?.local &&
+      !state.accessChecking &&
+      state.phase !== "forbidden",
+  );
+  const runningAttempts = attempts.data?.some(
+    (entry) =>
+      entry.jobStatus &&
+      !["succeeded", "failed", "cancelled"].includes(entry.jobStatus),
+  );
+  useEffect(() => {
+    if (
+      !runningAttempts ||
+      preference.mode !== "canvas" ||
+      state?.accessChecking ||
+      state?.phase === "forbidden"
+    )
+      return;
+    const timer = setInterval(() => {
+      void attempts.refetch();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [
+    runningAttempts,
+    preference.mode,
+    state?.accessChecking,
+    state?.phase,
+    attempts.refetch,
+  ]);
+  const nodeAttemptLabels: Record<string, string> = {};
+  for (const entry of [...(attempts.data ?? [])].sort((a, b) =>
+    (b.plan.createdAt ?? "").localeCompare(a.plan.createdAt ?? ""),
+  )) {
+    if (nodeAttemptLabels[entry.origin.nodeId]) continue;
+    nodeAttemptLabels[entry.origin.nodeId] = entry.jobStatus
+      ? entry.jobStatus === "succeeded"
+        ? "成果已就绪"
+        : jobStatusLabel[entry.jobStatus]
+      : entry.jobId
+        ? "任务已受理"
+        : {
+            ready: "待确认",
+            blocked: "需要补充输入",
+            expired: "计划已过期",
+            consumed: "计划已使用",
+          }[entry.plan.status];
+  }
   const [bindingTarget, setBindingTarget] = useState<CanvasNode | null>(null);
   const [bindingSeed, setBindingSeed] = useState<{
     shotId: string;
@@ -330,15 +414,28 @@ function SceneCanvasSession({
   const editBinding = (node: CanvasNode | null) => {
     setBindingTarget(node);
     setBindingSeed(undefined);
-    setDock("shots");
+    if (dock !== "shots") selectDock("shots");
   };
   const selectDock = (next: typeof dock) => {
     const value = next === dock ? null : next;
+    setMoreOpen(false);
+    if (value && !dock)
+      auxiliaryOpener.current =
+        window.document.activeElement instanceof HTMLElement
+          ? window.document.activeElement
+          : null;
     setDock(value);
     changePreference({
       assetPanelOpen: value === "media",
       assistantOpen: value === "assistant",
     });
+    if (!value)
+      requestAnimationFrame(() => {
+        const target = auxiliaryOpener.current;
+        if (target?.isConnected && !target.closest("[inert], [hidden]"))
+          target.focus();
+        else auxiliaryFallback.current?.focus();
+      });
   };
   const selectNode = (id: string) => {
     changePreference({ selectedNodeIds: [id], mode: "canvas" });
@@ -405,8 +502,9 @@ function SceneCanvasSession({
       <div className={classes.session}>
         <Group
           justify="space-between"
-          className={classes.modeToolbar}
+          className={layout.header}
           wrap="nowrap"
+          inert={focusMode || undefined}
         >
           {toolbar}
           <Popover width={280} position="bottom-end">
@@ -458,48 +556,66 @@ function SceneCanvasSession({
               )}
             <Button
               size="xs"
+              variant="subtle"
               hidden={preference.mode !== "canvas"}
-              aria-pressed={dock === "shots"}
-              onClick={() => selectDock("shots")}
+              aria-pressed={dock === "results"}
+              ref={auxiliaryFallback}
+              onClick={() => selectDock("results")}
             >
-              本场镜头与探索
+              任务与结果
             </Button>
-            <Button
-              size="xs"
-              leftSection={<Images size={16} />}
-              aria-pressed={dock === "media"}
-              onClick={() => selectDock("media")}
+            {preference.mode !== "canvas" && (
+              <Button
+                size="xs"
+                variant="subtle"
+                leftSection={<Images size={16} />}
+                aria-pressed={dock === "media"}
+                onClick={() => selectDock("media")}
+              >
+                素材
+              </Button>
+            )}
+            <Popover
+              width={300}
+              position="bottom-end"
+              keepMounted
+              opened={moreOpen}
+              onChange={setMoreOpen}
             >
-              素材
-            </Button>
-            <Button
-              size="xs"
-              hidden={preference.mode !== "canvas"}
-              leftSection={<ClockCounterClockwise size={16} />}
-              aria-pressed={dock === "history"}
-              onClick={() => selectDock("history")}
-            >
-              历史
-            </Button>
-            <Popover width={320} position="bottom-end" keepMounted>
               <Popover.Target>
-                <Button size="xs" variant="subtle">
-                  协作状态
-                </Button>
+                <ActionIcon
+                  size="md"
+                  variant="subtle"
+                  aria-label="画布恢复与协作"
+                  onClick={() => setMoreOpen(!moreOpen)}
+                >
+                  <DotsThree size={20} />
+                </ActionIcon>
               </Popover.Target>
               <Popover.Dropdown>
-                <EditingPresence
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  canvasId={canvasId}
-                  enabled={!state.accessChecking && state.phase !== "loading"}
-                  editing={
-                    active &&
-                    (state.dirty ||
-                      state.hasInvalidInput ||
-                      state.phase === "saving")
-                  }
-                />
+                <Stack gap="sm">
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    leftSection={<ClockCounterClockwise size={16} />}
+                    hidden={preference.mode !== "canvas"}
+                    onClick={() => selectDock("history")}
+                  >
+                    画布恢复历史
+                  </Button>
+                  <EditingPresence
+                    tenantId={tenantId}
+                    projectId={projectId}
+                    canvasId={canvasId}
+                    enabled={!state.accessChecking && state.phase !== "loading"}
+                    editing={
+                      active &&
+                      (state.dirty ||
+                        state.hasInvalidInput ||
+                        state.phase === "saving")
+                    }
+                  />
+                </Stack>
               </Popover.Dropdown>
             </Popover>
             <Button
@@ -521,8 +637,13 @@ function SceneCanvasSession({
         {state.phase === "loading" || !document ? (
           <Loader aria-label="正在读取画布" />
         ) : (
-          <div className={classes.body} data-dock={dock || undefined}>
-            <div className={classes.central}>
+          <div
+            className={layout.body}
+            data-mode={preference.mode}
+            data-dock={dock || undefined}
+            data-focused={focusMode || undefined}
+          >
+            <div className={layout.central}>
               {assistantProposalId ? (
                 <AssistantProposal
                   path={path}
@@ -541,17 +662,47 @@ function SceneCanvasSession({
                   readOnly={readOnly || bindingBusy}
                   focusRequest={focusRequest}
                   focusCompleted={focusCompleted}
+                  editingNodeId={editingNodeId}
+                  nodeAttemptLabels={nodeAttemptLabels}
+                  onEditNode={setEditingNodeId}
+                  beforeEditNodeChange={async () => {
+                    await retainGenerationDraft.current?.();
+                    return true;
+                  }}
+                  auxiliaryOpen={!!dock}
+                  auxiliaryDocked={dock === "assistant"}
+                  onFocusModeChange={setFocusMode}
+                  onOpenResults={() => selectDock("results")}
+                  onAddAssistantContext={(nodeIds) => {
+                    setAssistantContext({ nodeIds, nonce: Date.now() });
+                    setAssistantView("canvas");
+                    if (dock !== "assistant") selectDock("assistant");
+                  }}
+                  navigation={
+                    <Tooltip label="本场镜头与探索" position="right">
+                      <ActionIcon
+                        aria-label="本场镜头与探索"
+                        variant="subtle"
+                        aria-pressed={dock === "shots"}
+                        onClick={() => selectDock("shots")}
+                      >
+                        <FilmStrip size={19} />
+                      </ActionIcon>
+                    </Tooltip>
+                  }
                   generation={
                     <CanvasImageGeneration
                       tenantId={tenantId}
                       projectId={projectId}
                       sceneId={sceneId}
                       controller={controller}
-                      selectedNodeId={
-                        preference.selectedNodeIds.length === 1
-                          ? preference.selectedNodeIds[0]
-                          : undefined
-                      }
+                      mode="editor"
+                      onRetainDraft={registerGenerationDraft}
+                      selectedNodeId={editingNodeId}
+                      onInspectPlan={(planId) => {
+                        setInspectedPlanId(planId);
+                        if (dock !== "results") selectDock("results");
+                      }}
                       readOnly={readOnly}
                       focus={focusNodes}
                     />
@@ -579,11 +730,7 @@ function SceneCanvasSession({
                     ) : undefined
                   }
                   addMedia={() => {
-                    setDock("media");
-                    changePreference({
-                      assetPanelOpen: true,
-                      assistantOpen: false,
-                    });
+                    if (dock !== "media") selectDock("media");
                   }}
                 />
               ) : (
@@ -597,11 +744,12 @@ function SceneCanvasSession({
               )}
             </div>
             <aside
-              className={classes.dock}
+              className={`${layout.dock} ${layout.assistantDock}`}
               aria-label="AI 创作助手"
+              inert={focusMode || undefined}
               hidden={dock !== "assistant"}
             >
-              <div className={classes.dockHeading}>
+              <div className={`${classes.dockHeading} ${layout.dockHeading}`}>
                 <Group justify="space-between">
                   <Text fw={600}>AI 创作助手</Text>
                   <Button
@@ -613,120 +761,208 @@ function SceneCanvasSession({
                   </Button>
                 </Group>
               </div>
-              <SceneAssistant
-                tenantId={tenantId}
-                projectId={projectId}
-                sceneId={sceneId}
-                active={active}
-                visible={dock === "assistant"}
-                onOpenProposal={setAssistantProposalId}
-              />
+              {preference.mode === "canvas" && (
+                <Group
+                  gap={4}
+                  className={layout.assistantTabs}
+                  aria-label="助手上下文"
+                >
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    aria-pressed={assistantView === "canvas"}
+                    onClick={() => setAssistantView("canvas")}
+                  >
+                    画布对象
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    aria-pressed={assistantView === "scene"}
+                    onClick={() => setAssistantView("scene")}
+                  >
+                    场次建议
+                  </Button>
+                </Group>
+              )}
+              <div
+                className={layout.assistantChatSlot}
+                hidden={
+                  preference.mode !== "canvas" || assistantView !== "canvas"
+                }
+              >
+                <CanvasAssistant
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  sceneId={sceneId}
+                  controller={controller}
+                  active={active && !readOnly}
+                  visible={
+                    dock === "assistant" &&
+                    preference.mode === "canvas" &&
+                    assistantView === "canvas"
+                  }
+                  requestedContext={assistantContext}
+                />
+              </div>
+              <div
+                className={layout.assistantSceneSlot}
+                hidden={
+                  preference.mode === "canvas" && assistantView !== "scene"
+                }
+              >
+                <SceneAssistant
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  sceneId={sceneId}
+                  active={active}
+                  visible={
+                    dock === "assistant" &&
+                    (preference.mode !== "canvas" || assistantView === "scene")
+                  }
+                  onOpenProposal={setAssistantProposalId}
+                />
+              </div>
             </aside>
-            {dock && dock !== "assistant" && (
-              <aside
-                className={classes.dock}
-                aria-label={
-                  dock === "media"
-                    ? "素材浏览"
-                    : dock === "history"
-                      ? "画布恢复历史"
+            <aside
+              hidden={!dock || dock === "assistant"}
+              className={layout.dock}
+              inert={focusMode || undefined}
+              aria-label={
+                dock === "media"
+                  ? "素材浏览"
+                  : dock === "history"
+                    ? "画布恢复历史"
+                    : dock === "results"
+                      ? "任务与结果"
                       : dock === "shots"
                         ? "本场镜头与探索"
                         : "AI 创作助手"
-                }
-              >
-                <div className={classes.dockHeading}>
-                  <Group justify="space-between">
-                    <Text fw={600}>
-                      {dock === "media"
-                        ? "素材浏览"
-                        : dock === "history"
-                          ? "画布历史"
+              }
+            >
+              <div className={`${classes.dockHeading} ${layout.dockHeading}`}>
+                <Group justify="space-between">
+                  <Text fw={600}>
+                    {dock === "media"
+                      ? "素材浏览"
+                      : dock === "history"
+                        ? "画布历史"
+                        : dock === "results"
+                          ? "任务与结果"
                           : dock === "shots"
                             ? "本场镜头与探索"
                             : "AI 创作助手"}
-                    </Text>
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={() => selectDock(dock)}
-                    >
-                      收起
-                    </Button>
-                  </Group>
-                  {dock === "shots" && bindingTarget && (
-                    <Text size="xs" lineClamp={1} title={bindingTarget.title}>
-                      当前关联：{bindingTarget.title}
-                    </Text>
-                  )}
-                </div>
-                {dock === "media" ? (
-                  <CanvasMediaBrowser
-                    projectId={projectId}
-                    path={mediaPath}
-                    readOnly={readOnly}
-                    add={addMedia}
+                  </Text>
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    onClick={() => selectDock(dock)}
+                  >
+                    收起
+                  </Button>
+                </Group>
+                {dock === "shots" && bindingTarget && (
+                  <Text size="xs" lineClamp={1} title={bindingTarget.title}>
+                    当前关联：{bindingTarget.title}
+                  </Text>
+                )}
+              </div>
+              <AuxiliaryPanel open={dock === "media"}>
+                <CanvasMediaBrowser
+                  projectId={projectId}
+                  path={mediaPath}
+                  readOnly={readOnly}
+                  add={addMedia}
+                />
+              </AuxiliaryPanel>
+              <AuxiliaryPanel open={dock === "history"}>
+                <CanvasHistory
+                  path={`${path}/canvases/${canvasId}`}
+                  controller={controller}
+                  readOnly={
+                    readOnly ||
+                    state.phase === "conflict" ||
+                    !!state.local?.pending
+                  }
+                />
+              </AuxiliaryPanel>
+              <AuxiliaryPanel open={dock === "results"}>
+                <CanvasImageGeneration
+                  mode="history"
+                  tenantId={tenantId}
+                  projectId={projectId}
+                  sceneId={sceneId}
+                  controller={controller}
+                  readOnly={readOnly}
+                  inspectedPlanId={inspectedPlanId}
+                  onInspectPlan={setInspectedPlanId}
+                  onCloseInspection={() => setInspectedPlanId(undefined)}
+                  focus={focusNodes}
+                />
+              </AuxiliaryPanel>
+              <AuxiliaryPanel open={dock === "shots"}>
+                <Stack>
+                  <ErrorNotice
+                    error={connections.error ?? content.error}
+                    retry={() => void changedConnections()}
                   />
-                ) : dock === "history" ? (
-                  <CanvasHistory
-                    path={`${path}/canvases/${canvasId}`}
-                    controller={controller}
-                    readOnly={
-                      readOnly ||
-                      state.phase === "conflict" ||
-                      !!state.local?.pending
-                    }
-                  />
-                ) : dock === "shots" ? (
-                  <Stack>
-                    <ErrorNotice
-                      error={connections.error ?? content.error}
-                      retry={() => void changedConnections()}
+                  <Button size="xs" onClick={() => void changedConnections()}>
+                    刷新画布与关联
+                  </Button>
+                  {connections.data && content.data ? (
+                    <CanvasShotConnections
+                      path={path}
+                      sceneId={sceneId}
+                      controller={controller}
+                      sceneCanvas={connections.data}
+                      shots={content.data.shots.filter(
+                        (s) => s.sceneId === sceneId,
+                      )}
+                      target={bindingTarget}
+                      seed={bindingSeed}
+                      readOnly={readOnly}
+                      changed={changedConnections}
+                      focus={focusNodes}
+                      editTarget={editBinding}
+                      busyChange={setBindingBusy}
+                      place={(media, shot, take, assetRevisionId) => {
+                        const node = addMedia(media, assetRevisionId);
+                        if (!node) return;
+                        setBindingTarget(node);
+                        setBindingSeed({
+                          shotId: shot.id,
+                          shotRevisionId:
+                            take?.shotRevisionId ?? shot.specRevisionId,
+                          ...(take ? { take } : {}),
+                        });
+                        focusNodes([node.id]);
+                      }}
                     />
-                    <Button size="xs" onClick={() => void changedConnections()}>
-                      刷新画布与关联
-                    </Button>
-                    {connections.data && content.data ? (
-                      <CanvasShotConnections
-                        path={path}
-                        sceneId={sceneId}
-                        controller={controller}
-                        sceneCanvas={connections.data}
-                        shots={content.data.shots.filter(
-                          (s) => s.sceneId === sceneId,
-                        )}
-                        target={bindingTarget}
-                        seed={bindingSeed}
-                        readOnly={readOnly}
-                        changed={changedConnections}
-                        focus={focusNodes}
-                        editTarget={editBinding}
-                        busyChange={setBindingBusy}
-                        place={(media, shot, take, assetRevisionId) => {
-                          const node = addMedia(media, assetRevisionId);
-                          if (!node) return;
-                          setBindingTarget(node);
-                          setBindingSeed({
-                            shotId: shot.id,
-                            shotRevisionId:
-                              take?.shotRevisionId ?? shot.specRevisionId,
-                            ...(take ? { take } : {}),
-                          });
-                          focusNodes([node.id]);
-                        }}
-                      />
-                    ) : (
-                      <Loader size="sm" aria-label="正在读取本场关联" />
-                    )}
-                  </Stack>
-                ) : null}
-              </aside>
-            )}
+                  ) : (
+                    <Loader size="sm" aria-label="正在读取本场关联" />
+                  )}
+                </Stack>
+              </AuxiliaryPanel>
+            </aside>
           </div>
         )}
       </div>
     </CanvasUploads>
   );
+}
+/** Keep entered filters, chosen revisions and attempt inputs through auxiliary navigation. */
+function AuxiliaryPanel({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: ReactNode;
+}) {
+  const [visited, setVisited] = useState(open);
+  useEffect(() => {
+    if (open) setVisited(true);
+  }, [open]);
+  return open || visited ? <div hidden={!open}>{children}</div> : null;
 }
 function CanvasMediaBrowser({
   path,
@@ -918,7 +1154,7 @@ function SceneWithoutCanvasAssistant({
   const [proposalId, setProposalId] = useState<string>();
   return (
     <div className={classes.session}>
-      <Group justify="space-between" className={classes.modeToolbar}>
+      <Group justify="space-between" className={layout.header}>
         {toolbar}
         <Button
           leftSection={<Sparkle size={16} />}

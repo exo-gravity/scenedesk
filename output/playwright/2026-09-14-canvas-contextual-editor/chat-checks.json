@@ -1,0 +1,28 @@
+{
+  "stage": "conversational_assistant_source_after_5a8540a",
+  "status": "targeted_checks_passed_browser_pending",
+  "tests": {
+    "command": "node --import tsx --test tests/canvas-assistant-session.test.ts",
+    "passed": 12,
+    "failed": 0,
+    "newBehaviorCases": 4
+  },
+  "checks": {
+    "webTypeScript": "passed",
+    "rootTypeScript": "passed",
+    "uiSourceAndOpaqueContrast": {
+      "passed": true,
+      "files": 147
+    },
+    "diffWhitespace": "passed"
+  },
+  "boundaries": [
+    "No generic AssistantSession changes.",
+    "No paid provider calls or model execution.",
+    "Continuation uses assistanceSource exact artifact id/revision, never client-pasted prior output.",
+    "No browser validation claimed for conversational UI before a matching production build."
+  ],
+  "harnessCorrections": [
+    "Initial new local-write-failure test had not persisted its initial user input before deliberately failing storage. It was corrected to simulate a real user edit and settle before the failure; product behavior was unchanged."
+  ]
+}

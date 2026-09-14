@@ -2368,6 +2368,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/assistance-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 明确将固定建议应用到指定草稿，保留原应用回执
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["applyCanvasAssistance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/assistance-applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取原建议应用结果及当前画布，不重复修改
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getCanvasAssistanceApplication"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/workspace-preference": {
         parameters: {
             query?: never;
@@ -3248,7 +3288,8 @@ export interface components {
             contextSources?: components["schemas"]["ContextSourceInput"][];
             assistance?: components["schemas"]["AssistanceRequest"];
             assistanceSource?: components["schemas"]["ArtifactSource"];
-        } & (unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown);
+            canvasSources?: components["schemas"]["CanvasAssistanceSource"][];
+        } & (unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown);
         GenerationPlan: {
             /** Format: uuid */
             id: string;
@@ -3868,7 +3909,7 @@ export interface components {
         } & unknown;
         SourceDependency: {
             /** @enum {string} */
-            kind: "production" | "scene" | "shot_revision" | "asset_revision" | "script_revision" | "assistance_artifact" | "creative_confirmation" | "review_comment" | "creative_basis_revision" | "canvas_draft";
+            kind: "production" | "scene" | "shot_revision" | "asset_revision" | "script_revision" | "assistance_artifact" | "creative_confirmation" | "review_comment" | "creative_basis_revision" | "canvas_draft" | "canvas_node";
             /** Format: uuid */
             objectId: string;
             revision: number;
@@ -3916,12 +3957,14 @@ export interface components {
                 endUs?: number;
             };
             creativeBasisRevisionIds?: string[];
+            canvasSnapshots?: components["schemas"]["CanvasAssistanceSnapshot"][];
+            assistanceInstruction?: string;
             targetCapabilitySnapshot?: components["schemas"]["Capability"];
             /** Format: uuid */
             targetConnectionVersionId?: string;
             capabilitySnapshot?: components["schemas"]["Capability"];
             output?: components["schemas"]["OutputOptions"];
-        };
+        } & unknown;
         EstimateLine: {
             metric: string;
             quantity: string;
@@ -4280,7 +4323,7 @@ export interface components {
             inputOutdated: boolean;
             /** @enum {string} */
             executionMode?: "test_fixture" | "verified_provider";
-        };
+        } & unknown;
         AssistanceEdit: {
             body: components["schemas"]["AssistanceBody"];
         };
@@ -4565,6 +4608,7 @@ export interface components {
             origin: components["schemas"]["CanvasPlanOrigin"];
             /** Format: uuid */
             jobId?: string;
+            jobStatus?: components["schemas"]["GenerationJob"]["status"];
         };
         CanvasPlanEntryPage: {
             items: components["schemas"]["CanvasPlanEntry"][];
@@ -4610,6 +4654,56 @@ export interface components {
             viewport: components["schemas"]["CanvasViewport"];
             assetPanelOpen: boolean;
             assistantOpen: boolean;
+        };
+        CanvasAssistanceSource: {
+            /** Format: uuid */
+            canvasId: string;
+            canvasRevision: number;
+            /** Format: uuid */
+            nodeId: string;
+            /** @enum {string} */
+            purpose?: "identity" | "look" | "location" | "action" | "composition" | "style" | "voice" | "start_frame" | "end_frame" | "prop";
+        };
+        CanvasAssistanceSnapshot: {
+            source: components["schemas"]["CanvasAssistanceSource"];
+            /** @enum {string} */
+            kind: "text" | "image" | "video" | "audio";
+            content: components["schemas"]["CanvasTextContent"] | components["schemas"]["CanvasDraftContent"] | components["schemas"]["CanvasMediaContent"];
+            contentHash: string;
+        } & (unknown & unknown);
+        ApplyCanvasAssistance: {
+            /** Format: uuid */
+            applicationId: string;
+            /** Format: uuid */
+            artifactId: string;
+            artifactRevision: number;
+            /** Format: uuid */
+            nodeId: string;
+            /** @enum {string} */
+            mode: "replace" | "append";
+        };
+        CanvasAssistanceApplication: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            canvasId: string;
+            /** Format: uuid */
+            nodeId: string;
+            /** Format: uuid */
+            artifactId: string;
+            artifactRevision: number;
+            /** @enum {string} */
+            mode: "replace" | "append";
+            baseCanvasRevision: number;
+            resultCanvasRevision: number;
+            beforePrompt: string;
+            afterPrompt: string;
+            /** Format: date-time */
+            appliedAt: string;
+        };
+        CanvasAssistanceApplicationResult: {
+            canvas: components["schemas"]["Canvas"];
+            application: components["schemas"]["CanvasAssistanceApplication"];
         };
         WorkMediaClip: {
             /** Format: uuid */
@@ -9464,6 +9558,7 @@ export interface operations {
                 q?: string;
                 projectId?: string;
                 shotId?: string;
+                canvasId?: string;
                 kind?: "prepare_prompt" | "prepare_rework";
             };
             header?: never;
@@ -10287,6 +10382,82 @@ export interface operations {
             409: components["responses"]["Problem"];
             412: components["responses"]["Problem"];
             413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    applyCanvasAssistance: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                canvasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyCanvasAssistance"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasAssistanceApplicationResult"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getCanvasAssistanceApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                canvasId: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasAssistanceApplicationResult"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
             422: components["responses"]["Problem"];
             429: components["responses"]["Problem"];
             503: components["responses"]["Problem"];

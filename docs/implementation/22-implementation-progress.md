@@ -12,6 +12,8 @@
 
 ## 当前工作
 
+2026-09-14：画布重设计 v0.5 与用户随后纠正的对话式右侧助手已实现：独立编辑目标、近节点输入、固定尝试浏览、真实画布来源和固定建议续聊、显式写回与刷新恢复。品牌按最新要求显示为 `SceneDesk`。本机 184 项检查及隔离真实业务浏览器验收记录见[64](64-contextual-canvas-workspace.md)；最终 CI 与合入状态以 [PR #35](https://github.com/exo-gravity/scenedesk/pull/35) 为准，真实模型与外部部署仍单列。
+
 | 工作包 | 状态 | 实际成果／剩余验收 |
 |---|---|---|
 | 已确认视觉、页面结构与布局 | 实施与本机验收完成 | 依 v0.3 核心／v0.4 保留专项重组真实业务页面；同尺寸整合截图、真实 API 交互与恢复验证见[62](62-approved-layout-restoration.md)，远端检查及合入状态见[PR #33](https://github.com/exo-gravity/scenedesk/pull/33) |

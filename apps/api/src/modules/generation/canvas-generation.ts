@@ -1,5 +1,6 @@
 import { services, type MediaContext } from "../media/model.js";
 import { randomUUID } from "node:crypto";
+import { CANVAS_RESULT_LAYOUT } from "@drama/domain";
 import type { FastifyInstance } from "fastify";
 import { requireThat, versionMatches } from "../../kernel/errors.js";
 import { page, searchPattern } from "../../kernel/pages.js";
@@ -71,7 +72,7 @@ export function canvasGenerationRoutes(
         context.secrets,
         `listCanvasPlans:${input.params.canvasId}`,
         input.query,
-        `SELECT p.*,${originSql} AS origin,j.id AS job_id FROM generation_canvas_origins o JOIN generation_plans p ON p.id=o.plan_id LEFT JOIN generation_jobs j ON j.plan_id=p.id WHERE o.tenant_id=$1 AND o.project_id=$2 AND o.canvas_id=$3 AND ($4::uuid IS NULL OR o.node_id=$4) AND p.input->>'prompt' ILIKE $5`,
+        `SELECT p.*,${originSql} AS origin,j.id AS job_id,j.status AS job_status FROM generation_canvas_origins o JOIN generation_plans p ON p.id=o.plan_id LEFT JOIN generation_jobs j ON j.plan_id=p.id WHERE o.tenant_id=$1 AND o.project_id=$2 AND o.canvas_id=$3 AND ($4::uuid IS NULL OR o.node_id=$4) AND p.input->>'prompt' ILIKE $5`,
         [
           tx.tenantId,
           tx.projectId,
@@ -82,7 +83,9 @@ export function canvasGenerationRoutes(
         (row) => ({
           plan: planRecord(row),
           origin: row.origin,
-          ...(row.job_id ? { jobId: row.job_id } : {}),
+          ...(row.job_id
+            ? { jobId: row.job_id, jobStatus: row.job_status }
+            : {}),
         }),
       ),
     };
@@ -147,9 +150,9 @@ export function canvasGenerationRoutes(
             id: nodeId,
             kind: media.kind,
             title: media.display_name,
-            width: 320,
+            width: CANVAS_RESULT_LAYOUT.width,
             position: {
-              x: input.body.position.x + index * 340,
+              x: input.body.position.x + index * CANVAS_RESULT_LAYOUT.stepX,
               y: input.body.position.y,
             },
             content: { type: "media", mediaId },

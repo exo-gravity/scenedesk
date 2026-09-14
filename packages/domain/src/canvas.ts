@@ -3,6 +3,11 @@ import { editingCanonical } from "./editing-canonical.js";
 
 export type CanvasDocument = components["schemas"]["CanvasDocument"];
 export type CanvasNode = components["schemas"]["CanvasNode"];
+/** Persisted layout of an explicitly materialized generation result group. */
+export const CANVAS_RESULT_LAYOUT = Object.freeze({
+  width: 320,
+  stepX: 340,
+});
 export const CANVAS_LIMITS = Object.freeze({
   nodes: 2000,
   edges: 5000,

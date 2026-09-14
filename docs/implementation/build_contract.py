@@ -324,7 +324,7 @@ schema("ContextSnapshot", {"source": ref("SourceDependency"), "text": TEXT}, ["s
 schema("AssistanceRequest", {"kind": enum("prepare_prompt","prepare_rework"), "targetCapabilityId": ID, "targetCapabilityRevision": POS, "sourceTakeId": ID, "sourceCutRevisionId": ID, "feedback": ref("ReworkLink")}, ["kind","targetCapabilityId","targetCapabilityRevision"])
 require_when("AssistanceRequest", {"properties":{"kind":{"const":"prepare_rework"}},"required":["kind"]}, {"required":["feedback"],"properties":{"feedback":{"required":["commentRevision"]}},"anyOf":[{"required":["sourceTakeId"]},{"required":["sourceCutRevisionId"]}]})
 schema("AssistanceBody", {"prompt": TEXT, "referenceSuggestions": arr(ref("Reference")), "retain": arr(TEXT), "change": arr(TEXT), "notes": TEXT}, ["prompt","referenceSuggestions","retain","change","notes"])
-entity("AssistanceArtifact", {"projectId": ID, "generationJobId": ID, "request": ref("AssistanceRequest"), "shotSources": arr(ref("ShotSource"),minItems=1), "resolvedInput": ref("ResolvedInput"), "body": ref("AssistanceBody"), "editedBy": ID, "inputOutdated": BOOL}, ["projectId","generationJobId","request","shotSources","resolvedInput","body","inputOutdated"])
+entity("AssistanceArtifact", {"projectId": ID, "generationJobId": ID, "request": ref("AssistanceRequest"), "shotSources": arr(ref("ShotSource")), "resolvedInput": ref("ResolvedInput"), "body": ref("AssistanceBody"), "editedBy": ID, "inputOutdated": BOOL}, ["projectId","generationJobId","request","shotSources","resolvedInput","body","inputOutdated"])
 schema("AssistanceEdit", {"body": ref("AssistanceBody")}, ["body"])
 schema("ArtifactSource", {"artifactId": ID, "revision": POS}, ["artifactId","revision"])
 for name in ["PlanInput", "Capability"]:
@@ -333,10 +333,10 @@ extend("PlanInput", {"proposalTarget": ref("ProposalTarget"), "contextSources": 
 extend("ResolvedInput", {"contextSnapshots": arr(ref("ContextSnapshot")), "assistanceSnapshot": ref("AssistanceBody"), "assistanceRequest": ref("AssistanceRequest"), "feedbackSnapshot": obj({"reviewId":ID,"commentId":ID,"commentRevision":POS,"body":TEXT,"subject":ref("ReviewSubject"),"startUs":US,"endUs":US},["reviewId","commentId","commentRevision","body","subject"])})
 extend("GenerationJob", {"assistanceArtifactId": ID})
 require_when("PlanInput", {"properties":{"purpose":{"const":"script_analysis"}},"required":["purpose"]}, {"required":["proposalTarget"]})
-require_when("PlanInput", {"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}, {"required":["assistance","shotSources"],"properties":{"scope":{"const":"project"},"shotSources":{"minItems":1},"output":{"maxProperties":0}},"not":{"anyOf":[{"required":["assistanceSource"]},{"required":["proposalTarget"]}]}})
+require_when("PlanInput", {"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}, {"required":["assistance","shotSources"],"properties":{"scope":{"const":"project"},"shotSources":{"minItems":1},"output":{"maxProperties":0}},"not":{"anyOf":[{"required":["proposalTarget"]}]}})
 require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"creative_assistance"}},"required":["purpose"]}}, {"not":{"required":["assistance"]}})
-require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"script_analysis"}},"required":["purpose"]}}, {"not":{"required":["proposalTarget"]}})
-require_when("PlanInput", {"required":["assistanceSource"]}, {"properties":{"purpose":{"enum":["video","image","audio"]},"scope":{"const":"project"}}})
+require_when("PlanInput", {"not":{"properties":{"purpose":{"const":"script_analysis"}},"required":["purpose"]}}, {"not":{"anyOf":[{"required":["proposalTarget"]}]}})
+require_when("PlanInput", {"required":["assistanceSource"]}, {"properties":{"scope":{"const":"project"}},"anyOf":[{"properties":{"purpose":{"enum":["video","image","audio"]}}},{"required":["canvasSources","assistance"],"properties":{"purpose":{"const":"creative_assistance"},"assistance":{"properties":{"kind":{"const":"prepare_prompt"}}}}}]})
 S["SourceDependency"]["properties"]["kind"]["enum"] += ["assistance_artifact","creative_confirmation","review_comment"]
 for name in ["Task", "TaskInput"]:
     extend(name, {"kind": enum("general","scene_owner","assist","rework"), "sceneId": ID}, ["kind"])
@@ -366,6 +366,23 @@ for name in ["FreezeCut", "CutRevision", "Review", "DecisionInput"]:
 from canvas_contract import schemas as canvas_schemas, register_routes as register_canvas_routes
 S.update(canvas_schemas())
 S["SourceDependency"]["properties"]["kind"]["enum"].append("canvas_draft")
+S["SourceDependency"]["properties"]["kind"]["enum"].append("canvas_node")
+schema("CanvasAssistanceSource", {"canvasId":ID,"canvasRevision":POS,"nodeId":ID,"purpose":S["Reference"]["properties"]["purpose"]}, ["canvasId","canvasRevision","nodeId"])
+schema("CanvasAssistanceSnapshot", {"source":ref("CanvasAssistanceSource"),"kind":enum("text","image","video","audio"),"content":{"oneOf":[ref("CanvasTextContent"),ref("CanvasDraftContent"),ref("CanvasMediaContent")]},"contentHash":string(pattern="^[0-9a-f]{64}$")}, ["source","kind","content","contentHash"])
+require_when("CanvasAssistanceSnapshot", {"properties":{"kind":{"const":"text"}},"required":["kind"]}, {"properties":{"content":ref("CanvasTextContent")}})
+require_when("CanvasAssistanceSnapshot", {"properties":{"content":{"properties":{"type":{"const":"media"}},"required":["type"]}},"required":["content"]}, {"properties":{"source":{"required":["purpose"]},"kind":{"enum":["image","video","audio"]}}})
+extend("PlanInput", {"canvasSources":arr(ref("CanvasAssistanceSource"),minItems=1,maxItems=20)})
+extend("ResolvedInput", {"canvasSnapshots":arr(ref("CanvasAssistanceSnapshot"),minItems=1,maxItems=20),"assistanceInstruction":TEXT})
+require_when("ResolvedInput", {"required":["assistanceInstruction"]}, {"required":["assistanceSnapshot","canvasSnapshots"]})
+for rule in S["PlanInput"]["allOf"]:
+    if rule.get("if", {}).get("properties", {}).get("purpose", {}).get("const") == "creative_assistance":
+        rule["then"]["properties"]["shotSources"] = {"maxItems":100}
+        rule["then"]["anyOf"] = [{"properties":{"shotSources":{"minItems":1}}},{"required":["canvasSources"]}]
+require_when("PlanInput", {"required":["canvasSources"]}, {"properties":{"purpose":{"const":"creative_assistance"},"assistance":{"properties":{"kind":{"const":"prepare_prompt"}}},"contextSources":{"maxItems":0},"additionalReferences":{"maxItems":0},"referenceOverrides":{"maxItems":0}}})
+require_when("AssistanceArtifact", {"properties":{"shotSources":{"maxItems":0}},"required":["shotSources"]}, {"properties":{"resolvedInput":{"required":["canvasSnapshots"]}}})
+schema("ApplyCanvasAssistance", {"applicationId":ID,"artifactId":ID,"artifactRevision":POS,"nodeId":ID,"mode":enum("replace","append")}, ["applicationId","artifactId","artifactRevision","nodeId","mode"])
+schema("CanvasAssistanceApplication", {"id":ID,"canvasId":ID,"nodeId":ID,"artifactId":ID,"artifactRevision":POS,"mode":enum("replace","append"),"baseCanvasRevision":POS,"resultCanvasRevision":POS,"beforePrompt":TEXT,"afterPrompt":TEXT,"appliedAt":TIME}, ["id","canvasId","nodeId","artifactId","artifactRevision","mode","baseCanvasRevision","resultCanvasRevision","beforePrompt","afterPrompt","appliedAt"])
+schema("CanvasAssistanceApplicationResult", {"canvas":ref("Canvas"),"application":ref("CanvasAssistanceApplication")}, ["canvas","application"])
 
 from editing_contract import extend_schemas as extend_editing_schemas, register_routes as register_editing_routes
 extend_editing_schemas(S)
@@ -543,7 +560,7 @@ filters = {
     "listCuts": {"episodeId": ID, "sceneId": ID},
     "listReviews": {"status": enum("open", "approved", "changes_requested"), "cutRevisionId": ID, "takeId": ID},
     "listProposals": {"sceneId": ID, "status": enum("proposed","applied","rejected"), "sourceKind": enum("ai_analysis","csv_import")},
-    "listAssistanceArtifacts": {"shotId": ID, "kind": enum("prepare_prompt","prepare_rework")},
+    "listAssistanceArtifacts": {"shotId": ID, "canvasId": ID, "kind": enum("prepare_prompt","prepare_rework")},
     "listCreativeBasisRevisions": {"subjectId": ID, "kind": enum("script","production","scene","shot_dialogue")},
     "listCreativeConfirmations": {"subjectId": ID},
     "listTasks": {"sceneId": ID, "kind": enum("general","scene_owner","assist","rework"), "assigneeMembershipId": ID, "status": enum("open", "in_progress", "blocked", "done")},

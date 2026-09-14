@@ -1,0 +1,17 @@
+{
+  "inner": {
+    "dialogs": [
+      "编辑 动作优化 · 创作草稿",
+      "视频尺寸画幅视频时长（秒）当前模型生成无声视频。更多参数随机种子（可选）固定镜头来源 0 项 · 可独立探索镜头来源 · 0 / 100选择镜头来源可不选镜头，"
+    ],
+    "editor": "dialog",
+    "transform": "transform: translate(0px, 0px) scale(1);",
+    "value": "最终验收：保留铜钥匙与动作要求参考，缓慢推近；预制静帧视频技术测试。"
+  },
+  "outer": {
+    "editor": "dialog",
+    "id": "mantine-klhp3pkf7",
+    "transform": "transform: translate(0px, 0px) scale(1);",
+    "value": "最终验收：保留铜钥匙与动作要求参考，缓慢推近；预制静帧视频技术测试。"
+  }
+}

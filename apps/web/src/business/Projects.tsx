@@ -65,7 +65,7 @@ export function Projects({
     [search, setSearch] = useState("");
   const projects = useList<Project>(`${tenantPath(tenantId)}/projects`);
   useEffect(() => {
-    if (!projectId) document.title = "项目 · 幕序 SceneDesk";
+    if (!projectId) document.title = "项目 · SceneDesk";
   }, [projectId]);
   if (projectId && (contentView || scriptView))
     return (
@@ -251,7 +251,7 @@ function ProjectDetails({
   } | null>(null);
   const command = useCommand<Project>();
   useEffect(() => {
-    if (project.data) document.title = `${project.data.name} · 项目设定 · 幕序`;
+    if (project.data) document.title = `${project.data.name} · 项目设定 · SceneDesk`;
   }, [project.data?.name]);
   if (project.isError)
     return (

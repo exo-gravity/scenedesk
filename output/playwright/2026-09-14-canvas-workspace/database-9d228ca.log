@@ -1,0 +1,1758 @@
+
+> drama-platform@0.0.0 test:db
+> node --env-file-if-exists=.env --import tsx --test tests/integration/*.test.ts
+
+TAP version 13
+# Subtest: asset definitions preserve fixed references, independent looks and scoped confirmation
+    # Subtest: root CAS and idempotency create exactly one fixed version
+    ok 1 - root CAS and idempotency create exactly one fixed version
+      ---
+      duration_ms: 1594.734458
+      type: 'test'
+      ...
+    # Subtest: changing one look preserves the other and old immutable definition
+    ok 2 - changing one look preserves the other and old immutable definition
+      ---
+      duration_ms: 1162.6925
+      type: 'test'
+      ...
+    # Subtest: scope and role are checked before confirmation
+    ok 3 - scope and role are checked before confirmation
+      ---
+      duration_ms: 1699.762959
+      type: 'test'
+      ...
+    # Subtest: reference projections reject wrong project, wrong revision membership and invented look identity
+    ok 4 - reference projections reject wrong project, wrong revision membership and invented look identity
+      ---
+      duration_ms: 608.195792
+      type: 'test'
+      ...
+    # Subtest: shared voice imports pin a version; dependencies and usages remain fixed
+    ok 5 - shared voice imports pin a version; dependencies and usages remain fixed
+      ---
+      duration_ms: 1800.229291
+      type: 'test'
+      ...
+    # Subtest: archiving retains prior definitions while new uses and further revisions are blocked
+    ok 6 - archiving retains prior definitions while new uses and further revisions are blocked
+      ---
+      duration_ms: 1110.436791
+      type: 'test'
+      ...
+    # Subtest: revoked project membership blocks cached create replay; project archive keeps reads only
+    ok 7 - revoked project membership blocks cached create replay; project archive keeps reads only
+      ---
+      duration_ms: 507.161417
+      type: 'test'
+      ...
+    1..7
+ok 1 - asset definitions preserve fixed references, independent looks and scoped confirmation
+  ---
+  duration_ms: 23015.762458
+  type: 'test'
+  ...
+# Subtest: asynchronous provider identity, observation and cancellation remain durable and isolated
+    # Subtest: accepted identity survives restart, concurrent query leases and monotone pending/running observations
+    ok 1 - accepted identity survives restart, concurrent query leases and monotone pending/running observations
+      ---
+      duration_ms: 1625.002167
+      type: 'test'
+      ...
+    # Subtest: queued cancellation never creates an attempt and dispatched unknown cancellation preserves both facts
+    ok 2 - queued cancellation never creates an attempt and dispatched unknown cancellation preserves both facts
+      ---
+      duration_ms: 2195.681625
+      type: 'test'
+      ...
+    # Subtest: cancellation request replay is one durable intent and known cancellation is a distinct terminal observation
+    ok 3 - cancellation request replay is one durable intent and known cancellation is a distinct terminal observation
+      ---
+      duration_ms: 1159.159833
+      type: 'test'
+      ...
+    # Subtest: conflicting provider IDs are immutable evidence and cannot be rebound or queried
+    ok 4 - conflicting provider IDs are immutable evidence and cannot be rebound or queried
+      ---
+      duration_ms: 2492.537584
+      type: 'test'
+      ...
+    # Subtest: accepted and cancelled-but-unconfirmed jobs still occupy the shared capability limit
+    ok 5 - accepted and cancelled-but-unconfirmed jobs still occupy the shared capability limit
+      ---
+      duration_ms: 1286.460708
+      type: 'test'
+      ...
+    # Subtest: public cached cancellation is checked against current membership and private worker state stays inaccessible
+    ok 6 - public cached cancellation is checked against current membership and private worker state stays inaccessible
+      ---
+      duration_ms: 2829.089792
+      type: 'test'
+      ...
+    # Subtest: accepted original identity remains recoverable after capability disable and missing query transport
+    ok 7 - accepted original identity remains recoverable after capability disable and missing query transport
+      ---
+      duration_ms: 7522.478625
+      type: 'test'
+      ...
+    # Subtest: unsupported cancellation keeps observing the original task, and contradictory terminal evidence preserves the result
+    ok 8 - unsupported cancellation keeps observing the original task, and contradictory terminal evidence preserves the result
+      ---
+      duration_ms: 5913.632625
+      type: 'test'
+      ...
+    # Subtest: grants reapplied to existing identities remove legacy bypasses, while fixed bindings reject SQL rewrites
+    ok 9 - grants reapplied to existing identities remove legacy bypasses, while fixed bindings reject SQL rewrites
+      ---
+      duration_ms: 10141.282333
+      type: 'test'
+      ...
+    # Subtest: script_analysis: usage-only receipts arriving after completion preserve one result
+    ok 10 - script_analysis: usage-only receipts arriving after completion preserve one result
+      ---
+      duration_ms: 630.530167
+      type: 'test'
+      ...
+    # Subtest: script_analysis: usage-only receipts saved together before projection preserve one result
+    ok 11 - script_analysis: usage-only receipts saved together before projection preserve one result
+      ---
+      duration_ms: 483.621167
+      type: 'test'
+      ...
+    # Subtest: creative_assistance: usage-only receipts arriving after completion preserve one result
+    ok 12 - creative_assistance: usage-only receipts arriving after completion preserve one result
+      ---
+      duration_ms: 545.611542
+      type: 'test'
+      ...
+    # Subtest: creative_assistance: usage-only receipts saved together before projection preserve one result
+    ok 13 - creative_assistance: usage-only receipts saved together before projection preserve one result
+      ---
+      duration_ms: 444.416458
+      type: 'test'
+      ...
+    # Subtest: image: usage-only receipts arriving after completion preserve one result
+    ok 14 - image: usage-only receipts arriving after completion preserve one result
+      ---
+      duration_ms: 689.512584
+      type: 'test'
+      ...
+    # Subtest: image: usage-only receipts saved together before projection preserve one result
+    ok 15 - image: usage-only receipts saved together before projection preserve one result
+      ---
+      duration_ms: 605.346375
+      type: 'test'
+      ...
+    # Subtest: completed asynchronous media enters existing archive transaction without manufacturing ready media
+    ok 16 - completed asynchronous media enters existing archive transaction without manufacturing ready media
+      ---
+      duration_ms: 722.857834
+      type: 'test'
+      ...
+    1..16
+ok 2 - asynchronous provider identity, observation and cancellation remain durable and isolated
+  ---
+  duration_ms: 58103.2925
+  type: 'test'
+  ...
+# Subtest: loopback async acceptance produces one persistent proposal through pending and running without another submit
+ok 3 - loopback async acceptance produces one persistent proposal through pending and running without another submit
+  ---
+  duration_ms: 20392.067875
+  type: 'test'
+  ...
+# Subtest: a lost HTTP creation reply is recovered by reading the original attempt, never by repeating POST
+ok 4 - a lost HTTP creation reply is recovered by reading the original attempt, never by repeating POST
+  ---
+  duration_ms: 35836.944167
+  type: 'test'
+  ...
+# Subtest: a lost cancellation response permits one cancellation call and preserves a concurrent successful result
+ok 5 - a lost cancellation response permits one cancellation call and preserves a concurrent successful result
+  ---
+  duration_ms: 11809.765583
+  type: 'test'
+  ...
+# Subtest: HTTP errors and mismatched result identities preserve the original job and durable query backoff across workers
+ok 6 - HTTP errors and mismatched result identities preserve the original job and durable query backoff across workers
+  ---
+  duration_ms: 13824.858542
+  type: 'test'
+  ...
+# Subtest: independent worker processes concurrently submit once and reopen the original HTTP task after process exit
+ok 7 - independent worker processes concurrently submit once and reopen the original HTTP task after process exit
+  ---
+  duration_ms: 16312.431291
+  type: 'test'
+  ...
+# Subtest: a fresh worker recovers an already-completed lost submission through a read-only HTTP lookup
+ok 8 - a fresh worker recovers an already-completed lost submission through a read-only HTTP lookup
+  ---
+  duration_ms: 19707.226209
+  type: 'test'
+  ...
+# Subtest: independent audio fixes dialogue and voice versions without adopting or binding results
+    # Subtest: audio accepts only supported duration and cannot reinterpret a visual capability
+    ok 1 - audio accepts only supported duration and cannot reinterpret a visual capability
+      ---
+      duration_ms: 845.349708
+      type: 'test'
+      ...
+    # Subtest: verified audio has actual sample timing and one independent proxy, with no visual poster or Take
+    ok 2 - verified audio has actual sample timing and one independent proxy, with no visual poster or Take
+      ---
+      duration_ms: 1603.79025
+      type: 'test'
+      ...
+    # Subtest: explicit old voice and dialogue remain fixed after newer voice and shot edits; identity alone never loads latest voice
+    ok 3 - explicit old voice and dialogue remain fixed after newer voice and shot edits; identity alone never loads latest voice
+      ---
+      duration_ms: 2677.669292
+      type: 'test'
+      ...
+    # Subtest: archiving an explicitly fixed voice before dispatch cancels without another attempt
+    ok 4 - archiving an explicitly fixed voice before dispatch cancels without another attempt
+      ---
+      duration_ms: 1360.155333
+      type: 'test'
+      ...
+    # Subtest: unknown audio and failed archive queue completion preserve one original submit
+    ok 5 - unknown audio and failed archive queue completion preserve one original submit
+      ---
+      duration_ms: 1940.227875
+      type: 'test'
+      ...
+    # Subtest: ambient audio can use an actual saved draft and recover the same explicit node after deletion
+    ok 6 - ambient audio can use an actual saved draft and recover the same explicit node after deletion
+      ---
+      duration_ms: 10671.749833
+      type: 'test'
+      ...
+    1..6
+ok 9 - independent audio fixes dialogue and voice versions without adopting or binding results
+  ---
+  duration_ms: 41038.845375
+  type: 'test'
+  ...
+# Subtest: fixed video candidates and append-only adoption remain distinct from shot requirements
+    # Subtest: deduplicates concurrent archives and preserves immutable identity and metadata
+    ok 1 - deduplicates concurrent archives and preserves immutable identity and metadata
+      ---
+      duration_ms: 2167.696791
+      type: 'test'
+      ...
+    # Subtest: one source has separate intervals for two shots; query cursors stay bound to scope
+    ok 2 - one source has separate intervals for two shots; query cursors stay bound to scope
+      ---
+      duration_ms: 531.221333
+      type: 'test'
+      ...
+    # Subtest: invalid range, video, scope, source and forged actor cannot create a candidate
+    ok 3 - invalid range, video, scope, source and forged actor cannot create a candidate
+      ---
+      duration_ms: 757.828083
+      type: 'test'
+      ...
+    # Subtest: adoption appends exactly one decision under concurrent CAS without changing requirements
+    ok 4 - adoption appends exactly one decision under concurrent CAS without changing requirements
+      ---
+      duration_ms: 534.914208
+      type: 'test'
+      ...
+    # Subtest: new requirements preserve prior adoption and require explicit lineage reuse
+    ok 5 - new requirements preserve prior adoption and require explicit lineage reuse
+      ---
+      duration_ms: 934.008334
+      type: 'test'
+      ...
+    # Subtest: clear appends history and stale retry cannot clear a later adoption
+    ok 6 - clear appends history and stale retry cannot clear a later adoption
+      ---
+      duration_ms: 654.378083
+      type: 'test'
+      ...
+    # Subtest: restricted SQL cannot rewrite facts or bypass the projected current selection
+    ok 7 - restricted SQL cannot rewrite facts or bypass the projected current selection
+      ---
+      duration_ms: 278.247209
+      type: 'test'
+      ...
+    # Subtest: archive retains readable historical media and selection but forbids new adoption
+    ok 8 - archive retains readable historical media and selection but forbids new adoption
+      ---
+      duration_ms: 763.185333
+      type: 'test'
+      ...
+    # Subtest: tenant membership alone cannot read private candidates or replay cached creation
+    ok 9 - tenant membership alone cannot read private candidates or replay cached creation
+      ---
+      duration_ms: 438.172625
+      type: 'test'
+      ...
+    1..9
+ok 10 - fixed video candidates and append-only adoption remain distinct from shot requirements
+  ---
+  duration_ms: 24172.523959
+  type: 'test'
+  ...
+# Subtest: explicit canvas assistance preserves node identity, authorization and CAS application receipts
+    # Subtest: zero shots fixes only explicit ordered node bodies, without edges or neighbouring content
+    ok 1 - zero shots fixes only explicit ordered node bodies, without edges or neighbouring content
+      ---
+      duration_ms: 313.333042
+      type: 'test'
+      ...
+    # Subtest: old revision, duplicate source, cross-project canvas and unsupported media purpose are rejected
+    ok 2 - old revision, duplicate source, cross-project canvas and unsupported media purpose are rejected
+      ---
+      duration_ms: 1063.818667
+      type: 'test'
+      ...
+    # Subtest: layout changes do not invalidate fixed text; changed selected content blocks unsubmitted plans
+    ok 3 - layout changes do not invalidate fixed text; changed selected content blocks unsubmitted plans
+      ---
+      duration_ms: 2695.663875
+      type: 'test'
+      ...
+    # Subtest: explicit CAS application changes only target prompt and survives lost receipt/cache expiry
+    ok 4 - explicit CAS application changes only target prompt and survives lost receipt/cache expiry
+      ---
+      duration_ms: 2657.371875
+      type: 'test'
+      ...
+    # Subtest: unknown submission resolves the same attempt and no second provider submission
+    ok 5 - unknown submission resolves the same attempt and no second provider submission
+      ---
+      duration_ms: 1829.712333
+      type: 'test'
+      ...
+    # Subtest: read, execute retry, and first dispatch retain current media authority
+    ok 6 - read, execute retry, and first dispatch retain current media authority
+      ---
+      duration_ms: 1793.594708
+      type: 'test'
+      ...
+    # Subtest: restricted SQL rejects forged snapshots/hash, missing projection and receipt mutation
+    ok 7 - restricted SQL rejects forged snapshots/hash, missing projection and receipt mutation
+      ---
+      duration_ms: 1586.058625
+      type: 'test'
+      ...
+    1..7
+ok 11 - explicit canvas assistance preserves node identity, authorization and CAS application receipts
+  ---
+  duration_ms: 38122.737375
+  type: 'test'
+  ...
+# Subtest: canvas shot bindings keep fixed candidates, CAS and presentation independent
+    # Subtest: reference increments canvas CAS with shared body and outbox, never shot defaults
+    ok 1 - reference increments canvas CAS with shared body and outbox, never shot defaults
+      ---
+      duration_ms: 773.461791
+      type: 'test'
+      ...
+    # Subtest: candidate reuses fixed range and existing note; multiple shots and roles remain explicit
+    ok 2 - candidate reuses fixed range and existing note; multiple shots and roles remain explicit
+      ---
+      duration_ms: 838.608167
+      type: 'test'
+      ...
+    # Subtest: invalid node, scope, revision, interval and changed existing binding roll back every effect
+    ok 3 - invalid node, scope, revision, interval and changed existing binding roll back every effect
+      ---
+      duration_ms: 1606.59325
+      type: 'test'
+      ...
+    # Subtest: binding and document writes compete on one CAS
+    ok 4 - binding and document writes compete on one CAS
+      ---
+      duration_ms: 227.846625
+      type: 'test'
+      ...
+    # Subtest: removal, copy and restoration do not rewrite binding, candidate or adoption
+    ok 5 - removal, copy and restoration do not rewrite binding, candidate or adoption
+      ---
+      duration_ms: 1136.516791
+      type: 'test'
+      ...
+    # Subtest: restricted SQL validates actual media and scene; direct facts must advance canvas CAS
+    ok 6 - restricted SQL validates actual media and scene; direct facts must advance canvas CAS
+      ---
+      duration_ms: 270.726875
+      type: 'test'
+      ...
+    # Subtest: unlink is version and node bound; removing inactive binding preserves all downstream facts
+    ok 7 - unlink is version and node bound; removing inactive binding preserves all downstream facts
+      ---
+      duration_ms: 920.908375
+      type: 'test'
+      ...
+    # Subtest: current authority is required for idempotent replay and binding reads
+    ok 8 - current authority is required for idempotent replay and binding reads
+      ---
+      duration_ms: 939.144667
+      type: 'test'
+      ...
+    # Subtest: archived media and shots stay readable but cannot gain even duplicate bindings
+    ok 9 - archived media and shots stay readable but cannot gain even duplicate bindings
+      ---
+      duration_ms: 1136.098416
+      type: 'test'
+      ...
+    1..9
+ok 12 - canvas shot bindings keep fixed candidates, CAS and presentation independent
+  ---
+  duration_ms: 27973.98125
+  type: 'test'
+  ...
+# Subtest: restricted runtime cannot misrepresent fixed shot snapshots
+    # Subtest: an unchanged fixed snapshot remains legal
+    ok 1 - an unchanged fixed snapshot remains legal
+      ---
+      duration_ms: 129.773584
+      type: 'test'
+      ...
+    # Subtest: rejects an additional unselected shot
+    ok 2 - rejects an additional unselected shot
+      ---
+      duration_ms: 47.996542
+      type: 'test'
+      ...
+    # Subtest: rejects another shot identity
+    ok 3 - rejects another shot identity
+      ---
+      duration_ms: 18.295792
+      type: 'test'
+      ...
+    # Subtest: rejects another shot revision
+    ok 4 - rejects another shot revision
+      ---
+      duration_ms: 15.1645
+      type: 'test'
+      ...
+    # Subtest: rejects invented entry state
+    ok 5 - rejects invented entry state
+      ---
+      duration_ms: 42.329459
+      type: 'test'
+      ...
+    # Subtest: rejects invented exit state
+    ok 6 - rejects invented exit state
+      ---
+      duration_ms: 20.916458
+      type: 'test'
+      ...
+    # Subtest: rejects a missing shot array
+    ok 7 - rejects a missing shot array
+      ---
+      duration_ms: 38.204458
+      type: 'test'
+      ...
+    # Subtest: rejects a null shot array
+    ok 8 - rejects a null shot array
+      ---
+      duration_ms: 49.43875
+      type: 'test'
+      ...
+    # Subtest: rejects an omitted selected shot
+    ok 9 - rejects an omitted selected shot
+      ---
+      duration_ms: 42.027167
+      type: 'test'
+      ...
+    # Subtest: rejects a missing continuity state
+    ok 10 - rejects a missing continuity state
+      ---
+      duration_ms: 33.138833
+      type: 'test'
+      ...
+    # Subtest: rejects reordered shot identities with identical specs
+    ok 11 - rejects reordered shot identities with identical specs
+      ---
+      duration_ms: 48.395458
+      type: 'test'
+      ...
+    1..11
+ok 13 - restricted runtime cannot misrepresent fixed shot snapshots
+  ---
+  duration_ms: 35125.174291
+  type: 'test'
+  ...
+# Subtest: audio canvas shots fix explicit dialogue, continuity voices and a selected character's default voice
+ok 14 - audio canvas shots fix explicit dialogue, continuity voices and a selected character's default voice
+  ---
+  duration_ms: 17273.024666
+  type: 'test'
+  ...
+# Subtest: canvas generation retains explicitly ordered historical shot sources
+not ok 15 - canvas generation retains explicitly ordered historical shot sources
+  ---
+  duration_ms: 4452.132084
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/integration/canvas-fixed-shot-sources.test.ts:1:8857'
+  failureType: 'testCodeFailure'
+  error: 'out of shared memory'
+  code: '53200'
+  name: 'error'
+  stack: |-
+    /Users/gandy/beyondgravity/scenedesk/node_modules/pg/lib/client.js:694:17
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async migrate (/Users/gandy/beyondgravity/scenedesk/packages/database/src/migrate.ts:51:9)
+    async databaseFixture (/Users/gandy/beyondgravity/scenedesk/tests/support/database.ts:67:3)
+    async businessFixture (/Users/gandy/beyondgravity/scenedesk/tests/support/business.ts:16:14)
+    async imageGenerationFixture (/Users/gandy/beyondgravity/scenedesk/tests/support/image-generation.ts:59:13)
+    async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/tests/integration/canvas-fixed-shot-sources.test.ts:420:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: canvas upload identities separate import, placement and document undo
+    # Subtest: creation atomically fixes the landing point and survives cached response replay
+    ok 1 - creation atomically fixes the landing point and survives cached response replay
+      ---
+      duration_ms: 538.928083
+      type: 'test'
+      ...
+    # Subtest: invalid scope, target, type and coordinates roll back the upload itself
+    ok 2 - invalid scope, target, type and coordinates roll back the upload itself
+      ---
+      duration_ms: 79.690084
+      type: 'test'
+      ...
+    # Subtest: a reserved identity cannot become a note, a foreign canvas node or unverified media
+    ok 3 - a reserved identity cannot become a note, a foreign canvas node or unverified media
+      ---
+      duration_ms: 1001.81375
+      type: 'test'
+      ...
+    # Subtest: accepted media is placed once and its permanent identity survives undo/removal
+    ok 4 - accepted media is placed once and its permanent identity survives undo/removal
+      ---
+      duration_ms: 860.698166
+      type: 'test'
+      ...
+    # Subtest: dismissal is durable and does not remove the imported media or touch canvas CAS
+    ok 5 - dismissal is durable and does not remove the imported media or touch canvas CAS
+      ---
+      duration_ms: 673.903
+      type: 'test'
+      ...
+    # Subtest: restricted writes enforce identity and the pending cap under concurrent create
+    ok 6 - restricted writes enforce identity and the pending cap under concurrent create
+      ---
+      duration_ms: 3747.709
+      type: 'test'
+      ...
+    # Subtest: current project authority protects list, direct reads and cached creates
+    ok 7 - current project authority protects list, direct reads and cached creates
+      ---
+      duration_ms: 420.735541
+      type: 'test'
+      ...
+    1..7
+ok 16 - canvas upload identities separate import, placement and document undo
+  ---
+  duration_ms: 39759.540708
+  type: 'test'
+  ...
+# Subtest: complete canvas overviews persist through current authority and independent preference CAS
+ok 17 - complete canvas overviews persist through current authority and independent preference CAS
+  ---
+  duration_ms: 31375.610667
+  type: 'test'
+  ...
+# Subtest: scene canvas persistence preserves identity, history and private preference boundaries
+    # Subtest: reads are write-free; concurrent explicit entry creates exactly one canvas
+    ok 1 - reads are write-free; concurrent explicit entry creates exactly one canvas
+      ---
+      duration_ms: 583.297208
+      type: 'test'
+      ...
+    # Subtest: one racing save wins; replay preserves revision and immutable recovery points
+    ok 2 - one racing save wins; replay preserves revision and immutable recovery points
+      ---
+      duration_ms: 410.05
+      type: 'test'
+      ...
+    # Subtest: drafts, graph references and Unicode round-trip; malformed or executable fields fail atomically
+    ok 3 - drafts, graph references and Unicode round-trip; malformed or executable fields fail atomically
+      ---
+      duration_ms: 989.592166
+      type: 'test'
+      ...
+    # Subtest: media identity survives deletion; archived media can only remain in its current slot
+    ok 4 - media identity survives deletion; archived media can only remain in its current slot
+      ---
+      duration_ms: 919.236209
+      type: 'test'
+      ...
+    # Subtest: fixed revisions require actual media membership and cross-project references fail
+    ok 5 - fixed revisions require actual media membership and cross-project references fail
+      ---
+      duration_ms: 214.09275
+      type: 'test'
+      ...
+    # Subtest: preferences use independent zero-based CAS and remain private across members
+    ok 6 - preferences use independent zero-based CAS and remain private across members
+      ---
+      duration_ms: 539.378084
+      type: 'test'
+      ...
+    # Subtest: database guards reject forged roots, projections and node identities
+    ok 7 - database guards reject forged roots, projections and node identities
+      ---
+      duration_ms: 424.395417
+      type: 'test'
+      ...
+    # Subtest: recent history is bounded and expired bodies are pruned under the canvas lock
+    ok 8 - recent history is bounded and expired bodies are pruned under the canvas lock
+      ---
+      duration_ms: 54667.493
+      type: 'test'
+      ...
+    # Subtest: document capacity round-trips through the real API without relaxing authorization
+    ok 9 - document capacity round-trips through the real API without relaxing authorization
+      ---
+      duration_ms: 11980.186333
+      type: 'test'
+      ...
+    1..9
+ok 18 - scene canvas persistence preserves identity, history and private preference boundaries
+  ---
+  duration_ms: 89580.522667
+  type: 'test'
+  ...
+# 103 API saves and history pruning: 54667 ms (local fixture, not browser performance acceptance)
+# 300 nodes/500 edges save/read: 697 ms; API fixture only
+# 2000 nodes/5000 edges save/read: 3069 ms; API fixture only
+# 2000 authorized media nodes save/read: 8204 ms; no browser decoder acceptance
+# Subtest: content creation recovery preserves one object after receipt expiry and rechecks current project access
+    # Subtest: episode: exact replay after the 24-hour receipt expires returns 412 without another object
+    ok 1 - episode: exact replay after the 24-hour receipt expires returns 412 without another object
+      ---
+      duration_ms: 537.858666
+      type: 'test'
+      ...
+    # Subtest: scene: exact replay after the 24-hour receipt expires returns 412 without another object
+    ok 2 - scene: exact replay after the 24-hour receipt expires returns 412 without another object
+      ---
+      duration_ms: 353.577625
+      type: 'test'
+      ...
+    # Subtest: shot: exact replay after the 24-hour receipt expires returns 412 without another object
+    ok 3 - shot: exact replay after the 24-hour receipt expires returns 412 without another object
+      ---
+      duration_ms: 987.630625
+      type: 'test'
+      ...
+    # Subtest: episode: removing the creator's project access denies a still-valid cached receipt
+    ok 4 - episode: removing the creator's project access denies a still-valid cached receipt
+      ---
+      duration_ms: 508.979
+      type: 'test'
+      ...
+    # Subtest: scene: removing the creator's project access denies a still-valid cached receipt
+    ok 5 - scene: removing the creator's project access denies a still-valid cached receipt
+      ---
+      duration_ms: 468.572583
+      type: 'test'
+      ...
+    # Subtest: shot: removing the creator's project access denies a still-valid cached receipt
+    ok 6 - shot: removing the creator's project access denies a still-valid cached receipt
+      ---
+      duration_ms: 342.488792
+      type: 'test'
+      ...
+    1..6
+ok 19 - content creation recovery preserves one object after receipt expiry and rechecks current project access
+  ---
+  duration_ms: 18541.635792
+  type: 'test'
+  ...
+# Subtest: content preserves immutable source history, scoped structure and concurrent edits in PostgreSQL
+    # Subtest: content root arbitrates concurrent creates and replay without changing history twice
+    ok 1 - content root arbitrates concurrent creates and replay without changing history twice
+      ---
+      duration_ms: 663.858167
+      type: 'test'
+      ...
+    # Subtest: Unicode codepoint excerpts and dialogue lines bind to original immutable script
+    ok 2 - Unicode codepoint excerpts and dialogue lines bind to original immutable script
+      ---
+      duration_ms: 2025.949959
+      type: 'test'
+      ...
+    # Subtest: renames, moves and reorder keep shot requirements while substantive edits append one revision
+    ok 3 - renames, moves and reorder keep shot requirements while substantive edits append one revision
+      ---
+      duration_ms: 2479.357875
+      type: 'test'
+      ...
+    # Subtest: scope, composite foreign keys and immutable grants prevent forged lineage
+    ok 4 - scope, composite foreign keys and immutable grants prevent forged lineage
+      ---
+      duration_ms: 897.818
+      type: 'test'
+      ...
+    # Subtest: archive hides planning content without deleting history and blocks editing under an archived parent
+    ok 5 - archive hides planning content without deleting history and blocks editing under an archived parent
+      ---
+      duration_ms: 1019.648083
+      type: 'test'
+      ...
+    # Subtest: history cursors retain PostgreSQL microseconds, follow creation order and cannot switch shot or project
+    ok 6 - history cursors retain PostgreSQL microseconds, follow creation order and cannot switch shot or project
+      ---
+      duration_ms: 344.150125
+      type: 'test'
+      ...
+    # Subtest: large Unicode scripts fit the published limit and invalid text leaves no revision
+    ok 7 - large Unicode scripts fit the published limit and invalid text leaves no revision
+      ---
+      duration_ms: 940.360125
+      type: 'test'
+      ...
+    1..7
+ok 20 - content preserves immutable source history, scoped structure and concurrent edits in PostgreSQL
+  ---
+  duration_ms: 19085.082583
+  type: 'test'
+  ...
+# Subtest: creative owners pin authorized asset, look, voice and media references through real commands
+    # Subtest: scene defaults and production defaults materialize typed references with their own CAS
+    ok 1 - scene defaults and production defaults materialize typed references with their own CAS
+      ---
+      duration_ms: 666.751
+      type: 'test'
+      ...
+    # Subtest: shot revisions and dialogue projection pin exact look and voice independently of later asset versions
+    ok 2 - shot revisions and dialogue projection pin exact look and voice independently of later asset versions
+      ---
+      duration_ms: 736.058167
+      type: 'test'
+      ...
+    # Subtest: wrong kind, look parent, shared revision, project, duplicate identities and media membership fail atomically
+    ok 3 - wrong kind, look parent, shared revision, project, duplicate identities and media membership fail atomically
+      ---
+      duration_ms: 1662.626375
+      type: 'test'
+      ...
+    # Subtest: direct runtime writes cannot forge, remove or mutate derived dependencies and dialogue history
+    ok 4 - direct runtime writes cannot forge, remove or mutate derived dependencies and dialogue history
+      ---
+      duration_ms: 280.124875
+      type: 'test'
+      ...
+    # Subtest: quality media uses explicit project relationships, retained archive reads and scoped removal
+    ok 5 - quality media uses explicit project relationships, retained archive reads and scoped removal
+      ---
+      duration_ms: 954.642333
+      type: 'test'
+      ...
+    # Subtest: proposal adoption revalidates newly archived references and rolls back the entire selected graph
+    ok 6 - proposal adoption revalidates newly archived references and rolls back the entire selected graph
+      ---
+      duration_ms: 687.0495
+      type: 'test'
+      ...
+    # Subtest: usage navigation lists actual fixed owners, filters private projects and rechecks revoked access before replay
+    ok 7 - usage navigation lists actual fixed owners, filters private projects and rechecks revoked access before replay
+      ---
+      duration_ms: 453.322917
+      type: 'test'
+      ...
+    # Subtest: archive preserves the same semantic slots but cannot create, move, or resurrect a reference
+    ok 8 - archive preserves the same semantic slots but cannot create, move, or resurrect a reference
+      ---
+      duration_ms: 534.129709
+      type: 'test'
+      ...
+    # Subtest: proposal temporary identities cannot inherit an existing shot's archived bindings or implicit dialogue history
+    ok 9 - proposal temporary identities cannot inherit an existing shot's archived bindings or implicit dialogue history
+      ---
+      duration_ms: 372.38075
+      type: 'test'
+      ...
+    1..9
+not ok 21 - creative owners pin authorized asset, look, voice and media references through real commands
+  ---
+  duration_ms: 19683.449791
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/integration/creative-assets.test.ts:1:330'
+  failureType: 'hookFailed'
+  error: 'out of shared memory'
+  code: '53200'
+  name: 'error'
+  stack: |-
+    /Users/gandy/beyondgravity/scenedesk/node_modules/pg-pool/index.js:45:11
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/tests/support/database.ts:47:7)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+    async Test.runHook (node:internal/test_runner/test:965:9)
+    async after (node:internal/test_runner/test:1005:9)
+    async Test.run (node:internal/test_runner/test:1070:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: creative basis captures actual sources and arbitrates explicit formal decisions
+    # Subtest: saved sources create fixed snapshots before confirmation; unused empty roots create none
+    ok 1 - saved sources create fixed snapshots before confirmation; unused empty roots create none
+      ---
+      duration_ms: 1704.58375
+      type: 'test'
+      ...
+    # Subtest: hash protects exact dialogue identity and words while ignoring presentation and source revision IDs
+    ok 2 - hash protects exact dialogue identity and words while ignoring presentation and source revision IDs
+      ---
+      duration_ms: 449.629
+      type: 'test'
+      ...
+    # Subtest: competing first confirmations accept one; lost-response replay appends no second decision
+    ok 3 - competing first confirmations accept one; lost-response replay appends no second decision
+      ---
+      duration_ms: 148.8625
+      type: 'test'
+      ...
+    # Subtest: new drafts retain the old formal pointer and allow explicitly confirming history
+    ok 4 - new drafts retain the old formal pointer and allow explicitly confirming history
+      ---
+      duration_ms: 360.706333
+      type: 'test'
+      ...
+    # Subtest: fixed snapshots and decisions resist mutation; typed links and project scope reject forgery
+    ok 5 - fixed snapshots and decisions resist mutation; typed links and project scope reject forgery
+      ---
+      duration_ms: 415.419333
+      type: 'test'
+      ...
+    # Subtest: pagination binds all filters and CSV adoption uses the same source capture
+    ok 6 - pagination binds all filters and CSV adoption uses the same source capture
+      ---
+      duration_ms: 493.014583
+      type: 'test'
+      ...
+    1..6
+not ok 22 - creative basis captures actual sources and arbitrates explicit formal decisions
+  ---
+  duration_ms: 16604.88925
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/integration/creative.test.ts:1:468'
+  failureType: 'hookFailed'
+  error: 'out of shared memory'
+  code: '53200'
+  name: 'error'
+  stack: |-
+    /Users/gandy/beyondgravity/scenedesk/node_modules/pg-pool/index.js:45:11
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/tests/support/database.ts:47:7)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+    async Test.runHook (node:internal/test_runner/test:965:9)
+    async after (node:internal/test_runner/test:1005:9)
+    async Test.run (node:internal/test_runner/test:1070:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: editing presence is expiring session-scoped advice with no content write
+    # Subtest: heartbeat returns server timestamps, updates one client and never changes content or audit
+    ok 1 - heartbeat returns server timestamps, updates one client and never changes content or audit
+      ---
+      duration_ms: 209.205417
+      type: 'test'
+      ...
+    # Subtest: actual typed target and current project authority are required; browser origin and CSRF apply
+    ok 2 - actual typed target and current project authority are required; browser origin and CSRF apply
+      ---
+      duration_ms: 125.515208
+      type: 'test'
+      ...
+    # Subtest: five client limit is serialized; expired slots can be reused
+    ok 3 - five client limit is serialized; expired slots can be reused
+      ---
+      duration_ms: 173.407583
+      type: 'test'
+      ...
+    # Subtest: newer login owns a reused client; old heartbeat is rejected and logout removes only its own entries
+    ok 4 - newer login owns a reused client; old heartbeat is rejected and logout removes only its own entries
+      ---
+      duration_ms: 152.376334
+      type: 'test'
+      ...
+    # Subtest: revoking a project member immediately removes their activity and prevents reads and replay
+    ok 5 - revoking a project member immediately removes their activity and prevents reads and replay
+      ---
+      duration_ms: 88.276625
+      type: 'test'
+      ...
+    # Subtest: older logout cannot erase a client reclaimed by a newer login
+    ok 6 - older logout cannot erase a client reclaimed by a newer login
+      ---
+      duration_ms: 173.55375
+      type: 'test'
+      ...
+    # Subtest: restricted SQL cannot forge timestamps or another user's session
+    ok 7 - restricted SQL cannot forge timestamps or another user's session
+      ---
+      duration_ms: 66.562
+      type: 'test'
+      ...
+    # Subtest: archived targets accept viewing only, without becoming an exclusive lock
+    ok 8 - archived targets accept viewing only, without becoming an exclusive lock
+      ---
+      duration_ms: 116.679333
+      type: 'test'
+      ...
+    1..8
+ok 23 - editing presence is expiring session-scoped advice with no content write
+  ---
+  duration_ms: 15589.806958
+  type: 'test'
+  ...
+# Subtest: shared unfinished Cut work is independently versioned and protects its fixed sources
+    # Subtest: GET returns virtual revision zero without a write, independent of the Cut ETag
+    ok 1 - GET returns virtual revision zero without a write, independent of the Cut ETag
+      ---
+      duration_ms: 150.602916
+      type: 'test'
+      ...
+    # Subtest: unfinished subtitle and missing clip binding diagnostics can be saved without confirming the Cut
+    ok 2 - unfinished subtitle and missing clip binding diagnostics can be saved without confirming the Cut
+      ---
+      duration_ms: 167.305041
+      type: 'test'
+      ...
+    # Subtest: CAS admits one racing writer and identical content does not create fake checkpoints
+    ok 3 - CAS admits one racing writer and identical content does not create fake checkpoints
+      ---
+      duration_ms: 553.134833
+      type: 'test'
+      ...
+    # Subtest: ready media can be arranged and archived media retained only in its existing semantic slot
+    ok 4 - ready media can be arranged and archived media retained only in its existing semantic slot
+      ---
+      duration_ms: 726.369375
+      type: 'test'
+      ...
+    # Subtest: wrong-scope media, missing sources, reversed ranges and unauthorized readers cannot bypass validation
+    ok 5 - wrong-scope media, missing sources, reversed ranges and unauthorized readers cannot bypass validation
+      ---
+      duration_ms: 1307.691375
+      type: 'test'
+      ...
+    # Subtest: adoption reports actual dependent work without replacing any arranged source
+    ok 6 - adoption reports actual dependent work without replacing any arranged source
+      ---
+      duration_ms: 4899.468542
+      type: 'test'
+      ...
+    # Subtest: a missing clip may keep an authorized fixed dialogue and voice but cannot invent their relationship
+    ok 7 - a missing clip may keep an authorized fixed dialogue and voice but cannot invent their relationship
+      ---
+      duration_ms: 3657.560334
+      type: 'test'
+      ...
+    # Subtest: quality references in work specifications are typed, bounded and authorized
+    ok 8 - quality references in work specifications are typed, bounded and authorized
+      ---
+      duration_ms: 1761.055041
+      type: 'test'
+      ...
+    # Subtest: capacity failures preserve the shared document; canonical bytes permit legitimate payloads beyond one MiB
+    ok 9 - capacity failures preserve the shared document; canonical bytes permit legitimate payloads beyond one MiB
+      ---
+      duration_ms: 3290.08
+      type: 'test'
+      ...
+    # Subtest: finite history deduplicates bodies, protects two heads and returns 410 for a pruned actual revision
+    ok 10 - finite history deduplicates bodies, protects two heads and returns 410 for a pruned actual revision
+      ---
+      duration_ms: 62381.192416
+      type: 'test'
+      ...
+    # Subtest: restricted SQL cannot overwrite retained content, forge projections or move the shared root backward
+    ok 11 - restricted SQL cannot overwrite retained content, forge projections or move the shared root backward
+      ---
+      duration_ms: 201.078333
+      type: 'test'
+      ...
+    1..11
+ok 24 - shared unfinished Cut work is independently versioned and protects its fixed sources
+  ---
+  duration_ms: 85669.953333
+  type: 'test'
+  ...
+# Subtest: fixed script analysis plans execute once and produce persistent editable proposals
+    # Subtest: explicit selection is resolved and frozen before a separate execute confirmation
+    ok 1 - explicit selection is resolved and frozen before a separate execute confirmation
+      ---
+      duration_ms: 601.190584
+      type: 'test'
+      ...
+    # Subtest: concurrent consumes, expired replay cache, and concurrent workers cannot buy another attempt
+    ok 2 - concurrent consumes, expired replay cache, and concurrent workers cannot buy another attempt
+      ---
+      duration_ms: 1237.180125
+      type: 'test'
+      ...
+    # Subtest: AI proposal retains original source through edit and explicit adoption without auto-changing shots
+    ok 3 - AI proposal retains original source through edit and explicit adoption without auto-changing shots
+      ---
+      duration_ms: 779.52975
+      type: 'test'
+      ...
+    # Subtest: unknown submission remains unresolved, cannot be cancelled as free, and recovers only original attempt
+    ok 4 - unknown submission remains unresolved, cannot be cancelled as free, and recovers only original attempt
+      ---
+      duration_ms: 1842.553417
+      type: 'test'
+      ...
+    # Subtest: invalid output fails without creating a partial proposal or applying model-supplied identities
+    ok 5 - invalid output fails without creating a partial proposal or applying model-supplied identities
+      ---
+      duration_ms: 845.528625
+      type: 'test'
+      ...
+    # Subtest: changed selected content blocks execution but does not erase the fixed plan
+    ok 6 - changed selected content blocks execution but does not erase the fixed plan
+      ---
+      duration_ms: 721.316417
+      type: 'test'
+      ...
+    # Subtest: a process lost after durable dispatch is never resubmitted, and late evidence completes the original job
+    ok 7 - a process lost after durable dispatch is never resubmitted, and late evidence completes the original job
+      ---
+      duration_ms: 1081.964292
+      type: 'test'
+      ...
+    # Subtest: permission revocation rejects cached responses and cancels undispatched work without calling the adapter
+    ok 8 - permission revocation rejects cached responses and cancels undispatched work without calling the adapter
+      ---
+      duration_ms: 506.716042
+      type: 'test'
+      ...
+    # Subtest: unknown submissions retain inflight capacity until original evidence resolves them
+    ok 9 - unknown submissions retain inflight capacity until original evidence resolves them
+      ---
+      duration_ms: 2306.282083
+      type: 'test'
+      ...
+    # Subtest: late conflicting evidence preserves the first proposal and exposes reconciliation instead of rewriting history
+    ok 10 - late conflicting evidence preserves the first proposal and exposes reconciliation instead of rewriting history
+      ---
+      duration_ms: 610.930667
+      type: 'test'
+      ...
+    # Subtest: disabled or unverified capabilities cannot be submitted as available models
+    ok 11 - disabled or unverified capabilities cannot be submitted as available models
+      ---
+      duration_ms: 407.296625
+      type: 'test'
+      ...
+    # Subtest: a shared capability daily limit serializes simultaneous submissions from two projects
+    ok 12 - a shared capability daily limit serializes simultaneous submissions from two projects
+      ---
+      duration_ms: 2986.593292
+      type: 'test'
+      ...
+    # Subtest: queued cancellation prevents an attempt and keeps the consumed plan bound to its original job
+    ok 13 - queued cancellation prevents an attempt and keeps the consumed plan bound to its original job
+      ---
+      duration_ms: 1371.344208
+      type: 'test'
+      ...
+    # Subtest: separate AI attempts with identical input retain independently editable proposals
+    ok 14 - separate AI attempts with identical input retain independently editable proposals
+      ---
+      duration_ms: 2680.880959
+      type: 'test'
+      ...
+    # Subtest: restricted runtime cannot forge worker receipts or rewrite attempts
+    ok 15 - restricted runtime cannot forge worker receipts or rewrite attempts
+      ---
+      duration_ms: 13.478834
+      type: 'test'
+      ...
+    1..15
+ok 25 - fixed script analysis plans execute once and produce persistent editable proposals
+  ---
+  duration_ms: 33293.5215
+  type: 'test'
+  ...
+# Subtest: identity and projects enforce actual PostgreSQL roles, tenant scope, CAS and replay authorization
+    # Subtest: sessions use hashed tokens and expose only contract fields
+    ok 1 - sessions use hashed tokens and expose only contract fields
+      ---
+      duration_ms: 228.844459
+      type: 'test'
+      ...
+    # Subtest: concurrent repeat creates one tenant and one owner in a single transaction
+    ok 2 - concurrent repeat creates one tenant and one owner in a single transaction
+      ---
+      duration_ms: 1043.553625
+      type: 'test'
+      ...
+    # Subtest: tenant lists, origin, CSRF and stale versions preserve scope
+    ok 3 - tenant lists, origin, CSRF and stale versions preserve scope
+      ---
+      duration_ms: 606.388458
+      type: 'test'
+      ...
+    # Subtest: invitations bind verified email, hide secrets, and accept exactly once
+    ok 4 - invitations bind verified email, hide secrets, and accept exactly once
+      ---
+      duration_ms: 921.052
+      type: 'test'
+      ...
+    # Subtest: project creation also creates its production and lead; members see only assigned projects
+    ok 5 - project creation also creates its production and lead; members see only assigned projects
+      ---
+      duration_ms: 445.365167
+      type: 'test'
+      ...
+    # Subtest: RLS hides another tenant and another private project even without SQL WHERE clauses
+    ok 6 - RLS hides another tenant and another private project even without SQL WHERE clauses
+      ---
+      duration_ms: 33.831541
+      type: 'test'
+      ...
+    # Subtest: production settings persist independently and reject lost updates
+    ok 7 - production settings persist independently and reject lost updates
+      ---
+      duration_ms: 457.623959
+      type: 'test'
+      ...
+    # Subtest: role restrictions, owner and lead invariants reject invalid changes
+    ok 8 - role restrictions, owner and lead invariants reject invalid changes
+      ---
+      duration_ms: 677.301375
+      type: 'test'
+      ...
+    # Subtest: archive, restore, pagination cursors and access revocation are explicit
+    ok 9 - archive, restore, pagination cursors and access revocation are explicit
+      ---
+      duration_ms: 689.705834
+      type: 'test'
+      ...
+    1..9
+ok 26 - identity and projects enforce actual PostgreSQL roles, tenant scope, CAS and replay authorization
+  ---
+  duration_ms: 16763.328
+  type: 'test'
+  ...
+# Subtest: single image fixed plan, archive protocol and explicit canvas results
+    # Subtest: old target descriptors, missing sources and unsupported output cannot execute
+    ok 1 - old target descriptors, missing sources and unsupported output cannot execute
+      ---
+      duration_ms: 363.889917
+      type: 'test'
+      ...
+    # Subtest: one submission records a private source but exposes media only after verification
+    ok 2 - one submission records a private source but exposes media only after verification
+      ---
+      duration_ms: 1875.823083
+      type: 'test'
+      ...
+    # Subtest: lost archive queue write preserves receipt and retries local finalization without submit
+    ok 3 - lost archive queue write preserves receipt and retries local finalization without submit
+      ---
+      duration_ms: 1207.210416
+      type: 'test'
+      ...
+    # Subtest: unknown submission cannot be converted to archive retry and recovery uses evidence only
+    ok 4 - unknown submission cannot be converted to archive retry and recovery uses evidence only
+      ---
+      duration_ms: 845.229417
+      type: 'test'
+      ...
+    # Subtest: conflicting late evidence keeps the first verified Media and never declares success
+    ok 5 - conflicting late evidence keeps the first verified Media and never declares success
+      ---
+      duration_ms: 1216.840167
+      type: 'test'
+      ...
+    # Subtest: provider URLs and incomplete output never create an archive source
+    ok 6 - provider URLs and incomplete output never create an archive source
+      ---
+      duration_ms: 336.592375
+      type: 'test'
+      ...
+    # Subtest: reference archival after execute cancels first dispatch without consuming an attempt
+    ok 7 - reference archival after execute cancels first dispatch without consuming an attempt
+      ---
+      duration_ms: 726.143
+      type: 'test'
+      ...
+    # Subtest: ready plan invariant rejects null cost even through direct SQL
+    ok 8 - ready plan invariant rejects null cost even through direct SQL
+      ---
+      duration_ms: 209.301125
+      type: 'test'
+      ...
+    # Subtest: canvas fixes only semantic draft inputs; results require explicit stable placement
+    ok 9 - canvas fixes only semantic draft inputs; results require explicit stable placement
+      ---
+      duration_ms: 3668.53275
+      type: 'test'
+      ...
+    1..9
+ok 27 - single image fixed plan, archive protocol and explicit canvas results
+  ---
+  duration_ms: 27872.215333
+  type: 'test'
+  ...
+# Subtest: real PG migration: concurrent runners, rerun, modified history and failed DDL rollback
+ok 28 - real PG migration: concurrent runners, rerun, modified history and failed DDL rollback
+  ---
+  duration_ms: 738.299875
+  type: 'test'
+  ...
+# Subtest: OIDC validates signed identity and binds each callback to one browser handshake
+    # Subtest: rejects unsafe redirect paths and foreign browser before exchanging a code
+    ok 1 - rejects unsafe redirect paths and foreign browser before exchanging a code
+      ---
+      duration_ms: 282.109542
+      type: 'test'
+      ...
+    # Subtest: rejects bad nonce, issuer, audience, expiry and signature without issuing sessions
+    ok 2 - rejects bad nonce, issuer, audience, expiry and signature without issuing sessions
+      ---
+      duration_ms: 117.6715
+      type: 'test'
+      ...
+    # Subtest: parallel callbacks issue one session; expired handshakes cannot exchange
+    ok 3 - parallel callbacks issue one session; expired handshakes cannot exchange
+      ---
+      duration_ms: 130.909667
+      type: 'test'
+      ...
+    1..3
+ok 29 - OIDC validates signed identity and binds each callback to one browser handshake
+  ---
+  duration_ms: 15116.409292
+  type: 'test'
+  ...
+# Subtest: production job ownership, fixed receipts and cleanup remain authoritative across leases
+    # Subtest: failed enqueue rolls back a new root even if caller catches the error
+    ok 1 - failed enqueue rolls back a new root even if caller catches the error
+      ---
+      duration_ms: 186.539666
+      type: 'test'
+      ...
+    # Subtest: concurrent same-content requests deduplicate, retain typed sources and enqueue once
+    ok 2 - concurrent same-content requests deduplicate, retain typed sources and enqueue once
+      ---
+      duration_ms: 1010.271667
+      type: 'test'
+      ...
+    # Subtest: one live lease wins; takeover preserves upload receipts and fences the old owner
+    ok 3 - one live lease wins; takeover preserves upload receipts and fences the old owner
+      ---
+      duration_ms: 463.471083
+      type: 'test'
+      ...
+    # Subtest: cleanup leases exclude active resources and foreign hosts and retain resweep tombstones
+    ok 4 - cleanup leases exclude active resources and foreign hosts and retain resweep tombstones
+      ---
+      duration_ms: 416.263125
+      type: 'test'
+      ...
+    # Subtest: ready requires the complete immutable artifact set, and cached requests still authorize
+    ok 5 - ready requires the complete immutable artifact set, and cached requests still authorize
+      ---
+      duration_ms: 336.903667
+      type: 'test'
+      ...
+    # Subtest: roles cannot forge leases, inspect raw artifacts or skip the scheduler boundary
+    ok 6 - roles cannot forge leases, inspect raw artifacts or skip the scheduler boundary
+      ---
+      duration_ms: 82.610542
+      type: 'test'
+      ...
+    # Subtest: yield preserves receipts; explicit recovery starts a new step and fences prior artifacts
+    ok 7 - yield preserves receipts; explicit recovery starts a new step and fences prior artifacts
+      ---
+      duration_ms: 407.540083
+      type: 'test'
+      ...
+    1..7
+ok 30 - production job ownership, fixed receipts and cleanup remain authoritative across leases
+  ---
+  duration_ms: 21542.603125
+  type: 'test'
+  ...
+# Subtest: project creation identity is durable, scoped and returns its current project
+    # Subtest: concurrent HTTP keys create one project and one set of business roots
+    ok 1 - concurrent HTTP keys create one project and one set of business roots
+      ---
+      duration_ms: 642.797666
+      type: 'test'
+      ...
+    # Subtest: valid HTTP keys keep their body conflict contract while durable identities accept canonical UUID case
+    ok 2 - valid HTTP keys keep their body conflict contract while durable identities accept canonical UUID case
+      ---
+      duration_ms: 354.820042
+      type: 'test'
+      ...
+    # Subtest: same-key recovery reads current renamed and archived state without extending the HTTP cache deadline
+    ok 3 - same-key recovery reads current renamed and archived state without extending the HTTP cache deadline
+      ---
+      duration_ms: 239.942375
+      type: 'test'
+      ...
+    # Subtest: the original request recovers after response loss, receipt expiry or deletion without a new project
+    ok 4 - the original request recovers after response loss, receipt expiry or deletion without a new project
+      ---
+      duration_ms: 288.330708
+      type: 'test'
+      ...
+    # Subtest: an original lead can be handed over and suspended without blocking the original creator's recovery
+    ok 5 - an original lead can be handed over and suspended without blocking the original creator's recovery
+      ---
+      duration_ms: 747.687042
+      type: 'test'
+      ...
+    # Subtest: tenant and original actor scope the durable identity; current owner/admin permission precedes replay
+    ok 6 - tenant and original actor scope the durable identity; current owner/admin permission precedes replay
+      ---
+      duration_ms: 794.866334
+      type: 'test'
+      ...
+    # Subtest: restricted bindings force row isolation and append-only grants
+    ok 7 - restricted bindings force row isolation and append-only grants
+      ---
+      duration_ms: 155.189791
+      type: 'test'
+      ...
+    # Subtest: a failed binding insert rolls back all project roots and the HTTP receipt
+    ok 8 - a failed binding insert rolls back all project roots and the HTTP receipt
+      ---
+      duration_ms: 644.359542
+      type: 'test'
+      ...
+    # Subtest: clients without creationRequestId retain ordinary HTTP replay and do not create permanent bindings
+    ok 9 - clients without creationRequestId retain ordinary HTTP replay and do not create permanent bindings
+      ---
+      duration_ms: 187.544875
+      type: 'test'
+      ...
+    1..9
+ok 31 - project creation identity is durable, scoped and returns its current project
+  ---
+  duration_ms: 19822.714875
+  type: 'test'
+  ...
+# Subtest: project hints relay after commit, replay in sequence and reauthorize live streams
+    # Subtest: first connection resets; only committed resources and revisions appear
+    ok 1 - first connection resets; only committed resources and revisions appear
+      ---
+      duration_ms: 87.763625
+      type: 'test'
+      ...
+    # Subtest: producer cannot relay its own uncommitted hints; rollback leaks neither hint nor cursor
+    ok 2 - producer cannot relay its own uncommitted hints; rollback leaks neither hint nor cursor
+      ---
+      duration_ms: 390.975667
+      type: 'test'
+      ...
+    # Subtest: concurrent relays allocate one durable hint and isolate other projects
+    ok 3 - concurrent relays allocate one durable hint and isolate other projects
+      ---
+      duration_ms: 799.210958
+      type: 'test'
+      ...
+    # Subtest: expired and future cursors reset; hints cannot be fabricated by restricted SQL
+    ok 4 - expired and future cursors reset; hints cannot be fabricated by restricted SQL
+      ---
+      duration_ms: 282.303917
+      type: 'test'
+      ...
+    # Subtest: real SSE replays on Last-Event-ID, closes after logout and releases connection slots
+    ok 5 - real SSE replays on Last-Event-ID, closes after logout and releases connection slots
+      ---
+      duration_ms: 4582.242584
+      type: 'test'
+      ...
+    # Subtest: revoking project membership closes an already connected stream and prevents replay
+    ok 6 - revoking project membership closes an already connected stream and prevents replay
+      ---
+      duration_ms: 2212.436292
+      type: 'test'
+      ...
+    # Subtest: input rejection is JSON; connection cap recovers and app shutdown closes streams
+    ok 7 - input rejection is JSON; connection cap recovers and app shutdown closes streams
+      ---
+      duration_ms: 251.218333
+      type: 'test'
+      ...
+    1..7
+ok 32 - project hints relay after commit, replay in sequence and reauthorize live streams
+  ---
+  duration_ms: 24026.361875
+  type: 'test'
+  ...
+# Subtest: fixed prompt assistance preserves shot sources and immutable human-editable artifacts
+    # Subtest: only explicit fixed shots and target capability become frozen input; execution creates no production edits
+    ok 1 - only explicit fixed shots and target capability become frozen input; execution creates no production edits
+      ---
+      duration_ms: 1785.81825
+      type: 'test'
+      ...
+    # Subtest: the database rejects ready plans without an estimate or with blocking reasons
+    ok 2 - the database rejects ready plans without an estimate or with blocking reasons
+      ---
+      duration_ms: 53.17025
+      type: 'test'
+      ...
+    # Subtest: human edits append immutable revisions; conflicts and lost responses recover by authoritative reads
+    ok 3 - human edits append immutable revisions; conflicts and lost responses recover by authoritative reads
+      ---
+      duration_ms: 236.921208
+      type: 'test'
+      ...
+    # Subtest: unknown execution cannot be resubmitted and resolves to the original single artifact
+    ok 4 - unknown execution cannot be resubmitted and resolves to the original single artifact
+      ---
+      duration_ms: 1301.904125
+      type: 'test'
+      ...
+    # Subtest: model cannot add a reference identity outside fixed selected inputs
+    ok 5 - model cannot add a reference identity outside fixed selected inputs
+      ---
+      duration_ms: 693.834125
+      type: 'test'
+      ...
+    # Subtest: fixed old shot revision stays fixed while selected mutable context makes input outdated
+    ok 6 - fixed old shot revision stays fixed while selected mutable context makes input outdated
+      ---
+      duration_ms: 1169.568917
+      type: 'test'
+      ...
+    # Subtest: missing fixed shots, review sources and target profiles cannot be invented
+    ok 7 - missing fixed shots, review sources and target profiles cannot be invented
+      ---
+      duration_ms: 406.745833
+      type: 'test'
+      ...
+    # Subtest: canvas draft hashes include enabled semantic inputs and exclude layout, titles and disabled edges
+    ok 8 - canvas draft hashes include enabled semantic inputs and exclude layout, titles and disabled edges
+      ---
+      duration_ms: 3068.47625
+      type: 'test'
+      ...
+    # Subtest: authorized references are projected, archived existing advice remains editable, and new private references are rejected
+    ok 9 - authorized references are projected, archived existing advice remains editable, and new private references are rejected
+      ---
+      duration_ms: 877.151625
+      type: 'test'
+      ...
+    # Subtest: current authorization protects artifact reads, history and edits and cancels queued work after revocation
+    ok 10 - current authorization protects artifact reads, history and edits and cancels queued work after revocation
+      ---
+      duration_ms: 558.941125
+      type: 'test'
+      ...
+    # Subtest: late conflicting evidence preserves the first artifact and exposes reconciliation
+    ok 11 - late conflicting evidence preserves the first artifact and exposes reconciliation
+      ---
+      duration_ms: 461.032834
+      type: 'test'
+      ...
+    # Subtest: restricted identities cannot rewrite original artifact or read arbitrary source tables
+    ok 12 - restricted identities cannot rewrite original artifact or read arbitrary source tables
+      ---
+      duration_ms: 6.386958
+      type: 'test'
+      ...
+    1..12
+ok 33 - fixed prompt assistance preserves shot sources and immutable human-editable artifacts
+  ---
+  duration_ms: 24258.466208
+  type: 'test'
+  ...
+# Subtest: CSV proposals preserve provenance and apply selected dependency graphs exactly once in PostgreSQL
+    # Subtest: same source/target/baseline reuses the proposal even with different idempotency keys
+    ok 1 - same source/target/baseline reuses the proposal even with different idempotency keys
+      ---
+      duration_ms: 802.7505
+      type: 'test'
+      ...
+    # Subtest: manual revision preserves original and rejects invalid parents, duplicate IDs and archive operations atomically
+    ok 2 - manual revision preserves original and rejects invalid parents, duplicate IDs and archive operations atomically
+      ---
+      duration_ms: 438.534584
+      type: 'test'
+      ...
+    # Subtest: missing selected dependencies creates nothing; complete selection applies once and records permanent mapping
+    ok 3 - missing selected dependencies creates nothing; complete selection applies once and records permanent mapping
+      ---
+      duration_ms: 909.940416
+      type: 'test'
+      ...
+    # Subtest: append target is explicit, scoped and versioned; mixed source scenes do not get silently flattened
+    ok 4 - append target is explicit, scoped and versioned; mixed source scenes do not get silently flattened
+      ---
+      duration_ms: 537.448833
+      type: 'test'
+      ...
+    # Subtest: stale baseline requires an explicit reviewed rebase; append positions never overwrite existing order
+    ok 5 - stale baseline requires an explicit reviewed rebase; append positions never overwrite existing order
+      ---
+      duration_ms: 848.275875
+      type: 'test'
+      ...
+    # Subtest: pagination is bound to every filter and proposals survive a new app instance
+    ok 6 - pagination is bound to every filter and proposals survive a new app instance
+      ---
+      duration_ms: 221.568625
+      type: 'test'
+      ...
+    1..6
+ok 34 - CSV proposals preserve provenance and apply selected dependency graphs exactly once in PostgreSQL
+  ---
+  duration_ms: 15850.198291
+  type: 'test'
+  ...
+# Subtest: pg-boss gate: atomic enqueue, minimum roles, durable delay and crash replay
+    # Subtest: business write and enqueue share the caller connection and roll back either failure
+    ok 1 - business write and enqueue share the caller connection and roll back either failure
+      ---
+      duration_ms: 140.906292
+      type: 'test'
+      ...
+    # Subtest: producer cannot read payloads, claim work or migrate; scheduler cannot read business data
+    ok 2 - producer cannot read payloads, claim work or migrate; scheduler cannot read business data
+      ---
+      duration_ms: 203.130083
+      type: 'test'
+      ...
+    # Subtest: delay survives producer restart; duplicates and stale epochs cannot repeat business effects
+    ok 3 - delay survives producer restart; duplicates and stale epochs cannot repeat business effects
+      ---
+      duration_ms: 3515.107375
+      type: 'test'
+      ...
+    # Subtest: SIGKILL before business commit rolls back; lost acknowledgement replays without another effect
+    ok 4 - SIGKILL before business commit rolls back; lost acknowledgement replays without another effect
+      ---
+      duration_ms: 7054.884042
+      type: 'test'
+      ...
+    # Subtest: retry exhaustion keeps a failed queue record without private error text or business success
+    ok 5 - retry exhaustion keeps a failed queue record without private error text or business success
+      ---
+      duration_ms: 1806.90625
+      type: 'test'
+      ...
+    1..5
+ok 35 - pg-boss gate: atomic enqueue, minimum roles, durable delay and crash replay
+  ---
+  duration_ms: 26691.7395
+  type: 'test'
+  ...
+# Subtest: Take feedback preserves real fixed opinions, current authority and immutable history
+    # Subtest: same-key creation recovers one fixed open review; different keys cannot invent another open round
+    ok 1 - same-key creation recovers one fixed open review; different keys cannot invent another open round
+      ---
+      duration_ms: 721.820625
+      type: 'test'
+      ...
+    # Subtest: unsupported Cut, decisions and nonempty closure fields are rejected
+    ok 2 - unsupported Cut, decisions and nonempty closure fields are rejected
+      ---
+      duration_ms: 479.927041
+      type: 'test'
+      ...
+    # Subtest: local point and range comments stay on their review and preserve the original HTTP receipt
+    ok 3 - local point and range comments stay on their review and preserve the original HTTP receipt
+      ---
+      duration_ms: 729.098584
+      type: 'test'
+      ...
+    # Subtest: concurrent CAS edits append one immutable version and fixed feedback keeps its old text
+    ok 4 - concurrent CAS edits append one immutable version and fixed feedback keeps its old text
+      ---
+      duration_ms: 251.910875
+      type: 'test'
+      ...
+    # Subtest: authors own text while a currently authorized collaborator can resolve and reopen
+    ok 5 - authors own text while a currently authorized collaborator can resolve and reopen
+      ---
+      duration_ms: 339.673083
+      type: 'test'
+      ...
+    # Subtest: restricted SQL cannot forge authors, times, parent reviews, root identity or history
+    ok 6 - restricted SQL cannot forge authors, times, parent reviews, root identity or history
+      ---
+      duration_ms: 413.49425
+      type: 'test'
+      ...
+    # Subtest: membership removal precedes cached receipts, history resolution and comment updates
+    ok 7 - membership removal precedes cached receipts, history resolution and comment updates
+      ---
+      duration_ms: 971.05425
+      type: 'test'
+      ...
+    # Subtest: history insertion failure rolls back the visible comment and its revision
+    ok 8 - history insertion failure rolls back the visible comment and its revision
+      ---
+      duration_ms: 293.057083
+      type: 'test'
+      ...
+    # Subtest: archived source media preserves existing feedback but cannot open a new review
+    ok 9 - archived source media preserves existing feedback but cannot open a new review
+      ---
+      duration_ms: 972.807416
+      type: 'test'
+      ...
+    # Subtest: archived project feedback stays readable while new writes are rejected and audit remains attributable
+    ok 10 - archived project feedback stays readable while new writes are rejected and audit remains attributable
+      ---
+      duration_ms: 325.506333
+      type: 'test'
+      ...
+    1..10
+ok 36 - Take feedback preserves real fixed opinions, current authority and immutable history
+  ---
+  duration_ms: 18021.833875
+  type: 'test'
+  ...
+# Subtest: Take feedback fixes immutable rework sources through preparation, execution and recovery
+    # Subtest: old Take shot, original Unicode/time range and canonical hash survive JSONB and durable output
+    ok 1 - old Take shot, original Unicode/time range and canonical hash survive JSONB and durable output
+      ---
+      duration_ms: 1978.921875
+      type: 'test'
+      ...
+    # Subtest: missing versions, foreign projects, mismatched Take/shot and generic comment contexts are rejected
+    ok 2 - missing versions, foreign projects, mismatched Take/shot and generic comment contexts are rejected
+      ---
+      duration_ms: 1397.844459
+      type: 'test'
+      ...
+    # Subtest: database rejects forged snapshots, dependencies, whole-input hashes and missing typed projection
+    ok 3 - database rejects forged snapshots, dependencies, whole-input hashes and missing typed projection
+      ---
+      duration_ms: 870.705042
+      type: 'test'
+      ...
+    # Subtest: edited/resolved feedback never silently upgrades a plan; first dispatch checks current source
+    ok 4 - edited/resolved feedback never silently upgrades a plan; first dispatch checks current source
+      ---
+      duration_ms: 2038.173792
+      type: 'test'
+      ...
+    # Subtest: unknown submission keeps its attempt even when feedback changes; recovery creates only the original artifact
+    ok 5 - unknown submission keeps its attempt even when feedback changes; recovery creates only the original artifact
+      ---
+      duration_ms: 550.781625
+      type: 'test'
+      ...
+    # Subtest: immutable rework artifact revisions remain usable as explicit media provenance without side effects
+    ok 6 - immutable rework artifact revisions remain usable as explicit media provenance without side effects
+      ---
+      duration_ms: 419.531334
+      type: 'test'
+      ...
+    # Subtest: concurrent comment edits and preparation cannot silently select the new revision
+    ok 7 - concurrent comment edits and preparation cannot silently select the new revision
+      ---
+      duration_ms: 180.452959
+      type: 'test'
+      ...
+    # Subtest: invalid provider metadata cannot replace feedback; current source media is required until dispatch
+    ok 8 - invalid provider metadata cannot replace feedback; current source media is required until dispatch
+      ---
+      duration_ms: 452.403625
+      type: 'test'
+      ...
+    1..8
+ok 37 - Take feedback fixes immutable rework sources through preparation, execution and recovery
+  ---
+  duration_ms: 21048.22875
+  type: 'test'
+  ...
+# Subtest: manual tasks preserve unique scene responsibility, processing history and current membership authority
+    # Subtest: assignments require actual project eligibility; a scene has only one owner task including after completion
+    ok 1 - assignments require actual project eligibility; a scene has only one owner task including after completion
+      ---
+      duration_ms: 713.006166
+      type: 'test'
+      ...
+    # Subtest: collaborators can process only their own tasks and cannot rewrite scope, title, deadline or assignment
+    ok 2 - collaborators can process only their own tasks and cannot rewrite scope, title, deadline or assignment
+      ---
+      duration_ms: 490.8405
+      type: 'test'
+      ...
+    # Subtest: concurrent task writes preserve one result; completion and reassignment retain identity and prior processing
+    ok 3 - concurrent task writes preserve one result; completion and reassignment retain identity and prior processing
+      ---
+      duration_ms: 533.921625
+      type: 'test'
+      ...
+    # Subtest: membership removal retains the original assignee visibly but revokes work
+    ok 4 - membership removal retains the original assignee visibly but revokes work
+      ---
+      duration_ms: 1169.109792
+      type: 'test'
+      ...
+    # Subtest: task scope has typed database links and a shot cannot silently move a scene-bound task
+    ok 5 - task scope has typed database links and a shot cannot silently move a scene-bound task
+      ---
+      duration_ms: 389.946625
+      type: 'test'
+      ...
+    # Subtest: immutable history cannot be rewritten and every task update needs its matching revision
+    ok 6 - immutable history cannot be rewritten and every task update needs its matching revision
+      ---
+      duration_ms: 86.34825
+      type: 'test'
+      ...
+    # Subtest: task and revision cursors bind scope and all filters; general work needs no artificial shot
+    ok 7 - task and revision cursors bind scope and all filters; general work needs no artificial shot
+      ---
+      duration_ms: 104.545959
+      type: 'test'
+      ...
+    1..7
+ok 38 - manual tasks preserve unique scene responsibility, processing history and current membership authority
+  ---
+  duration_ms: 16152.82325
+  type: 'test'
+  ...
+# Subtest: single video fixed sources, actual timing and stable explicit canvas results
+    # Subtest: duration and native audio follow immutable capability limits; image and descriptors cannot execute video
+    ok 1 - duration and native audio follow immutable capability limits; image and descriptors cannot execute video
+      ---
+      duration_ms: 911.156625
+      type: 'test'
+      ...
+    # Subtest: one durable attempt creates independent ready video, actual timing, poster and proxy only after verification
+    ok 2 - one durable attempt creates independent ready video, actual timing, poster and proxy only after verification
+      ---
+      duration_ms: 1436.190208
+      type: 'test'
+      ...
+    # Subtest: unknown and failed queue finalization retain one submit; invalid result collection does not archive
+    ok 3 - unknown and failed queue finalization retain one submit; invalid result collection does not archive
+      ---
+      duration_ms: 518.554875
+      type: 'test'
+      ...
+    # Subtest: canvas snapshot remains fixed after execute and materialization restores video node identity without Take
+    ok 4 - canvas snapshot remains fixed after execute and materialization restores video node identity without Take
+      ---
+      duration_ms: 776.560708
+      type: 'test'
+      ...
+    1..4
+ok 39 - single video fixed sources, actual timing and stable explicit canvas results
+  ---
+  duration_ms: 16346.571334
+  type: 'test'
+  ...
+1..39
+# tests 278
+# suites 0
+# pass 275
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166639.008

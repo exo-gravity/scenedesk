@@ -5,7 +5,7 @@ The user authorized implementation and merging verified changes into `exo-gravit
 ## Sources of truth
 
 - Product and technical behavior: `docs/implementation/README.md`, `03-domain-data-model.md`, `06-api-contract.md`, `11-transaction-and-implementation-blueprint.md`, and the applicable editing, canvas or provider contract in that directory.
-- Accepted experience: `docs/design/approved-baseline-2026-09-10.md`; frontend instructions in `apps/web/AGENTS.md`.
+- Accepted experience: `docs/design/approved-baseline-2026-09-10.md`, superseded for canvas interaction by the user-approved `docs/design/canvas-redesign-v0.5-2026-09-14.md`; frontend instructions in `apps/web/AGENTS.md`.
 - Actual delivery status: `docs/implementation/22-implementation-progress.md`. Update the relevant implementation note with concrete evidence. A prototype, passing static checks, mock result or implemented endpoint alone is not complete business acceptance.
 
 ## Implementation boundaries

@@ -1,0 +1,234 @@
+
+> drama-platform@0.0.0 test:media
+> node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 tests/media/*.test.ts
+
+TAP version 13
+# Subtest: generated PCM audio archives original bytes and independently recovers its preview
+    # Subtest: original audio is verified and readable before its only proxy completes
+    ok 1 - original audio is verified and readable before its only proxy completes
+      ---
+      duration_ms: 46206.294667
+      type: 'test'
+      ...
+    # Subtest: a real three-second output cannot masquerade as the fixed two-second request
+    ok 2 - a real three-second output cannot masquerade as the fixed two-second request
+      ---
+      duration_ms: 39726.154916
+      type: 'test'
+      ...
+    # Subtest: archive retries keep the same source; a failed proxy preserves ready original and job success
+    ok 3 - archive retries keep the same source; a failed proxy preserves ready original and job success
+      ---
+      duration_ms: 104010.93825
+      type: 'test'
+      ...
+    1..3
+ok 1 - generated PCM audio archives original bytes and independently recovers its preview
+  ---
+  duration_ms: 352044.639333
+  type: 'test'
+  ...
+# Subtest: accepted PCM WAV keeps signed source samples through the production API
+ok 2 - accepted PCM WAV keeps signed source samples through the production API
+  ---
+  duration_ms: 95140.142667
+  type: 'test'
+  ...
+# Subtest: actual audio production retains signal, decoded presentation intervals and fixed sample positions
+    # Subtest: millisecond PTS do not manufacture gaps; mono is duplicated exactly
+    ok 1 - millisecond PTS do not manufacture gaps; mono is duplicated exactly
+      ---
+      duration_ms: 207207.692708
+      type: 'test'
+      ...
+    # Subtest: actual video t0 preserves delayed embedded audio
+    not ok 2 - actual video t0 preserves delayed embedded audio
+      ---
+      duration_ms: 15268.866833
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:3924'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: internal gaps and fractional negative offsets are explicit, stereo channels stay distinct
+    not ok 3 - internal gaps and fractional negative offsets are explicit, stereo channels stay distinct
+      ---
+      duration_ms: 36372.153958
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:4947'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: 44.1 kHz resampling matches a known 997 Hz signal at the actual 48 kHz positions
+    not ok 4 - 44.1 kHz resampling matches a known 997 Hz signal at the actual 48 kHz positions
+      ---
+      duration_ms: 15766.082792
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:5957'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: AAC decoder tail beyond declared presentation is discarded; unknown leading delay is never guessed
+    not ok 5 - AAC decoder tail beyond declared presentation is discarded; unknown leading delay is never guessed
+      ---
+      duration_ms: 16989.798958
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:6647'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: a one-sample source retains its presentation interval despite resampler filter latency
+    not ok 6 - a one-sample source retains its presentation interval despite resampler filter latency
+      ---
+      duration_ms: 15689.3425
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:7489'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: Opus decoder skip and discard metadata produce only effective samples
+    not ok 7 - Opus decoder skip and discard metadata produce only effective samples
+      ---
+      duration_ms: 16105.918625
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:8262'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: multichannel, non-finite samples and cancellation fail without partial production directories
+    not ok 8 - multichannel, non-finite samples and cancellation fail without partial production directories
+      ---
+      duration_ms: 15999.48175
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:8833'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    # Subtest: an undecodable midstream sample rate change is rejected rather than silently resampled
+    not ok 9 - an undecodable midstream sample rate change is rejected rather than silently resampled
+      ---
+      duration_ms: 18951.843708
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:9969'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...
+    1..9
+not ok 3 - actual audio production retains signal, decoded presentation intervals and fixed sample positions
+  ---
+  duration_ms: 373469.742209
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-production.test.ts:1:1959'
+  failureType: 'subtestsFailed'
+  error: '8 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: technical PCM source preserves exact sample timing while AAC proxy remains independent
+not ok 4 - technical PCM source preserves exact sample timing while AAC proxy remains independent
+  ---
+  duration_ms: 15509.034084
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/media/audio-source.test.ts:1:380'
+  failureType: 'testCodeFailure'
+  error: '媒体处理超过时限。'
+  code: 'MEDIA_TIMEOUT'
+  name: 'MediaFailure'
+  stack: |-
+    Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+  ...
+# Subtest: media business: scoped upload, durable processing and immutable access
+not ok 5 - media business: scoped upload, durable processing and immutable access
+  ---
+  duration_ms: 58744.74
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/media/business.test.ts:1:767'
+  failureType: 'testCodeFailure'
+  error: 'Local storage fixture did not become ready'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    storageFixture (/Users/gandy/beyondgravity/scenedesk/tests/support/storage.ts:104:21)
+    async TestContext.<anonymous> (/Users/gandy/beyondgravity/scenedesk/tests/media/business.test.ts:29:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: image fixture archives real isolated bytes through strict probe and preview processing
+not ok 6 - image fixture archives real isolated bytes through strict probe and preview processing
+  ---
+  duration_ms: 167398.883667
+  type: 'test'
+  location: '/Users/gandy/beyondgravity/scenedesk/tests/media/image-generation.test.ts:1:587'
+  failureType: 'testCodeFailure'
+  error: 'Storage permission fixture admin/policy/attach timed out'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    ChildProcess.<anonymous> (/Users/gandy/beyondgravity/scenedesk/tests/support/storage.ts:173:15)
+    Object.onceWrapper (node:events:634:26)
+    ChildProcess.emit (node:events:519:28)
+    ChildProcess._handle.onexit (node:internal/child_process:293:12)
+  ...
+# Subtest: bounded media decode and independent previews
+    # Subtest: pinned build and full decode report actual image, video and audio metadata
+    not ok 1 - pinned build and full decode report actual image, video and audio metadata
+      ---
+      duration_ms: 19176.321042
+      type: 'test'
+      location: '/Users/gandy/beyondgravity/scenedesk/tests/media/probe.test.ts:1:2000'
+      failureType: 'testCodeFailure'
+      error: '媒体处理超过时限。'
+      code: 'MEDIA_TIMEOUT'
+      name: 'MediaFailure'
+      stack: |-
+        Timeout.<anonymous> (/Users/gandy/beyondgravity/scenedesk/packages/media/src/sandbox.ts:46:18)
+        listOnTimeout (node:internal/timers:585:17)
+        process.processTimers (node:internal/timers:521:7)
+      ...

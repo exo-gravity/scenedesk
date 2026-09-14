@@ -5,6 +5,8 @@ import { activeParent, contentTree, type Schema } from "../content/model.js";
 import { safeText, resolveContext } from "./input-sources.js";
 import { canvasDraftInput } from "./canvas-context.js";
 import { resolveTakeFeedback } from "../reviews/model.js";
+import { resolveCanvasSources, assertCanvasAssistanceCurrent } from "./canvas-assistance.js";
+import { resolveCanvasReply } from "./canvas-replies.js";
 
 /** Fixed history is resolved first; current head checks never replace that history. */
 async function currentTakeFeedback(
@@ -126,7 +128,7 @@ export async function resolvePrompt(
     !input.sourceScriptRevisionId &&
       !input.scriptRange &&
       !input.proposalTarget &&
-      !input.assistanceSource,
+      (!input.assistanceSource || (input.canvasSources && input.assistance.kind === "prepare_prompt")),
     422,
     "ASSISTANCE_SOURCE_MISMATCH",
     "提示准备只能使用本次明确选择的固定镜头和上下文；不能附带未解析的来源。",
@@ -142,12 +144,15 @@ export async function resolvePrompt(
     "提示准备不接收返工来源，请选择正确的任务类型。",
   );
   requireThat(
-    (input.shotSources?.length ?? 0) > 0 &&
+    ((input.shotSources?.length ?? 0) > 0 || (input.canvasSources?.length ?? 0) > 0) &&
       (input.shotSources?.length ?? 0) <= 100,
     422,
     "ASSISTANCE_SHOT_REQUIRED",
-    "请明确选择至少一个固定镜头版本；仅有画布不能形成镜头创作建议。",
+    "请明确选择固定镜头版本或画布节点。",
   );
+  requireThat(!input.canvasSources || (request.kind === "prepare_prompt" &&
+    !input.contextSources?.length && !input.additionalReferences.length && !input.referenceOverrides.length),
+    422, "CANVAS_ASSISTANCE_INPUT_UNSUPPORTED", "画布提示准备只使用明确选定的节点和镜头；其他来源请通过独立固定输入准备。");
   requireThat(
     (input.contextSources?.length ?? 0) <= 20 &&
       (input.additionalReferences?.length ?? 0) <= 100 &&
@@ -175,6 +180,16 @@ export async function resolvePrompt(
       ? await currentTakeFeedback(tx, input)
       : undefined;
   const result = await resolveSelectedInput(tx, input, target);
+  if (input.canvasSources) result.resolved.resolverVersion = "canvas-assistance/1";
+  const reply = await resolveCanvasReply(tx,input);
+  if (reply) {
+    result.resolved.assistanceSnapshot = reply.body;
+    result.resolved.assistanceInstruction = reply.instruction;
+    result.resolved.dependencies.push(reply.dependency);
+    requireThat(JSON.stringify(result.resolved.shots).length + JSON.stringify(result.resolved.canvasSnapshots).length +
+      JSON.stringify(reply.body).length + reply.instruction.length <= 100000,
+      422,"ASSISTANCE_INPUT_LIMIT","本轮固定来源与上轮建议合计过长，请缩小明确选区。");
+  }
   if (feedback) {
     result.resolved.resolverVersion = "creative-rework/1";
     result.resolved.feedbackSnapshot = feedback.feedbackSnapshot;
@@ -272,6 +287,8 @@ export async function resolveSelectedInput(
       references.push(...canvas.references);
     } else snapshots.push(await resolveContext(tx, source, true));
   }
+  const canvas = input.canvasSources ? await resolveCanvasSources(tx, input.canvasSources, true) : undefined;
+  if (canvas) references.push(...canvas.references);
   if (expandSources) {
     const extra = await expandSources(tx, shots, snapshots);
     references.push(...extra.references);
@@ -355,7 +372,7 @@ export async function resolveSelectedInput(
     );
   requireThat(
     snapshots.reduce((n, s) => n + s.text.length, 0) +
-      JSON.stringify(shots).length <=
+      JSON.stringify(shots).length + JSON.stringify(canvas?.snapshots ?? []).length <=
       100000,
     422,
     "ASSISTANCE_INPUT_LIMIT",
@@ -367,8 +384,9 @@ export async function resolveSelectedInput(
       prompt: safeText(input.prompt),
       references,
       shots,
-      dependencies: [...dependencies, ...snapshots.map((s) => s.source)],
+      dependencies: [...dependencies, ...snapshots.map((s) => s.source), ...(canvas?.dependencies ?? [])],
       contextSnapshots: snapshots,
+      ...(canvas ? { canvasSnapshots: canvas.snapshots } : {}),
       ...(input.assistance ? { assistanceRequest: input.assistance } : {}),
       targetCapabilitySnapshot: {
         ...target.definition,
@@ -420,6 +438,7 @@ export async function assertSelectedCurrent(
   tx: Transaction,
   resolved: Schema<"ResolvedInput">,
 ) {
+  await assertCanvasAssistanceCurrent(tx, resolved);
   for (const source of resolved.shots) {
     const row = (
       await tx.sql.query(
