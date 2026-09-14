@@ -1,0 +1,82 @@
+{
+  "apiSourceCommit": "9618c0eb56b2bf62312cbf05922a51527df345b1",
+  "frontendSourceCommit": "9618c0eb56b2bf62312cbf05922a51527df345b1",
+  "fixtureOnly": true,
+  "jobs": [
+    {
+      "planId": "99f916b0-532c-4a66-958d-57328fb4a28e",
+      "purpose": "creative_assistance",
+      "kind": "discuss",
+      "attachments": 0,
+      "history": null,
+      "status": "succeeded"
+    },
+    {
+      "planId": "9bb1f7d2-0ab3-4210-b6df-d5f1fe7d206f",
+      "purpose": "creative_assistance",
+      "kind": "discuss",
+      "attachments": 0,
+      "history": [
+        {
+          "source": {
+            "revision": 1,
+            "artifactId": "bc987cff-a6d1-4544-8403-ffcf1c2f4516"
+          },
+          "message": "技术 fixture 已接收本轮文字：我想讲一个多年未见的朋友在咖啡厅重逢的故事，旧钥匙象征未说出口的歉意。先讨论人物关系，不生成视频。。明确附件 0 个。这是协议验证输出，未调用真实模型，也未生成或修改任何节点。",
+          "instruction": "我想讲一个多年未见的朋友在咖啡厅重逢的故事，旧钥匙象征未说出口的歉意。先讨论人物关系，不生成视频。"
+        }
+      ],
+      "status": "succeeded"
+    },
+    {
+      "planId": "225db13d-8e56-4528-95ba-02b094e76bcd",
+      "purpose": "creative_assistance",
+      "kind": "discuss",
+      "attachments": 0,
+      "history": [
+        {
+          "source": {
+            "revision": 1,
+            "artifactId": "bc987cff-a6d1-4544-8403-ffcf1c2f4516"
+          },
+          "message": "技术 fixture 已接收本轮文字：我想讲一个多年未见的朋友在咖啡厅重逢的故事，旧钥匙象征未说出口的歉意。先讨论人物关系，不生成视频。。明确附件 0 个。这是协议验证输出，未调用真实模型，也未生成或修改任何节点。",
+          "instruction": "我想讲一个多年未见的朋友在咖啡厅重逢的故事，旧钥匙象征未说出口的歉意。先讨论人物关系，不生成视频。"
+        },
+        {
+          "source": {
+            "revision": 1,
+            "artifactId": "fed401e1-a876-429c-a975-0dff054be084"
+          },
+          "message": "技术 fixture 已接收本轮文字：让拿出钥匙的人更克制一些，只通过目光和手部停顿表达愧疚。。明确附件 0 个，包含 1 个固定旧回合。这是协议验证输出，未调用真实模型，也未生成或修改任何节点。",
+          "instruction": "让拿出钥匙的人更克制一些，只通过目光和手部停顿表达愧疚。"
+        }
+      ],
+      "status": "succeeded"
+    },
+    {
+      "planId": "2e079d1e-4ebb-4748-88ef-7f98b212c6d5",
+      "purpose": "creative_assistance",
+      "kind": "discuss",
+      "attachments": 0,
+      "history": null,
+      "status": "succeeded"
+    },
+    {
+      "planId": "6251b76f-b34a-4b5e-ad7a-04e916903738",
+      "purpose": "creative_assistance",
+      "kind": "discuss",
+      "attachments": 1,
+      "history": [
+        {
+          "source": {
+            "revision": 1,
+            "artifactId": "f7773615-2dc9-4702-8a3f-8190a0e57c15"
+          },
+          "message": "技术 fixture 已接收本轮文字：开始一个新话题：讨论清晨海边的场景，先聊氛围。。明确附件 0 个。这是协议验证输出，未调用真实模型，也未生成或修改任何节点。",
+          "instruction": "开始一个新话题：讨论清晨海边的场景，先聊氛围。"
+        }
+      ],
+      "status": "succeeded"
+    }
+  ]
+}

@@ -52,3 +52,36 @@ rejected file assignment because its extension lacked file-URL access. No file
 was uploaded and this particular browser upload/failure/dismiss sequence is
 **not claimed as passed**. The limitation was reported to the user; no browser
 permission was changed or bypassed.
+
+## Final current-source acceptance
+
+The full fixture was recreated at API/frontend source `9618c0e` (run
+`c4c0ea5a-0d35-4921-9813-378f72d0e65e`). Five actual browser sends created exactly
+five succeeded discussion jobs. No video/image/audio generation job was created.
+Attachment counts were `0, 0, 0, 0, 1`; fixed history lengths were `0, 1, 2, 0, 1`.
+The fourth message explicitly removed the prior reply to start a new topic; the
+fifth explicitly attached the text node. See [database evidence](discussion-jobs.json)
+with the exact fixed old questions/replies. Technical output does not prove model quality.
+
+Three consecutive sends used the composer without clicking Continue. Switching
+to storyboard and refreshing preserved all replies and the unsent text
+`这条暂不发送：保持前面的创作方向。`. Both modes retained the conversational sidebar.
+
+Final presentation polish was inspected in its production working-tree build
+before commit. It changes conversation captions and scroll following:
+
+- At 1440×900, the newest reply's bottom gap after asynchronous history loaded
+  was -0.5 CSS pixels; after resizing to 390×844 it was 0.
+- Keyboard Home moved the focusable history log to scrollTop=0; resizing back
+  to 1440 kept scrollTop=0 instead of forcing the latest reply into view.
+- At 390×844, document scrollWidth=390, mode center=195 and save/actions occupy
+  their own row. At 1440, mode center=720. Header controls no longer overlap.
+- Both themes were inspected: [desktop](discussion-desktop.png),
+  [mobile](discussion-mobile.png), [dark](discussion-dark.png).
+
+The complete demo was separately upgraded with immutable migrations 0103–0105
+(70 total) and explicit runtime grants. Port 4311 served the verified production
+HTML; `/health/ready` returned businessReady=true and completeMvp=false. Existing
+project/media loaded; no synthetic chat messages were added to that demo.
+The intermediate fixture cleanup completed without errors. Final fixture cleanup
+is recorded under its private runtime directory.

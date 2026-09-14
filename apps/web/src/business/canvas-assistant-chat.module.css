@@ -13,6 +13,11 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
+  overflow-anchor: none;
+}
+.conversationContent {
+  box-sizing: border-box;
+  min-height: 100%;
   padding: 20px 18px;
   display: flex;
   flex-direction: column;
@@ -149,7 +154,7 @@
   background: var(--ws-raised);
 }
 @media (max-width: 760px) {
-  .conversation {
+  .conversationContent {
     padding: 16px;
   }
   .composer {
