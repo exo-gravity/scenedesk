@@ -183,9 +183,11 @@ export function useCanvasAssistantSession(
       const unregister = registerAssistant({
         controller: {
           getSnapshot: controller.getSnapshot,
+          hasUnretainedDraft: controller.hasUnretainedDraft,
           suspend: () => controller.suspend(),
           verify: () => controller.verify(),
           settle: () => controller.settle(),
+          settleAccess: controller.settleAccess,
           retire: () => {
             entry.delivery.retire();
             return controller.retire();

@@ -58,7 +58,10 @@ import {
 } from "./SceneTaskPanel";
 import { SceneAssistant } from "./SceneAssistant";
 import { SceneNavigator } from "./SceneNavigator";
-import { retainProjectAssistantDrafts } from "./assistant-lifecycle";
+import {
+  retainProjectAssistantDrafts,
+  retryProjectAssistantRetention,
+} from "./assistant-lifecycle";
 import { CanvasAssistant } from "./CanvasAssistant";
 import { AssistantProposal } from "./AssistantProposal";
 import { CanvasShotConnections } from "./CanvasShotConnections";
@@ -126,6 +129,7 @@ function SceneWorkspace({
   );
   const [navigating, setNavigating] = useState(false);
   const navigationLock = useRef(false);
+  const pendingDestination = useRef<string | null>(null);
   const [navigationError, setNavigationError] = useState<Error | null>(null);
   const mode: Preference["mode"] =
     explicitMode === "canvas" || explicitMode === "storyboard"
@@ -148,12 +152,20 @@ function SceneWorkspace({
     canvas.error instanceof ApiError &&
     canvas.error.code === "SCENE_CANVAS_NOT_CREATED";
   const canvasId = canvas.data?.canvas.id ?? create.data?.canvas.id;
-  const navigate = async (destination: string) => {
+  const navigate = async (destination: string, recheck = false) => {
     if (navigationLock.current) throw new Error("正在保留当前编辑，请稍候。");
     navigationLock.current = true;
     setNavigating(true);
     setNavigationError(null);
+    pendingDestination.current = destination;
     try {
+      if (recheck)
+        await retryProjectAssistantRetention({
+          sessionId: session.id,
+          userId: session.userId,
+          tenantId,
+          projectId,
+        });
       await beforeLeave.current?.();
       await retainProjectAssistantDrafts({
         sessionId: session.id,
@@ -170,6 +182,7 @@ function SceneWorkspace({
         projectId,
       });
       location.hash = destination;
+      pendingDestination.current = null;
     } catch (cause) {
       const error =
         cause instanceof Error
@@ -300,7 +313,41 @@ function SceneWorkspace({
   );
   return (
     <div className={classes.workspace} data-scene-workspace>
-      <ErrorNotice error={navigationError} />
+      {navigationError && (
+        <Alert
+          role="alert"
+          title="暂未切换页面"
+          className={layout.navigationNotice}
+        >
+          <Group justify="space-between" gap="sm">
+            <Text size="sm">{navigationError.message}</Text>
+            <Group gap="xs">
+              <Button
+                size="xs"
+                variant="subtle"
+                onClick={() => {
+                  pendingDestination.current = null;
+                  setNavigationError(null);
+                }}
+              >
+                留在当前页
+              </Button>
+              <Button
+                size="xs"
+                loading={navigating}
+                onClick={() => {
+                  if (pendingDestination.current)
+                    void navigate(pendingDestination.current, true).catch(
+                      () => {},
+                    );
+                }}
+              >
+                重新核对并切换
+              </Button>
+            </Group>
+          </Group>
+        </Alert>
+      )}
       <ErrorNotice
         error={preference.error}
         retry={preference.retry}

@@ -143,11 +143,15 @@ export class AssistantSession<
   private initial?: Draft;
   private retired = false;
   private hiddenRecord?: AssistantRecord<Draft, Request> | undefined;
+  private accessCheck: { promise: Promise<void>; resolve(): void } | undefined;
   constructor(
     private storage: AssistantStorage<Draft, Request>,
     private transport: AssistantTransport<Request>,
   ) {}
   getSnapshot = () => this.state;
+  /** Hidden UI state is separate from whether accepted local input is durable. */
+  hasUnretainedDraft = () =>
+    !this.state.draftSaved && !!(this.state.record ?? this.hiddenRecord);
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
     return () => {
@@ -215,6 +219,8 @@ export class AssistantSession<
       });
   }
   suspend() {
+    const accessCheck = this.accessCheck;
+    this.accessCheck = undefined;
     this.hiddenRecord = this.state.record ?? this.hiddenRecord;
     this.epoch++;
     this.active = false;
@@ -226,10 +232,13 @@ export class AssistantSession<
       access: "checking",
       error: undefined,
     });
+    accessCheck?.resolve();
   }
   settle() {
     return this.queue;
   }
+  /** Observe the current check only; never start an authorization or command request. */
+  settleAccess = () => this.accessCheck?.promise;
   async retire() {
     this.suspend();
     this.retired = true;
@@ -241,6 +250,14 @@ export class AssistantSession<
   async verify() {
     if (this.retired || this.active) return;
     const epoch = this.epoch;
+    let resolve!: () => void;
+    const accessCheck = {
+      promise: new Promise<void>((done) => {
+        resolve = done;
+      }),
+      resolve: () => resolve(),
+    };
+    this.accessCheck = accessCheck;
     this.active = true;
     this.publish({ access: "checking", busy: true });
     try {
@@ -329,6 +346,8 @@ export class AssistantSession<
         this.active = false;
         this.publish({ busy: false });
       }
+      if (this.accessCheck === accessCheck) this.accessCheck = undefined;
+      accessCheck.resolve();
     }
   }
   load(initial: Draft) {

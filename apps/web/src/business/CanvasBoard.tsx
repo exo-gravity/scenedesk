@@ -21,6 +21,7 @@ import {
   useReactFlow,
   useViewport,
   useStore,
+  useKeyPress,
   Handle,
   Position,
   ReactFlow,
@@ -139,8 +140,9 @@ const CanvasNodeView = memo(function CanvasNodeView({
       data-content={node.content.type}
       inert={data.focused || undefined}
       aria-label={`${node.title} · ${node.kind}`}
+      onDragStart={(event) => event.preventDefault()}
     >
-      <div className={`${classes.nodeHeader} canvas-drag-handle`}>
+      <div className={classes.nodeHeader}>
         <Text component="span" fw={600}>
           {node.title}
         </Text>
@@ -195,7 +197,7 @@ const CanvasNodeView = memo(function CanvasNodeView({
           />
         </>
       ) : node.content.type === "text" ? (
-        <div className={`${classes.nodeContent} nodrag nowheel`}>
+        <div className={`${classes.nodeContent} nowheel`}>
           {node.content.text || "双击或选择编辑，写下文字"}
         </div>
       ) : node.content.type === "draft" ? (
@@ -246,7 +248,7 @@ function NodeMedia({
   const media = useResource<Schema<"Media">>(`${path}/media/${mediaId}`);
   return (
     <div
-      className={`${classes.nodeMedia} nodrag nopan`}
+      className={`${classes.nodeMedia}${playing ? " nodrag nopan nowheel" : ""}`}
       style={
         {
           "--ws-node-media-height": `${media.data?.width && media.data.height ? (width * media.data.height) / media.data.width : 180}px`,
@@ -267,7 +269,7 @@ function NodeMedia({
                 : media.data.displayName}
             </Text>
             {["video", "audio"].includes(media.data.kind) && (
-              <Button size="xs" onClick={play}>
+              <Button className="nodrag nopan" size="xs" onClick={play}>
                 {playing ? "收起播放器" : "播放预览"}
               </Button>
             )}
@@ -401,6 +403,7 @@ export function CanvasBoard({
     [query, setQuery] = useState(""),
     [listExpanded, setListExpanded] = useState(false),
     [groupsExpanded, setGroupsExpanded] = useState(false);
+  const spacePressed = useKeyPress("Space", { preventDefault: false });
   const [addPoint, setAddPoint] = useState<{
     screen: { x: number; y: number };
     canvas: { x: number; y: number };
@@ -556,7 +559,6 @@ export function CanvasBoard({
           node.id === editingNodeId ? Math.max(420, node.width) : node.width,
         ...(measurements[node.id] ? { measured: measurements[node.id] } : {}),
         selected: preference.selectedNodeIds.includes(node.id),
-        dragHandle: ".canvas-drag-handle",
         ariaLabel: node.title,
       })),
     [
@@ -1242,7 +1244,7 @@ export function CanvasBoard({
               }
             }}
             zoomOnDoubleClick={false}
-            nodesDraggable={!readOnly && !hand && !focused}
+            nodesDraggable={!readOnly && !hand && !spacePressed && !focused}
             nodesConnectable={!readOnly && !focused}
             nodesFocusable={!focused}
             edgesFocusable={!focused}
