@@ -111,3 +111,5 @@ python docs/implementation/check_design.py
 当前正在实现[共享剪辑工作稿](36-cut-work-drafts.md)：后端持久化、独立 CAS、有限历史及片段／对白／声音／字幕页面已通过阶段测试；完整恢复、后台维护及精确归一仍在接入。
 
 [精确制作副本](37-production-copies.md)记录正在实施的视频源映射、无损内部工件和流式隔离验证；音频、持久化归一、确认与固定渲染继续接入。
+
+最新助手体验及验证见[68 对话侧栏](68-assistant-conversation-sidebar.md)：连续对话、统一输入、固定引用、任务往返与按需结果操作。
