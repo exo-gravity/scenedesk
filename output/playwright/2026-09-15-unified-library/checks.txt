@@ -1,0 +1,13 @@
+Source: 76931826f4c3bfe3f0c8fb4d872b3e837ccf7c7a
+Command: npm run check
+Exit: 0
+Contract/UI/typecheck/build passed.
+1..240
+# tests 240
+# suites 0
+# pass 240
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3323.787458

@@ -1,0 +1,83 @@
+{
+  "runId": "ae92f22b-dbe8-499c-bbe9-716e1ddee361",
+  "checkedAt": "2026-09-15T07:17:33.169Z",
+  "isolatedOnly": true,
+  "projectAssets": 6,
+  "sharedAssets": 5,
+  "sharedImportStillV1": true,
+  "sharedCurrentIsV2": true,
+  "emptyProject": true,
+  "media": [
+    {
+      "key": "projectImage",
+      "kind": "image",
+      "originalHashMatches": true,
+      "derivativesReady": true
+    },
+    {
+      "key": "projectVideo",
+      "kind": "video",
+      "originalHashMatches": true,
+      "derivativesReady": true
+    },
+    {
+      "key": "projectAudio",
+      "kind": "audio",
+      "originalHashMatches": true,
+      "derivativesReady": true
+    },
+    {
+      "key": "projectDocument",
+      "kind": "document",
+      "originalHashMatches": true,
+      "derivativesReady": true
+    },
+    {
+      "key": "sharedImageV1",
+      "kind": "image",
+      "originalHashMatches": true,
+      "derivativesReady": true
+    },
+    {
+      "key": "sharedImageV2",
+      "kind": "image",
+      "originalHashMatches": true,
+      "derivativesReady": true
+    },
+    {
+      "key": "sharedAudio",
+      "kind": "audio",
+      "originalHashMatches": true,
+      "derivativesReady": true
+    }
+  ],
+  "controls": [
+    {
+      "kind": "assets",
+      "error503": true,
+      "empty200": true,
+      "restored": true
+    },
+    {
+      "kind": "media",
+      "error503": true,
+      "empty200": true,
+      "restored": true
+    },
+    {
+      "kind": "imports",
+      "error503": true,
+      "empty200": true,
+      "restored": true
+    }
+  ],
+  "uiPending": true,
+  "modelCalls": 0,
+  "counts": {
+    "assets": 11,
+    "media": 7,
+    "imports": 1,
+    "jobs": 0
+  },
+  "errors": []
+}

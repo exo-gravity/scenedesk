@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "76931826f4c3bfe3f0c8fb4d872b3e837ccf7c7a",
+  "url": "http://127.0.0.1:4311/",
+  "indexSha256": "f23b52d73c6cb59661b9d82768cbd10ff1e6cb15e3723504cbb7cf698f7b4ffb",
+  "apiHealth": {
+    "status": "ok",
+    "scope": "identity_projects_content_and_media",
+    "businessReady": true,
+    "completeMvp": false
+  }
+}

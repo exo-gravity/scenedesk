@@ -1,0 +1,187 @@
+.detail {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--mantine-spacing-lg);
+  padding: var(--mantine-spacing-xl);
+  color: var(--ws-text);
+}
+.navigation {
+  gap: var(--mantine-spacing-xs);
+}
+.assetHeading {
+  min-width: 0;
+  gap: var(--mantine-spacing-md);
+  padding-bottom: var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--ws-border-subtle);
+}
+.assetHeading > div {
+  min-width: 0;
+}
+.assetTitle {
+  margin: var(--mantine-spacing-xs) 0 0;
+  font-size: var(--mantine-font-size-xl);
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  align-items: start;
+  gap: var(--mantine-spacing-xl);
+}
+.content > *,
+.main,
+.inspector {
+  min-width: 0;
+}
+.inspector {
+  padding-inline-start: var(--mantine-spacing-lg);
+  border-inline-start: 1px solid var(--ws-border-subtle);
+}
+.mediaMain {
+  min-width: 0;
+  --ws-preview-height: clamp(260px, 54dvh, 640px);
+  --ws-preview-background: transparent;
+}
+.referenceHeading {
+  min-width: 0;
+}
+.referenceHeading > div {
+  min-width: 0;
+}
+.sectionTitle {
+  margin: 0;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.lookSelect {
+  width: min(100%, 260px);
+}
+.referenceCaption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+}
+.referenceStrip {
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  overflow-x: auto;
+  padding: var(--mantine-spacing-xs);
+  margin: calc(var(--mantine-spacing-xs) * -1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ws-field-border) transparent;
+  overscroll-behavior-inline: contain;
+}
+.referenceChoice {
+  display: flex;
+  flex: 0 0 104px;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+  padding: var(--mantine-spacing-xs);
+  border: 1px solid transparent;
+  border-radius: var(--ws-tool-radius);
+  text-align: start;
+  color: var(--ws-text);
+}
+.referenceChoice:hover {
+  background: var(--ws-hover);
+}
+.referenceChoice[data-selected] {
+  border-color: var(--ws-focus);
+}
+.referenceChoice:focus-visible,
+.disclosure > summary:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
+}
+.referenceThumbnail {
+  width: 100%;
+  height: 76px;
+  overflow: hidden;
+  border-radius: var(--ws-media-radius);
+  background: var(--ws-panel);
+}
+.revisionDefinition {
+  min-width: 0;
+}
+.definition {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+}
+.disclosure {
+  min-width: 0;
+  border-top: 1px solid var(--ws-border-subtle);
+  padding-top: var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+}
+.disclosure > summary {
+  cursor: pointer;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.disclosure > summary > span {
+  margin-inline-start: var(--mantine-spacing-xs);
+  font-weight: 400;
+  color: var(--ws-muted);
+}
+.disclosureBody {
+  padding-top: var(--mantine-spacing-sm);
+}
+.secondaryAction,
+.sourceLink {
+  align-self: flex-start;
+  max-width: 100%;
+}
+.sourceLink {
+  height: auto;
+  min-height: var(--button-height);
+  padding-block: var(--mantine-spacing-xs);
+}
+.sourceLink :global(.mantine-Button-label) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.content[data-text-only] {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 900px;
+}
+.content[data-text-only] > .main {
+  order: 2;
+}
+.content[data-text-only] > .inspector {
+  border: 0;
+  padding: 0;
+}
+@container (max-width: 920px) {
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .inspector {
+    border-inline-start: 0;
+    border-top: 1px solid var(--ws-border-subtle);
+    padding-inline-start: 0;
+    padding-top: var(--mantine-spacing-lg);
+  }
+  .mediaMain {
+    --ws-preview-height: clamp(220px, 46dvh, 480px);
+  }
+}
+@container (max-width: 520px) {
+  .detail {
+    padding: var(--mantine-spacing-md);
+  }
+  .lookSelect {
+    width: 100%;
+  }
+  .referenceChoice {
+    flex-basis: 88px;
+  }
+}

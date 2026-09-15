@@ -251,7 +251,8 @@ function ProjectDetails({
   } | null>(null);
   const command = useCommand<Project>();
   useEffect(() => {
-    if (project.data) document.title = `${project.data.name} · 项目设定 · SceneDesk`;
+    if (project.data)
+      document.title = `${project.data.name} · 项目设定 · SceneDesk`;
   }, [project.data?.name]);
   if (project.isError)
     return (
@@ -295,14 +296,11 @@ function ProjectDetails({
         >
           进入剧本与集场镜
         </Button>
-        <Button component="a" href={`#/app/t/${tenantId}/p/${projectId}/media`}>
-          项目素材
-        </Button>
         <Button
           component="a"
           href={`#/app/t/${tenantId}/p/${projectId}/assets`}
         >
-          项目资产
+          资产库
         </Button>
       </Group>
       {manager || lead ? (

@@ -1,5 +1,9 @@
 # Frontend implementation rules
 
+Project navigation (user correction, 2026-09-15): show `剧本`, `场次`, `资产` in that exact order. The studio entry remains `资产库`.
+
+Unified library (user approval, 2026-09-15): use one visible `资产库` entry and direct content categories, with project/shared scope separate from category. Project-local assets and imported shared fixed revisions share the gallery; never derive an imported card from the current shared revision. Preserve legacy media links and upload recovery keys. See [accepted design](../../docs/design/unified-asset-library-2026-09-15.md) and [69](../../docs/implementation/69-unified-asset-library.md).
+
 Model selector refinement (user confirmation, 2026-09-15): preserve official English model names and versions. The assistant composer uses a compact content-width pill with a capability icon and caret, a subtle border, and a visible keyboard focus state. Menu rows separate model names from Chinese capability/status descriptions and use an accessible selected check. Local fixtures use English names such as `Local Demo`, with an explicit local-demo/no-real-model description; never rename a real provider model or change backend capability identities as a cosmetic fix.
 
 Latest assistant refinement (2026-09-15): use a light header, continuous conversation flow and one bottom composer. References and explicit quotes belong inside the input frame; model and necessary target options stay in its bottom row with attachment/task controls and send. Ordinary continuation has no permanent quote banner. Completed execution and applied differences expand on demand. Keep history, explicit tasks, fixed inputs and durable recovery; see [68](../../docs/implementation/68-assistant-conversation-sidebar.md).

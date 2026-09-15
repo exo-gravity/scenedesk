@@ -1,0 +1,106 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  min-width: 0;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-md);
+}
+.identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-lg);
+  min-width: 0;
+}
+.title {
+  margin: 0;
+  font-size: var(--mantine-h1-font-size);
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.context {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-lg);
+  margin-top: var(--mantine-spacing-lg);
+}
+.categories {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--ws-border);
+  flex-wrap: wrap;
+}
+.category {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  color: var(--ws-secondary);
+  text-decoration: none;
+  padding-block: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  font-size: var(--mantine-font-size-sm);
+}
+.category[data-divider] {
+  margin-left: var(--mantine-spacing-lg);
+}
+.category[aria-current="page"] {
+  color: var(--ws-text);
+  border-bottom-color: var(--ws-text);
+  font-weight: 600;
+}
+.category:hover {
+  color: var(--ws-text);
+}
+.category:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 3px;
+}
+.more {
+  align-self: center;
+  color: var(--ws-secondary);
+  margin-bottom: var(--mantine-spacing-xs);
+}
+.more[data-active] {
+  color: var(--ws-text);
+  font-weight: 600;
+}
+.searchTools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+.search {
+  width: min(100%, 320px);
+  min-width: 0;
+}
+.actions {
+  flex-wrap: wrap;
+}
+@container (max-width: 680px) {
+  .categories {
+    gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  }
+  .category[data-divider] {
+    margin-left: 0;
+  }
+  .identity {
+    gap: var(--mantine-spacing-sm);
+  }
+  .actions {
+    width: 100%;
+  }
+}

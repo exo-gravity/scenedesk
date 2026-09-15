@@ -20,6 +20,7 @@ import { api, useCommand, useSession, type Schema } from "./api";
 import { Empty, ErrorNotice, SectionHeading } from "./common";
 import { DraftNotice, useContentDraft } from "./content-drafts";
 import { MediaPreview, mediaKind, mediaStatus } from "./MediaPreview";
+import { AddImageToCharacter } from "./CharacterMediaAssociation";
 import classes from "./media.module.css";
 type Media = Schema<"Media">;
 const formatBytes = (value?: number) =>
@@ -76,30 +77,39 @@ export default function MediaDetail({
         title={value.displayName}
         description={`${mediaKind[value.kind]} · ${mediaStatus[value.status]}`}
         action={
-          ready && (
-            <Button
-              leftSection={<DownloadSimple size={18} />}
-              loading={download.isPending}
-              onClick={() =>
-                download.mutate(
-                  {
-                    path: `${path}/media/${id}/access`,
-                    body: { variant: "original", disposition: "attachment" },
-                  },
-                  {
-                    onSuccess: (result) => {
-                      const anchor = document.createElement("a");
-                      anchor.href = result.url;
-                      anchor.rel = "noopener noreferrer";
-                      anchor.click();
+          <Group gap="xs">
+            {canWrite && (
+              <AddImageToCharacter
+                path={path}
+                media={value}
+                projectId={expectedProjectId}
+              />
+            )}
+            {ready && (
+              <Button
+                leftSection={<DownloadSimple size={18} />}
+                loading={download.isPending}
+                onClick={() =>
+                  download.mutate(
+                    {
+                      path: `${path}/media/${id}/access`,
+                      body: { variant: "original", disposition: "attachment" },
                     },
-                  },
-                )
-              }
-            >
-              下载原文件
-            </Button>
-          )
+                    {
+                      onSuccess: (result) => {
+                        const anchor = document.createElement("a");
+                        anchor.href = result.url;
+                        anchor.rel = "noopener noreferrer";
+                        anchor.click();
+                      },
+                    },
+                  )
+                }
+              >
+                下载原文件
+              </Button>
+            )}
+          </Group>
         }
       />
       <ErrorNotice error={download.error ?? command.error} />
