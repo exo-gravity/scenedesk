@@ -610,9 +610,9 @@ function Workspace({ hash }: { hash: string }) {
   );
 }
 const projectSections = [
+  { id: "script", label: "剧本", Icon: FileText },
   { id: "content", label: "场次", Icon: FilmSlate },
-  { id: "script", label: "剧本与设定", Icon: FileText },
-  { id: "assets", label: "资产库", Icon: Archive },
+  { id: "assets", label: "资产", Icon: Archive },
 ] as const;
 function ProjectDirectory({
   tenantId,
@@ -685,7 +685,7 @@ function WorkspaceContext({
   );
   const title = projectId
     ? (projectSections.find((item) => item.id === section)?.label ??
-      (section === "media" ? "资产库" : "项目设置"))
+      (section === "media" ? "资产" : "项目设置"))
     : ({
         projects: "项目",
         work: "我的工作",
