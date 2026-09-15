@@ -60,6 +60,8 @@ export type CanvasAssistantDraft = {
   replyTo?: { artifactId: string; revision: number } | undefined;
   /** Explicit choices apply to the next message and win over a late result read. */
   replyChoice?: "automatic" | "explicit" | "none";
+  /** Local presentation boundary only; server plans and artifacts remain historical facts. */
+  conversationBoundary?: { planIds: string[]; artifactIds: string[] };
   capabilityId: string;
   targetCapabilityId: string;
   targetCapabilityRevision?: number;
@@ -91,6 +93,8 @@ export function retainCanvasAssistantReply(
   draft: CanvasAssistantDraft,
   artifact: Schema<"AssistanceArtifact">,
 ): CanvasAssistantDraft {
+  if (draft.conversationBoundary?.artifactIds.includes(artifact.id))
+    return draft;
   canvasAssistantReply(artifact);
   const next = { ...draft, artifact };
   if (
@@ -211,6 +215,104 @@ export function canvasAssistancePlan(
   };
 }
 const sendingMessages = new WeakSet<object>();
+function editableCanvasConversation(
+  controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
+) {
+  const state = controller.getSnapshot(),
+    record = state.record;
+  if (
+    !record ||
+    state.access !== "ready" ||
+    state.busy ||
+    sendingMessages.has(controller)
+  )
+    throw Error("请等待本次本机保留或访问核对完成。");
+  if (record.planRequest && !record.planId)
+    throw Error("原计划结果仍待核对，不能通过新话题或准备提示替换原请求。");
+  if (record.execution && !jobFinished(state.job))
+    throw Error("请先核对当前任务的最终结果，原消息与后续输入仍保留。");
+  if (
+    record.draft.application &&
+    ["review", "unknown", "missing"].includes(record.draft.application.phase)
+  )
+    throw Error("请先完成或核对当前建议应用，原应用意图仍保留。");
+  return { state, record };
+}
+function assertCanvasConversationRetained(
+  controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
+  next: CanvasAssistantDraft,
+) {
+  const retained = controller.getSnapshot();
+  if (
+    retained.access !== "ready" ||
+    !retained.draftSaved ||
+    JSON.stringify(retained.record?.draft) !== JSON.stringify(next)
+  )
+    throw Error(retained.error ?? "本机尚未保留本次切换，原话题与输入仍保留。");
+}
+/** Begin a local topic without deleting history or sending any provider request. */
+export async function beginCanvasAssistantTopic(
+  controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
+  loadedArtifactIds: readonly string[] = [],
+) {
+  const { state, record } = editableCanvasConversation(controller);
+  const draft = record.draft;
+  const next: CanvasAssistantDraft = {
+    ...draft,
+    kind: "discuss",
+    nextKind: undefined,
+    instruction: "",
+    nextInstruction:
+      draft.nextInstruction ?? (record.planId ? "" : draft.instruction),
+    sources: structuredClone(draft.nextSources ?? draft.sources),
+    nextSources: undefined,
+    replyTo: undefined,
+    replyChoice: "none",
+    artifact: undefined,
+    application: undefined,
+    previousApplications: draft.application
+      ? [...(draft.previousApplications ?? []), draft.application]
+      : draft.previousApplications,
+    conversationBoundary: {
+      planIds: [
+        ...new Set([
+          ...(draft.conversationBoundary?.planIds ?? []),
+          ...record.previous.map((entry) => entry.planId),
+          ...(record.planId ? [record.planId] : []),
+        ]),
+      ],
+      artifactIds: [
+        ...new Set([
+          ...(draft.conversationBoundary?.artifactIds ?? []),
+          ...loadedArtifactIds,
+          ...(draft.artifact ? [draft.artifact.id] : []),
+          ...(state.job?.assistanceArtifactId
+            ? [state.job.assistanceArtifactId]
+            : []),
+        ]),
+      ],
+    },
+  };
+  if (record.planId) await controller.revise(next, draft);
+  else await controller.commitDraft(draft, next);
+  assertCanvasConversationRetained(controller, next);
+}
+/** Switch the next composition explicitly; fixed prior rounds are not rewritten. */
+export async function beginCanvasAssistantPrompt(
+  controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
+) {
+  const { record } = editableCanvasConversation(controller),
+    draft = record.draft;
+  const next: CanvasAssistantDraft = {
+    ...draft,
+    nextKind: "prepare_prompt",
+    ...((draft.nextKind ?? draft.kind ?? "prepare_prompt") === "discuss"
+      ? { replyTo: undefined, replyChoice: "none" as const }
+      : {}),
+  };
+  await controller.commitDraft(draft, next);
+  assertCanvasConversationRetained(controller, next);
+}
 /** A message archives only a known plan; unresolved requests keep their original identity. */
 export async function sendCanvasAssistantMessage(
   controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
@@ -262,7 +364,7 @@ export async function sendCanvasAssistantMessage(
       sources: structuredClone(draft.nextSources ?? draft.sources),
       instruction,
       kind,
-      replyChoice: "automatic",
+      ...(kind === "discuss" ? { replyChoice: "automatic" as const } : {}),
       nextKind: undefined,
       nextInstruction: "",
       nextSources: undefined,

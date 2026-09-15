@@ -5,17 +5,28 @@ import {
   Alert,
   Button,
   Group,
+  Menu,
   Popover,
   Select,
   Stack,
   Text,
   Textarea,
+  TextInput,
+  Tooltip,
+  UnstyledButton,
 } from "@mantine/core";
 import {
   ArrowsClockwise,
-  PaperPlaneRight,
+  ArrowUp,
+  ArrowLeft,
+  CaretDown,
+  CaretRight,
+  ClockCounterClockwise,
+  ChatCircle,
+  FilmStrip,
+  Plus,
+  TextT,
   Paperclip,
-  SlidersHorizontal,
   Sparkle,
   X,
 } from "@phosphor-icons/react";
@@ -25,10 +36,13 @@ import { ErrorNotice, projectPath, tenantPath } from "./common";
 import type { CanvasController } from "./canvas-controller";
 import { jobFinished, jobStatusLabel } from "./assistant-session";
 import { GenerationJobControls } from "./GenerationJobControls";
+import { MediaPreview } from "./MediaPreview";
 import { referencePurposes, options } from "./asset-queries";
 import { useCanvasAssistantSession } from "./use-canvas-assistant-session";
 import {
   canvasAssistantReply,
+  beginCanvasAssistantTopic,
+  beginCanvasAssistantPrompt,
   retainCanvasAssistantReply,
   canvasReplyContinuationPending,
   isCanvasDiscussion,
@@ -51,6 +65,8 @@ export type CanvasAssistantProps = {
   controller: CanvasController;
   active: boolean;
   visible: boolean;
+  onPrepareStoryboard?: () => void;
+  onClose?: () => void;
   requestedContext?: { nodeIds: string[]; nonce: number } | undefined;
 };
 export function CanvasAssistant(props: CanvasAssistantProps) {
@@ -72,6 +88,8 @@ function CanvasAssistantContent({
   controller: canvasController,
   active,
   visible,
+  onPrepareStoryboard,
+  onClose,
   requestedContext,
   canvasId,
 }: CanvasAssistantProps & { canvasId: string }) {
@@ -125,6 +143,11 @@ function CanvasAssistantContent({
   const disabled = !active || !visible || state.busy || !draft;
   const [error, setError] = useState<string>();
   const [executionDetails, setExecutionDetails] = useState<string>();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [referencePicker, setReferencePicker] = useState(false);
+  const [referenceQuery, setReferenceQuery] = useState("");
+  const [topicNotice, setTopicNotice] = useState<string>();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [targetNodeId, setTargetNodeId] = useState<string | null>(null);
   const [applyMode, setApplyMode] = useState<"replace" | "append">("replace");
   const [attachmentReview, setAttachmentReview] = useState<{
@@ -153,7 +176,19 @@ function CanvasAssistantContent({
       (c) => c.enabled && ["image", "video", "audio"].includes(c.purpose),
     ) ?? [];
   const modelLabel = (c: Schema<"Capability">) =>
-    `${c.modelVersion}${(c as { executionMode?: string }).executionMode === "test_fixture" ? " · 受控测试" : ""}`;
+    (c as { executionMode?: string }).executionMode === "test_fixture"
+      ? "演示助手"
+      : c.modelVersion;
+  const quotedReply = useFreshCanvasResource<Schema<"AssistanceArtifact">>(
+    `${path}/assistance-artifacts/${draft?.replyTo?.artifactId ?? "unavailable"}/revisions/${draft?.replyTo?.revision ?? 1}`,
+    state.access === "ready" &&
+      !!draft?.replyTo &&
+      draft.replyChoice !== "automatic",
+  );
+  const focusInput = () =>
+    requestAnimationFrame(() =>
+      inputRef.current?.focus({ preventScroll: true }),
+    );
   const update = (patch: Partial<CanvasAssistantDraft>) => {
     if (draft) controller.updateDraft({ ...draft, ...patch }, true);
   };
@@ -174,18 +209,8 @@ function CanvasAssistantContent({
       throw Error("请先处理画布保存与恢复，助手不会采用未核对的来源。");
     return current.local.base;
   };
-  useEffect(() => {
-    if (
-      !visible ||
-      !active ||
-      !requestedContext ||
-      requestedContext.nonce === seenContext.current ||
-      state.access !== "ready" ||
-      state.busy ||
-      !draft
-    )
-      return;
-    seenContext.current = requestedContext.nonce;
+  const addReferences = (nodeIds: string[]) => {
+    if (!draft || disabled) return;
     const initial = canvasController.getSnapshot();
     if (
       !initial.local ||
@@ -197,7 +222,7 @@ function CanvasAssistantContent({
     try {
       captured = captureCanvasSources(
         { ...initial.local.base, document: initial.local.document },
-        requestedContext.nodeIds,
+        nodeIds,
       );
     } catch (cause) {
       setError(
@@ -205,9 +230,9 @@ function CanvasAssistantContent({
       );
       return;
     }
-    void controller.commitDraft(draft, draft, async (current) => {
+    return controller.commitDraft(draft, draft, async (current) => {
       const saved = await savedCanvas();
-      const sources = captureCanvasSources(saved, requestedContext.nodeIds);
+      const sources = captureCanvasSources(saved, nodeIds);
       if (
         sources.some(
           (source, index) =>
@@ -232,6 +257,20 @@ function CanvasAssistantContent({
         ? { ...current, nextSources: merged }
         : { ...current, sources: merged, nextSources: undefined };
     });
+  };
+  useEffect(() => {
+    if (
+      !visible ||
+      !active ||
+      !requestedContext ||
+      requestedContext.nonce === seenContext.current ||
+      state.access !== "ready" ||
+      state.busy ||
+      !draft
+    )
+      return;
+    seenContext.current = requestedContext.nonce;
+    void addReferences(requestedContext.nodeIds);
   }, [
     requestedContext,
     visible,
@@ -341,10 +380,11 @@ function CanvasAssistantContent({
   }, [visible, state.access, canvasState.accessChecking, canvasState.phase]);
   const sendMessage = () => {
     setError(undefined);
+    setTopicNotice(undefined);
     if (!assistant || (!discussion && !target)) {
       setError(
         discussion
-          ? "请在设置中选择已配置的文字助手，消息会保留。"
+          ? "请选择可用的助手模型，消息会保留。"
           : "请为具体生成提示选择助手与目标能力。",
       );
       return;
@@ -455,33 +495,39 @@ function CanvasAssistantContent({
   };
   const continueFrom = (fixed: Schema<"AssistanceArtifact">) => {
     if (!draft) return;
-    void controller.commitDraft(draft, draft, async (current) => {
-      const found = await api<Schema<"AssistanceArtifact">>(
-        `${path}/assistance-artifacts/${fixed.id}/revisions/${fixed.revision}`,
-        { signal: AbortSignal.timeout(15000) },
-      );
-      if (
-        found.id !== fixed.id ||
-        found.revision !== fixed.revision ||
-        found.projectId !== projectId ||
-        found.generationJobId !== fixed.generationJobId ||
-        (isCanvasDiscussion(found) && found.request.canvasId !== canvasId)
-      )
-        throw Error("这份历史建议未通过当前权限与固定版本核对。");
-      canvasAssistantReply(found);
-      return {
-        ...current,
-        replyTo: { artifactId: found.id, revision: found.revision },
-        replyChoice: "explicit",
-        nextKind: isCanvasDiscussion(found) ? "discuss" : "prepare_prompt",
-        ...(isCanvasDiscussion(found)
-          ? {}
-          : {
-              targetCapabilityId: found.request.targetCapabilityId!,
-              targetCapabilityRevision: found.request.targetCapabilityRevision,
-            }),
-      };
-    });
+    void controller
+      .commitDraft(draft, draft, async (current) => {
+        const found = await api<Schema<"AssistanceArtifact">>(
+          `${path}/assistance-artifacts/${fixed.id}/revisions/${fixed.revision}`,
+          { signal: AbortSignal.timeout(15000) },
+        );
+        if (
+          found.id !== fixed.id ||
+          found.revision !== fixed.revision ||
+          found.projectId !== projectId ||
+          found.generationJobId !== fixed.generationJobId ||
+          (isCanvasDiscussion(found) && found.request.canvasId !== canvasId)
+        )
+          throw Error("这份历史建议未通过当前权限与固定版本核对。");
+        canvasAssistantReply(found);
+        return {
+          ...current,
+          replyTo: { artifactId: found.id, revision: found.revision },
+          replyChoice: "explicit",
+          nextKind: isCanvasDiscussion(found) ? "discuss" : "prepare_prompt",
+          ...(isCanvasDiscussion(found)
+            ? {}
+            : {
+                targetCapabilityId: found.request.targetCapabilityId!,
+                targetCapabilityRevision:
+                  found.request.targetCapabilityRevision,
+              }),
+        };
+      })
+      .then(() => {
+        setHistoryOpen(false);
+        focusInput();
+      });
   };
   const reviewApplication = () => {
     if (
@@ -675,10 +721,180 @@ function CanvasAssistantContent({
         .sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? "")) ??
       [])
     : [];
+  const boundary = draft?.conversationBoundary;
+  const visibleOlder = olderArtifacts.filter(
+    (item) => !boundary?.artifactIds.includes(item.id),
+  );
+  const visiblePrevious =
+    record?.previous.filter(
+      (entry) => !boundary?.planIds.includes(entry.planId),
+    ) ?? [];
+  const hasMessages =
+    !!fixedInput || !!visiblePrevious.length || !!visibleOlder.length;
+  const taskBlocked =
+    disabled || pendingPlan || pendingJob || pendingApplication;
+  const isDemo = assistant?.executionMode === "test_fixture";
+  const referenceNodes =
+    canvasState.local?.document.nodes.filter((node) =>
+      node.title
+        .toLocaleLowerCase()
+        .includes(referenceQuery.toLocaleLowerCase()),
+    ) ?? [];
+  const runLocalAction = async (action: () => Promise<void>) => {
+    setError(undefined);
+    try {
+      await action();
+      return true;
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "操作未完成，输入仍保留。",
+      );
+      return false;
+    }
+  };
+  const newTopic = async () => {
+    if (
+      await runLocalAction(() =>
+        beginCanvasAssistantTopic(
+          controller,
+          (savedArtifacts.data ?? []).map((item) => item.id),
+        ),
+      )
+    ) {
+      setInspectedArtifact(undefined);
+      setHistoryOpen(false);
+      setTopicNotice("已开启新话题，未发送的内容会继续保留。");
+      followLatest.current = true;
+      focusInput();
+    }
+  };
+  const preparePrompt = async () => {
+    if (await runLocalAction(() => beginCanvasAssistantPrompt(controller))) {
+      setHistoryOpen(false);
+      setTopicNotice(undefined);
+      focusInput();
+    }
+  };
+  const startWriting = (text: string) => {
+    if (!composerText.trim()) update({ nextInstruction: text });
+    focusInput();
+  };
   return (
     <section className={classes.chat} aria-label="画布创作助手">
+      <header className={classes.header}>
+        <Text fw={600} size="sm">
+          {historyOpen ? "对话历史" : "创作助手"}
+        </Text>
+        <Group gap="xs" wrap="nowrap">
+          <Tooltip label="开启新话题" withArrow>
+            <ActionIcon
+              variant="subtle"
+              aria-label="开启新话题"
+              disabled={
+                taskBlocked ||
+                savedArtifacts.isPending ||
+                !!savedArtifacts.error
+              }
+              onClick={() => void newTopic()}
+            >
+              <Plus size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label={historyOpen ? "返回对话" : "查看对话历史"} withArrow>
+            <ActionIcon
+              variant="subtle"
+              aria-label={historyOpen ? "返回当前对话" : "查看对话历史"}
+              aria-pressed={historyOpen}
+              onClick={() => {
+                setHistoryOpen(!historyOpen);
+                if (historyOpen) focusInput();
+              }}
+            >
+              {historyOpen ? (
+                <ArrowLeft size={18} />
+              ) : (
+                <ClockCounterClockwise size={18} />
+              )}
+            </ActionIcon>
+          </Tooltip>
+          {onClose && (
+            <Tooltip label="收起助手" withArrow>
+              <ActionIcon
+                variant="subtle"
+                aria-label="收起 AI 助手"
+                onClick={onClose}
+              >
+                <CaretRight size={18} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </Group>
+      </header>
+      {historyOpen && (
+        <div className={classes.history} aria-label="已保存的对话历史">
+          <Text size="xs" c="dimmed">
+            查看或引用过去的回复，当前输入会保留。
+          </Text>
+          <ErrorNotice
+            error={savedArtifacts.error}
+            retry={() => void savedArtifacts.refetch()}
+          />
+          {!olderArtifacts.length &&
+            !record?.previous.length &&
+            !draft?.artifact && (
+              <Text size="sm" c="dimmed">
+                还没有已保存的回复。
+              </Text>
+            )}
+          {olderArtifacts.map((item) => (
+            <SavedCanvasConversation
+              key={item.id}
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              artifactSummary={item}
+              disabled={taskBlocked}
+              onInspect={(value) => {
+                setInspectedArtifact(value);
+                setHistoryOpen(false);
+              }}
+              onContinue={continueFrom}
+            />
+          ))}
+          {record?.previous.map((entry) => (
+            <SavedCanvasConversation
+              key={entry.planId}
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              entry={entry}
+              disabled={taskBlocked}
+              onInspect={(value) => {
+                setInspectedArtifact(value);
+                setHistoryOpen(false);
+              }}
+              onContinue={continueFrom}
+            />
+          ))}
+          {draft?.artifact && (
+            <SavedCanvasConversation
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              artifactSummary={draft.artifact}
+              disabled={taskBlocked}
+              onInspect={(value) => {
+                setInspectedArtifact(value);
+                setHistoryOpen(false);
+              }}
+              onContinue={continueFrom}
+            />
+          )}
+        </div>
+      )}
       <div
         className={classes.conversation}
+        hidden={historyOpen}
         ref={conversation}
         role="log"
         tabIndex={0}
@@ -687,17 +903,50 @@ function CanvasAssistantContent({
         aria-relevant="additions"
       >
         <div className={classes.conversationContent} ref={conversationContent}>
-          {!fixedInput &&
-            !record?.previous.length &&
-            !olderArtifacts.length && (
-              <div className={classes.welcome}>
-                <Sparkle size={24} weight="light" aria-hidden="true" />
-                <Text fw={600}>想创作什么？直接聊聊</Text>
-                <Text size="sm" c="dimmed">
-                  从故事、人物或一个画面开始。需要具体参考时，再把画布对象作为附件加入。
-                </Text>
+          {!hasMessages && !inspectedArtifact && (
+            <div className={classes.welcome}>
+              <Sparkle size={28} weight="light" aria-hidden="true" />
+              <Text className={classes.welcomeTitle} fw={600}>
+                一起把想法变成画面
+              </Text>
+              <Text size="sm" c="dimmed">
+                聊故事、推敲镜头，或带上画布里的参考。
+              </Text>
+              <div className={classes.starters}>
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={taskBlocked}
+                  leftSection={<ChatCircle size={16} />}
+                  onClick={() =>
+                    startWriting("我想和你一起推敲这场戏的情绪和节奏。")
+                  }
+                >
+                  推敲故事与镜头
+                </Button>
+                {onPrepareStoryboard && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={taskBlocked}
+                    leftSection={<FilmStrip size={16} />}
+                    onClick={onPrepareStoryboard}
+                  >
+                    从剧本整理分镜
+                  </Button>
+                )}
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={taskBlocked}
+                  leftSection={<Sparkle size={16} />}
+                  onClick={() => void preparePrompt()}
+                >
+                  准备画面提示
+                </Button>
               </div>
-            )}
+            </div>
+          )}
           <ErrorNotice
             error={savedArtifacts.error}
             retry={() => void savedArtifacts.refetch()}
@@ -728,7 +977,7 @@ function CanvasAssistantContent({
                 ))}
             </details>
           )}
-          {olderArtifacts.map((item) => (
+          {visibleOlder.map((item) => (
             <SavedCanvasConversation
               key={item.id}
               path={path}
@@ -740,7 +989,7 @@ function CanvasAssistantContent({
               onContinue={continueFrom}
             />
           ))}
-          {record?.previous.map((entry) => (
+          {visiblePrevious.map((entry) => (
             <SavedCanvasConversation
               key={entry.planId}
               path={path}
@@ -767,17 +1016,16 @@ function CanvasAssistantContent({
                 {fixedInput.prompt || "（仅固定节点上下文）"}
               </Text>
               <SourceAttachments sources={draft?.sources ?? []} readonly />
-              {fixedInput.assistanceSource && (
-                <Text
-                  size="xs"
-                  c="dimmed"
-                  title={`${fixedInput.assistanceSource.artifactId} · r${fixedInput.assistanceSource.revision}`}
-                >
-                  {fixedInput.assistance?.kind === "discuss"
-                    ? "引用已选回复"
-                    : `基于建议 ${fixedInput.assistanceSource.artifactId.slice(0, 8)} · r${fixedInput.assistanceSource.revision}`}
-                </Text>
-              )}
+              {fixedInput.assistanceSource &&
+                fixedInput.assistance?.kind !== "discuss" && (
+                  <Text
+                    size="xs"
+                    c="dimmed"
+                    title={`${fixedInput.assistanceSource.artifactId} · r${fixedInput.assistanceSource.revision}`}
+                  >
+                    {`基于建议 ${fixedInput.assistanceSource.artifactId.slice(0, 8)} · r${fixedInput.assistanceSource.revision}`}
+                  </Text>
+                )}
             </article>
           )}
           {pendingPlan && (
@@ -994,7 +1242,7 @@ function CanvasAssistantContent({
               </Group>
               {artifact.executionMode === "test_fixture" && (
                 <Text size="xs" c="dimmed">
-                  受控测试输出 · 非真实模型回复
+                  演示回复 · 未调用真实模型
                 </Text>
               )}
               {artifact.inputOutdated && (
@@ -1036,9 +1284,7 @@ function CanvasAssistantContent({
                   disabled={disabled}
                   onClick={() => continueFrom(artifact)}
                 >
-                  {isCanvasDiscussion(artifact)
-                    ? "继续讨论"
-                    : "基于这份建议继续"}
+                  {isCanvasDiscussion(artifact) ? "引用回复" : "继续调整提示"}
                 </Button>
                 {isCanvasDiscussion(artifact) &&
                   plan &&
@@ -1197,6 +1443,7 @@ function CanvasAssistantContent({
       </div>
       <form
         className={classes.composer}
+        hidden={historyOpen}
         aria-label="画布助手消息输入"
         onSubmit={(event) => {
           event.preventDefault();
@@ -1212,9 +1459,15 @@ function CanvasAssistantContent({
           error={capabilities.error}
           retry={() => void capabilities.refetch()}
         />
-        <SourceAttachments
+        {topicNotice && (
+          <Text size="xs" c="dimmed" role="status">
+            {topicNotice}
+          </Text>
+        )}
+        <ComposerReferences
           sources={composerSources}
-          readonly={disabled}
+          tenant={tenant}
+          disabled={disabled}
           onChange={(sources) =>
             update(
               frozen
@@ -1223,24 +1476,26 @@ function CanvasAssistantContent({
             )
           }
         />
-        {!!composerSources.length && (
-          <div className={classes.attachmentCheck}>
-            <Button
-              size="compact-xs"
-              variant="subtle"
-              disabled={disabled}
-              onClick={reviewAttachments}
-            >
-              核对当前附件
-            </Button>
-            <details>
-              <summary>核对会做什么</summary>
+        {!!composerSources.length &&
+          (canvasState.dirty ||
+            composerSources.some(
+              (item) =>
+                item.source.canvasRevision !== canvasState.local?.base.revision,
+            )) && (
+            <div className={classes.attachmentCheck}>
               <Text size="xs" c="dimmed">
-                先保存当前画布并展示附件差异。只有确认后才更新本条消息附件，旧轮次不变；已删除节点请明确移除附件。
+                参考内容有更新
               </Text>
-            </details>
-          </div>
-        )}
+              <Button
+                size="compact-xs"
+                variant="subtle"
+                disabled={disabled}
+                onClick={reviewAttachments}
+              >
+                查看并更新参考
+              </Button>
+            </div>
+          )}
         {attachmentReview && (
           <div className={classes.attachmentReview} aria-label="当前附件差异">
             <Text size="sm" fw={600}>
@@ -1295,22 +1550,26 @@ function CanvasAssistantContent({
             </Group>
           </div>
         )}
-        {draft?.replyTo && (
+        {draft?.replyTo && draft.replyChoice !== "automatic" && (
           <div className={classes.replyAttachment}>
-            <Text
-              size="xs"
-              title={`${draft.replyTo.artifactId} · r${draft.replyTo.revision}`}
-            >
-              {discussion
-                ? draft.replyChoice === "automatic"
-                  ? "承接上一轮对话"
-                  : "引用已选回复"
-                : `基于固定回复 ${draft.replyTo.artifactId.slice(0, 8)} · r${draft.replyTo.revision}`}
-            </Text>
+            <div className={classes.quoteText}>
+              <Text size="xs" fw={500}>
+                引用回复
+              </Text>
+              <Text size="xs" c="dimmed" lineClamp={2}>
+                {quotedReply.data ? (
+                  <CanvasReplyText artifact={quotedReply.data} />
+                ) : quotedReply.error ? (
+                  "引用暂时无法读取，原选择仍保留"
+                ) : (
+                  "正在读取引用…"
+                )}
+              </Text>
+            </div>
             <ActionIcon
               variant="subtle"
               size="sm"
-              aria-label="移除所承接的建议"
+              aria-label="取消引用回复"
               disabled={disabled}
               onClick={() =>
                 update({ replyTo: undefined, replyChoice: "none" })
@@ -1327,153 +1586,261 @@ function CanvasAssistantContent({
             disabled={disabled}
             onClick={readArtifact}
           >
-            核对最新回复与续聊上下文
+            恢复上一条回复
           </Button>
         )}
-        <Textarea
-          aria-label="发送给画布助手"
-          placeholder={
-            discussion ? "说说你的创作想法…" : "描述希望准备的生成提示…"
-          }
-          minRows={3}
-          maxRows={7}
-          autosize
-          value={composerText}
-          disabled={disabled}
-          onChange={(event) =>
-            update({ nextInstruction: event.currentTarget.value })
-          }
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              (event.metaKey || event.ctrlKey) &&
-              !event.nativeEvent.isComposing
-            ) {
-              event.preventDefault();
-              sendMessage();
+        {!discussion && (
+          <div className={classes.promptTask}>
+            <Group justify="space-between" wrap="nowrap">
+              <Group gap="xs">
+                <Sparkle size={16} />
+                <Text size="sm" fw={500}>
+                  准备画面提示
+                </Text>
+              </Group>
+              <Tooltip label="回到自由对话">
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  aria-label="回到自由对话"
+                  disabled={taskBlocked}
+                  onClick={() => void newTopic()}
+                >
+                  <X size={14} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+            <Select
+              label="用于哪个生成模型"
+              placeholder="选择图片、视频或声音模型"
+              size="sm"
+              value={draft?.targetCapabilityId || null}
+              data={targets.map((c) => ({
+                value: c.id,
+                label: `${modelLabel(c)} · ${({ image: "图片", video: "视频", audio: "声音" } as Record<string, string>)[c.purpose] ?? c.purpose}`,
+              }))}
+              disabled={disabled || !!draft?.replyTo}
+              onChange={(id) => {
+                const cap = targets.find((c) => c.id === id);
+                update({
+                  targetCapabilityId: id ?? "",
+                  ...(cap ? { targetCapabilityRevision: cap.revision } : {}),
+                });
+              }}
+            />
+            <Text size="xs" c="dimmed">
+              {composerSources.length
+                ? "先准备提示，确认后再应用到画布。"
+                : "从下方 + 添加画布参考，再描述想要的画面。"}
+            </Text>
+          </div>
+        )}
+        <div className={classes.inputShell}>
+          <Textarea
+            ref={inputRef}
+            classNames={{ input: classes.messageInput }}
+            variant="unstyled"
+            aria-label="发送给画布助手"
+            placeholder={
+              discussion ? "聊聊你的创作想法…" : "描述想要的画面、动作或氛围…"
             }
-          }}
-        />
-        <div className={classes.composerActions}>
-          <Popover position="top-start" width={300} trapFocus>
-            <Popover.Target>
-              <Button
-                variant="subtle"
-                size="compact-xs"
-                leftSection={<SlidersHorizontal size={15} />}
-                aria-label="对话设置"
+            minRows={2}
+            maxRows={7}
+            autosize
+            value={composerText}
+            disabled={disabled}
+            onChange={(event) => {
+              setTopicNotice(undefined);
+              update({ nextInstruction: event.currentTarget.value });
+            }}
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault();
+                if (!taskBlocked) sendMessage();
+              }
+            }}
+          />
+          <div className={classes.composerActions}>
+            <Group gap="xs" wrap="nowrap" className={classes.inputTools}>
+              <Popover
+                opened={referencePicker}
+                onChange={setReferencePicker}
+                position="top-start"
+                width={300}
+                trapFocus
+                returnFocus
               >
-                {assistant ? modelLabel(assistant) : "选择助手"}
-                {!discussion &&
-                  (target ? ` · ${target.purpose}` : " · 选择目标")}
-              </Button>
-            </Popover.Target>
-            <Popover.Dropdown>
-              <Stack gap="sm">
-                <Text size="sm" fw={600}>
-                  本条消息设置
-                </Text>
-                <Select
-                  label="助手模型"
-                  size="sm"
-                  value={draft?.capabilityId || null}
-                  data={textModels.map((c) => ({
-                    value: c.id,
-                    label: modelLabel(c),
-                  }))}
-                  disabled={disabled}
-                  onChange={(id) => update({ capabilityId: id ?? "" })}
-                />
-                <Select
-                  label="本条消息"
-                  size="sm"
-                  value={messageKind}
-                  data={[
-                    { value: "discuss", label: "自由讨论" },
-                    { value: "prepare_prompt", label: "准备生成提示" },
-                  ]}
-                  disabled={disabled || !!draft?.replyTo}
-                  onChange={(value) =>
-                    update({
-                      nextKind:
-                        value === "prepare_prompt"
-                          ? "prepare_prompt"
-                          : "discuss",
-                    })
-                  }
-                />
-                {!discussion && (
-                  <Select
-                    label="建议用于"
-                    size="sm"
-                    value={draft?.targetCapabilityId || null}
-                    data={targets.map((c) => ({
-                      value: c.id,
-                      label: `${modelLabel(c)} · ${c.purpose}`,
-                    }))}
-                    disabled={disabled || !!draft?.replyTo}
-                    onChange={(id) => {
-                      const cap = targets.find((c) => c.id === id);
-                      update({
-                        targetCapabilityId: id ?? "",
-                        ...(cap
-                          ? { targetCapabilityRevision: cap.revision }
-                          : {}),
-                      });
-                    }}
-                  />
-                )}
-                {draft?.replyTo && (
-                  <Text size="xs" c="dimmed">
-                    这条消息承接固定回复，沿用其讨论或提示类型。切换类型前请明确移除该回复附件。
+                <Popover.Target>
+                  <Tooltip label="添加参考或创作任务">
+                    <ActionIcon
+                      variant="subtle"
+                      aria-label="添加参考或创作任务"
+                      disabled={disabled}
+                      onClick={() => setReferencePicker(!referencePicker)}
+                    >
+                      <Plus size={20} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Popover.Target>
+                <Popover.Dropdown className={classes.actionPicker}>
+                  <Text size="xs" fw={600}>
+                    创作任务
                   </Text>
-                )}
-                <Text size="xs" c="dimmed">
-                  {discussion
-                    ? "发送即请求这一条文字回复，不生成媒体或修改画布。"
-                    : "发送准备固定提示计划；执行和应用到画布分别确认。"}
-                </Text>
-              </Stack>
-            </Popover.Dropdown>
-          </Popover>
-          <Button
-            type="submit"
-            size="compact-sm"
-            aria-label={discussion ? "发送讨论消息" : "发送消息并核对计划"}
-            leftSection={<PaperPlaneRight size={15} />}
-            disabled={
-              disabled ||
-              !composerText.trim() ||
-              !assistant ||
-              (!discussion && (!target || !composerSources.length)) ||
-              pendingPlan ||
-              pendingJob ||
-              pendingApplication
-            }
-          >
-            发送
-          </Button>
+                  {onPrepareStoryboard && (
+                    <Button
+                      variant="subtle"
+                      size="sm"
+                      fullWidth
+                      leftSection={<FilmStrip size={16} />}
+                      disabled={taskBlocked}
+                      onClick={() => {
+                        setReferencePicker(false);
+                        onPrepareStoryboard();
+                      }}
+                    >
+                      从剧本整理分镜
+                    </Button>
+                  )}
+                  <Button
+                    variant="subtle"
+                    size="sm"
+                    fullWidth
+                    leftSection={<Sparkle size={16} />}
+                    disabled={taskBlocked}
+                    onClick={() => {
+                      setReferencePicker(false);
+                      void preparePrompt();
+                    }}
+                  >
+                    准备画面提示
+                  </Button>
+                  <Text size="xs" fw={600} mt="xs">
+                    添加画布参考
+                  </Text>
+                  <TextInput
+                    size="xs"
+                    aria-label="查找画布参考"
+                    placeholder="查找画布内容…"
+                    value={referenceQuery}
+                    onChange={(event) =>
+                      setReferenceQuery(event.currentTarget.value)
+                    }
+                  />
+                  <div className={classes.referenceChoices}>
+                    {referenceNodes.slice(0, 30).map((node) => (
+                      <Button
+                        key={node.id}
+                        variant="subtle"
+                        size="sm"
+                        fullWidth
+                        disabled={
+                          disabled ||
+                          composerSources.some(
+                            (source) => source.source.nodeId === node.id,
+                          )
+                        }
+                        onClick={() => {
+                          void addReferences([node.id]);
+                          setReferencePicker(false);
+                          focusInput();
+                        }}
+                      >
+                        {node.title}
+                        {composerSources.some(
+                          (source) => source.source.nodeId === node.id,
+                        )
+                          ? " · 已添加"
+                          : ""}
+                      </Button>
+                    ))}
+                    {!referenceNodes.length && (
+                      <Text size="xs" c="dimmed">
+                        没有匹配的画布内容。
+                      </Text>
+                    )}
+                    {referenceNodes.length > 30 && (
+                      <Text size="xs" c="dimmed">
+                        显示前 30 项，可搜索定位。
+                      </Text>
+                    )}
+                  </div>
+                </Popover.Dropdown>
+              </Popover>
+              <Menu position="top-start" width={260}>
+                <Menu.Target>
+                  <Button
+                    className={classes.modelButton}
+                    variant="subtle"
+                    size="compact-xs"
+                    aria-label="选择助手模型"
+                    disabled={disabled}
+                    rightSection={<CaretDown size={12} />}
+                  >
+                    {isDemo
+                      ? "演示 · 未连接模型"
+                      : assistant
+                        ? modelLabel(assistant)
+                        : "选择模型"}
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>助手模型</Menu.Label>
+                  {textModels.map((model) => (
+                    <Menu.Item
+                      key={model.id}
+                      aria-label={`使用 ${modelLabel(model)}`}
+                      onClick={() => update({ capabilityId: model.id })}
+                    >
+                      {modelLabel(model)}
+                      {model.id === assistant?.id ? " · 当前" : ""}
+                    </Menu.Item>
+                  ))}
+                  {!textModels.length && (
+                    <Menu.Item disabled>尚未连接可用模型</Menu.Item>
+                  )}
+                  {isDemo && (
+                    <Text size="xs" c="dimmed" px="sm" py="xs">
+                      当前回复仅用于演示，不调用真实模型。
+                    </Text>
+                  )}
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+            <Tooltip label="发送 · Enter；Shift+Enter 换行" withArrow>
+              <ActionIcon
+                type="submit"
+                size="lg"
+                radius="xl"
+                variant="filled"
+                aria-label={discussion ? "发送讨论消息" : "发送消息并核对计划"}
+                disabled={
+                  taskBlocked ||
+                  !composerText.trim() ||
+                  !assistant ||
+                  (!discussion && (!target || !composerSources.length))
+                }
+              >
+                <ArrowUp size={19} />
+              </ActionIcon>
+            </Tooltip>
+          </div>
         </div>
-        <Group justify="space-between" gap="xs">
+        {!state.draftSaved && (
           <Text size="xs" c="dimmed" role="status">
-            {state.draftSaved ? "本机已保留" : "正在保留"}
+            正在保留草稿…
           </Text>
-          <Text size="xs" c="dimmed">
-            ⌘ / Ctrl + Enter 发送
-          </Text>
-        </Group>
+        )}
         {!capabilities.isLoading &&
-        !capabilities.error &&
-        !textModels.length ? (
-          <Text size="xs" c="dimmed">
-            尚未连接可执行的助手。消息与附件会保留。
-          </Text>
-        ) : (assistant as { executionMode?: string } | undefined)
-            ?.executionMode === "test_fixture" ? (
-          <Text size="xs" c="dimmed">
-            当前助手为受控测试身份，没有真实模型调用。
-          </Text>
-        ) : null}
+          !capabilities.error &&
+          !textModels.length && (
+            <Text size="xs" c="dimmed">
+              尚未连接助手模型，输入会保留。
+            </Text>
+          )}
         {(pendingPlan || pendingJob || pendingApplication) && (
           <Text size="xs" c="dimmed">
             后续输入会保留；请先处理上方
@@ -1495,23 +1862,103 @@ function CanvasAssistantContent({
   );
 }
 
+function ComposerReferences({
+  sources,
+  tenant,
+  disabled,
+  onChange,
+}: {
+  sources: CanvasAssistantSource[];
+  tenant: string;
+  disabled: boolean;
+  onChange: (sources: CanvasAssistantSource[]) => void;
+}) {
+  if (!sources.length) return null;
+  return (
+    <div className={classes.referenceStrip} aria-label="本次消息的画布参考">
+      {sources.map((item, index) => (
+        <div className={classes.referenceChip} key={item.source.nodeId}>
+          <Popover position="top-start" width={300} trapFocus returnFocus>
+            <Popover.Target>
+              <UnstyledButton
+                type="button"
+                className={classes.referenceButton}
+                aria-label={`查看参考 ${item.title}`}
+              >
+                <ReferenceThumbnail source={item} tenant={tenant} />
+                <span>{item.title}</span>
+              </UnstyledButton>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <SourceAttachments
+                sources={[item]}
+                readonly={disabled}
+                expanded
+                onChange={(next) =>
+                  onChange(
+                    next.length
+                      ? sources.map((source, i) =>
+                          i === index ? next[0]! : source,
+                        )
+                      : sources.filter((_, i) => i !== index),
+                  )
+                }
+              />
+            </Popover.Dropdown>
+          </Popover>
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            disabled={disabled}
+            aria-label={`移除参考 ${item.title}`}
+            onClick={() => onChange(sources.filter((_, i) => i !== index))}
+          >
+            <X size={12} />
+          </ActionIcon>
+        </div>
+      ))}
+    </div>
+  );
+}
+function ReferenceThumbnail({
+  source,
+  tenant,
+}: {
+  source: CanvasAssistantSource;
+  tenant: string;
+}) {
+  const mediaId =
+    source.content.type === "media" ? source.content.mediaId : undefined;
+  const media = useFreshCanvasResource<Schema<"Media">>(
+    `${tenant}/media/${mediaId ?? "unavailable"}`,
+    !!mediaId,
+  );
+  return (
+    <span className={classes.referenceThumbnail} aria-hidden="true">
+      {media.data?.id === mediaId && media.data ? (
+        <MediaPreview media={media.data} path={tenant} thumbnail />
+      ) : source.kind === "text" ? (
+        <TextT size={18} />
+      ) : (
+        <Paperclip size={18} />
+      )}
+    </span>
+  );
+}
 function SourceAttachments({
   sources,
   readonly,
   onChange,
+  expanded = false,
 }: {
   sources: CanvasAssistantSource[];
   readonly: boolean;
   onChange?: (sources: CanvasAssistantSource[]) => void;
+  expanded?: boolean;
 }) {
-  if (!sources.length)
-    return readonly ? null : (
-      <Text size="xs" c="dimmed">
-        附件可选：需要具体参考时，从画布明确加入对象。
-      </Text>
-    );
+  if (!sources.length) return null;
   return (
-    <details className={classes.attachments}>
+    <details className={classes.attachments} open={expanded || undefined}>
       <summary>
         <Paperclip size={14} aria-hidden="true" />
         <span>{sources.length} 个节点附件</span>
@@ -1569,6 +2016,7 @@ function SourceAttachments({
                 </Text>
               ) : (
                 <Select
+                  comboboxProps={{ withinPortal: false }}
                   label="本次参考用途"
                   size="xs"
                   value={item.source.purpose ?? null}
@@ -1698,7 +2146,7 @@ function SavedCanvasConversation({
               disabled={disabled}
               onClick={() => onContinue(result)}
             >
-              {isCanvasDiscussion(result) ? "继续讨论" : "基于这份建议继续"}
+              {isCanvasDiscussion(result) ? "引用回复" : "继续调整提示"}
             </Button>
             <Button
               variant="subtle"
