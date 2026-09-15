@@ -337,6 +337,7 @@ export function AssetDetails({
                     projectId={targetProjectId}
                     revision={viewed}
                     active={value.status === "active"}
+                    back={back}
                   />
                 )}
                 <details className={classes.disclosure}>
@@ -535,28 +536,69 @@ function ImportFixedAsset({
   projectId,
   revision,
   active,
+  back,
 }: {
   path: string;
   tenantId: string;
   projectId: string;
   revision: Schema<"AssetRevision">;
   active: boolean;
+  back: string;
 }) {
   const project = useResource<Schema<"Project">>(
       projectPath(tenantId, projectId),
     ),
+    imports = useAssetPages<Schema<"SharedImport">>(
+      `${path}/projects/${projectId}/shared-imports`,
+    ),
     command = useCommand<Schema<"SharedImport">>();
-  if (project.isError) return <ErrorNotice error={project.error} />;
+  const returnLink = (
+    <Button component="a" variant="subtle" href={back}>
+      返回资产库
+    </Button>
+  );
+  if (project.isError)
+    return (
+      <Stack gap="sm">
+        <ErrorNotice
+          error={project.error}
+          retry={() => void project.refetch()}
+        />
+        {returnLink}
+      </Stack>
+    );
   if (!project.data) return <Loader size="sm" aria-label="正在核对引入目标" />;
+  const imported =
+    !imports.isError &&
+    (imports.data?.pages.some((page) =>
+      page.items.some(
+        (item) =>
+          item.projectId === projectId && item.assetRevisionId === revision.id,
+      ),
+    ) ||
+      (command.isSuccess &&
+        command.data.projectId === projectId &&
+        command.data.assetRevisionId === revision.id));
   return (
     <Stack gap="sm">
       <Text size="sm">固定引入目标：{project.data.name}</Text>
       <ErrorNotice error={command.error} />
-      {command.isSuccess && command.data.assetRevisionId === revision.id && (
+      <ErrorNotice error={imports.error} retry={() => void imports.refetch()} />
+      {imports.isPending && (
+        <Text size="xs" c="dimmed">
+          正在读取已引入版本…
+        </Text>
+      )}
+      {imported && (
         <Text role="status">已引入此固定版本，后续修订不会自动升级。</Text>
       )}
       <Button
-        disabled={!active || project.data.status !== "active"}
+        disabled={
+          !active ||
+          project.data.status !== "active" ||
+          imported ||
+          imports.isError
+        }
         loading={command.isPending}
         onClick={() =>
           command.mutate({
@@ -565,15 +607,13 @@ function ImportFixedAsset({
           })
         }
       >
-        将 v{revision.number} 引入此项目
+        {imported
+          ? `v${revision.number} 已引入此项目`
+          : imports.isError
+            ? "重新读取后核对引入状态"
+            : `将 v${revision.number} 引入此项目`}
       </Button>
-      <Button
-        component="a"
-        variant="subtle"
-        href={`#/app/t/${tenantId}/p/${projectId}/assets`}
-      >
-        返回项目资产
-      </Button>
+      {returnLink}
     </Stack>
   );
 }

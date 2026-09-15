@@ -685,10 +685,13 @@ function WorkspaceContext({
   );
   const title = projectId
     ? (projectSections.find((item) => item.id === section)?.label ??
-      (section === "media" ? "素材库" : "项目设置"))
-    : ({ projects: "项目", work: "我的工作", assets: "资产", media: "素材库" }[
-        studioSection
-      ] ?? "工作室");
+      (section === "media" ? "资产库" : "项目设置"))
+    : ({
+        projects: "项目",
+        work: "我的工作",
+        assets: "资产库",
+        media: "资产库",
+      }[studioSection] ?? "工作室");
   return (
     <header className={classes.contextHeader}>
       <nav className={classes.breadcrumb} aria-label="当前位置">
@@ -706,26 +709,6 @@ function WorkspaceContext({
         )}
         <Text size="sm">{title}</Text>
       </nav>
-      {!projectId &&
-        tenantId &&
-        ["assets", "media"].includes(studioSection) && (
-          <Group gap="xs">
-            <Button
-              variant={studioSection === "assets" ? "default" : "subtle"}
-              component="a"
-              href={`#/app/t/${tenantId}/assets`}
-            >
-              资产
-            </Button>
-            <Button
-              variant={studioSection === "media" ? "default" : "subtle"}
-              component="a"
-              href={`#/app/t/${tenantId}/media`}
-            >
-              素材库
-            </Button>
-          </Group>
-        )}
     </header>
   );
 }
