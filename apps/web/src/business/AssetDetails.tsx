@@ -456,7 +456,7 @@ export function AssetDetails({
                 )}
               </Stack>
             </details>
-            {(value.description || value.tags?.length) && (
+            {!!(value.description || value.tags?.length) && (
               <details className={classes.disclosure}>
                 <summary>检索信息与标签</summary>
                 <Text size="sm" className={classes.definition}>
