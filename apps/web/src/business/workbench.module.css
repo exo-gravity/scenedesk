@@ -385,7 +385,14 @@
     display: none;
   }
   .projectLink {
-    padding: 6px 8px;
+    padding: 6px;
+    gap: 6px;
+  }
+  .projectSettings {
+    margin-left: auto;
+  }
+  .projectSettings span {
+    display: none;
   }
   .projectSubLink,
   .projectSettings {

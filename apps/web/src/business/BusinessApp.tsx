@@ -657,6 +657,8 @@ function ProjectDirectory({
         component="a"
         href={base}
         className={`${classes.projectLink} ${classes.projectSettings}`}
+        aria-label="项目设置"
+        title="项目设置"
         aria-current={!section ? "page" : undefined}
         data-active={!section || undefined}
       >
