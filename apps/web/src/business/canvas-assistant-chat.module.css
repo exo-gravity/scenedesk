@@ -278,12 +278,7 @@
   height: auto;
 }
 .promptTask {
-  padding: 10px;
-  border-radius: var(--ws-tool-radius);
-  background: var(--ws-raised);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  padding-block-end: 8px;
 }
 .quoteText {
   flex: 1;

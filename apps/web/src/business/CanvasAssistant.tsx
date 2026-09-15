@@ -59,6 +59,22 @@ import {
   type FixedCanvasSource,
 } from "./canvas-assistant";
 import classes from "./canvas-assistant-chat.module.css";
+type AttachmentReview = {
+  before: CanvasAssistantSource[];
+  after: CanvasAssistantSource[];
+  revision: number;
+};
+type ReviewFocus = { token: object; target: "review" | "input" } & (
+  | {
+      subject: "application";
+      expected: CanvasAssistantDraft["application"];
+    }
+  | {
+      subject: "attachments";
+      expected: AttachmentReview | undefined;
+      sources?: CanvasAssistantSource[];
+    }
+);
 export type CanvasAssistantProps = {
   tenantId: string;
   projectId: string;
@@ -152,11 +168,11 @@ function CanvasAssistantContent({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [targetNodeId, setTargetNodeId] = useState<string | null>(null);
   const [applyMode, setApplyMode] = useState<"replace" | "append">("replace");
-  const [attachmentReview, setAttachmentReview] = useState<{
-    before: CanvasAssistantSource[];
-    after: CanvasAssistantSource[];
-    revision: number;
-  }>();
+  const [attachmentReview, setAttachmentReview] = useState<AttachmentReview>();
+  const [reviewFocus, setReviewFocus] = useState<ReviewFocus>();
+  const pendingReviewAction = useRef<object | undefined>(undefined);
+  const applicationReviewElement = useRef<HTMLDivElement>(null);
+  const attachmentReviewElement = useRef<HTMLDivElement>(null);
   const seenContext = useRef<number | undefined>(undefined);
   const readAttempt = useRef<string | undefined>(undefined);
   const conversation = useRef<HTMLDivElement>(null);
@@ -185,6 +201,8 @@ function CanvasAssistantContent({
     (c as { executionMode?: string }).executionMode === "test_fixture"
       ? "演示助手"
       : c.modelVersion;
+  const targetLabel = (c: Schema<"Capability">) =>
+    `${({ image: "图片", video: "视频", audio: "声音" } as Record<string, string>)[c.purpose] ?? c.purpose} · ${c.executionMode === "test_fixture" ? "演示模型" : c.modelVersion}`;
   const quotedReply = useFreshCanvasResource<Schema<"AssistanceArtifact">>(
     `${path}/assistance-artifacts/${draft?.replyTo?.artifactId ?? "unavailable"}/revisions/${draft?.replyTo?.revision ?? 1}`,
     state.access === "ready" &&
@@ -208,6 +226,79 @@ function CanvasAssistantContent({
     setInspectedArtifact(undefined);
     focusInput();
   };
+  const beginReviewAction = () => {
+    const token = {};
+    pendingReviewAction.current = token;
+    return token;
+  };
+  const finishReviewFocus = (request: ReviewFocus) => {
+    if (pendingReviewAction.current === request.token)
+      setReviewFocus(request);
+  };
+  useEffect(() => {
+    if (!visible || !active || state.access !== "ready")
+      pendingReviewAction.current = undefined;
+    return () => {
+      pendingReviewAction.current = undefined;
+    };
+  }, [visible, active, state.access]);
+  useEffect(() => {
+    if (
+      !reviewFocus ||
+      pendingReviewAction.current !== reviewFocus.token ||
+      !visible ||
+      !active ||
+      historyOpen ||
+      state.access !== "ready" ||
+      state.busy ||
+      !state.draftSaved ||
+      canvasState.accessChecking ||
+      canvasState.phase !== "ready"
+    )
+      return;
+    if (
+      reviewFocus.subject === "application"
+        ? editingCanonical(draft?.application ?? null) !==
+          editingCanonical(reviewFocus.expected ?? null)
+        : attachmentReview !== reviewFocus.expected ||
+          (reviewFocus.sources &&
+            editingCanonical(draft?.nextSources ?? draft?.sources) !==
+              editingCanonical(reviewFocus.sources))
+    )
+      return;
+    const target =
+      reviewFocus.target === "input"
+        ? inputRef.current
+        : reviewFocus.subject === "application"
+          ? applicationReviewElement.current
+          : attachmentReviewElement.current;
+    if (!target) return;
+    const frame = requestAnimationFrame(() => {
+      if (
+        pendingReviewAction.current !== reviewFocus.token ||
+        !target.isConnected ||
+        target.closest("[hidden], [inert]")
+      )
+        return;
+      pendingReviewAction.current = undefined;
+      if (reviewFocus.target === "review") followLatest.current = false;
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [
+    reviewFocus,
+    attachmentReview,
+    draft,
+    visible,
+    active,
+    historyOpen,
+    state.access,
+    state.busy,
+    state.draftSaved,
+    canvasState.accessChecking,
+    canvasState.phase,
+  ]);
   useEffect(() => {
     const pending = pendingInspection.current;
     if (!pending || pending !== inspectedArtifact) return;
@@ -496,6 +587,8 @@ function CanvasAssistantContent({
   };
   const reviewAttachments = () => {
     if (!draft) return;
+    const token = beginReviewAction();
+    let review: AttachmentReview | undefined;
     setError(undefined);
     void controller.commitDraft(draft, draft, async (current) => {
       const before = structuredClone(current.nextSources ?? current.sources);
@@ -512,13 +605,25 @@ function CanvasAssistantContent({
             : {}),
         },
       }));
-      setAttachmentReview({ before, after, revision: saved.revision });
+      review = { before, after, revision: saved.revision };
+      setAttachmentReview(review);
       return current;
+    }).then(() => {
+      const current = controller.getSnapshot();
+      if (review && current.draftSaved && !current.error)
+        finishReviewFocus({
+          token,
+          subject: "attachments",
+          expected: review,
+          sources: review.before,
+          target: "review",
+        });
     });
   };
   const confirmAttachments = () => {
     if (!draft || !attachmentReview) return;
     const review = attachmentReview;
+    const token = beginReviewAction();
     void controller
       .commitDraft(draft, draft, async (current) => {
         if (
@@ -549,13 +654,32 @@ function CanvasAssistantContent({
         const current = controller.getSnapshot();
         if (
           current.draftSaved &&
+          !current.error &&
           current.record &&
           editingCanonical(
             current.record.draft.nextSources ?? current.record.draft.sources,
           ) === editingCanonical(review.after)
-        )
+        ) {
           setAttachmentReview(undefined);
+          finishReviewFocus({
+            token,
+            subject: "attachments",
+            expected: undefined,
+            sources: review.after,
+            target: "input",
+          });
+        }
       });
+  };
+  const cancelAttachmentReview = () => {
+    const token = beginReviewAction();
+    setAttachmentReview(undefined);
+    finishReviewFocus({
+      token,
+      subject: "attachments",
+      expected: undefined,
+      target: "input",
+    });
   };
   const continueFrom = (fixed: Schema<"AssistanceArtifact">) => {
     if (!draft) return;
@@ -606,6 +730,8 @@ function CanvasAssistantContent({
     const selectedTarget = targetNodeId,
       mode = applyMode,
       fixedArtifact = structuredClone(artifact);
+    const token = beginReviewAction();
+    const reviewKey = crypto.randomUUID();
     void controller.commitDraft(draft, draft, async (current) => {
       const saved = await savedCanvas();
       const node = saved.document.nodes.find((n) => n.id === selectedTarget);
@@ -628,7 +754,7 @@ function CanvasAssistantContent({
           : current.previousApplications,
         application: {
           phase: "review",
-          key: crypto.randomUUID(),
+          key: reviewKey,
           revision: saved.revision,
           body: {
             applicationId: crypto.randomUUID(),
@@ -646,7 +772,51 @@ function CanvasAssistantContent({
           ),
         },
       };
+    }).then(() => {
+      const current = controller.getSnapshot();
+      const prepared = current.record?.draft.application;
+      if (
+        current.draftSaved &&
+        !current.error &&
+        prepared?.key === reviewKey &&
+        prepared.phase === "review"
+      )
+        finishReviewFocus({
+          token,
+          subject: "application",
+          expected: prepared,
+          target: "review",
+        });
     });
+  };
+  const cancelApplicationReview = () => {
+    const token = beginReviewAction();
+    update({ application: undefined });
+    finishReviewFocus({
+      token,
+      subject: "application",
+      expected: undefined,
+      target: "input",
+    });
+  };
+  const focusApplicationOutcome = (
+    token: object,
+    intent: NonNullable<CanvasAssistantDraft["application"]>,
+  ) => {
+    const current = controller.getSnapshot();
+    const outcome = current.record?.draft.application;
+    if (
+      current.draftSaved &&
+      outcome?.key === intent.key &&
+      outcome.revision === intent.revision &&
+      editingCanonical(outcome.body) === editingCanonical(intent.body)
+    )
+      finishReviewFocus({
+        token,
+        subject: "application",
+        expected: outcome,
+        target: outcome.phase === "applied" ? "input" : "review",
+      });
   };
   const apply = () => {
     if (
@@ -656,6 +826,7 @@ function CanvasAssistantContent({
     )
       return;
     const intent = structuredClone(application);
+    const token = beginReviewAction();
     void controller
       .commitDraft(
         draft,
@@ -698,11 +869,13 @@ function CanvasAssistantContent({
           "applied"
         )
           await canvasController.refresh();
+        focusApplicationOutcome(token, intent);
       });
   };
   const recoverApplication = () => {
     if (!draft || !application) return;
     const intent = structuredClone(application);
+    const token = beginReviewAction();
     void controller
       .commitDraft(draft, draft, async (current, checkCurrent) => {
         try {
@@ -733,6 +906,7 @@ function CanvasAssistantContent({
           "applied"
         )
           await canvasController.refresh();
+        focusApplicationOutcome(token, intent);
       });
   };
   if (
@@ -1434,6 +1608,9 @@ function CanvasAssistantContent({
           )}
           {application && (
             <Stack
+              ref={applicationReviewElement}
+              role="region"
+              tabIndex={-1}
               className={classes.applicationReview}
               gap="sm"
               aria-label="画布建议应用核对"
@@ -1467,7 +1644,7 @@ function CanvasAssistantContent({
                   <Button
                     variant="subtle"
                     disabled={disabled}
-                    onClick={() => update({ application: undefined })}
+                    onClick={cancelApplicationReview}
                   >
                     返回检查建议
                   </Button>
@@ -1569,7 +1746,13 @@ function CanvasAssistantContent({
             </div>
           )}
         {attachmentReview && (
-          <div className={classes.attachmentReview} aria-label="当前附件差异">
+          <div
+            ref={attachmentReviewElement}
+            role="region"
+            tabIndex={-1}
+            className={classes.attachmentReview}
+            aria-label="当前附件差异"
+          >
             <Text size="sm" fw={600}>
               核对到画布 r{attachmentReview.revision}
             </Text>
@@ -1615,7 +1798,7 @@ function CanvasAssistantContent({
               <Button
                 size="xs"
                 variant="subtle"
-                onClick={() => setAttachmentReview(undefined)}
+                onClick={cancelAttachmentReview}
               >
                 保留原附件
               </Button>
@@ -1661,60 +1844,41 @@ function CanvasAssistantContent({
             恢复上一条回复
           </Button>
         )}
-        {!discussion && (
-          <div className={classes.promptTask}>
-            <Group justify="space-between" wrap="nowrap">
-              <Group gap="xs">
-                <Sparkle size={16} />
-                <Text size="sm" fw={500}>
-                  准备画面提示
-                </Text>
-              </Group>
-              <Tooltip label="回到自由对话">
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
-                  aria-label="回到自由对话"
-                  disabled={taskBlocked}
-                  onClick={() => void returnToDiscussion()}
-                >
-                  <X size={14} />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-            <Select
-              label="用于哪个生成模型"
-              placeholder="选择图片、视频或声音模型"
-              size="sm"
-              value={draft?.targetCapabilityId || null}
-              data={targets.map((c) => ({
-                value: c.id,
-                label: `${modelLabel(c)} · ${({ image: "图片", video: "视频", audio: "声音" } as Record<string, string>)[c.purpose] ?? c.purpose}`,
-              }))}
-              disabled={disabled || !!draft?.replyTo}
-              onChange={(id) => {
-                const cap = targets.find((c) => c.id === id);
-                update({
-                  targetCapabilityId: id ?? "",
-                  ...(cap ? { targetCapabilityRevision: cap.revision } : {}),
-                });
-              }}
-            />
-            <Text size="xs" c="dimmed">
-              {composerSources.length
-                ? "先准备提示，确认后再应用到画布。"
-                : "从下方 + 添加画布参考，再描述想要的画面。"}
-            </Text>
-          </div>
-        )}
         <div className={classes.inputShell}>
+          {!discussion && (
+            <div className={classes.promptTask}>
+              <Group justify="space-between" wrap="nowrap">
+                <Group gap="xs">
+                  <Sparkle size={16} />
+                  <Text size="sm" fw={500}>
+                    准备画面提示
+                  </Text>
+                </Group>
+                <Tooltip label="回到自由对话">
+                  <ActionIcon
+                    size="sm"
+                    variant="subtle"
+                    aria-label="回到自由对话"
+                    disabled={taskBlocked}
+                    onClick={() => void returnToDiscussion()}
+                  >
+                    <X size={14} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+            </div>
+          )}
           <Textarea
             ref={inputRef}
             classNames={{ input: classes.messageInput }}
             variant="unstyled"
             aria-label="发送给画布助手"
             placeholder={
-              discussion ? "聊聊你的创作想法…" : "描述想要的画面、动作或氛围…"
+              discussion
+                ? "聊聊你的创作想法…"
+                : composerSources.length
+                  ? "描述想要的画面、动作或氛围…"
+                  : "从 + 添加参考，再描述想要的画面…"
             }
             minRows={2}
             maxRows={7}
@@ -1850,18 +2014,54 @@ function CanvasAssistantContent({
                     className={classes.modelButton}
                     variant="subtle"
                     size="compact-xs"
-                    aria-label="选择助手模型"
+                    aria-label={
+                      discussion ? "选择助手模型" : "选择生成目标与助手模型"
+                    }
                     disabled={disabled}
                     rightSection={<CaretDown size={12} />}
                   >
-                    {isDemo
-                      ? "演示 · 未连接模型"
-                      : assistant
-                        ? modelLabel(assistant)
-                        : "选择模型"}
+                    {!discussion
+                      ? target
+                        ? targetLabel(target)
+                        : "选择目标模型"
+                      : isDemo
+                        ? "演示 · 未连接模型"
+                        : assistant
+                          ? modelLabel(assistant)
+                          : "选择模型"}
                   </Button>
                 </Menu.Target>
                 <Menu.Dropdown>
+                  {!discussion && (
+                    <>
+                      <Menu.Label>生成提示用于</Menu.Label>
+                      {targets.map((model) => (
+                        <Menu.Item
+                          key={model.id}
+                          aria-label={`选择目标 ${targetLabel(model)}`}
+                          disabled={!!draft?.replyTo}
+                          onClick={() =>
+                            update({
+                              targetCapabilityId: model.id,
+                              targetCapabilityRevision: model.revision,
+                            })
+                          }
+                        >
+                          {targetLabel(model)}
+                          {model.id === target?.id ? " · 当前" : ""}
+                        </Menu.Item>
+                      ))}
+                      {!targets.length && (
+                        <Menu.Item disabled>尚未连接生成模型</Menu.Item>
+                      )}
+                      {!!draft?.replyTo && (
+                        <Text size="xs" c="dimmed" px="sm" py="xs">
+                          继续调整沿用原目标；取消引用后可更换。
+                        </Text>
+                      )}
+                      <Menu.Divider />
+                    </>
+                  )}
                   <Menu.Label>助手模型</Menu.Label>
                   {textModels.map((model) => (
                     <Menu.Item
