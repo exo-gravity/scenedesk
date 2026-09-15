@@ -313,6 +313,22 @@ export async function beginCanvasAssistantPrompt(
   await controller.commitDraft(draft, next);
   assertCanvasConversationRetained(controller, next);
 }
+/** Return the next message to discussion without resetting the conversation view. */
+export async function beginCanvasAssistantDiscussion(
+  controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,
+) {
+  const { record } = editableCanvasConversation(controller),
+    draft = record.draft;
+  const next: CanvasAssistantDraft = {
+    ...draft,
+    nextKind: "discuss",
+    ...((draft.nextKind ?? draft.kind ?? "prepare_prompt") !== "discuss"
+      ? { replyTo: undefined, replyChoice: "none" as const }
+      : {}),
+  };
+  await controller.commitDraft(draft, next);
+  assertCanvasConversationRetained(controller, next);
+}
 /** A message archives only a known plan; unresolved requests keep their original identity. */
 export async function sendCanvasAssistantMessage(
   controller: AssistantSession<CanvasAssistantDraft, CanvasAssistanceInput>,

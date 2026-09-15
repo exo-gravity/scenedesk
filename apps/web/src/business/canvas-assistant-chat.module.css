@@ -222,8 +222,16 @@
 }
 .inputShell:focus-within {
   border-color: var(--ws-focus);
-  outline: 1px solid var(--ws-focus);
+  outline: 2px solid var(--ws-focus);
   outline-offset: 1px;
+}
+.messageInput,
+.messageInput:focus {
+  border: 0;
+  background: transparent;
+  /* The enclosing composer owns the visible keyboard focus ring. */
+  outline: none;
+  box-shadow: none;
 }
 .messageInput {
   padding: 0 2px 8px;
@@ -245,6 +253,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
+  height: auto;
+}
+.modelButton :global(.mantine-Button-inner) {
+  justify-content: flex-start;
 }
 .actionPicker {
   display: flex;
@@ -263,6 +275,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
+  height: auto;
 }
 .promptTask {
   padding: 10px;

@@ -43,6 +43,7 @@ import {
   canvasAssistantReply,
   beginCanvasAssistantTopic,
   beginCanvasAssistantPrompt,
+  beginCanvasAssistantDiscussion,
   retainCanvasAssistantReply,
   canvasReplyContinuationPending,
   isCanvasDiscussion,
@@ -159,6 +160,10 @@ function CanvasAssistantContent({
   const readAttempt = useRef<string | undefined>(undefined);
   const conversation = useRef<HTMLDivElement>(null);
   const conversationContent = useRef<HTMLDivElement>(null);
+  const inspectedResult = useRef<HTMLDivElement>(null);
+  const pendingInspection = useRef<{ id: string; revision: number } | undefined>(
+    undefined,
+  );
   const followLatest = useRef(true);
   const canvasState = canvasController.getSnapshot();
   const assistant = capabilities.data?.find(
@@ -189,6 +194,64 @@ function CanvasAssistantContent({
     requestAnimationFrame(() =>
       inputRef.current?.focus({ preventScroll: true }),
     );
+  const inspectArtifact = (value: { id: string; revision: number }) => {
+    const selection = { id: value.id, revision: value.revision };
+    pendingInspection.current = selection;
+    followLatest.current = false;
+    setInspectedArtifact(selection);
+    setHistoryOpen(false);
+    historyArtifact.refetch();
+  };
+  const closeInspection = () => {
+    pendingInspection.current = undefined;
+    setInspectedArtifact(undefined);
+    focusInput();
+  };
+  useEffect(() => {
+    const pending = pendingInspection.current;
+    if (!pending || pending !== inspectedArtifact) return;
+    if (!visible || !active || state.access !== "ready") {
+      pendingInspection.current = undefined;
+      return;
+    }
+    if (
+      historyOpen ||
+      canvasState.accessChecking ||
+      canvasState.phase !== "ready" ||
+      historyArtifact.error ||
+      !artifact ||
+      artifact !== historyArtifact.data ||
+      artifact.id !== pending.id ||
+      artifact.revision !== pending.revision
+    )
+      return;
+    const target = inspectedResult.current;
+    if (!target) return;
+    const frame = requestAnimationFrame(() => {
+      if (
+        pendingInspection.current !== pending ||
+        target !== inspectedResult.current ||
+        !target.isConnected ||
+        target.closest("[hidden], [inert]")
+      )
+        return;
+      pendingInspection.current = undefined;
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [
+    inspectedArtifact,
+    artifact,
+    historyArtifact.data,
+    historyArtifact.error,
+    historyOpen,
+    visible,
+    active,
+    state.access,
+    canvasState.accessChecking,
+    canvasState.phase,
+  ]);
   const update = (patch: Partial<CanvasAssistantDraft>) => {
     if (draft) controller.updateDraft({ ...draft, ...patch }, true);
   };
@@ -753,6 +816,10 @@ function CanvasAssistantContent({
     }
   };
   const newTopic = async () => {
+    if (savedArtifacts.isPending || savedArtifacts.isFetching || savedArtifacts.error) {
+      setError("对话历史尚未核对完成，请稍后再开启新话题。当前输入会继续保留。");
+      return;
+    }
     if (
       await runLocalAction(() =>
         beginCanvasAssistantTopic(
@@ -775,6 +842,12 @@ function CanvasAssistantContent({
       focusInput();
     }
   };
+  const returnToDiscussion = async () => {
+    if (await runLocalAction(() => beginCanvasAssistantDiscussion(controller))) {
+      setTopicNotice(undefined);
+      focusInput();
+    }
+  };
   const startWriting = (text: string) => {
     if (!composerText.trim()) update({ nextInstruction: text });
     focusInput();
@@ -793,6 +866,7 @@ function CanvasAssistantContent({
               disabled={
                 taskBlocked ||
                 savedArtifacts.isPending ||
+                savedArtifacts.isFetching ||
                 !!savedArtifacts.error
               }
               onClick={() => void newTopic()}
@@ -854,10 +928,7 @@ function CanvasAssistantContent({
               projectId={projectId}
               artifactSummary={item}
               disabled={taskBlocked}
-              onInspect={(value) => {
-                setInspectedArtifact(value);
-                setHistoryOpen(false);
-              }}
+              onInspect={inspectArtifact}
               onContinue={continueFrom}
             />
           ))}
@@ -869,10 +940,7 @@ function CanvasAssistantContent({
               projectId={projectId}
               entry={entry}
               disabled={taskBlocked}
-              onInspect={(value) => {
-                setInspectedArtifact(value);
-                setHistoryOpen(false);
-              }}
+              onInspect={inspectArtifact}
               onContinue={continueFrom}
             />
           ))}
@@ -883,10 +951,7 @@ function CanvasAssistantContent({
               projectId={projectId}
               artifactSummary={draft.artifact}
               disabled={taskBlocked}
-              onInspect={(value) => {
-                setInspectedArtifact(value);
-                setHistoryOpen(false);
-              }}
+              onInspect={inspectArtifact}
               onContinue={continueFrom}
             />
           )}
@@ -985,7 +1050,7 @@ function CanvasAssistantContent({
               projectId={projectId}
               artifactSummary={item}
               disabled={disabled || pendingApplication}
-              onInspect={setInspectedArtifact}
+              onInspect={inspectArtifact}
               onContinue={continueFrom}
             />
           ))}
@@ -997,7 +1062,7 @@ function CanvasAssistantContent({
               projectId={projectId}
               entry={entry}
               disabled={disabled || pendingApplication}
-              onInspect={setInspectedArtifact}
+              onInspect={inspectArtifact}
               onContinue={continueFrom}
             />
           ))}
@@ -1210,7 +1275,7 @@ function CanvasAssistantContent({
               <Button
                 variant="subtle"
                 size="xs"
-                onClick={() => setInspectedArtifact(undefined)}
+                onClick={closeInspection}
               >
                 返回本次建议
               </Button>
@@ -1222,6 +1287,9 @@ function CanvasAssistantContent({
           />
           {artifact && (
             <Stack
+              ref={inspectedResult}
+              tabIndex={inspectedArtifact ? -1 : undefined}
+              role="region"
               className={classes.result}
               gap="sm"
               aria-label="固定画布建议"
@@ -1604,7 +1672,7 @@ function CanvasAssistantContent({
                   variant="subtle"
                   aria-label="回到自由对话"
                   disabled={taskBlocked}
-                  onClick={() => void newTopic()}
+                  onClick={() => void returnToDiscussion()}
                 >
                   <X size={14} />
                 </ActionIcon>
@@ -1648,7 +1716,9 @@ function CanvasAssistantContent({
             maxRows={7}
             autosize
             value={composerText}
-            disabled={disabled}
+            disabled={!active || !visible || !draft}
+            readOnly={state.busy}
+            aria-busy={state.busy}
             onChange={(event) => {
               setTopicNotice(undefined);
               update({ nextInstruction: event.currentTarget.value });

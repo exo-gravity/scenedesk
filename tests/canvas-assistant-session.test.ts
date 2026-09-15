@@ -6,6 +6,7 @@ import {
   canvasAssistantReply,
   beginCanvasAssistantTopic,
   beginCanvasAssistantPrompt,
+  beginCanvasAssistantDiscussion,
   retainCanvasAssistantReply,
   sendCanvasAssistantMessage,
   type CanvasAssistanceInput,
@@ -1753,6 +1754,7 @@ async function conversationTransitionFixture(
 for (const transition of [
   beginCanvasAssistantTopic,
   beginCanvasAssistantPrompt,
+  beginCanvasAssistantDiscussion,
 ])
   test(`${transition.name} cannot report a switch when the local write fails`, async () => {
     const f = await conversationTransitionFixture(),
@@ -1804,6 +1806,7 @@ test("new topics and prompt mode cannot replace unknown requests, unfinished job
     for (const transition of [
       beginCanvasAssistantTopic,
       beginCanvasAssistantPrompt,
+      beginCanvasAssistantDiscussion,
     ]) {
       await assert.rejects(transition(f.chat), scenario.match);
       assert.deepEqual(f.saved(), original);
@@ -1936,6 +1939,7 @@ test("changing topic cannot overtake a message while its explicit sources are be
     const original = f.saved();
     await assert.rejects(beginCanvasAssistantTopic(f.chat), /核对完成/);
     await assert.rejects(beginCanvasAssistantPrompt(f.chat), /核对完成/);
+    await assert.rejects(beginCanvasAssistantDiscussion(f.chat), /核对完成/);
     assert.deepEqual(f.saved(), original);
     assert.equal(f.inputs.length, 0);
   } finally {
@@ -1944,4 +1948,85 @@ test("changing topic cannot overtake a message while its explicit sources are be
   }
   assert.equal(f.inputs.length, 1);
   assert.equal(f.executions(), 0);
+});
+
+test("returning from prompt preparation to discussion preserves the current round and sends only the next message as discussion", async () => {
+  const f = await conversationTransitionFixture((record) => {
+    delete record.execution;
+    record.draft.kind = "prepare_prompt";
+    record.draft.artifact = undefined;
+    record.draft.replyTo = {
+      artifactId: "explicit-prompt-source",
+      revision: 3,
+    };
+    record.draft.replyChoice = "explicit";
+  });
+  const before = f.saved();
+  await beginCanvasAssistantDiscussion(f.chat);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+  const reopened = await f.reopen();
+  assert.equal(
+    reopened.getSnapshot().plan?.id,
+    before.planId,
+    "switching composer kind does not clear the visible current round",
+  );
+  assert.equal(
+    reopened.getSnapshot().plan?.input.assistance?.kind,
+    "prepare_prompt",
+  );
+  assert.deepEqual(reopened.getSnapshot().record?.previous, before.previous);
+  assert.equal(
+    reopened.getSnapshot().record?.draft.conversationBoundary,
+    undefined,
+  );
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[0]?.assistance?.kind, "discuss");
+  assert.equal(f.inputs[0]?.assistanceSource, undefined);
+  assert.equal(f.inputs[0]?.prompt, before.draft.nextInstruction);
+  assert.deepEqual(
+    f.inputs[0]?.canvasSources,
+    before.draft.nextSources?.map((source) => source.source),
+  );
+  assert.equal(f.inputs[0]?.capabilityId, before.draft.capabilityId);
+  assert.equal(
+    f.executions(),
+    1,
+    "only the explicit send requests the one discussion reply",
+  );
+  assert.equal(f.originalPlan.input.assistance?.kind, "prepare_prompt");
+});
+
+test("returning to the existing discussion preserves its verified continuation rather than starting a new topic", async () => {
+  const f = await conversationTransitionFixture(),
+    before = f.saved();
+  await beginCanvasAssistantDiscussion(f.chat);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+  assert.equal(f.chat.getSnapshot().record?.planId, before.planId);
+  assert.deepEqual(f.chat.getSnapshot().record?.execution, before.execution);
+  assert.deepEqual(
+    f.chat.getSnapshot().record?.draft.artifact,
+    before.draft.artifact,
+  );
+  await sendCanvasAssistantMessage(
+    f.chat,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.deepEqual(f.inputs[0]?.assistanceSource, before.draft.replyTo);
+  assert.equal(f.inputs[0]?.prompt, before.draft.nextInstruction);
+  assert.equal(f.executions(), 1);
 });
