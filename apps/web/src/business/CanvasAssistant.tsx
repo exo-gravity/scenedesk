@@ -5,17 +5,29 @@ import {
   Alert,
   Button,
   Group,
+  Menu,
   Popover,
   Select,
   Stack,
   Text,
   Textarea,
+  TextInput,
+  Tooltip,
+  UnstyledButton,
 } from "@mantine/core";
 import {
   ArrowsClockwise,
-  PaperPlaneRight,
+  ArrowUp,
+  ArrowLeft,
+  CaretDown,
+  CaretRight,
+  ClockCounterClockwise,
+  ChatCircle,
+  FilmStrip,
+  GearSix,
+  Plus,
+  TextT,
   Paperclip,
-  SlidersHorizontal,
   Sparkle,
   X,
 } from "@phosphor-icons/react";
@@ -25,10 +37,14 @@ import { ErrorNotice, projectPath, tenantPath } from "./common";
 import type { CanvasController } from "./canvas-controller";
 import { jobFinished, jobStatusLabel } from "./assistant-session";
 import { GenerationJobControls } from "./GenerationJobControls";
+import { MediaPreview } from "./MediaPreview";
 import { referencePurposes, options } from "./asset-queries";
 import { useCanvasAssistantSession } from "./use-canvas-assistant-session";
 import {
   canvasAssistantReply,
+  beginCanvasAssistantTopic,
+  beginCanvasAssistantPrompt,
+  beginCanvasAssistantDiscussion,
   retainCanvasAssistantReply,
   canvasReplyContinuationPending,
   isCanvasDiscussion,
@@ -44,6 +60,22 @@ import {
   type FixedCanvasSource,
 } from "./canvas-assistant";
 import classes from "./canvas-assistant-chat.module.css";
+type AttachmentReview = {
+  before: CanvasAssistantSource[];
+  after: CanvasAssistantSource[];
+  revision: number;
+};
+type ReviewFocus = { token: object; target: "review" | "input" } & (
+  | {
+      subject: "application";
+      expected: CanvasAssistantDraft["application"];
+    }
+  | {
+      subject: "attachments";
+      expected: AttachmentReview | undefined;
+      sources?: CanvasAssistantSource[];
+    }
+);
 export type CanvasAssistantProps = {
   tenantId: string;
   projectId: string;
@@ -51,6 +83,8 @@ export type CanvasAssistantProps = {
   controller: CanvasController;
   active: boolean;
   visible: boolean;
+  onPrepareStoryboard?: () => void;
+  onClose?: () => void;
   requestedContext?: { nodeIds: string[]; nonce: number } | undefined;
 };
 export function CanvasAssistant(props: CanvasAssistantProps) {
@@ -72,6 +106,8 @@ function CanvasAssistantContent({
   controller: canvasController,
   active,
   visible,
+  onPrepareStoryboard,
+  onClose,
   requestedContext,
   canvasId,
 }: CanvasAssistantProps & { canvasId: string }) {
@@ -122,20 +158,32 @@ function CanvasAssistantContent({
   const messageKind = draft?.nextKind ?? draft?.kind ?? "prepare_prompt";
   const discussion = messageKind === "discuss";
   const fixedDiscussion = plan?.input.assistance?.kind === "discuss";
-  const disabled = !active || !visible || state.busy || !draft;
+  const [localActionPending, setLocalActionPending] = useState(false);
+  const disabled =
+    !active || !visible || state.busy || localActionPending || !draft;
   const [error, setError] = useState<string>();
   const [executionDetails, setExecutionDetails] = useState<string>();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [referencePicker, setReferencePicker] = useState(false);
+  const [composerMenu, setComposerMenu] = useState<"model" | "task">();
+  const [referenceQuery, setReferenceQuery] = useState("");
+  const [topicNotice, setTopicNotice] = useState<string>();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [targetNodeId, setTargetNodeId] = useState<string | null>(null);
   const [applyMode, setApplyMode] = useState<"replace" | "append">("replace");
-  const [attachmentReview, setAttachmentReview] = useState<{
-    before: CanvasAssistantSource[];
-    after: CanvasAssistantSource[];
-    revision: number;
-  }>();
+  const [attachmentReview, setAttachmentReview] = useState<AttachmentReview>();
+  const [reviewFocus, setReviewFocus] = useState<ReviewFocus>();
+  const pendingReviewAction = useRef<object | undefined>(undefined);
+  const applicationReviewElement = useRef<HTMLDivElement>(null);
+  const attachmentReviewElement = useRef<HTMLDivElement>(null);
   const seenContext = useRef<number | undefined>(undefined);
   const readAttempt = useRef<string | undefined>(undefined);
   const conversation = useRef<HTMLDivElement>(null);
   const conversationContent = useRef<HTMLDivElement>(null);
+  const inspectedResult = useRef<HTMLDivElement>(null);
+  const pendingInspection = useRef<
+    { id: string; revision: number } | undefined
+  >(undefined);
   const followLatest = useRef(true);
   const canvasState = canvasController.getSnapshot();
   const assistant = capabilities.data?.find(
@@ -148,12 +196,203 @@ function CanvasAssistantContent({
     capabilities.data?.filter(
       (c) => c.enabled && c.purpose === "creative_assistance",
     ) ?? [];
+  const targetOrder: Record<string, number> = { image: 0, video: 1, audio: 2 };
   const targets =
-    capabilities.data?.filter(
-      (c) => c.enabled && ["image", "video", "audio"].includes(c.purpose),
-    ) ?? [];
+    capabilities.data
+      ?.filter(
+        (c) => c.enabled && ["image", "video", "audio"].includes(c.purpose),
+      )
+      .sort(
+        (a, b) =>
+          (targetOrder[a.purpose] ?? 3) - (targetOrder[b.purpose] ?? 3) ||
+          a.modelVersion.localeCompare(b.modelVersion, "zh-CN") ||
+          a.id.localeCompare(b.id),
+      ) ?? [];
+  const purposeLabel = (purpose: string) =>
+    ({ image: "图片", video: "视频", audio: "音频" } as Record<string, string>)[
+      purpose
+    ] ?? purpose;
   const modelLabel = (c: Schema<"Capability">) =>
-    `${c.modelVersion}${(c as { executionMode?: string }).executionMode === "test_fixture" ? " · 受控测试" : ""}`;
+    `${c.modelVersion}${c.executionMode === "test_fixture" ? " · 演示" : ""}`;
+  const targetLabel = (c: Schema<"Capability">) =>
+    `${purposeLabel(c.purpose)} · ${modelLabel(c)}${c.mode === "target_profile_fixture" ? " · 仅提示目标" : ""}`;
+  const selectedModelLabel = discussion
+    ? assistant && modelLabel(assistant)
+    : target && targetLabel(target);
+  const modelChipLabel = (() => {
+    if (discussion && assistant)
+      return assistant.executionMode === "test_fixture"
+        ? "演示助手"
+        : assistant.modelVersion;
+    if (!discussion && target) {
+      const name =
+        target.mode === "target_profile_fixture"
+          ? "演示提示目标"
+          : target.executionMode === "test_fixture"
+            ? "演示模型"
+            : target.modelVersion;
+      return `${purposeLabel(target.purpose)} · ${name}`;
+    }
+    if (capabilities.isPending || capabilities.isFetching) return "读取模型…";
+    if (capabilities.error) return "模型读取失败";
+    if (discussion ? draft?.capabilityId : draft?.targetCapabilityId)
+      return "原模型不可用";
+    if (!(discussion ? textModels : targets).length)
+      return discussion ? "暂无助手模型" : "暂无提示目标";
+    return discussion ? "选择助手模型" : "选择目标模型";
+  })();
+  const quotedReply = useFreshCanvasResource<Schema<"AssistanceArtifact">>(
+    `${path}/assistance-artifacts/${draft?.replyTo?.artifactId ?? "unavailable"}/revisions/${draft?.replyTo?.revision ?? 1}`,
+    state.access === "ready" &&
+      !!draft?.replyTo &&
+      draft.replyChoice !== "automatic",
+  );
+  const focusInput = () =>
+    requestAnimationFrame(() =>
+      inputRef.current?.focus({ preventScroll: true }),
+    );
+  const changeComposerMenu = (menu: "model" | "task", opened: boolean) => {
+    setComposerMenu((current) =>
+      opened ? menu : current === menu ? undefined : current,
+    );
+    if (opened) setReferencePicker(false);
+  };
+  useEffect(() => {
+    if (!visible || historyOpen) {
+      setReferencePicker(false);
+      setComposerMenu(undefined);
+    }
+  }, [visible, historyOpen]);
+  const inspectArtifact = (value: { id: string; revision: number }) => {
+    const selection = { id: value.id, revision: value.revision };
+    pendingInspection.current = selection;
+    followLatest.current = false;
+    setInspectedArtifact(selection);
+    setHistoryOpen(false);
+    historyArtifact.refetch();
+  };
+  const closeInspection = () => {
+    pendingInspection.current = undefined;
+    setInspectedArtifact(undefined);
+    focusInput();
+  };
+  const beginReviewAction = () => {
+    const token = {};
+    pendingReviewAction.current = token;
+    return token;
+  };
+  const finishReviewFocus = (request: ReviewFocus) => {
+    if (pendingReviewAction.current === request.token) setReviewFocus(request);
+  };
+  useEffect(() => {
+    if (!visible || !active || state.access !== "ready")
+      pendingReviewAction.current = undefined;
+    return () => {
+      pendingReviewAction.current = undefined;
+    };
+  }, [visible, active, state.access]);
+  useEffect(() => {
+    if (
+      !reviewFocus ||
+      pendingReviewAction.current !== reviewFocus.token ||
+      !visible ||
+      !active ||
+      historyOpen ||
+      state.access !== "ready" ||
+      state.busy ||
+      !state.draftSaved ||
+      canvasState.accessChecking ||
+      canvasState.phase !== "ready"
+    )
+      return;
+    if (
+      reviewFocus.subject === "application"
+        ? editingCanonical(draft?.application ?? null) !==
+          editingCanonical(reviewFocus.expected ?? null)
+        : attachmentReview !== reviewFocus.expected ||
+          (reviewFocus.sources &&
+            editingCanonical(draft?.nextSources ?? draft?.sources) !==
+              editingCanonical(reviewFocus.sources))
+    )
+      return;
+    const target =
+      reviewFocus.target === "input"
+        ? inputRef.current
+        : reviewFocus.subject === "application"
+          ? applicationReviewElement.current
+          : attachmentReviewElement.current;
+    if (!target) return;
+    const frame = requestAnimationFrame(() => {
+      if (
+        pendingReviewAction.current !== reviewFocus.token ||
+        !target.isConnected ||
+        target.closest("[hidden], [inert]")
+      )
+        return;
+      pendingReviewAction.current = undefined;
+      if (reviewFocus.target === "review") followLatest.current = false;
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [
+    reviewFocus,
+    attachmentReview,
+    draft,
+    visible,
+    active,
+    historyOpen,
+    state.access,
+    state.busy,
+    state.draftSaved,
+    canvasState.accessChecking,
+    canvasState.phase,
+  ]);
+  useEffect(() => {
+    const pending = pendingInspection.current;
+    if (!pending || pending !== inspectedArtifact) return;
+    if (!visible || !active || state.access !== "ready") {
+      pendingInspection.current = undefined;
+      return;
+    }
+    if (
+      historyOpen ||
+      canvasState.accessChecking ||
+      canvasState.phase !== "ready" ||
+      historyArtifact.error ||
+      !artifact ||
+      artifact !== historyArtifact.data ||
+      artifact.id !== pending.id ||
+      artifact.revision !== pending.revision
+    )
+      return;
+    const target = inspectedResult.current;
+    if (!target) return;
+    const frame = requestAnimationFrame(() => {
+      if (
+        pendingInspection.current !== pending ||
+        target !== inspectedResult.current ||
+        !target.isConnected ||
+        target.closest("[hidden], [inert]")
+      )
+        return;
+      pendingInspection.current = undefined;
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [
+    inspectedArtifact,
+    artifact,
+    historyArtifact.data,
+    historyArtifact.error,
+    historyOpen,
+    visible,
+    active,
+    state.access,
+    canvasState.accessChecking,
+    canvasState.phase,
+  ]);
   const update = (patch: Partial<CanvasAssistantDraft>) => {
     if (draft) controller.updateDraft({ ...draft, ...patch }, true);
   };
@@ -174,18 +413,8 @@ function CanvasAssistantContent({
       throw Error("请先处理画布保存与恢复，助手不会采用未核对的来源。");
     return current.local.base;
   };
-  useEffect(() => {
-    if (
-      !visible ||
-      !active ||
-      !requestedContext ||
-      requestedContext.nonce === seenContext.current ||
-      state.access !== "ready" ||
-      state.busy ||
-      !draft
-    )
-      return;
-    seenContext.current = requestedContext.nonce;
+  const addReferences = (nodeIds: string[]) => {
+    if (!draft || disabled) return;
     const initial = canvasController.getSnapshot();
     if (
       !initial.local ||
@@ -197,7 +426,7 @@ function CanvasAssistantContent({
     try {
       captured = captureCanvasSources(
         { ...initial.local.base, document: initial.local.document },
-        requestedContext.nodeIds,
+        nodeIds,
       );
     } catch (cause) {
       setError(
@@ -205,9 +434,9 @@ function CanvasAssistantContent({
       );
       return;
     }
-    void controller.commitDraft(draft, draft, async (current) => {
+    return controller.commitDraft(draft, draft, async (current) => {
       const saved = await savedCanvas();
-      const sources = captureCanvasSources(saved, requestedContext.nodeIds);
+      const sources = captureCanvasSources(saved, nodeIds);
       if (
         sources.some(
           (source, index) =>
@@ -232,6 +461,20 @@ function CanvasAssistantContent({
         ? { ...current, nextSources: merged }
         : { ...current, sources: merged, nextSources: undefined };
     });
+  };
+  useEffect(() => {
+    if (
+      !visible ||
+      !active ||
+      !requestedContext ||
+      requestedContext.nonce === seenContext.current ||
+      state.access !== "ready" ||
+      state.busy ||
+      !draft
+    )
+      return;
+    seenContext.current = requestedContext.nonce;
+    void addReferences(requestedContext.nodeIds);
   }, [
     requestedContext,
     visible,
@@ -274,7 +517,14 @@ function CanvasAssistantContent({
     });
   };
   useEffect(() => {
-    if (!draft || state.busy || state.access !== "ready" || !visible || !active)
+    if (
+      !draft ||
+      state.busy ||
+      localActionPending ||
+      state.access !== "ready" ||
+      !visible ||
+      !active
+    )
       return;
     const defaults: Partial<CanvasAssistantDraft> = {};
     if (!draft.capabilityId && textModels.length === 1)
@@ -284,7 +534,15 @@ function CanvasAssistantContent({
       defaults.targetCapabilityRevision = targets[0]!.revision;
     }
     if (Object.keys(defaults).length) update(defaults);
-  }, [draft, capabilities.data, state.busy, state.access, visible, active]);
+  }, [
+    draft,
+    capabilities.data,
+    state.busy,
+    localActionPending,
+    state.access,
+    visible,
+    active,
+  ]);
   useEffect(() => {
     if (
       !visible ||
@@ -341,10 +599,11 @@ function CanvasAssistantContent({
   }, [visible, state.access, canvasState.accessChecking, canvasState.phase]);
   const sendMessage = () => {
     setError(undefined);
+    setTopicNotice(undefined);
     if (!assistant || (!discussion && !target)) {
       setError(
         discussion
-          ? "请在设置中选择已配置的文字助手，消息会保留。"
+          ? "请选择可用的助手模型，消息会保留。"
           : "请为具体生成提示选择助手与目标能力。",
       );
       return;
@@ -392,29 +651,45 @@ function CanvasAssistantContent({
   };
   const reviewAttachments = () => {
     if (!draft) return;
+    const token = beginReviewAction();
+    let review: AttachmentReview | undefined;
     setError(undefined);
-    void controller.commitDraft(draft, draft, async (current) => {
-      const before = structuredClone(current.nextSources ?? current.sources);
-      const saved = await savedCanvas();
-      const after = captureCanvasSources(
-        saved,
-        before.map((item) => item.source.nodeId),
-      ).map((item, index) => ({
-        ...item,
-        source: {
-          ...item.source,
-          ...(before[index]!.source.purpose
-            ? { purpose: before[index]!.source.purpose }
-            : {}),
-        },
-      }));
-      setAttachmentReview({ before, after, revision: saved.revision });
-      return current;
-    });
+    void controller
+      .commitDraft(draft, draft, async (current) => {
+        const before = structuredClone(current.nextSources ?? current.sources);
+        const saved = await savedCanvas();
+        const after = captureCanvasSources(
+          saved,
+          before.map((item) => item.source.nodeId),
+        ).map((item, index) => ({
+          ...item,
+          source: {
+            ...item.source,
+            ...(before[index]!.source.purpose
+              ? { purpose: before[index]!.source.purpose }
+              : {}),
+          },
+        }));
+        review = { before, after, revision: saved.revision };
+        setAttachmentReview(review);
+        return current;
+      })
+      .then(() => {
+        const current = controller.getSnapshot();
+        if (review && current.draftSaved && !current.error)
+          finishReviewFocus({
+            token,
+            subject: "attachments",
+            expected: review,
+            sources: review.before,
+            target: "review",
+          });
+      });
   };
   const confirmAttachments = () => {
     if (!draft || !attachmentReview) return;
     const review = attachmentReview;
+    const token = beginReviewAction();
     void controller
       .commitDraft(draft, draft, async (current) => {
         if (
@@ -445,43 +720,69 @@ function CanvasAssistantContent({
         const current = controller.getSnapshot();
         if (
           current.draftSaved &&
+          !current.error &&
           current.record &&
           editingCanonical(
             current.record.draft.nextSources ?? current.record.draft.sources,
           ) === editingCanonical(review.after)
-        )
+        ) {
           setAttachmentReview(undefined);
+          finishReviewFocus({
+            token,
+            subject: "attachments",
+            expected: undefined,
+            sources: review.after,
+            target: "input",
+          });
+        }
       });
+  };
+  const cancelAttachmentReview = () => {
+    const token = beginReviewAction();
+    setAttachmentReview(undefined);
+    finishReviewFocus({
+      token,
+      subject: "attachments",
+      expected: undefined,
+      target: "input",
+    });
   };
   const continueFrom = (fixed: Schema<"AssistanceArtifact">) => {
     if (!draft) return;
-    void controller.commitDraft(draft, draft, async (current) => {
-      const found = await api<Schema<"AssistanceArtifact">>(
-        `${path}/assistance-artifacts/${fixed.id}/revisions/${fixed.revision}`,
-        { signal: AbortSignal.timeout(15000) },
-      );
-      if (
-        found.id !== fixed.id ||
-        found.revision !== fixed.revision ||
-        found.projectId !== projectId ||
-        found.generationJobId !== fixed.generationJobId ||
-        (isCanvasDiscussion(found) && found.request.canvasId !== canvasId)
-      )
-        throw Error("这份历史建议未通过当前权限与固定版本核对。");
-      canvasAssistantReply(found);
-      return {
-        ...current,
-        replyTo: { artifactId: found.id, revision: found.revision },
-        replyChoice: "explicit",
-        nextKind: isCanvasDiscussion(found) ? "discuss" : "prepare_prompt",
-        ...(isCanvasDiscussion(found)
-          ? {}
-          : {
-              targetCapabilityId: found.request.targetCapabilityId!,
-              targetCapabilityRevision: found.request.targetCapabilityRevision,
-            }),
-      };
-    });
+    void controller
+      .commitDraft(draft, draft, async (current) => {
+        const found = await api<Schema<"AssistanceArtifact">>(
+          `${path}/assistance-artifacts/${fixed.id}/revisions/${fixed.revision}`,
+          { signal: AbortSignal.timeout(15000) },
+        );
+        if (
+          found.id !== fixed.id ||
+          found.revision !== fixed.revision ||
+          found.projectId !== projectId ||
+          found.generationJobId !== fixed.generationJobId ||
+          (isCanvasDiscussion(found) && found.request.canvasId !== canvasId)
+        )
+          throw Error("这份历史建议未通过当前权限与固定版本核对。");
+        canvasAssistantReply(found);
+        return {
+          ...current,
+          replyTo: { artifactId: found.id, revision: found.revision },
+          replyChoice: "explicit",
+          discussionReturn: undefined,
+          nextKind: isCanvasDiscussion(found) ? "discuss" : "prepare_prompt",
+          ...(isCanvasDiscussion(found)
+            ? {}
+            : {
+                targetCapabilityId: found.request.targetCapabilityId!,
+                targetCapabilityRevision:
+                  found.request.targetCapabilityRevision,
+              }),
+        };
+      })
+      .then(() => {
+        setHistoryOpen(false);
+        focusInput();
+      });
   };
   const reviewApplication = () => {
     if (
@@ -496,47 +797,95 @@ function CanvasAssistantContent({
     const selectedTarget = targetNodeId,
       mode = applyMode,
       fixedArtifact = structuredClone(artifact);
-    void controller.commitDraft(draft, draft, async (current) => {
-      const saved = await savedCanvas();
-      const node = saved.document.nodes.find((n) => n.id === selectedTarget);
-      if (
-        node?.content.type !== "draft" ||
-        node.content.capabilityId !==
-          fixedArtifact.request.targetCapabilityId ||
-        node.kind !==
-          capabilities.data?.find(
-            (c) => c.id === fixedArtifact.request.targetCapabilityId,
-          )?.purpose
-      )
-        throw Error(
-          "目标草稿的类型或模型不匹配，请在草稿中先明确配置同一目标能力。",
-        );
-      return {
-        ...current,
-        previousApplications: current.application
-          ? [...(current.previousApplications ?? []), current.application]
-          : current.previousApplications,
-        application: {
-          phase: "review",
-          key: crypto.randomUUID(),
-          revision: saved.revision,
-          body: {
-            applicationId: crypto.randomUUID(),
-            artifactId: fixedArtifact.id,
-            artifactRevision: fixedArtifact.revision,
-            nodeId: node.id,
-            mode,
+    const token = beginReviewAction();
+    const reviewKey = crypto.randomUUID();
+    void controller
+      .commitDraft(draft, draft, async (current) => {
+        const saved = await savedCanvas();
+        const node = saved.document.nodes.find((n) => n.id === selectedTarget);
+        if (
+          node?.content.type !== "draft" ||
+          node.content.capabilityId !==
+            fixedArtifact.request.targetCapabilityId ||
+          node.kind !==
+            capabilities.data?.find(
+              (c) => c.id === fixedArtifact.request.targetCapabilityId,
+            )?.purpose
+        )
+          throw Error(
+            "目标草稿的类型或模型不匹配，请在草稿中先明确配置同一目标能力。",
+          );
+        return {
+          ...current,
+          previousApplications: current.application
+            ? [...(current.previousApplications ?? []), current.application]
+            : current.previousApplications,
+          application: {
+            phase: "review",
+            key: reviewKey,
+            revision: saved.revision,
+            body: {
+              applicationId: crypto.randomUUID(),
+              artifactId: fixedArtifact.id,
+              artifactRevision: fixedArtifact.revision,
+              nodeId: node.id,
+              mode,
+            },
+            targetTitle: node.title,
+            beforePrompt: node.content.prompt,
+            afterPrompt: applicationPrompt(
+              node.content.prompt,
+              fixedArtifact.body.prompt,
+              mode,
+            ),
           },
-          targetTitle: node.title,
-          beforePrompt: node.content.prompt,
-          afterPrompt: applicationPrompt(
-            node.content.prompt,
-            fixedArtifact.body.prompt,
-            mode,
-          ),
-        },
-      };
+        };
+      })
+      .then(() => {
+        const current = controller.getSnapshot();
+        const prepared = current.record?.draft.application;
+        if (
+          current.draftSaved &&
+          !current.error &&
+          prepared?.key === reviewKey &&
+          prepared.phase === "review"
+        )
+          finishReviewFocus({
+            token,
+            subject: "application",
+            expected: prepared,
+            target: "review",
+          });
+      });
+  };
+  const cancelApplicationReview = () => {
+    const token = beginReviewAction();
+    update({ application: undefined });
+    finishReviewFocus({
+      token,
+      subject: "application",
+      expected: undefined,
+      target: "input",
     });
+  };
+  const focusApplicationOutcome = (
+    token: object,
+    intent: NonNullable<CanvasAssistantDraft["application"]>,
+  ) => {
+    const current = controller.getSnapshot();
+    const outcome = current.record?.draft.application;
+    if (
+      current.draftSaved &&
+      outcome?.key === intent.key &&
+      outcome.revision === intent.revision &&
+      editingCanonical(outcome.body) === editingCanonical(intent.body)
+    )
+      finishReviewFocus({
+        token,
+        subject: "application",
+        expected: outcome,
+        target: outcome.phase === "applied" ? "input" : "review",
+      });
   };
   const apply = () => {
     if (
@@ -546,6 +895,7 @@ function CanvasAssistantContent({
     )
       return;
     const intent = structuredClone(application);
+    const token = beginReviewAction();
     void controller
       .commitDraft(
         draft,
@@ -588,11 +938,13 @@ function CanvasAssistantContent({
           "applied"
         )
           await canvasController.refresh();
+        focusApplicationOutcome(token, intent);
       });
   };
   const recoverApplication = () => {
     if (!draft || !application) return;
     const intent = structuredClone(application);
+    const token = beginReviewAction();
     void controller
       .commitDraft(draft, draft, async (current, checkCurrent) => {
         try {
@@ -623,6 +975,7 @@ function CanvasAssistantContent({
           "applied"
         )
           await canvasController.refresh();
+        focusApplicationOutcome(token, intent);
       });
   };
   if (
@@ -675,10 +1028,200 @@ function CanvasAssistantContent({
         .sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? "")) ??
       [])
     : [];
+  const boundary = draft?.conversationBoundary;
+  const visibleOlder = olderArtifacts.filter(
+    (item) => !boundary?.artifactIds.includes(item.id),
+  );
+  const visiblePrevious =
+    record?.previous.filter(
+      (entry) => !boundary?.planIds.includes(entry.planId),
+    ) ?? [];
+  const hasMessages =
+    !!fixedInput || !!visiblePrevious.length || !!visibleOlder.length;
+  const taskBlocked =
+    disabled || pendingPlan || pendingJob || pendingApplication;
+  const isDemo = assistant?.executionMode === "test_fixture";
+  const referenceNodes =
+    canvasState.local?.document.nodes.filter((node) =>
+      node.title
+        .toLocaleLowerCase()
+        .includes(referenceQuery.toLocaleLowerCase()),
+    ) ?? [];
+  const runLocalAction = async (action: () => Promise<void>) => {
+    setError(undefined);
+    setLocalActionPending(true);
+    try {
+      await action();
+      return true;
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "操作未完成，输入仍保留。",
+      );
+      return false;
+    } finally {
+      setLocalActionPending(false);
+    }
+  };
+  const newTopic = async () => {
+    if (
+      savedArtifacts.isPending ||
+      savedArtifacts.isFetching ||
+      savedArtifacts.error
+    ) {
+      setError(
+        "对话历史尚未核对完成，请稍后再开启新话题。当前输入会继续保留。",
+      );
+      return;
+    }
+    if (
+      await runLocalAction(() =>
+        beginCanvasAssistantTopic(
+          controller,
+          (savedArtifacts.data ?? []).map((item) => item.id),
+        ),
+      )
+    ) {
+      setInspectedArtifact(undefined);
+      setHistoryOpen(false);
+      setTopicNotice("已开启新话题，未发送的内容会继续保留。");
+      followLatest.current = true;
+      focusInput();
+    }
+  };
+  const preparePrompt = async () => {
+    if (await runLocalAction(() => beginCanvasAssistantPrompt(controller))) {
+      setHistoryOpen(false);
+      setTopicNotice(undefined);
+      focusInput();
+    }
+  };
+  const returnToDiscussion = async () => {
+    if (
+      await runLocalAction(() => beginCanvasAssistantDiscussion(controller))
+    ) {
+      setTopicNotice(undefined);
+      focusInput();
+    }
+  };
+  const startWriting = (text: string) => {
+    if (!composerText.trim()) update({ nextInstruction: text });
+    focusInput();
+  };
   return (
     <section className={classes.chat} aria-label="画布创作助手">
+      <header className={classes.header}>
+        <Text fw={600} size="sm">
+          {historyOpen ? "对话历史" : "创作助手"}
+        </Text>
+        <Group gap="xs" wrap="nowrap">
+          <Tooltip label="开启新话题" withArrow>
+            <ActionIcon
+              variant="subtle"
+              aria-label="开启新话题"
+              disabled={
+                taskBlocked ||
+                savedArtifacts.isPending ||
+                savedArtifacts.isFetching ||
+                !!savedArtifacts.error
+              }
+              onClick={() => void newTopic()}
+            >
+              <Plus size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label={historyOpen ? "返回对话" : "查看对话历史"} withArrow>
+            <ActionIcon
+              variant="subtle"
+              aria-label={historyOpen ? "返回当前对话" : "查看对话历史"}
+              aria-pressed={historyOpen}
+              onClick={() => {
+                setHistoryOpen(!historyOpen);
+                if (historyOpen) focusInput();
+              }}
+            >
+              {historyOpen ? (
+                <ArrowLeft size={18} />
+              ) : (
+                <ClockCounterClockwise size={18} />
+              )}
+            </ActionIcon>
+          </Tooltip>
+          {onClose && (
+            <Tooltip label="收起助手" withArrow>
+              <ActionIcon
+                variant="subtle"
+                aria-label="收起 AI 助手"
+                onClick={onClose}
+              >
+                <CaretRight size={18} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </Group>
+      </header>
+      {historyOpen && (
+        <div className={classes.history} aria-label="已保存的对话历史">
+          <Text size="xs" c="dimmed">
+            查看或引用过去的回复，当前输入会保留。
+          </Text>
+          <ErrorNotice
+            error={savedArtifacts.error}
+            retry={() => void savedArtifacts.refetch()}
+          />
+          {(savedArtifacts.isPending || savedArtifacts.isFetching) && (
+            <Text size="sm" c="dimmed" role="status">
+              正在读取历史…
+            </Text>
+          )}
+          {savedArtifacts.isSuccess &&
+            !savedArtifacts.isFetching &&
+            !olderArtifacts.length &&
+            !record?.previous.length &&
+            !draft?.artifact && (
+              <Text size="sm" c="dimmed">
+                还没有已保存的回复。
+              </Text>
+            )}
+          {olderArtifacts.map((item) => (
+            <SavedCanvasConversation
+              key={item.id}
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              artifactSummary={item}
+              disabled={taskBlocked}
+              onInspect={inspectArtifact}
+              onContinue={continueFrom}
+            />
+          ))}
+          {record?.previous.map((entry) => (
+            <SavedCanvasConversation
+              key={entry.planId}
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              entry={entry}
+              disabled={taskBlocked}
+              onInspect={inspectArtifact}
+              onContinue={continueFrom}
+            />
+          ))}
+          {draft?.artifact && (
+            <SavedCanvasConversation
+              path={path}
+              tenant={tenant}
+              projectId={projectId}
+              artifactSummary={draft.artifact}
+              disabled={taskBlocked}
+              onInspect={inspectArtifact}
+              onContinue={continueFrom}
+            />
+          )}
+        </div>
+      )}
       <div
         className={classes.conversation}
+        hidden={historyOpen}
         ref={conversation}
         role="log"
         tabIndex={0}
@@ -687,17 +1230,50 @@ function CanvasAssistantContent({
         aria-relevant="additions"
       >
         <div className={classes.conversationContent} ref={conversationContent}>
-          {!fixedInput &&
-            !record?.previous.length &&
-            !olderArtifacts.length && (
-              <div className={classes.welcome}>
-                <Sparkle size={24} weight="light" aria-hidden="true" />
-                <Text fw={600}>想创作什么？直接聊聊</Text>
-                <Text size="sm" c="dimmed">
-                  从故事、人物或一个画面开始。需要具体参考时，再把画布对象作为附件加入。
-                </Text>
+          {!hasMessages && !inspectedArtifact && (
+            <div className={classes.welcome}>
+              <Sparkle size={28} weight="light" aria-hidden="true" />
+              <Text className={classes.welcomeTitle} fw={600}>
+                一起把想法变成画面
+              </Text>
+              <Text size="sm" c="dimmed">
+                聊故事、推敲镜头，或带上画布里的参考。
+              </Text>
+              <div className={classes.starters}>
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={taskBlocked}
+                  leftSection={<ChatCircle size={16} />}
+                  onClick={() =>
+                    startWriting("我想和你一起推敲这场戏的情绪和节奏。")
+                  }
+                >
+                  推敲故事与镜头
+                </Button>
+                {onPrepareStoryboard && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={taskBlocked}
+                    leftSection={<FilmStrip size={16} />}
+                    onClick={onPrepareStoryboard}
+                  >
+                    从剧本整理分镜
+                  </Button>
+                )}
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={taskBlocked}
+                  leftSection={<Sparkle size={16} />}
+                  onClick={() => void preparePrompt()}
+                >
+                  准备画面提示
+                </Button>
               </div>
-            )}
+            </div>
+          )}
           <ErrorNotice
             error={savedArtifacts.error}
             retry={() => void savedArtifacts.refetch()}
@@ -728,7 +1304,7 @@ function CanvasAssistantContent({
                 ))}
             </details>
           )}
-          {olderArtifacts.map((item) => (
+          {visibleOlder.map((item) => (
             <SavedCanvasConversation
               key={item.id}
               path={path}
@@ -736,11 +1312,11 @@ function CanvasAssistantContent({
               projectId={projectId}
               artifactSummary={item}
               disabled={disabled || pendingApplication}
-              onInspect={setInspectedArtifact}
+              onInspect={inspectArtifact}
               onContinue={continueFrom}
             />
           ))}
-          {record?.previous.map((entry) => (
+          {visiblePrevious.map((entry) => (
             <SavedCanvasConversation
               key={entry.planId}
               path={path}
@@ -748,7 +1324,7 @@ function CanvasAssistantContent({
               projectId={projectId}
               entry={entry}
               disabled={disabled || pendingApplication}
-              onInspect={setInspectedArtifact}
+              onInspect={inspectArtifact}
               onContinue={continueFrom}
             />
           ))}
@@ -767,17 +1343,16 @@ function CanvasAssistantContent({
                 {fixedInput.prompt || "（仅固定节点上下文）"}
               </Text>
               <SourceAttachments sources={draft?.sources ?? []} readonly />
-              {fixedInput.assistanceSource && (
-                <Text
-                  size="xs"
-                  c="dimmed"
-                  title={`${fixedInput.assistanceSource.artifactId} · r${fixedInput.assistanceSource.revision}`}
-                >
-                  {fixedInput.assistance?.kind === "discuss"
-                    ? "引用已选回复"
-                    : `基于建议 ${fixedInput.assistanceSource.artifactId.slice(0, 8)} · r${fixedInput.assistanceSource.revision}`}
-                </Text>
-              )}
+              {fixedInput.assistanceSource &&
+                fixedInput.assistance?.kind !== "discuss" && (
+                  <Text
+                    size="xs"
+                    c="dimmed"
+                    title={`${fixedInput.assistanceSource.artifactId} · r${fixedInput.assistanceSource.revision}`}
+                  >
+                    {`基于建议 ${fixedInput.assistanceSource.artifactId.slice(0, 8)} · r${fixedInput.assistanceSource.revision}`}
+                  </Text>
+                )}
             </article>
           )}
           {pendingPlan && (
@@ -831,8 +1406,7 @@ function CanvasAssistantContent({
             </div>
           )}
           {plan &&
-            (!fixedDiscussion ||
-              !artifact ||
+            (!draft?.artifact ||
               job?.status !== "succeeded" ||
               executionDetails === plan.id) && (
               <div className={classes.executionCard} aria-label="本轮助手执行">
@@ -959,11 +1533,7 @@ function CanvasAssistantContent({
                 正在查看固定历史建议 r{inspectedArtifact.revision}
                 ，本次要求未改变
               </Text>
-              <Button
-                variant="subtle"
-                size="xs"
-                onClick={() => setInspectedArtifact(undefined)}
-              >
+              <Button variant="subtle" size="xs" onClick={closeInspection}>
                 返回本次建议
               </Button>
             </Group>
@@ -974,6 +1544,9 @@ function CanvasAssistantContent({
           />
           {artifact && (
             <Stack
+              ref={inspectedResult}
+              tabIndex={inspectedArtifact ? -1 : undefined}
+              role="region"
               className={classes.result}
               gap="sm"
               aria-label="固定画布建议"
@@ -984,17 +1557,17 @@ function CanvasAssistantContent({
                   fw={600}
                   title={`${artifact.id} · r${artifact.revision}`}
                 >
-                  {isCanvasDiscussion(artifact) ? "AI 助手" : "画布助手"}
+                  AI 助手
                 </Text>
                 {!isCanvasDiscussion(artifact) && (
                   <Text size="xs" c="dimmed">
-                    固定建议 r{artifact.revision}
+                    画面提示
                   </Text>
                 )}
               </Group>
               {artifact.executionMode === "test_fixture" && (
                 <Text size="xs" c="dimmed">
-                  受控测试输出 · 非真实模型回复
+                  演示回复 · 未调用真实模型
                 </Text>
               )}
               {artifact.inputOutdated && (
@@ -1036,12 +1609,9 @@ function CanvasAssistantContent({
                   disabled={disabled}
                   onClick={() => continueFrom(artifact)}
                 >
-                  {isCanvasDiscussion(artifact)
-                    ? "继续讨论"
-                    : "基于这份建议继续"}
+                  {isCanvasDiscussion(artifact) ? "引用回复" : "继续调整提示"}
                 </Button>
-                {isCanvasDiscussion(artifact) &&
-                  plan &&
+                {plan &&
                   artifact.generationJobId === job?.id && (
                     <Button
                       variant="subtle"
@@ -1057,7 +1627,10 @@ function CanvasAssistantContent({
                   )}
               </Group>
               {!isCanvasDiscussion(artifact) && (
-                <details className={classes.applyOptions}>
+                <details
+                  key={`${artifact.id}:${artifact.revision}:${application?.key ?? "idle"}:${application?.phase ?? "idle"}`}
+                  className={classes.applyOptions}
+                >
                   <summary>应用到画布草稿</summary>
                   <Select
                     label="明确应用到哪个草稿"
@@ -1116,13 +1689,22 @@ function CanvasAssistantContent({
           )}
           {application && (
             <Stack
+              ref={applicationReviewElement}
+              role="region"
+              tabIndex={-1}
               className={classes.applicationReview}
               gap="sm"
               aria-label="画布建议应用核对"
             >
               <Text fw={600}>
-                应用到 {application.targetTitle} · 画布 r{application.revision}
+                {application.phase === "applied" ? "已应用到 " : "应用到 "}
+                {application.targetTitle}
+                {application.phase !== "applied" && ` · 画布 r${application.revision}`}
               </Text>
+              <details open={application.phase !== "applied"}>
+                <summary>
+                  {application.phase === "applied" ? "查看这次应用差异" : "核对提示变化"}
+                </summary>
               <div className={classes.promptDiff}>
                 <div>
                   <Text size="xs" c="dimmed">
@@ -1141,6 +1723,7 @@ function CanvasAssistantContent({
                   </Text>
                 </div>
               </div>
+              </details>
               {application.phase === "review" && (
                 <Group>
                   <Button disabled={disabled} onClick={apply}>
@@ -1149,7 +1732,7 @@ function CanvasAssistantContent({
                   <Button
                     variant="subtle"
                     disabled={disabled}
-                    onClick={() => update({ application: undefined })}
+                    onClick={cancelApplicationReview}
                   >
                     返回检查建议
                   </Button>
@@ -1185,11 +1768,10 @@ function CanvasAssistantContent({
                 </Alert>
               )}
               {application.phase === "applied" && (
-                <Alert title="建议已应用">
-                  服务器已保存为画布 r
+                <Text size="xs" c="dimmed" role="status">
+                  已保存 · 画布 r
                   {application.result?.application.resultCanvasRevision}
-                  。其他节点、参考、模型与当前采用保持不变。
-                </Alert>
+                </Text>
               )}
             </Stack>
           )}
@@ -1197,6 +1779,7 @@ function CanvasAssistantContent({
       </div>
       <form
         className={classes.composer}
+        hidden={historyOpen}
         aria-label="画布助手消息输入"
         onSubmit={(event) => {
           event.preventDefault();
@@ -1212,268 +1795,457 @@ function CanvasAssistantContent({
           error={capabilities.error}
           retry={() => void capabilities.refetch()}
         />
-        <SourceAttachments
-          sources={composerSources}
-          readonly={disabled}
-          onChange={(sources) =>
-            update(
-              frozen
-                ? { nextSources: sources }
-                : { sources, nextSources: undefined },
-            )
-          }
-        />
-        {!!composerSources.length && (
-          <div className={classes.attachmentCheck}>
+        {topicNotice && (
+          <Text size="xs" c="dimmed" role="status">
+            {topicNotice}
+          </Text>
+        )}
+        <div className={classes.inputShell}>
+          <ComposerReferences
+            sources={composerSources}
+            tenant={tenant}
+            disabled={disabled}
+            onChange={(sources) =>
+              update(
+                frozen
+                  ? { nextSources: sources }
+                  : { sources, nextSources: undefined },
+              )
+            }
+          />
+          {!!composerSources.length &&
+            (canvasState.dirty ||
+              composerSources.some(
+                (item) =>
+                  item.source.canvasRevision !==
+                  canvasState.local?.base.revision,
+              )) && (
+              <div className={classes.attachmentCheck}>
+                <Text size="xs" c="dimmed">
+                  参考内容有更新
+                </Text>
+                <Button
+                  size="compact-xs"
+                  variant="subtle"
+                  disabled={disabled}
+                  onClick={reviewAttachments}
+                >
+                  查看并更新参考
+                </Button>
+              </div>
+            )}
+          {attachmentReview && (
+            <div
+              ref={attachmentReviewElement}
+              role="region"
+              tabIndex={-1}
+              className={classes.attachmentReview}
+              aria-label="当前附件差异"
+            >
+              <Text size="sm" fw={600}>
+                核对到画布 r{attachmentReview.revision}
+              </Text>
+              {attachmentReview.after.map((item, index) => (
+                <details key={item.source.nodeId}>
+                  <summary>
+                    {item.title} · r
+                    {attachmentReview.before[index]?.source.canvasRevision} → r
+                    {item.source.canvasRevision} ·{" "}
+                    {editingCanonical(item.content) ===
+                    editingCanonical(attachmentReview.before[index]?.content)
+                      ? "正文未变"
+                      : "正文已变"}
+                  </summary>
+                  <div className={classes.promptDiff}>
+                    <div>
+                      <Text size="xs" c="dimmed">
+                        原附件
+                      </Text>
+                      <Text size="sm" className={classes.prose}>
+                        {sourceText(attachmentReview.before[index]!)}
+                      </Text>
+                    </div>
+                    <div>
+                      <Text size="xs" c="dimmed">
+                        当前附件
+                      </Text>
+                      <Text size="sm" className={classes.prose}>
+                        {sourceText(item)}
+                      </Text>
+                    </div>
+                  </div>
+                </details>
+              ))}
+              <Group>
+                <Button
+                  size="xs"
+                  disabled={disabled}
+                  onClick={confirmAttachments}
+                >
+                  使用已核对的附件
+                </Button>
+                <Button
+                  size="xs"
+                  variant="subtle"
+                  onClick={cancelAttachmentReview}
+                >
+                  保留原附件
+                </Button>
+              </Group>
+            </div>
+          )}
+          {draft?.replyTo && draft.replyChoice !== "automatic" && (
+            <div className={classes.replyAttachment}>
+              <div className={classes.quoteText}>
+                <Text size="xs" fw={500}>
+                  引用回复
+                </Text>
+                <Text size="xs" c="dimmed" lineClamp={2}>
+                  {quotedReply.data ? (
+                    <CanvasReplyText artifact={quotedReply.data} />
+                  ) : quotedReply.error ? (
+                    "引用暂时无法读取，原选择仍保留"
+                  ) : (
+                    "正在读取引用…"
+                  )}
+                </Text>
+              </div>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                aria-label="取消引用回复"
+                disabled={disabled}
+                onClick={() =>
+                  update({
+                    replyTo: undefined,
+                    replyChoice: "none",
+                    discussionReturn: undefined,
+                  })
+                }
+              >
+                <X size={14} />
+              </ActionIcon>
+            </div>
+          )}
+          {draft && canvasReplyContinuationPending(draft) && (
             <Button
               size="compact-xs"
               variant="subtle"
               disabled={disabled}
-              onClick={reviewAttachments}
+              onClick={readArtifact}
             >
-              核对当前附件
+              恢复上一条回复
             </Button>
-            <details>
-              <summary>核对会做什么</summary>
-              <Text size="xs" c="dimmed">
-                先保存当前画布并展示附件差异。只有确认后才更新本条消息附件，旧轮次不变；已删除节点请明确移除附件。
-              </Text>
-            </details>
-          </div>
-        )}
-        {attachmentReview && (
-          <div className={classes.attachmentReview} aria-label="当前附件差异">
-            <Text size="sm" fw={600}>
-              核对到画布 r{attachmentReview.revision}
-            </Text>
-            {attachmentReview.after.map((item, index) => (
-              <details key={item.source.nodeId}>
-                <summary>
-                  {item.title} · r
-                  {attachmentReview.before[index]?.source.canvasRevision} → r
-                  {item.source.canvasRevision} ·{" "}
-                  {editingCanonical(item.content) ===
-                  editingCanonical(attachmentReview.before[index]?.content)
-                    ? "正文未变"
-                    : "正文已变"}
-                </summary>
-                <div className={classes.promptDiff}>
-                  <div>
-                    <Text size="xs" c="dimmed">
-                      原附件
-                    </Text>
-                    <Text size="sm" className={classes.prose}>
-                      {sourceText(attachmentReview.before[index]!)}
-                    </Text>
-                  </div>
-                  <div>
-                    <Text size="xs" c="dimmed">
-                      当前附件
-                    </Text>
-                    <Text size="sm" className={classes.prose}>
-                      {sourceText(item)}
-                    </Text>
-                  </div>
-                </div>
-              </details>
-            ))}
-            <Group>
-              <Button
-                size="xs"
-                disabled={disabled}
-                onClick={confirmAttachments}
-              >
-                使用已核对的附件
-              </Button>
-              <Button
-                size="xs"
-                variant="subtle"
-                onClick={() => setAttachmentReview(undefined)}
-              >
-                保留原附件
-              </Button>
-            </Group>
-          </div>
-        )}
-        {draft?.replyTo && (
-          <div className={classes.replyAttachment}>
-            <Text
-              size="xs"
-              title={`${draft.replyTo.artifactId} · r${draft.replyTo.revision}`}
-            >
-              {discussion
-                ? draft.replyChoice === "automatic"
-                  ? "承接上一轮对话"
-                  : "引用已选回复"
-                : `基于固定回复 ${draft.replyTo.artifactId.slice(0, 8)} · r${draft.replyTo.revision}`}
-            </Text>
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              aria-label="移除所承接的建议"
-              disabled={disabled}
-              onClick={() =>
-                update({ replyTo: undefined, replyChoice: "none" })
+          )}
+          {!discussion && (
+            <div className={classes.promptTask}>
+              <span>准备提示</span>
+              <Tooltip label="回到自由对话">
+                <ActionIcon
+                  size="xs"
+                  variant="subtle"
+                  aria-label="回到自由对话"
+                  disabled={taskBlocked}
+                  onClick={() => void returnToDiscussion()}
+                >
+                  <X size={12} />
+                </ActionIcon>
+              </Tooltip>
+            </div>
+          )}
+          <Textarea
+            ref={inputRef}
+            classNames={{ input: classes.messageInput }}
+            variant="unstyled"
+            aria-label="发送给画布助手"
+            placeholder={
+              discussion
+                ? "聊聊你的创作想法…"
+                : composerSources.length
+                  ? "描述想要的画面、动作或氛围…"
+                  : "从 + 添加参考，再描述想要的画面…"
+            }
+            minRows={2}
+            maxRows={7}
+            autosize
+            value={composerText}
+            disabled={!active || !visible || !draft}
+            readOnly={state.busy || localActionPending}
+            aria-busy={state.busy || localActionPending}
+            onChange={(event) => {
+              setTopicNotice(undefined);
+              update({ nextInstruction: event.currentTarget.value });
+            }}
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault();
+                if (!taskBlocked) sendMessage();
               }
-            >
-              <X size={14} />
-            </ActionIcon>
-          </div>
-        )}
-        {draft && canvasReplyContinuationPending(draft) && (
-          <Button
-            size="compact-xs"
-            variant="subtle"
-            disabled={disabled}
-            onClick={readArtifact}
-          >
-            核对最新回复与续聊上下文
-          </Button>
-        )}
-        <Textarea
-          aria-label="发送给画布助手"
-          placeholder={
-            discussion ? "说说你的创作想法…" : "描述希望准备的生成提示…"
-          }
-          minRows={3}
-          maxRows={7}
-          autosize
-          value={composerText}
-          disabled={disabled}
-          onChange={(event) =>
-            update({ nextInstruction: event.currentTarget.value })
-          }
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              (event.metaKey || event.ctrlKey) &&
-              !event.nativeEvent.isComposing
-            ) {
-              event.preventDefault();
-              sendMessage();
-            }
-          }}
-        />
-        <div className={classes.composerActions}>
-          <Popover position="top-start" width={300} trapFocus>
-            <Popover.Target>
-              <Button
-                variant="subtle"
-                size="compact-xs"
-                leftSection={<SlidersHorizontal size={15} />}
-                aria-label="对话设置"
+            }}
+          />
+          <div className={classes.composerActions}>
+            <Group gap="xs" wrap="nowrap" className={classes.inputTools}>
+              <Popover
+                opened={referencePicker}
+                onChange={(opened) => {
+                  setReferencePicker(opened);
+                  if (opened) setComposerMenu(undefined);
+                }}
+                position="top-start"
+                width={300}
+                trapFocus
+                returnFocus
               >
-                {assistant ? modelLabel(assistant) : "选择助手"}
-                {!discussion &&
-                  (target ? ` · ${target.purpose}` : " · 选择目标")}
-              </Button>
-            </Popover.Target>
-            <Popover.Dropdown>
-              <Stack gap="sm">
-                <Text size="sm" fw={600}>
-                  本条消息设置
-                </Text>
-                <Select
-                  label="助手模型"
-                  size="sm"
-                  value={draft?.capabilityId || null}
-                  data={textModels.map((c) => ({
-                    value: c.id,
-                    label: modelLabel(c),
-                  }))}
-                  disabled={disabled}
-                  onChange={(id) => update({ capabilityId: id ?? "" })}
-                />
-                <Select
-                  label="本条消息"
-                  size="sm"
-                  value={messageKind}
-                  data={[
-                    { value: "discuss", label: "自由讨论" },
-                    { value: "prepare_prompt", label: "准备生成提示" },
-                  ]}
-                  disabled={disabled || !!draft?.replyTo}
-                  onChange={(value) =>
-                    update({
-                      nextKind:
-                        value === "prepare_prompt"
-                          ? "prepare_prompt"
-                          : "discuss",
-                    })
-                  }
-                />
-                {!discussion && (
-                  <Select
-                    label="建议用于"
-                    size="sm"
-                    value={draft?.targetCapabilityId || null}
-                    data={targets.map((c) => ({
-                      value: c.id,
-                      label: `${modelLabel(c)} · ${c.purpose}`,
-                    }))}
-                    disabled={disabled || !!draft?.replyTo}
-                    onChange={(id) => {
-                      const cap = targets.find((c) => c.id === id);
-                      update({
-                        targetCapabilityId: id ?? "",
-                        ...(cap
-                          ? { targetCapabilityRevision: cap.revision }
-                          : {}),
-                      });
-                    }}
-                  />
-                )}
-                {draft?.replyTo && (
-                  <Text size="xs" c="dimmed">
-                    这条消息承接固定回复，沿用其讨论或提示类型。切换类型前请明确移除该回复附件。
+                <Popover.Target>
+                  <Tooltip label="添加画布参考">
+                    <ActionIcon
+                      variant="subtle"
+                      aria-label="添加画布参考"
+                      disabled={disabled}
+                      onClick={() => {
+                        setComposerMenu(undefined);
+                        setReferencePicker(!referencePicker);
+                      }}
+                    >
+                      <Plus size={20} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Popover.Target>
+                <Popover.Dropdown className={classes.actionPicker}>
+                  <Text size="xs" fw={600}>
+                    添加画布参考
                   </Text>
-                )}
-                <Text size="xs" c="dimmed">
-                  {discussion
-                    ? "发送即请求这一条文字回复，不生成媒体或修改画布。"
-                    : "发送准备固定提示计划；执行和应用到画布分别确认。"}
-                </Text>
-              </Stack>
-            </Popover.Dropdown>
-          </Popover>
-          <Button
-            type="submit"
-            size="compact-sm"
-            aria-label={discussion ? "发送讨论消息" : "发送消息并核对计划"}
-            leftSection={<PaperPlaneRight size={15} />}
-            disabled={
-              disabled ||
-              !composerText.trim() ||
-              !assistant ||
-              (!discussion && (!target || !composerSources.length)) ||
-              pendingPlan ||
-              pendingJob ||
-              pendingApplication
-            }
-          >
-            发送
-          </Button>
+                  <TextInput
+                    size="xs"
+                    aria-label="查找画布参考"
+                    placeholder="查找画布内容…"
+                    value={referenceQuery}
+                    onChange={(event) =>
+                      setReferenceQuery(event.currentTarget.value)
+                    }
+                  />
+                  <div className={classes.referenceChoices}>
+                    {referenceNodes.slice(0, 30).map((node) => (
+                      <Button
+                        key={node.id}
+                        variant="subtle"
+                        size="sm"
+                        fullWidth
+                        disabled={
+                          disabled ||
+                          composerSources.some(
+                            (source) => source.source.nodeId === node.id,
+                          )
+                        }
+                        onClick={() => {
+                          void addReferences([node.id]);
+                          setReferencePicker(false);
+                          focusInput();
+                        }}
+                      >
+                        {node.title}
+                        {composerSources.some(
+                          (source) => source.source.nodeId === node.id,
+                        )
+                          ? " · 已添加"
+                          : ""}
+                      </Button>
+                    ))}
+                    {!referenceNodes.length && (
+                      <Text size="xs" c="dimmed">
+                        没有匹配的画布内容。
+                      </Text>
+                    )}
+                    {referenceNodes.length > 30 && (
+                      <Text size="xs" c="dimmed">
+                        显示前 30 项，可搜索定位。
+                      </Text>
+                    )}
+                  </div>
+                </Popover.Dropdown>
+              </Popover>
+
+              <Menu
+                position="top-start"
+                width={240}
+                opened={composerMenu === "task"}
+                onChange={(opened) => changeComposerMenu("task", opened)}
+              >
+                <Menu.Target>
+                  <Tooltip label="创作任务">
+                    <ActionIcon
+                      variant="subtle"
+                      aria-label="打开创作任务"
+                      disabled={taskBlocked}
+                    >
+                      <Sparkle size={19} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {onPrepareStoryboard && (
+                    <Menu.Item
+                      leftSection={<FilmStrip size={16} />}
+                      onClick={() => {
+                        setComposerMenu(undefined);
+                        onPrepareStoryboard();
+                      }}
+                    >
+                      从剧本整理分镜
+                    </Menu.Item>
+                  )}
+                  <Menu.Item
+                    leftSection={<Sparkle size={16} />}
+                    onClick={() => {
+                      setComposerMenu(undefined);
+                      void preparePrompt();
+                    }}
+                  >
+                    准备画面提示
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+              <Menu
+                position="top-start"
+                width={260}
+                middlewares={{
+                  size: {
+                    apply: ({ availableHeight, elements }) =>
+                      elements.floating.style.setProperty(
+                        "--model-menu-height",
+                        `${Math.max(0, availableHeight)}px`,
+                      ),
+                  },
+                }}
+                opened={composerMenu === "model"}
+                onChange={(opened) => changeComposerMenu("model", opened)}
+              >
+                <Menu.Target>
+                  <Button
+                    className={classes.modelButton}
+                    variant="default"
+                    size="compact-xs"
+                    aria-label={
+                      discussion ? "选择助手模型" : "选择生成目标与助手模型"
+                    }
+                    disabled={disabled}
+                    title={selectedModelLabel ?? modelChipLabel}
+                    leftSection={<GearSix size={13} />}
+                    rightSection={<CaretDown size={12} />}
+                  >
+                    {modelChipLabel}
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown className={classes.modelMenu}>
+                  {capabilities.isPending ? (
+                    <Menu.Item disabled>正在读取模型…</Menu.Item>
+                  ) : capabilities.error ? (
+                    <>
+                      <Menu.Label>模型读取失败，原选择仍保留</Menu.Label>
+                      <Menu.Item
+                        leftSection={<ArrowsClockwise size={16} />}
+                        disabled={capabilities.isFetching}
+                        onClick={() => void capabilities.refetch()}
+                      >
+                        {capabilities.isFetching
+                          ? "正在重新读取…"
+                          : "重新读取模型"}
+                      </Menu.Item>
+                    </>
+                  ) : (
+                    <>
+                      {capabilities.isFetching && (
+                        <Menu.Label>正在更新可用模型…</Menu.Label>
+                      )}
+                  {!discussion && (
+                    <>
+                      <Menu.Label>准备提示的目标模型</Menu.Label>
+                      {targets.map((model) => (
+                        <Menu.Item
+                          key={model.id}
+                          aria-label={`选择目标 ${targetLabel(model)}`}
+                          disabled={!!draft?.replyTo}
+                          onClick={() =>
+                            update({
+                              targetCapabilityId: model.id,
+                              targetCapabilityRevision: model.revision,
+                            })
+                          }
+                        >
+                          {targetLabel(model)}
+                          {model.id === target?.id ? " · 当前" : ""}
+                        </Menu.Item>
+                      ))}
+                      {!targets.length && (
+                        <Menu.Item disabled>尚未连接可用的提示目标</Menu.Item>
+                      )}
+                      {!!draft?.replyTo && (
+                        <Text size="xs" c="dimmed" px="sm" py="xs">
+                          继续调整沿用原目标；取消引用后可更换。
+                        </Text>
+                      )}
+                      <Menu.Divider />
+                    </>
+                  )}
+                  <Menu.Label>助手模型</Menu.Label>
+                  {textModels.map((model) => (
+                    <Menu.Item
+                      key={model.id}
+                      aria-label={`使用 ${modelLabel(model)}`}
+                      onClick={() => update({ capabilityId: model.id })}
+                    >
+                      {modelLabel(model)}
+                      {model.id === assistant?.id ? " · 当前" : ""}
+                    </Menu.Item>
+                  ))}
+                  {!textModels.length && (
+                    <Menu.Item disabled>尚未连接可用的助手模型</Menu.Item>
+                  )}
+                  {isDemo && (
+                    <Text size="xs" c="dimmed" px="sm" py="xs">
+                      当前回复仅用于演示，不调用真实模型。
+                    </Text>
+                  )}
+                    </>
+                  )}
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+            <Tooltip label="发送 · Enter；Shift+Enter 换行" withArrow>
+              <ActionIcon
+                type="submit"
+                size="lg"
+                radius="xl"
+                variant="filled"
+                aria-label={discussion ? "发送讨论消息" : "发送消息并核对计划"}
+                disabled={
+                  taskBlocked ||
+                  !composerText.trim() ||
+                  !assistant ||
+                  (!discussion && (!target || !composerSources.length))
+                }
+              >
+                <ArrowUp size={19} />
+              </ActionIcon>
+            </Tooltip>
+          </div>
         </div>
-        <Group justify="space-between" gap="xs">
+        {!state.draftSaved && (
           <Text size="xs" c="dimmed" role="status">
-            {state.draftSaved ? "本机已保留" : "正在保留"}
+            正在保留草稿…
           </Text>
-          <Text size="xs" c="dimmed">
-            ⌘ / Ctrl + Enter 发送
-          </Text>
-        </Group>
+        )}
         {!capabilities.isLoading &&
-        !capabilities.error &&
-        !textModels.length ? (
-          <Text size="xs" c="dimmed">
-            尚未连接可执行的助手。消息与附件会保留。
-          </Text>
-        ) : (assistant as { executionMode?: string } | undefined)
-            ?.executionMode === "test_fixture" ? (
-          <Text size="xs" c="dimmed">
-            当前助手为受控测试身份，没有真实模型调用。
-          </Text>
-        ) : null}
+          !capabilities.error &&
+          !textModels.length && (
+            <Text size="xs" c="dimmed">
+              尚未连接助手模型，输入会保留。
+            </Text>
+          )}
         {(pendingPlan || pendingJob || pendingApplication) && (
           <Text size="xs" c="dimmed">
             后续输入会保留；请先处理上方
@@ -1495,23 +2267,108 @@ function CanvasAssistantContent({
   );
 }
 
+function ComposerReferences({
+  sources,
+  tenant,
+  disabled,
+  onChange,
+}: {
+  sources: CanvasAssistantSource[];
+  tenant: string;
+  disabled: boolean;
+  onChange: (sources: CanvasAssistantSource[]) => void;
+}) {
+  if (!sources.length) return null;
+  return (
+    <div
+      className={classes.referenceStrip}
+      role="region"
+      tabIndex={0}
+      aria-label="本次消息的画布参考"
+    >
+      {sources.map((item, index) => (
+        <div className={classes.referenceChip} key={item.source.nodeId}>
+          <Popover position="top-start" width={300} trapFocus returnFocus>
+            <Popover.Target>
+              <UnstyledButton
+                type="button"
+                className={classes.referenceButton}
+                aria-label={`查看参考 ${item.title}`}
+              >
+                <ReferenceThumbnail source={item} tenant={tenant} />
+                <span>{item.title}</span>
+              </UnstyledButton>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <SourceAttachments
+                sources={[item]}
+                readonly={disabled}
+                expanded
+                onChange={(next) =>
+                  onChange(
+                    next.length
+                      ? sources.map((source, i) =>
+                          i === index ? next[0]! : source,
+                        )
+                      : sources.filter((_, i) => i !== index),
+                  )
+                }
+              />
+            </Popover.Dropdown>
+          </Popover>
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            disabled={disabled}
+            aria-label={`移除参考 ${item.title}`}
+            onClick={() => onChange(sources.filter((_, i) => i !== index))}
+          >
+            <X size={12} />
+          </ActionIcon>
+        </div>
+      ))}
+    </div>
+  );
+}
+function ReferenceThumbnail({
+  source,
+  tenant,
+}: {
+  source: CanvasAssistantSource;
+  tenant: string;
+}) {
+  const mediaId =
+    source.content.type === "media" ? source.content.mediaId : undefined;
+  const media = useFreshCanvasResource<Schema<"Media">>(
+    `${tenant}/media/${mediaId ?? "unavailable"}`,
+    !!mediaId,
+  );
+  return (
+    <span className={classes.referenceThumbnail} aria-hidden="true">
+      {media.data?.id === mediaId && media.data ? (
+        <MediaPreview media={media.data} path={tenant} thumbnail />
+      ) : source.kind === "text" ? (
+        <TextT size={18} />
+      ) : (
+        <Paperclip size={18} />
+      )}
+    </span>
+  );
+}
 function SourceAttachments({
   sources,
   readonly,
   onChange,
+  expanded = false,
 }: {
   sources: CanvasAssistantSource[];
   readonly: boolean;
   onChange?: (sources: CanvasAssistantSource[]) => void;
+  expanded?: boolean;
 }) {
-  if (!sources.length)
-    return readonly ? null : (
-      <Text size="xs" c="dimmed">
-        附件可选：需要具体参考时，从画布明确加入对象。
-      </Text>
-    );
+  if (!sources.length) return null;
   return (
-    <details className={classes.attachments}>
+    <details className={classes.attachments} open={expanded || undefined}>
       <summary>
         <Paperclip size={14} aria-hidden="true" />
         <span>{sources.length} 个节点附件</span>
@@ -1569,6 +2426,7 @@ function SourceAttachments({
                 </Text>
               ) : (
                 <Select
+                  comboboxProps={{ withinPortal: false }}
                   label="本次参考用途"
                   size="xs"
                   value={item.source.purpose ?? null}
@@ -1683,10 +2541,9 @@ function SavedCanvasConversation({
             c="dimmed"
             title={`${result.id} · r${result.revision}`}
           >
-            {isCanvasDiscussion(result)
-              ? "AI 助手"
-              : `${artifactSummary ? "固定建议" : "原任务回复"} · r${result.revision}`}
-            {result.executionMode === "test_fixture" ? " · 受控测试" : ""}
+            AI 助手
+            {!isCanvasDiscussion(result) ? " · 画面提示" : ""}
+            {result.executionMode === "test_fixture" ? " · 演示" : ""}
           </Text>
           <Text className={classes.prose} size="sm">
             <CanvasReplyText artifact={result} />
@@ -1698,7 +2555,7 @@ function SavedCanvasConversation({
               disabled={disabled}
               onClick={() => onContinue(result)}
             >
-              {isCanvasDiscussion(result) ? "继续讨论" : "基于这份建议继续"}
+              {isCanvasDiscussion(result) ? "引用回复" : "继续调整提示"}
             </Button>
             <Button
               variant="subtle"

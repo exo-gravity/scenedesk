@@ -4,6 +4,9 @@ import {
   captureCanvasSources,
   canvasAssistancePlan,
   canvasAssistantReply,
+  beginCanvasAssistantTopic,
+  beginCanvasAssistantPrompt,
+  beginCanvasAssistantDiscussion,
   retainCanvasAssistantReply,
   sendCanvasAssistantMessage,
   type CanvasAssistanceInput,
@@ -1530,4 +1533,739 @@ test("a verified first discussion limit refusal retains the message and only an 
     assert.equal(executions, 1);
     assert.deepEqual(receipts?.receipts[0], rejected);
   }
+});
+
+test("starting a new topic preserves the unsent message and model while the next send is independent of the old reply", async () => {
+  const oldReply = {
+    id: "old-topic-reply",
+    revision: 1,
+    generationJobId: "old-topic-job",
+    projectId: "project",
+    request: { kind: "discuss", canvasId: canvas.id },
+    body: { message: "旧话题固定回复" },
+  } as unknown as Schema<"AssistanceArtifact">;
+  const oldInput = canvasAssistancePlan(
+    { ...draft, kind: "discuss", sources: [], instruction: "旧问题" },
+    "project",
+    assistant,
+    undefined,
+    canvas.id,
+  );
+  const oldPlan = { ...fixedPlan, id: "old-topic-plan", input: oldInput };
+  const records = new Map<
+    string,
+    AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+  >();
+  records.set("topic", {
+    schemaVersion: 1,
+    previous: [],
+    planId: oldPlan.id,
+    execution: { key: "old-key", planId: oldPlan.id, jobId: "old-topic-job" },
+    draft: {
+      ...draft,
+      kind: "discuss",
+      instruction: "旧问题",
+      nextInstruction: "请讨论这个新的手部动作",
+      nextSources: captureCanvasSources(canvas, ["text-a"]),
+      artifact: oldReply,
+      replyTo: { artifactId: oldReply.id, revision: 1 },
+      replyChoice: "automatic",
+    },
+  });
+  const inputs: CanvasAssistanceInput[] = [];
+  let executions = 0;
+  const remote: AssistantTransport<CanvasAssistanceInput> = {
+    ...transport(),
+    getPlan: async () => oldPlan,
+    getJob: async () =>
+      discussionJob({
+        id: "old-topic-job",
+        planId: oldPlan.id,
+        status: "succeeded",
+        assistanceArtifactId: oldReply.id,
+      }),
+    createPlan: async (input) => {
+      inputs.push(structuredClone(input));
+      return { ...fixedPlan, id: "new-topic-plan", input };
+    },
+    execute: async (planId) => {
+      executions++;
+      return discussionJob({ id: "new-topic-job", planId, status: "queued" });
+    },
+  };
+  const chat = new AssistantSession(storage(records, "topic"), remote);
+  await chat.load(draft);
+  await beginCanvasAssistantTopic(chat, ["older-list-reply"]);
+  assert.equal(inputs.length, 0);
+  assert.equal(executions, 0);
+  const newTopicDraft = chat.getSnapshot().record!.draft;
+  await chat.commitDraft(newTopicDraft, newTopicDraft, async (current) =>
+    retainCanvasAssistantReply(current, oldReply),
+  );
+  assert.equal(
+    chat.getSnapshot().record?.draft.artifact,
+    undefined,
+    "a late old reply cannot reopen the prior topic",
+  );
+  await beginCanvasAssistantTopic(chat, ["another-list-reply"]);
+  assert.deepEqual(
+    chat.getSnapshot().record?.draft.conversationBoundary?.artifactIds,
+    ["older-list-reply", oldReply.id, "another-list-reply"],
+  );
+  assert.deepEqual(
+    chat.getSnapshot().record?.draft.conversationBoundary?.planIds,
+    [oldPlan.id],
+  );
+  const reopened = new AssistantSession(storage(records, "topic"), remote);
+  await reopened.load(draft);
+  assert.equal(
+    reopened.getSnapshot().record?.draft.artifact,
+    undefined,
+    "a new topic has no current old response",
+  );
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(inputs[0]?.prompt, "请讨论这个新的手部动作");
+  assert.equal(inputs[0]?.capabilityId, assistant.id);
+  assert.equal(inputs[0]?.assistanceSource, undefined);
+  assert.deepEqual(
+    inputs[0]?.canvasSources,
+    captureCanvasSources(canvas, ["text-a"]).map((s) => s.source),
+  );
+  assert.deepEqual(records.get("topic")?.previous, [
+    { planId: oldPlan.id, jobId: "old-topic-job" },
+  ]);
+  assert.equal(oldPlan.input.prompt, "旧问题");
+  assert.equal(executions, 1);
+});
+
+async function conversationTransitionFixture(
+  adjust?: (
+    record: AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>,
+  ) => void,
+  status: Schema<"GenerationJob">["status"] = "succeeded",
+) {
+  const reply = {
+    id: "transition-reply",
+    revision: 1,
+    projectId: "project",
+    generationJobId: "transition-job",
+    request: { kind: "discuss", canvasId: canvas.id },
+    body: { message: "实际固定的旧轮次回复" },
+  } as unknown as Schema<"AssistanceArtifact">;
+  const record: AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput> = {
+    schemaVersion: 1,
+    previous: [],
+    planId: "transition-plan",
+    execution: {
+      planId: "transition-plan",
+      jobId: "transition-job",
+      key: "original-execution-key",
+    },
+    draft: {
+      ...draft,
+      kind: "discuss",
+      instruction: "旧讨论输入",
+      nextInstruction: "保留这个尚未发出的新想法",
+      nextSources: captureCanvasSources(canvas, ["text-a"]),
+      artifact: reply,
+      replyTo: { artifactId: reply.id, revision: 1 },
+      replyChoice: "automatic",
+    },
+  };
+  adjust?.(record);
+  const records = new Map<
+    string,
+    AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>
+  >([["transition", structuredClone(record)]]);
+  const originalPlan = {
+    ...fixedPlan,
+    id: "transition-plan",
+    input: canvasAssistancePlan(
+      record.draft,
+      "project",
+      assistant,
+      target,
+      canvas.id,
+    ),
+  };
+  const plans = new Map([[originalPlan.id, originalPlan]]);
+  const inputs: CanvasAssistanceInput[] = [];
+  let failWrite = false,
+    losePlanResponse = false,
+    executions = 0;
+  const local = storage(records, "transition");
+  const remote: AssistantTransport<CanvasAssistanceInput> = {
+    ...transport(),
+    getPlan: async (id) => plans.get(id)!,
+    getJob: async () =>
+      discussionJob({
+        id: "transition-job",
+        planId: originalPlan.id,
+        status,
+        assistanceArtifactId: reply.id,
+      }),
+    createPlan: async (input) => {
+      inputs.push(structuredClone(input));
+      const plan = { ...fixedPlan, id: `next-plan-${inputs.length}`, input };
+      plans.set(plan.id, plan);
+      if (losePlanResponse) throw Error("prompt committed, response lost");
+      return plan;
+    },
+    execute: async (planId) => {
+      executions++;
+      return discussionJob({ id: "next-job", planId, status: "queued" });
+    },
+  };
+  const chat = new AssistantSession(
+    {
+      ...local,
+      write: async (next) => {
+        if (failWrite) throw Error("local topic write failed");
+        await local.write(next);
+      },
+    },
+    remote,
+  );
+  await chat.load(draft);
+  return {
+    chat,
+    inputs,
+    originalPlan,
+    reply,
+    executions: () => executions,
+    saved: () => structuredClone(records.get("transition")!),
+    failWrite: (fail: boolean) => {
+      failWrite = fail;
+    },
+    losePlanResponse: () => {
+      losePlanResponse = true;
+    },
+    reopen: async () => {
+      const next = new AssistantSession(local, remote);
+      await next.load(draft);
+      return next;
+    },
+  };
+}
+
+for (const transition of [
+  beginCanvasAssistantTopic,
+  beginCanvasAssistantPrompt,
+  beginCanvasAssistantDiscussion,
+])
+  test(`${transition.name} cannot report a switch when the local write fails`, async () => {
+    const f = await conversationTransitionFixture(),
+      original = f.saved();
+    f.failWrite(true);
+    await assert.rejects(transition(f.chat), /local topic write failed/);
+    assert.deepEqual(f.saved(), original);
+    assert.deepEqual(f.chat.getSnapshot().record, original);
+    assert.equal(f.inputs.length, 0);
+    assert.equal(f.executions(), 0);
+    f.failWrite(false);
+    await transition(f.chat);
+    const reopened = await f.reopen();
+    assert.equal(
+      reopened.getSnapshot().record?.draft.nextInstruction,
+      original.draft.nextInstruction,
+    );
+  });
+
+test("new topics and prompt mode cannot replace unknown requests, unfinished jobs or unresolved applications", async () => {
+  const cases = [
+    {
+      change: (
+        r: AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>,
+      ) => {
+        delete r.planId;
+        delete r.execution;
+        r.planRequest = { key: "unknown-plan-key", input };
+      },
+      match: /原计划/,
+    },
+    { status: "submission_unknown" as const, match: /当前任务/ },
+    { status: "queued" as const, match: /当前任务/ },
+    ...(["review", "unknown", "missing"] as const).map((phase) => ({
+      change: (
+        r: AssistantRecord<CanvasAssistantDraft, CanvasAssistanceInput>,
+      ) => {
+        r.draft.application = { ...intent, phase };
+      },
+      match: /建议应用/,
+    })),
+  ];
+  for (const scenario of cases) {
+    const f = await conversationTransitionFixture(
+        scenario.change,
+        scenario.status,
+      ),
+      original = f.saved();
+    for (const transition of [
+      beginCanvasAssistantTopic,
+      beginCanvasAssistantPrompt,
+      beginCanvasAssistantDiscussion,
+    ]) {
+      await assert.rejects(transition(f.chat), scenario.match);
+      assert.deepEqual(f.saved(), original);
+      assert.deepEqual(f.chat.getSnapshot().record, original);
+      assert.equal(f.inputs.length, 0);
+      assert.equal(f.executions(), 0);
+    }
+  }
+});
+
+test("topic switching cannot interrupt an active draft operation or an unverified session", async () => {
+  const f = await conversationTransitionFixture(),
+    current = f.chat.getSnapshot().record!.draft;
+  let resolve!: () => void;
+  const gate = new Promise<void>((done) => {
+    resolve = done;
+  });
+  const saving = f.chat.commitDraft(current, current, async (draft) => {
+    await gate;
+    return draft;
+  });
+  try {
+    await assert.rejects(beginCanvasAssistantTopic(f.chat), /核对完成/);
+    assert.equal(f.chat.getSnapshot().busy, true);
+  } finally {
+    resolve();
+    await saving;
+  }
+  const saved = f.saved();
+  f.chat.suspend();
+  await assert.rejects(beginCanvasAssistantTopic(f.chat), /核对完成/);
+  assert.deepEqual(f.saved(), saved);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+});
+
+test("switching discussion to prompt preparation keeps the fixed old discussion and requires a separate confirmed execution", async () => {
+  const f = await conversationTransitionFixture();
+  await beginCanvasAssistantPrompt(f.chat);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+  assert.equal(f.chat.getSnapshot().plan?.input.assistance?.kind, "discuss");
+  const selected = f.chat.getSnapshot().record!.draft;
+  await f.chat.commitDraft(selected, selected, async (current) =>
+    retainCanvasAssistantReply(current, f.reply),
+  );
+  await sendCanvasAssistantMessage(
+    f.chat,
+    "project",
+    assistant,
+    target,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[0]?.assistance?.kind, "prepare_prompt");
+  assert.equal(f.inputs[0]?.assistance?.targetCapabilityId, target.id);
+  assert.equal(
+    f.inputs[0]?.assistanceSource,
+    undefined,
+    "discussion replies are not valid prompt-preparation parents",
+  );
+  assert.equal(f.inputs[0]?.prompt, "保留这个尚未发出的新想法");
+  assert.deepEqual(
+    f.inputs[0]?.canvasSources,
+    captureCanvasSources(canvas, ["text-a"]).map((s) => s.source),
+  );
+  assert.equal(f.executions(), 0);
+  assert.equal(f.originalPlan.input.assistance?.kind, "discuss");
+});
+
+test("an explicitly referenced prompt retains its fixed target and visible reference through preparing the next prompt", async () => {
+  const f = await conversationTransitionFixture((record) => {
+    record.draft.kind = "prepare_prompt";
+    record.draft.replyTo = { artifactId: "explicit-prompt", revision: 4 };
+    record.draft.replyChoice = "explicit";
+  });
+  await beginCanvasAssistantPrompt(f.chat);
+  await sendCanvasAssistantMessage(
+    f.chat,
+    "project",
+    assistant,
+    target,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.deepEqual(f.inputs[0]?.assistanceSource, {
+    artifactId: "explicit-prompt",
+    revision: 4,
+  });
+  assert.equal(
+    f.inputs[0]?.assistance?.targetCapabilityRevision,
+    target.revision,
+  );
+  assert.equal(
+    f.chat.getSnapshot().record?.draft.replyChoice,
+    "explicit",
+    "the composer must not hide a still-explicit fixed prompt reference as automatic dialogue",
+  );
+  assert.equal(f.executions(), 0);
+});
+
+test("changing topic cannot overtake a message while its explicit sources are being checked", async () => {
+  const f = await conversationTransitionFixture((record) => {
+    record.draft.kind = "prepare_prompt";
+    record.draft.replyChoice = "explicit";
+  });
+  let release!: () => void, started!: () => void;
+  const gate = new Promise<void>((done) => {
+    release = done;
+  });
+  const checking = new Promise<void>((done) => {
+    started = done;
+  });
+  const sending = sendCanvasAssistantMessage(
+    f.chat,
+    "project",
+    assistant,
+    target,
+    async () => {
+      started();
+      await gate;
+    },
+    undefined,
+    canvas.id,
+  );
+  try {
+    await checking;
+    const original = f.saved();
+    await assert.rejects(beginCanvasAssistantTopic(f.chat), /核对完成/);
+    await assert.rejects(beginCanvasAssistantPrompt(f.chat), /核对完成/);
+    await assert.rejects(beginCanvasAssistantDiscussion(f.chat), /核对完成/);
+    assert.deepEqual(f.saved(), original);
+    assert.equal(f.inputs.length, 0);
+  } finally {
+    release();
+    await sending;
+  }
+  assert.equal(f.inputs.length, 1);
+  assert.equal(f.executions(), 0);
+});
+
+test("returning from prompt preparation to discussion preserves the current round and sends only the next message as discussion", async () => {
+  const f = await conversationTransitionFixture((record) => {
+    delete record.execution;
+    record.draft.kind = "prepare_prompt";
+    record.draft.artifact = undefined;
+    record.draft.replyTo = {
+      artifactId: "explicit-prompt-source",
+      revision: 3,
+    };
+    record.draft.replyChoice = "explicit";
+  });
+  const before = f.saved();
+  await beginCanvasAssistantDiscussion(f.chat);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+  const reopened = await f.reopen();
+  assert.equal(
+    reopened.getSnapshot().plan?.id,
+    before.planId,
+    "switching composer kind does not clear the visible current round",
+  );
+  assert.equal(
+    reopened.getSnapshot().plan?.input.assistance?.kind,
+    "prepare_prompt",
+  );
+  assert.deepEqual(reopened.getSnapshot().record?.previous, before.previous);
+  assert.equal(
+    reopened.getSnapshot().record?.draft.conversationBoundary,
+    undefined,
+  );
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[0]?.assistance?.kind, "discuss");
+  assert.equal(f.inputs[0]?.assistanceSource, undefined);
+  assert.equal(f.inputs[0]?.prompt, before.draft.nextInstruction);
+  assert.deepEqual(
+    f.inputs[0]?.canvasSources,
+    before.draft.nextSources?.map((source) => source.source),
+  );
+  assert.equal(f.inputs[0]?.capabilityId, before.draft.capabilityId);
+  assert.equal(
+    f.executions(),
+    1,
+    "only the explicit send requests the one discussion reply",
+  );
+  assert.equal(f.originalPlan.input.assistance?.kind, "prepare_prompt");
+});
+
+test("returning to the existing discussion preserves its verified continuation rather than starting a new topic", async () => {
+  const f = await conversationTransitionFixture(),
+    before = f.saved();
+  await beginCanvasAssistantDiscussion(f.chat);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+  assert.equal(f.chat.getSnapshot().record?.planId, before.planId);
+  assert.deepEqual(f.chat.getSnapshot().record?.execution, before.execution);
+  assert.deepEqual(
+    f.chat.getSnapshot().record?.draft.artifact,
+    before.draft.artifact,
+  );
+  await sendCanvasAssistantMessage(
+    f.chat,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.deepEqual(f.inputs[0]?.assistanceSource, before.draft.replyTo);
+  assert.equal(f.inputs[0]?.prompt, before.draft.nextInstruction);
+  assert.equal(f.executions(), 1);
+});
+
+test("an unsent prompt detour survives refresh and returns to the original verified discussion reply", async () => {
+  const f = await conversationTransitionFixture();
+  const before = f.saved();
+  await beginCanvasAssistantPrompt(f.chat);
+  const reopened = await f.reopen();
+  await beginCanvasAssistantDiscussion(reopened);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+  const resumed = await f.reopen();
+  await sendCanvasAssistantMessage(
+    resumed,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.deepEqual(f.inputs[0]?.assistanceSource, before.draft.replyTo);
+  assert.equal(f.inputs[0]?.prompt, before.draft.nextInstruction);
+  assert.deepEqual(
+    f.inputs[0]?.canvasSources,
+    before.draft.nextSources?.map((source) => source.source),
+  );
+  assert.equal(f.executions(), 1);
+});
+
+test("an unsent prompt detour preserves explicit history and explicit no-continuation choices", async () => {
+  for (const choice of ["explicit", "none"] as const) {
+    const reference =
+      choice === "explicit"
+        ? { artifactId: "chosen-discussion", revision: 3 }
+        : undefined;
+    const f = await conversationTransitionFixture((record) => {
+      record.draft.replyChoice = choice;
+      record.draft.replyTo = reference;
+    });
+    await beginCanvasAssistantPrompt(f.chat);
+    // Reopening the same task must not replace the original discussion choice.
+    await beginCanvasAssistantPrompt(f.chat);
+    const reopened = await f.reopen();
+    await beginCanvasAssistantDiscussion(reopened);
+    const current = reopened.getSnapshot().record!.draft;
+    await reopened.commitDraft(current, current, async (captured) =>
+      retainCanvasAssistantReply(captured, f.reply),
+    );
+    assert.equal(reopened.getSnapshot().record?.draft.replyChoice, choice);
+    await sendCanvasAssistantMessage(
+      reopened,
+      "project",
+      assistant,
+      undefined,
+      undefined,
+      undefined,
+      canvas.id,
+    );
+    assert.deepEqual(f.inputs[0]?.assistanceSource, reference);
+    assert.equal(f.executions(), 1);
+  }
+});
+
+test("cancelling a quote during a prompt detour prevents restoring the old discussion on return", async () => {
+  const f = await conversationTransitionFixture();
+  await beginCanvasAssistantPrompt(f.chat);
+  const current = f.chat.getSnapshot().record!.draft;
+  f.chat.updateDraft(
+    {
+      ...current,
+      replyTo: undefined,
+      replyChoice: "none",
+      discussionReturn: undefined,
+    },
+    true,
+  );
+  await f.chat.settle();
+  const reopened = await f.reopen();
+  await beginCanvasAssistantDiscussion(reopened);
+  const returned = reopened.getSnapshot().record!.draft;
+  await reopened.commitDraft(returned, returned, async (captured) =>
+    retainCanvasAssistantReply(captured, f.reply),
+  );
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[0]?.assistanceSource, undefined);
+  assert.equal(f.executions(), 1);
+});
+
+test("a newly fixed prompt ends the discussion detour and cannot revive its old source", async () => {
+  const f = await conversationTransitionFixture();
+  await beginCanvasAssistantPrompt(f.chat);
+  await sendCanvasAssistantMessage(
+    f.chat,
+    "project",
+    assistant,
+    target,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[0]?.assistance?.kind, "prepare_prompt");
+  assert.equal(f.executions(), 0);
+  const reopened = await f.reopen();
+  await beginCanvasAssistantDiscussion(reopened);
+  reopened.updateDraft(
+    {
+      ...reopened.getSnapshot().record!.draft,
+      nextInstruction: "新的独立讨论",
+    },
+    true,
+  );
+  await reopened.settle();
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[1]?.assistance?.kind, "discuss");
+  assert.equal(f.inputs[1]?.assistanceSource, undefined);
+  assert.equal(f.inputs[1]?.prompt, "新的独立讨论");
+  assert.equal(f.executions(), 1);
+});
+
+test("a new topic during a prompt detour keeps the unsent message but cannot revive the previous reply", async () => {
+  const f = await conversationTransitionFixture();
+  const before = f.saved();
+  await beginCanvasAssistantPrompt(f.chat);
+  await beginCanvasAssistantTopic(f.chat, [f.reply.id]);
+  const reopened = await f.reopen();
+  await beginCanvasAssistantPrompt(reopened);
+  await beginCanvasAssistantDiscussion(reopened);
+  const current = reopened.getSnapshot().record!.draft;
+  await reopened.commitDraft(current, current, async (captured) =>
+    retainCanvasAssistantReply(captured, f.reply),
+  );
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[0]?.assistanceSource, undefined);
+  assert.equal(f.inputs[0]?.prompt, before.draft.nextInstruction);
+  assert.equal(f.executions(), 1);
+});
+
+test("a failed local return keeps the suspended discussion recoverable without sending a new request", async () => {
+  const f = await conversationTransitionFixture();
+  const before = f.saved();
+  await beginCanvasAssistantPrompt(f.chat);
+  const preparing = f.saved();
+  f.failWrite(true);
+  await assert.rejects(
+    beginCanvasAssistantDiscussion(f.chat),
+    /local topic write failed/,
+  );
+  assert.deepEqual(f.saved(), preparing);
+  assert.deepEqual(f.chat.getSnapshot().record, preparing);
+  assert.equal(f.inputs.length, 0);
+  assert.equal(f.executions(), 0);
+  f.failWrite(false);
+  await beginCanvasAssistantDiscussion(f.chat);
+  const reopened = await f.reopen();
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.deepEqual(f.inputs[0]?.assistanceSource, before.draft.replyTo);
+  assert.equal(f.executions(), 1);
+});
+
+test("revising the fixed plan invalidates an unsent prompt detour even when its draft is preserved", async () => {
+  const f = await conversationTransitionFixture();
+  await beginCanvasAssistantPrompt(f.chat);
+  const current = f.chat.getSnapshot().record!.draft;
+  await f.chat.revise(current, current);
+  const reopened = await f.reopen();
+  await beginCanvasAssistantDiscussion(reopened);
+  await sendCanvasAssistantMessage(
+    reopened,
+    "project",
+    assistant,
+    undefined,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.equal(f.inputs[0]?.assistanceSource, undefined);
+  assert.equal(f.executions(), 1);
+});
+
+test("a lost new prompt request cannot be replaced by restoring the suspended discussion", async () => {
+  const f = await conversationTransitionFixture();
+  await beginCanvasAssistantPrompt(f.chat);
+  f.losePlanResponse();
+  await sendCanvasAssistantMessage(
+    f.chat,
+    "project",
+    assistant,
+    target,
+    undefined,
+    undefined,
+    canvas.id,
+  );
+  assert.match(f.chat.getSnapshot().error ?? "", /response lost/);
+  const pending = f.saved();
+  assert.equal(pending.planRequest?.input.assistance?.kind, "prepare_prompt");
+  assert.ok(pending.planRequest?.key);
+  const reopened = await f.reopen();
+  await assert.rejects(beginCanvasAssistantDiscussion(reopened), /原计划/);
+  assert.deepEqual(f.saved(), pending);
+  assert.deepEqual(reopened.getSnapshot().record, pending);
+  assert.equal(f.inputs.length, 1);
+  assert.equal(f.executions(), 0);
 });

@@ -129,9 +129,7 @@
   margin: 0;
   padding: 8px 14px;
 }
-.assistantTabs {
-  flex: 0 0 auto;
-  padding: 0 16px 6px;
+.storyboardTaskHeading {
   border-bottom: 1px solid var(--ws-border);
 }
 .assistantChatSlot {

@@ -478,6 +478,25 @@ function SceneCanvasSession({
   const [assistantView, setAssistantView] = useState<"canvas" | "scene">(
     "canvas",
   );
+  const assistantChatSlot = useRef<HTMLDivElement>(null);
+  const storyboardTaskTitle = useRef<HTMLParagraphElement>(null);
+  const switchAssistantView = (next: "canvas" | "scene") => {
+    setAssistantView(next);
+    requestAnimationFrame(() => {
+      const target =
+        next === "canvas"
+          ? assistantChatSlot.current?.querySelector<HTMLTextAreaElement>(
+              'textarea[aria-label="发送给画布助手"]',
+            )
+          : storyboardTaskTitle.current;
+      if (
+        target?.isConnected &&
+        !target.closest("[hidden], [inert]") &&
+        !target.matches(":disabled")
+      )
+        target.focus({ preventScroll: true });
+    });
+  };
   const [moreOpen, setMoreOpen] = useState(false);
   const auxiliaryOpener = useRef<HTMLElement | null>(null);
   const auxiliaryFallback = useRef<HTMLButtonElement>(null);
@@ -960,40 +979,45 @@ function SceneCanvasSession({
               inert={focusMode || undefined}
               hidden={dock !== "assistant"}
             >
-              <div className={`${classes.dockHeading} ${layout.dockHeading}`}>
-                <Group justify="space-between">
-                  <Group gap="xs">
-                    <Sparkle size={19} />
-                    <Text fw={600}>AI 助手</Text>
+              {assistantView === "scene" && (
+                <div
+                  className={`${classes.dockHeading} ${layout.dockHeading} ${layout.storyboardTaskHeading}`}
+                >
+                  <Group justify="space-between" wrap="nowrap" gap="xs">
+                    <Button
+                      size="compact-xs"
+                      variant="subtle"
+                      leftSection={<ArrowLeft size={14} />}
+                      onClick={() => switchAssistantView("canvas")}
+                    >
+                      返回对话
+                    </Button>
+                    <Text
+                      size="sm"
+                      fw={600}
+                      role="heading"
+                      aria-level={2}
+                      tabIndex={-1}
+                      ref={storyboardTaskTitle}
+                    >
+                      分镜建议
+                    </Text>
+                    <ActionIcon
+                      variant="subtle"
+                      aria-label="收起 AI 助手"
+                      onClick={() => selectDock("assistant")}
+                    >
+                      <CaretRight size={18} />
+                    </ActionIcon>
                   </Group>
-                  <ActionIcon
-                    variant="subtle"
-                    aria-label="收起 AI 助手"
-                    onClick={() => selectDock("assistant")}
-                  >
-                    <CaretRight size={18} />
-                  </ActionIcon>
-                </Group>
-              </div>
-              <div className={layout.assistantTabs}>
-                <Select
-                  size="xs"
-                  variant="unstyled"
-                  aria-label="助手上下文"
-                  value={assistantView}
-                  allowDeselect={false}
-                  onChange={(next) => {
-                    if (next === "canvas" || next === "scene")
-                      setAssistantView(next);
-                  }}
-                  data={[
-                    { value: "canvas", label: "创作对话" },
-                    { value: "scene", label: "场次分镜建议" },
-                  ]}
-                />
-              </div>
+                  <Text size="xs" c="dimmed" lineClamp={1} mt={4}>
+                    当前场次 · {sceneTitle}
+                  </Text>
+                </div>
+              )}
               <div
                 className={layout.assistantChatSlot}
+                ref={assistantChatSlot}
                 hidden={assistantView !== "canvas"}
               >
                 <CanvasAssistant
@@ -1004,6 +1028,8 @@ function SceneCanvasSession({
                   active={active && !readOnly}
                   visible={dock === "assistant" && assistantView === "canvas"}
                   requestedContext={assistantContext}
+                  onPrepareStoryboard={() => switchAssistantView("scene")}
+                  onClose={() => selectDock("assistant")}
                 />
               </div>
               <div
