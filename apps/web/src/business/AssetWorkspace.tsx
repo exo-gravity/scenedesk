@@ -102,6 +102,12 @@ function AssetBrowser(
           `${path}/assets/${fixed.assetId}`,
           { signal },
         );
+        if (
+          fixed.id !== item.assetRevisionId ||
+          asset.id !== fixed.assetId ||
+          asset.scope !== "shared"
+        )
+          throw new Error("共享引入版本不匹配，请重新读取。");
         return { item, fixed, asset };
       },
     })),
