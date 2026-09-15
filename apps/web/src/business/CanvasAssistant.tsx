@@ -23,12 +23,15 @@ import {
   CaretRight,
   ClockCounterClockwise,
   ChatCircle,
+  Check,
+  Cpu,
   FilmStrip,
-  GearSix,
+  Image as ImageIcon,
   Plus,
   TextT,
   Paperclip,
   Sparkle,
+  Waveform,
   X,
 } from "@phosphor-icons/react";
 import { editingCanonical } from "@drama/domain";
@@ -60,6 +63,48 @@ import {
   type FixedCanvasSource,
 } from "./canvas-assistant";
 import classes from "./canvas-assistant-chat.module.css";
+
+function modelName(model: Schema<"Capability">) {
+  if (model.executionMode !== "test_fixture") return model.modelVersion;
+  if (model.purpose === "creative_assistance") return "Local Demo";
+  // Legacy local fixtures have Chinese technical labels, not provider model names.
+  if (!/\p{Script=Han}/u.test(model.modelVersion)) return model.modelVersion;
+  const kind = ({ image: "Image", video: "Video", audio: "Audio" } as Record<string, string>)[model.purpose];
+  return `Local ${kind ?? "Media"} ${model.mode === "target_profile_fixture" ? "Profile" : "Demo"}`;
+}
+
+function ModelIcon({ purpose }: { purpose: string | undefined }) {
+  const Icon = purpose === "image" ? ImageIcon
+    : purpose === "video" ? FilmStrip
+      : purpose === "audio" ? Waveform : Cpu;
+  return <Icon size={15} aria-hidden />;
+}
+
+function ModelOption({ model, name, description, selected, disabled, onSelect }: {
+  model: Schema<"Capability">;
+  name: string;
+  description: string;
+  selected: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <Menu.RadioItem
+      className={classes.modelOption}
+      value={model.id}
+      checked={selected}
+      aria-label={`${name} · ${description}`}
+      disabled={disabled ?? false}
+      checkIcon={<Check size={15} aria-hidden />}
+      closeMenuOnClick
+      onChange={onSelect}
+    >
+      <span className={classes.modelName}>{name}</span>
+      <span className={classes.modelDescription}>{description}</span>
+    </Menu.RadioItem>
+  );
+}
+
 type AttachmentReview = {
   before: CanvasAssistantSource[];
   after: CanvasAssistantSource[];
@@ -212,27 +257,18 @@ function CanvasAssistantContent({
     ({ image: "图片", video: "视频", audio: "音频" } as Record<string, string>)[
       purpose
     ] ?? purpose;
-  const modelLabel = (c: Schema<"Capability">) =>
-    `${c.modelVersion}${c.executionMode === "test_fixture" ? " · 演示" : ""}`;
-  const targetLabel = (c: Schema<"Capability">) =>
-    `${purposeLabel(c.purpose)} · ${modelLabel(c)}${c.mode === "target_profile_fixture" ? " · 仅提示目标" : ""}`;
-  const selectedModelLabel = discussion
-    ? assistant && modelLabel(assistant)
-    : target && targetLabel(target);
+  const modelDescription = (c: Schema<"Capability">) => {
+    const purpose = c.purpose === "creative_assistance" ? "创作对话" : purposeLabel(c.purpose);
+    const details = c.executionMode === "test_fixture"
+      ? c.mode === "target_profile_fixture" ? "仅提示目标，不执行媒体" : "本地演示，未连接真实模型"
+      : c.purpose === "creative_assistance" ? "故事与镜头讨论" : "准备提示的目标模型";
+    const duplicateName = (c.purpose === "creative_assistance" ? textModels : targets)
+      .filter((other) => modelName(other) === modelName(c)).length > 1;
+    return `${purpose} · ${details}${duplicateName ? ` · ${c.id.slice(0, 8)}` : ""}`;
+  };
+  const selectedModel = discussion ? assistant : target;
   const modelChipLabel = (() => {
-    if (discussion && assistant)
-      return assistant.executionMode === "test_fixture"
-        ? "演示助手"
-        : assistant.modelVersion;
-    if (!discussion && target) {
-      const name =
-        target.mode === "target_profile_fixture"
-          ? "演示提示目标"
-          : target.executionMode === "test_fixture"
-            ? "演示模型"
-            : target.modelVersion;
-      return `${purposeLabel(target.purpose)} · ${name}`;
-    }
+    if (selectedModel) return modelName(selectedModel);
     if (capabilities.isPending || capabilities.isFetching) return "读取模型…";
     if (capabilities.error) return "模型读取失败";
     if (discussion ? draft?.capabilityId : draft?.targetCapabilityId)
@@ -2128,14 +2164,14 @@ function CanvasAssistantContent({
                   <Button
                     className={classes.modelButton}
                     variant="default"
-                    size="compact-xs"
+                    size="compact-sm"
                     aria-label={
                       discussion ? "选择助手模型" : "选择生成目标与助手模型"
                     }
                     disabled={disabled}
-                    title={selectedModelLabel ?? modelChipLabel}
-                    leftSection={<GearSix size={13} />}
-                    rightSection={<CaretDown size={12} />}
+                    title={selectedModel ? `${modelName(selectedModel)} · ${modelDescription(selectedModel)}` : modelChipLabel}
+                    leftSection={<ModelIcon purpose={selectedModel?.purpose} />}
+                    rightSection={<CaretDown size={12} aria-hidden />}
                   >
                     {modelChipLabel}
                   </Button>
@@ -2165,20 +2201,20 @@ function CanvasAssistantContent({
                     <>
                       <Menu.Label>准备提示的目标模型</Menu.Label>
                       {targets.map((model) => (
-                        <Menu.Item
+                        <ModelOption
                           key={model.id}
-                          aria-label={`选择目标 ${targetLabel(model)}`}
+                          model={model}
+                          name={modelName(model)}
+                          description={modelDescription(model)}
+                          selected={model.id === draft?.targetCapabilityId && model.revision === draft?.targetCapabilityRevision}
                           disabled={!!draft?.replyTo}
-                          onClick={() =>
+                          onSelect={() =>
                             update({
                               targetCapabilityId: model.id,
                               targetCapabilityRevision: model.revision,
                             })
                           }
-                        >
-                          {targetLabel(model)}
-                          {model.id === target?.id ? " · 当前" : ""}
-                        </Menu.Item>
+                        />
                       ))}
                       {!targets.length && (
                         <Menu.Item disabled>尚未连接可用的提示目标</Menu.Item>
@@ -2193,22 +2229,17 @@ function CanvasAssistantContent({
                   )}
                   <Menu.Label>助手模型</Menu.Label>
                   {textModels.map((model) => (
-                    <Menu.Item
+                    <ModelOption
                       key={model.id}
-                      aria-label={`使用 ${modelLabel(model)}`}
-                      onClick={() => update({ capabilityId: model.id })}
-                    >
-                      {modelLabel(model)}
-                      {model.id === assistant?.id ? " · 当前" : ""}
-                    </Menu.Item>
+                      model={model}
+                      name={modelName(model)}
+                      description={modelDescription(model)}
+                      selected={model.id === assistant?.id}
+                      onSelect={() => update({ capabilityId: model.id })}
+                    />
                   ))}
                   {!textModels.length && (
                     <Menu.Item disabled>尚未连接可用的助手模型</Menu.Item>
-                  )}
-                  {isDemo && (
-                    <Text size="xs" c="dimmed" px="sm" py="xs">
-                      当前回复仅用于演示，不调用真实模型。
-                    </Text>
                   )}
                     </>
                   )}

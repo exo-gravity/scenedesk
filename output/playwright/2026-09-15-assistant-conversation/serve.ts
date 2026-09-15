@@ -654,7 +654,7 @@ async function start() {
       id,
       purpose: "video",
       mode: "target_profile_fixture",
-      modelVersion: `隔离合成 ${String(index + 1).padStart(2, "0")} · 长名称视频提示目标 · 电影级镜头与人物动作连续性菜单排版核验（不执行媒体）`,
+      modelVersion: `Local Video Profile ${String(index + 1).padStart(2, "0")} - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)`,
     })),
   ];
   const targetPurposes = [
