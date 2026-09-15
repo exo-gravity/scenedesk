@@ -95,7 +95,12 @@ export function AssetDetails({
   const value = asset.data;
   if (value.projectId !== expectedProjectId)
     return (
-      <Empty>该资产不属于当前范围，请从所属项目或工作室共享区进入。</Empty>
+      <Stack>
+        <Button component="a" variant="subtle" href={back}>
+          返回资产库
+        </Button>
+        <Empty>该资产不属于当前范围，请从所属项目或工作室共享区进入。</Empty>
+      </Stack>
     );
   const active = canWrite && value.status === "active";
   const pendingMediaId =

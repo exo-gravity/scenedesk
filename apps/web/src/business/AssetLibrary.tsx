@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
-import type { Schema } from "./api";
+import { useResource, type Schema } from "./api";
+import { tenantPath } from "./common";
 import AssetWorkspace from "./AssetWorkspace";
 import MediaWorkspace from "./MediaWorkspace";
 import { libraryCategories, type LibraryLocation } from "./LibraryNavigation";
@@ -16,8 +17,18 @@ export default function AssetLibrary(props: {
     props.projectId ?? params.get("targetProject") ?? undefined;
   const shared = !props.projectId || params.get("scope") === "shared";
   const rawCategory = params.get("type");
+  const assetHint = useResource<Schema<"Asset">>(
+    `${tenantPath(props.tenantId)}/assets/${params.get("asset") ?? ""}`,
+    !rawCategory && params.has("asset"),
+  );
+  const mediaHint = useResource<Schema<"Media">>(
+    `${tenantPath(props.tenantId)}/media/${params.get("media") ?? ""}`,
+    !rawCategory && params.has("media"),
+  );
   const category =
     libraryCategories.find((item) => item.value === rawCategory)?.value ??
+    (!assetHint.isError ? assetHint.data?.kind : undefined) ??
+    (!mediaHint.isError ? mediaHint.data?.kind : undefined) ??
     (props.legacyMedia || params.has("media") ? "image" : "character");
   const [q, setQ] = useState(params.get("q") ?? "");
   const query = params.get("q") ?? "";
