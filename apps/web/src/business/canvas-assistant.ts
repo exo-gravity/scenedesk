@@ -60,6 +60,15 @@ export type CanvasAssistantDraft = {
   replyTo?: { artifactId: string; revision: number } | undefined;
   /** Explicit choices apply to the next message and win over a late result read. */
   replyChoice?: "automatic" | "explicit" | "none";
+  /** Restore discussion only when returning from an unsent prompt detour. */
+  discussionReturn?:
+    | {
+        planId: string | null;
+        requestKey: string | null;
+        replyTo?: { artifactId: string; revision: number } | undefined;
+        replyChoice: "automatic" | "explicit" | "none";
+      }
+    | undefined;
   /** Local presentation boundary only; server plans and artifacts remain historical facts. */
   conversationBoundary?: { planIds: string[]; artifactIds: string[] };
   capabilityId: string;
@@ -268,6 +277,7 @@ export async function beginCanvasAssistantTopic(
     nextSources: undefined,
     replyTo: undefined,
     replyChoice: "none",
+    discussionReturn: undefined,
     artifact: undefined,
     application: undefined,
     previousApplications: draft.application
@@ -307,7 +317,17 @@ export async function beginCanvasAssistantPrompt(
     ...draft,
     nextKind: "prepare_prompt",
     ...((draft.nextKind ?? draft.kind ?? "prepare_prompt") === "discuss"
-      ? { replyTo: undefined, replyChoice: "none" as const }
+      ? {
+          discussionReturn: {
+            planId: record.planId ?? null,
+            requestKey: record.planRequest?.key ?? null,
+            replyTo: structuredClone(draft.replyTo),
+            replyChoice:
+              draft.replyChoice ?? (draft.replyTo ? "explicit" : "automatic"),
+          },
+          replyTo: undefined,
+          replyChoice: "none" as const,
+        }
       : {}),
   };
   await controller.commitDraft(draft, next);
@@ -319,11 +339,22 @@ export async function beginCanvasAssistantDiscussion(
 ) {
   const { record } = editableCanvasConversation(controller),
     draft = record.draft;
+  const resume = draft.discussionReturn;
+  const canResume =
+    resume &&
+    resume.planId === (record.planId ?? null) &&
+    resume.requestKey === (record.planRequest?.key ?? null) &&
+    draft.replyChoice === "none" &&
+    !draft.replyTo;
   const next: CanvasAssistantDraft = {
     ...draft,
     nextKind: "discuss",
+    discussionReturn: undefined,
     ...((draft.nextKind ?? draft.kind ?? "prepare_prompt") !== "discuss"
-      ? { replyTo: undefined, replyChoice: "none" as const }
+      ? {
+          replyTo: canResume ? structuredClone(resume.replyTo) : undefined,
+          replyChoice: canResume ? resume.replyChoice : ("none" as const),
+        }
       : {}),
   };
   await controller.commitDraft(draft, next);
@@ -382,6 +413,7 @@ export async function sendCanvasAssistantMessage(
       kind,
       ...(kind === "discuss" ? { replyChoice: "automatic" as const } : {}),
       nextKind: undefined,
+      discussionReturn: undefined,
       nextInstruction: "",
       nextSources: undefined,
       artifact: undefined,

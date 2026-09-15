@@ -214,9 +214,13 @@
   font-weight: 400;
 }
 .inputShell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
   border: 1px solid var(--ws-field-border);
-  border-radius: var(--ws-tool-radius);
-  background: var(--ws-raised);
+  border-radius: var(--mantine-radius-lg);
+  background: var(--ws-panel);
   padding: 10px;
   transition: border-color 150ms ease;
 }
@@ -234,7 +238,7 @@
   box-shadow: none;
 }
 .messageInput {
-  padding: 0 2px 8px;
+  padding: 2px;
   font-size: var(--mantine-font-size-sm);
   line-height: 1.6;
 }
@@ -245,9 +249,12 @@
 .modelButton {
   min-width: 0;
   max-width: 100%;
-  flex: 1;
+  flex: 1 1 auto;
   justify-content: flex-start;
-  color: var(--ws-secondary);
+  border-color: var(--ws-field-border);
+  border-radius: var(--mantine-radius-md);
+  color: var(--ws-text);
+  font-weight: 400;
 }
 .modelButton :global(.mantine-Button-label) {
   overflow: hidden;
@@ -278,7 +285,13 @@
   height: auto;
 }
 .promptTask {
-  padding-block-end: 8px;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  color: var(--ws-secondary);
+  font-size: var(--mantine-font-size-xs);
+  white-space: nowrap;
 }
 .quoteText {
   flex: 1;
@@ -288,7 +301,7 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-block: 2px 6px;
+  padding-block: 2px;
 }
 .referenceChip {
   flex: 0 0 auto;
