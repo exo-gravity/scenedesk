@@ -141,7 +141,8 @@ function CanvasAssistantContent({
   const messageKind = draft?.nextKind ?? draft?.kind ?? "prepare_prompt";
   const discussion = messageKind === "discuss";
   const fixedDiscussion = plan?.input.assistance?.kind === "discuss";
-  const disabled = !active || !visible || state.busy || !draft;
+  const [localActionPending, setLocalActionPending] = useState(false);
+  const disabled = !active || !visible || state.busy || localActionPending || !draft;
   const [error, setError] = useState<string>();
   const [executionDetails, setExecutionDetails] = useState<string>();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -376,7 +377,7 @@ function CanvasAssistantContent({
     });
   };
   useEffect(() => {
-    if (!draft || state.busy || state.access !== "ready" || !visible || !active)
+    if (!draft || state.busy || localActionPending || state.access !== "ready" || !visible || !active)
       return;
     const defaults: Partial<CanvasAssistantDraft> = {};
     if (!draft.capabilityId && textModels.length === 1)
@@ -386,7 +387,7 @@ function CanvasAssistantContent({
       defaults.targetCapabilityRevision = targets[0]!.revision;
     }
     if (Object.keys(defaults).length) update(defaults);
-  }, [draft, capabilities.data, state.busy, state.access, visible, active]);
+  }, [draft, capabilities.data, state.busy, localActionPending, state.access, visible, active]);
   useEffect(() => {
     if (
       !visible ||
@@ -805,6 +806,7 @@ function CanvasAssistantContent({
     ) ?? [];
   const runLocalAction = async (action: () => Promise<void>) => {
     setError(undefined);
+    setLocalActionPending(true);
     try {
       await action();
       return true;
@@ -813,6 +815,8 @@ function CanvasAssistantContent({
         cause instanceof Error ? cause.message : "操作未完成，输入仍保留。",
       );
       return false;
+    } finally {
+      setLocalActionPending(false);
     }
   };
   const newTopic = async () => {
@@ -1717,8 +1721,8 @@ function CanvasAssistantContent({
             autosize
             value={composerText}
             disabled={!active || !visible || !draft}
-            readOnly={state.busy}
-            aria-busy={state.busy}
+            readOnly={state.busy || localActionPending}
+            aria-busy={state.busy || localActionPending}
             onChange={(event) => {
               setTopicNotice(undefined);
               update({ nextInstruction: event.currentTarget.value });
