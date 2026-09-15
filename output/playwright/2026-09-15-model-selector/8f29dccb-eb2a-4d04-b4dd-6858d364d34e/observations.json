@@ -1,0 +1,69 @@
+[
+  {
+    "expanded": "false",
+    "focus": "选择生成目标与助手模型",
+    "label": "Local Image Demo",
+    "test": "imageSelected"
+  },
+  {
+    "focus": "Local Demo · 创作对话 · 本地演示，未连接真实模型",
+    "menu": [
+      {
+        "full": 2922,
+        "height": 358,
+        "scroll": 2564.5
+      }
+    ],
+    "test": "keyboardEnd"
+  },
+  {
+    "model": "Local Video Profile 20 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)",
+    "test": "refresh",
+    "text": "模型选择验收：保留这段未发送文字。",
+    "title": "Local Video Profile 20 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution) · 视频 · 仅提示目标，不执行媒体"
+  },
+  {
+    "button": {
+      "bottom": 823,
+      "height": 32,
+      "left": 95,
+      "right": 315,
+      "top": 791,
+      "width": 220,
+      "x": 95,
+      "y": 791
+    },
+    "menu": [
+      {
+        "bottom": 783,
+        "height": 360,
+        "left": 95,
+        "right": 355,
+        "top": 423,
+        "width": 260,
+        "x": 95,
+        "y": 423
+      }
+    ],
+    "page": 390,
+    "test": "mobile",
+    "width": 390
+  },
+  {
+    "menu": [
+      {
+        "bottom": 535,
+        "height": 360,
+        "left": 1015,
+        "right": 1275,
+        "top": 175,
+        "width": 260,
+        "x": 1015,
+        "y": 175
+      }
+    ],
+    "page": 1280,
+    "test": "short",
+    "width": 1280
+  }
+]

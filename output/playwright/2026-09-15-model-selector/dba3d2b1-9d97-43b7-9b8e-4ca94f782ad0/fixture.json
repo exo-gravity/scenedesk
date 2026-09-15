@@ -1,0 +1,143 @@
+{
+  "runId": "dba3d2b1-9d97-43b7-9b8e-4ca94f782ad0",
+  "sourceCommit": "4768f72ab1e9777821878c335da80eab63c41eea",
+  "origin": "http://localhost:4347",
+  "tenantId": "0fe5e217-a7e7-465c-8445-4f16a14a6d6a",
+  "projectId": "c39ebe8c-7d97-455c-9dd8-dfe1e06adbfc",
+  "sceneId": "41483c54-644b-449f-947e-fffb5029ac18",
+  "canvasId": "c64c9fda-a4c0-427b-8fbc-54d27c1e20c1",
+  "options": [
+    {
+      "id": "15a8f6f2-5532-4bb7-aca6-ed86c776eab3",
+      "purpose": "creative_assistance",
+      "mode": "fixture",
+      "modelVersion": "本地技术测试"
+    },
+    {
+      "id": "ac97fff1-d4d9-4e9c-80b4-48a6db511c24",
+      "purpose": "image",
+      "mode": "image_fixture_v1",
+      "modelVersion": "本地图片技术模型"
+    },
+    {
+      "id": "d507bb2b-f119-44ed-8e47-fe5747f8b75c",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 01 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "fc0c893f-9e06-4f4c-82c2-5c1598a2c914",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 02 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "4dc006d0-89bc-4ae4-a0b3-f43782dc2417",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 03 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "9c019e92-b925-4709-99d2-091258f4e2b9",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 04 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "e2b366ad-e559-4a07-a232-1d62e8a8d551",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 05 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "40e210e3-cab7-4afb-a056-cfaa2a9f73c2",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 06 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "3a6ff3df-fe91-46de-9afb-2127a93fc0bd",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 07 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "e18842a8-7542-4a6e-b6e7-dc7d92f6214c",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 08 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "4d1dcf5c-94a2-443d-8cc2-64cd5b674e06",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 09 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "3aa375ca-8bcf-4dce-8ea6-b181f4f051ad",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 10 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "def2ab40-a30f-403d-b565-babf2c7ae69c",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 11 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "4e838c50-90f2-4335-8369-e25d145fce62",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 12 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "dd747517-4e31-4c72-b814-1bdf12a64423",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 13 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "4d656a4e-eae7-4046-9d1d-2b9b8b30b471",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 14 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "b723b28e-ca7c-40ea-be06-ca8c330cad14",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 15 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "0edfc443-4296-4fef-906a-e55f62f2150b",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 16 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "71e942d6-f217-4fdd-9afe-f861a633ae58",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 17 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "f742fac4-cb89-4d79-a114-28eb2cabebf9",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 18 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "4e511048-8fa3-4f8f-9c83-8cf76f789aa4",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 19 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    },
+    {
+      "id": "8785e964-bc47-46a5-8c88-0de4f790b240",
+      "purpose": "video",
+      "mode": "target_profile_fixture",
+      "modelVersion": "Local Video Profile 20 - Cinematic Camera and Character Continuity Preview v2026.09.15 (No Media Execution)"
+    }
+  ]
+}

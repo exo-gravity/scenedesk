@@ -248,13 +248,28 @@
 }
 .modelButton {
   min-width: 0;
-  max-width: 100%;
-  flex: 1 1 auto;
+  max-width: min(100%, 220px);
+  flex: 0 1 auto;
+  height: 28px;
+  padding-inline: 8px;
   justify-content: flex-start;
-  border-color: var(--ws-field-border);
-  border-radius: var(--mantine-radius-md);
+  border-color: var(--ws-border-subtle);
+  border-radius: var(--mantine-radius-xl);
+  background: transparent;
   color: var(--ws-text);
-  font-weight: 400;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.modelButton:hover:not(:disabled),
+.modelButton[aria-expanded="true"] {
+  background: var(--ws-hover);
+  border-color: var(--ws-border);
+}
+.modelButton :global(.mantine-Button-section) {
+  margin-inline: 0;
+  flex-shrink: 0;
+  color: var(--ws-secondary);
 }
 .modelButton :global(.mantine-Button-label) {
   overflow: hidden;
@@ -264,6 +279,7 @@
 }
 .modelButton :global(.mantine-Button-inner) {
   justify-content: flex-start;
+  gap: 6px;
 }
 .modelMenu {
   max-width: calc(100dvw - 24px);
@@ -278,6 +294,26 @@
   min-width: 0;
   overflow-wrap: anywhere;
   white-space: normal;
+}
+.modelOption {
+  padding-block: 9px;
+}
+.modelName {
+  display: block;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.modelDescription {
+  display: block;
+  margin-top: 3px;
+  color: var(--ws-secondary);
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .modelButton {
+    transition: none;
+  }
 }
 .actionPicker {
   display: flex;

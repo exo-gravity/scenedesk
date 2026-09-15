@@ -1,0 +1,17 @@
+[
+  {
+    "checked": [
+      "Local Image Demo · 图片 · 本地演示，未连接真实模型",
+      "Local Demo · 创作对话 · 本地演示，未连接真实模型"
+    ],
+    "model": "Local Image Demo",
+    "test": "retryPreservesSelection",
+    "text": "读取失败后保留这段文字与模型。"
+  },
+  {
+    "model": "原模型不可用",
+    "optionCount": 0,
+    "test": "empty",
+    "text": "读取失败后保留这段文字与模型。"
+  }
+]
