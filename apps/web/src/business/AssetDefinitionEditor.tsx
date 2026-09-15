@@ -17,6 +17,7 @@ import { DraftNotice, useContentDraft } from "./content-drafts";
 import { ErrorNotice } from "./common";
 import { AssetReferenceFields } from "./AssetReferenceFields";
 import { FixedVoiceField } from "./FixedVoiceField";
+import { PendingCharacterImage } from "./CharacterMediaAssociation";
 import classes from "./assets.module.css";
 type Definition = Schema<"AssetDefinition">;
 const same = (a: unknown, b: unknown) =>
@@ -95,12 +96,16 @@ export function AssetDefinitionEditor({
   asset,
   current,
   currentReady,
+  pendingMediaId,
+  dismissPendingImage,
   path,
   done,
 }: {
   asset: Schema<"Asset">;
   current?: Schema<"AssetRevision"> | undefined;
   currentReady: boolean;
+  pendingMediaId?: string | undefined;
+  dismissPendingImage?: (() => void) | undefined;
   path: string;
   done: (revision?: Schema<"AssetRevision">) => void;
 }) {
@@ -201,6 +206,49 @@ export function AssetDefinitionEditor({
                 已核对，继续基于当前版本
               </Button>
             </Alert>
+          )}
+          {pendingMediaId && dismissPendingImage && (
+            <PendingCharacterImage
+              path={path}
+              mediaId={pendingMediaId}
+              asset={asset}
+              disabled={
+                !currentReady ||
+                stale ||
+                !draft.ready ||
+                !!draft.recovered ||
+                draft.error ||
+                input.references.length +
+                  (input.looks ?? []).reduce(
+                    (count, look) => count + look.references.length,
+                    0,
+                  ) >=
+                  200
+              }
+              added={input.references.some(
+                (reference) =>
+                  reference.mediaId === pendingMediaId &&
+                  reference.purpose === "identity",
+              )}
+              actionLabel="加入身份参考草稿"
+              onAdd={(media) => {
+                if (
+                  !input.references.some(
+                    (reference) =>
+                      reference.mediaId === media.id &&
+                      reference.purpose === "identity",
+                  )
+                )
+                  change({
+                    ...input,
+                    references: [
+                      ...input.references,
+                      { mediaId: media.id, purpose: "identity" },
+                    ],
+                  });
+              }}
+              onDismiss={dismissPendingImage}
+            />
           )}
           <Textarea
             label="固定设定说明"

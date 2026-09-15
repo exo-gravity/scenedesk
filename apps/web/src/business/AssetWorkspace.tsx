@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useDebouncedValue } from "@mantine/hooks";
+import { useQueries } from "@tanstack/react-query";
 import {
   Alert,
-  Badge,
   Button,
   Fieldset,
   Group,
@@ -10,35 +9,27 @@ import {
   Modal,
   Select,
   Popover,
-  UnstyledButton,
+  Skeleton,
   Stack,
   TagsInput,
   Text,
   Textarea,
   TextInput,
 } from "@mantine/core";
-import {
-  Plus,
-  MagnifyingGlass,
-  SlidersHorizontal,
-} from "@phosphor-icons/react";
-import { useCommand, useResource, type Schema } from "./api";
+import { Plus, SlidersHorizontal } from "@phosphor-icons/react";
+import { api, useCommand, useResource, useSession, type Schema } from "./api";
 import { DraftNotice, useContentDraft } from "./content-drafts";
-import {
-  Empty,
-  ErrorNotice,
-  projectPath,
-  SectionHeading,
-  tenantPath,
-} from "./common";
+import { Empty, ErrorNotice, projectPath, tenantPath } from "./common";
 import { assetKinds, options, useAssetPages } from "./asset-queries";
 import { AssetDetails } from "./AssetDetails";
 import { AssetGalleryItem } from "./AssetThumbnail";
+import { LibraryNavigation, type LibraryLocation } from "./LibraryNavigation";
 import classes from "./assets.module.css";
 type Props = {
   tenantId: string;
   own: Schema<"Membership">;
   projectId?: string | undefined;
+  library: LibraryLocation;
 };
 export default function AssetWorkspace(props: Props) {
   const project = useResource<Schema<"Project">>(
@@ -62,39 +53,86 @@ export default function AssetWorkspace(props: Props) {
 function AssetBrowser(
   props: Props & { project?: Schema<"Project"> | undefined },
 ) {
+  const { library } = props;
+  const session = useSession();
   const path = tenantPath(props.tenantId),
     params = new URLSearchParams(location.hash.split("?")[1]),
     id = params.get("asset"),
-    revision = params.get("revision") ?? undefined,
-    targetProjectId = params.get("targetProject") ?? undefined;
-  const base = `#/app/t/${props.tenantId}${props.projectId ? "/p/" + props.projectId : ""}/assets`;
-  const href = (id: string, revision?: string) =>
-    `${base}?${new URLSearchParams({ asset: id, ...(revision ? { revision } : {}), ...(targetProjectId ? { targetProject: targetProjectId } : {}) })}`;
-  const back = targetProjectId
-    ? `${base}?targetProject=${encodeURIComponent(targetProjectId)}`
-    : base;
-  const [q, setQ] = useState(""),
-    [search] = useDebouncedValue(q, 250),
-    [kind, setKind] = useState<string | null>(null),
-    [status, setStatus] = useState<string | null>("active"),
+    revision = params.get("revision") ?? undefined;
+  const fromProject = params.get("from") === "project";
+  const href = (asset: string, revision?: string) =>
+    library.href({ asset, ...(revision ? { revision } : {}) }) +
+    (fromProject ? "&from=project" : "");
+  const back = library.href(fromProject ? { scope: "project" } : {});
+  const [status, setStatus] = useState<string | null>("active"),
     [creating, setCreating] = useState(false);
+  const kind = library.category in assetKinds ? library.category : "character";
   const query = new URLSearchParams({
     scope: props.projectId ? "project" : "shared",
-    q: search,
+    q: library.search,
+    kind,
     ...(props.projectId ? { projectId: props.projectId } : {}),
-    ...(kind ? { kind } : {}),
     ...(status ? { status } : {}),
   });
-  const assets = useAssetPages<Schema<"Asset">>(`${path}/assets?${query}`),
-    imports = useAssetPages<Schema<"SharedImport">>(
-      `${path}/projects/${props.projectId ?? ""}/shared-imports`,
-      !!props.projectId && !id,
+  const assets = useAssetPages<Schema<"Asset">>(`${path}/assets?${query}`, !id);
+  const imports = useAssetPages<Schema<"SharedImport">>(
+    `${path}/projects/${props.projectId ?? ""}/shared-imports`,
+    !!props.projectId && !id,
+  );
+  // Resolve exact imported revisions. The current shared revision must never replace a project's pinned cover or definition.
+  const imported = useQueries({
+    queries: (props.projectId && !id && !imports.isError
+      ? (imports.data?.pages.flatMap((page) => page.items) ?? [])
+      : []
+    ).map((item) => ({
+      queryKey: [
+        "user",
+        session.userId,
+        path,
+        "library-import",
+        props.projectId,
+        item.assetRevisionId,
+      ],
+      queryFn: async ({ signal }: { signal: AbortSignal }) => {
+        const fixed = await api<Schema<"AssetRevision">>(
+          `${path}/asset-revisions/${item.assetRevisionId}`,
+          { signal },
+        );
+        const asset = await api<Schema<"Asset">>(
+          `${path}/assets/${fixed.assetId}`,
+          { signal },
+        );
+        return { item, fixed, asset };
+      },
+    })),
+  });
+  const importedItems = imported
+    .flatMap((result) => (!result.isError && result.data ? [result.data] : []))
+    .filter(
+      ({ asset }) =>
+        asset.kind === kind &&
+        (!status || asset.status === status) &&
+        (!library.search ||
+          `${asset.name} ${asset.description} ${(asset.tags ?? []).join(" ")}`
+            .toLocaleLowerCase()
+            .includes(library.search.toLocaleLowerCase())),
     );
+  const ownItems = !assets.isError
+    ? (assets.data?.pages.flatMap((page) => page.items) ?? [])
+    : [];
   const manager = ["owner", "admin"].includes(props.own.role),
     canWrite = props.projectId ? props.project?.status === "active" : manager,
     canConfirm = manager || props.project?.leadMembershipId === props.own.id;
+  const loading =
+    assets.isPending ||
+    (!!props.projectId && imports.isPending) ||
+    imported.some((item) => item.isPending);
+  const failed =
+    assets.isError ||
+    (!!props.projectId && imports.isError) ||
+    imported.some((item) => item.isError);
   useEffect(() => {
-    document.title = `${props.project?.name ?? "工作室共享"} · 资产 · SceneDesk`;
+    document.title = `${props.project?.name ?? "工作室共享"} · 资产库 · SceneDesk`;
   }, [props.project?.name]);
   return (
     <Stack
@@ -119,71 +157,31 @@ function AssetBrowser(
           canConfirm={canConfirm}
           href={href}
           back={back}
-          targetProjectId={targetProjectId}
+          targetProjectId={
+            !props.projectId ? library.contextProjectId : undefined
+          }
         />
       ) : (
         <>
-          <SectionHeading
-            title={props.projectId ? "项目资产" : "工作室共享资产"}
-            description="角色、空间、道具、声音与风格的固定设定。"
+          <LibraryNavigation
+            library={library}
+            projectName={props.project?.name}
             action={
-              <Group gap="xs">
+              canWrite && (
                 <Button
-                  component="a"
-                  variant="subtle"
-                  href={`#/app/t/${props.tenantId}${props.projectId ? "/p/" + props.projectId : ""}/media`}
+                  variant="filled"
+                  leftSection={<Plus size={17} />}
+                  onClick={() => setCreating(true)}
                 >
-                  素材文件
+                  新建{assetKinds[kind as keyof typeof assetKinds]}
                 </Button>
-                {canWrite && (
-                  <Button
-                    leftSection={<Plus size={16} />}
-                    onClick={() => setCreating(true)}
-                  >
-                    新建资产
-                  </Button>
-                )}
-              </Group>
+              )
             }
-          />
-          {targetProjectId && (
-            <Alert title="正在选择要引入项目的共享固定版">
-              打开资产并选择确切版本，再确认引入目标。
-            </Alert>
-          )}
-          <div className={classes.browseTools}>
-            <div
-              className={classes.categoryTabs}
-              role="group"
-              aria-label="资产类别"
-            >
-              {[{ value: null, label: "全部" }, ...options(assetKinds)].map(
-                (item) => (
-                  <UnstyledButton
-                    key={item.value ?? "all"}
-                    className={classes.categoryTab}
-                    data-active={kind === item.value || undefined}
-                    aria-pressed={kind === item.value}
-                    onClick={() => setKind(item.value)}
-                  >
-                    {item.label}
-                  </UnstyledButton>
-                ),
-              )}
-            </div>
-            <Group gap="xs" className={classes.searchTools}>
-              <TextInput
-                aria-label="查找资产"
-                placeholder="搜索资产"
-                leftSection={<MagnifyingGlass size={16} />}
-                value={q}
-                onChange={(e) => setQ(e.currentTarget.value)}
-                className={classes.searchInput}
-              />
+            filter={
               <Popover position="bottom-end" width={240}>
                 <Popover.Target>
                   <Button
-                    variant={status === "active" ? "subtle" : "light"}
+                    variant="subtle"
                     leftSection={<SlidersHorizontal size={16} />}
                   >
                     筛选
@@ -209,116 +207,118 @@ function AssetBrowser(
                   />
                 </Popover.Dropdown>
               </Popover>
-            </Group>
-          </div>
+            }
+          />
           <ErrorNotice
             error={assets.error}
             retry={() => void assets.refetch()}
           />
-          {assets.isPending ? (
-            <Loader aria-label="正在读取资产" />
-          ) : (
-            !assets.isError && (
-              <>
-                <div className={classes.assetGallery}>
-                  {assets.data?.pages
-                    .flatMap((page) => page.items)
-                    .map((asset) => (
-                      <AssetGalleryItem
-                        key={asset.id}
-                        asset={asset}
-                        path={path}
-                        href={href(asset.id)}
-                      />
-                    ))}
-                </div>
-                {!assets.data?.pages.some((page) => page.items.length) && (
-                  <Empty>
-                    {q || kind || status === "archived"
-                      ? "没有符合筛选的资产。"
-                      : "还没有资产。可先准备一项角色、场景或道具设定。"}
-                  </Empty>
-                )}
-                {assets.hasNextPage && (
-                  <Button
-                    loading={assets.isFetchingNextPage}
-                    onClick={() => void assets.fetchNextPage()}
-                  >
-                    加载更多资产
-                  </Button>
-                )}
-              </>
-            )
-          )}
           {props.projectId && (
-            <Stack gap="md" className={classes.sharedSection}>
-              <Group justify="space-between">
-                <Text fw={600}>
-                  {imports.data?.pages.some((page) => page.items.length)
-                    ? "已引入的共享固定版"
-                    : "工作室共享资产"}
+            <ErrorNotice
+              error={imports.error}
+              retry={() => void imports.refetch()}
+            />
+          )}
+          {imported
+            .filter((item) => item.isError)
+            .map((result, index) => (
+              <ErrorNotice
+                key={index}
+                error={result.error}
+                retry={() => void result.refetch()}
+              />
+            ))}
+          <div className={classes.assetGallery}>
+            {ownItems.map((asset) => (
+              <AssetGalleryItem
+                key={asset.id}
+                asset={asset}
+                path={path}
+                href={href(asset.id)}
+              />
+            ))}
+            {importedItems.map(({ item, asset, fixed }) => (
+              <AssetGalleryItem
+                key={item.id}
+                asset={asset}
+                fixedRevision={fixed}
+                sourceLabel="来自共享"
+                path={path}
+                href={
+                  library.href({
+                    scope: "shared",
+                    asset: asset.id,
+                    revision: fixed.id,
+                  }) + "&from=project"
+                }
+              />
+            ))}
+            {loading && <Skeleton height={280} aria-label="正在读取资产" />}
+          </div>
+          {!loading && !failed && !ownItems.length && !importedItems.length && (
+            <Empty>
+              <Stack align="center" gap="sm">
+                <Text>
+                  {imports.hasNextPage
+                    ? "已加载内容中没有匹配项，可继续查找"
+                    : library.q || status !== "active"
+                      ? "没有符合筛选的内容"
+                      : `还没有${assetKinds[kind as keyof typeof assetKinds]}`}
                 </Text>
-                {canWrite && (
+                <Text size="sm" c="dimmed">
+                  {library.q
+                    ? "试试其他名称或标签。"
+                    : "可以先写下设定，再逐步补充参考。"}
+                </Text>
+                {props.projectId && (
                   <Button
                     component="a"
-                    href={`#/app/t/${props.tenantId}/assets?targetProject=${props.projectId}`}
+                    variant="subtle"
+                    href={library.href({ scope: "shared" })}
                   >
-                    从共享资产选择
+                    浏览工作室共享
                   </Button>
                 )}
-              </Group>
-              <ErrorNotice
-                error={imports.error}
-                retry={() => void imports.refetch()}
-              />
-              {imports.isPending ? (
-                <Loader size="sm" aria-label="正在读取已引入版本" />
-              ) : (
-                !imports.isError && (
-                  <>
-                    {imports.data?.pages
-                      .flatMap((page) => page.items)
-                      .map((item) => (
-                        <ImportedAsset
-                          key={item.id}
-                          path={path}
-                          tenantId={props.tenantId}
-                          item={item}
-                        />
-                      ))}
-                    {!imports.data?.pages.some((page) => page.items.length) && (
-                      <Text size="sm" c="dimmed">
-                        从工作室中选择可复用的角色、声音与风格；引入时保留所选版本。
-                      </Text>
-                    )}
-                    {imports.hasNextPage && (
-                      <Button
-                        loading={imports.isFetchingNextPage}
-                        onClick={() => void imports.fetchNextPage()}
-                      >
-                        加载更多引入记录
-                      </Button>
-                    )}
-                  </>
-                )
-              )}
-            </Stack>
+              </Stack>
+            </Empty>
           )}
+          <Group>
+            {assets.hasNextPage && (
+              <Button
+                loading={assets.isFetchingNextPage}
+                onClick={() => void assets.fetchNextPage()}
+              >
+                加载更多资产
+              </Button>
+            )}
+            {imports.hasNextPage && props.projectId && (
+              <Button
+                loading={imports.isFetchingNextPage}
+                onClick={() => void imports.fetchNextPage()}
+              >
+                继续查找已引入资产
+              </Button>
+            )}
+          </Group>
         </>
       )}
       <Modal
         opened={creating}
         onClose={() => setCreating(false)}
-        title={props.projectId ? "新建项目资产" : "新建工作室共享资产"}
+        title={`新建${assetKinds[kind as keyof typeof assetKinds]}`}
         size="lg"
       >
         {creating && (
           <CreateAsset
             path={path}
             projectId={props.projectId}
+            initialKind={kind as Schema<"Asset">["kind"]}
             done={(asset) => {
               setCreating(false);
-              location.hash = href(asset.id);
+              location.hash = library.href({
+                type: asset.kind,
+                asset: asset.id,
+              });
             }}
           />
         )}
@@ -329,10 +329,12 @@ function AssetBrowser(
 function CreateAsset({
   path,
   projectId,
+  initialKind,
   done,
 }: {
   path: string;
   projectId?: string | undefined;
+  initialKind: Schema<"Asset">["kind"];
   done: (asset: Schema<"Asset">) => void;
 }) {
   const draft = useContentDraft(
@@ -341,7 +343,7 @@ function CreateAsset({
         name: "",
         description: "",
         tags: [] as string[],
-        kind: "character" as Schema<"Asset">["kind"],
+        kind: initialKind,
       },
       1,
     ),
@@ -431,41 +433,5 @@ function CreateAsset({
         </Stack>
       </Fieldset>
     </form>
-  );
-}
-function ImportedAsset({
-  path,
-  tenantId,
-  item,
-}: {
-  path: string;
-  tenantId: string;
-  item: Schema<"SharedImport">;
-}) {
-  const revision = useResource<Schema<"AssetRevision">>(
-      `${path}/asset-revisions/${item.assetRevisionId}`,
-    ),
-    asset = useResource<Schema<"Asset">>(
-      `${path}/assets/${revision.data?.assetId ?? ""}`,
-      !!revision.data && !revision.isError,
-    );
-  if (revision.isError || asset.isError)
-    return <ErrorNotice error={revision.error ?? asset.error} />;
-  if (!revision.data || !asset.data)
-    return <Text size="sm">正在读取固定版本…</Text>;
-  return (
-    <Group justify="space-between">
-      <Text>
-        {asset.data.name} · v{revision.data.number} ·{" "}
-        {revision.data.status === "confirmed" ? "已确认" : "草稿"}
-      </Text>
-      <Button
-        component="a"
-        variant="subtle"
-        href={`#/app/t/${tenantId}/assets?asset=${asset.data.id}&revision=${revision.data.id}&targetProject=${item.projectId}`}
-      >
-        查看此固定版
-      </Button>
-    </Group>
   );
 }

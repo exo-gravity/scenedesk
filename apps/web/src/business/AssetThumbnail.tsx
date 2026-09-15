@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { ImageSquare } from "@phosphor-icons/react";
+import {
+  ImageSquare,
+  User,
+  Mountains,
+  Cube,
+  Waveform,
+  Palette,
+} from "@phosphor-icons/react";
 import { Skeleton, Text } from "@mantine/core";
 import { useResource, type Schema } from "./api";
 import { assetKinds } from "./asset-queries";
@@ -68,35 +75,47 @@ export function AssetGalleryItem({
   asset,
   path,
   href,
+  fixedRevision,
+  sourceLabel,
 }: {
   asset: Schema<"Asset">;
   path: string;
   href: string;
+  fixedRevision?: Schema<"AssetRevision"> | undefined;
+  sourceLabel?: string | undefined;
 }) {
   const { ref, visible } = useVisiblePreview();
   const revision = useResource<Schema<"AssetRevision">>(
     `${path}/asset-revisions/${asset.currentRevisionId ?? ""}`,
-    visible && !!asset.currentRevisionId,
+    visible && !fixedRevision && !!asset.currentRevisionId,
   );
   const fixed =
-    !revision.isError &&
+    fixedRevision ??
+    (!revision.isError &&
     revision.data?.assetId === asset.id &&
     revision.data.id === asset.currentRevisionId
       ? revision.data
-      : undefined;
+      : undefined);
   const mediaId = fixed?.definition.references[0]?.mediaId;
+  const Symbol = {
+    character: User,
+    location: Mountains,
+    prop: Cube,
+    voice: Waveform,
+    style: Palette,
+  }[asset.kind];
   return (
     <a
       className={classes.galleryItem}
       href={href}
       aria-label={`查看资产 ${asset.name}`}
     >
-      <div ref={ref} className={classes.galleryPreview}>
+      <div ref={ref} className={classes.galleryPreview} data-kind={asset.kind}>
         {mediaId ? (
           <AssetMediaThumbnail path={path} mediaId={mediaId} />
         ) : (
           <span className={classes.previewPlaceholder}>
-            <ImageSquare size={36} aria-hidden />
+            <Symbol size={36} aria-hidden />
             <span>
               {revision.isError
                 ? "参考暂不可读"
@@ -114,6 +133,7 @@ export function AssetGalleryItem({
           {asset.name}
         </Text>
         <Text component="span" size="xs" c="dimmed">
+          {sourceLabel ? `${sourceLabel} · ` : ""}
           {assetKinds[asset.kind]}
           {fixed ? ` · v${fixed.number}` : ""}
           {asset.status === "archived" ? " · 已归档" : ""}

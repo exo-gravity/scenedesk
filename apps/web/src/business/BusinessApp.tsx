@@ -30,7 +30,6 @@ import {
   SignOut,
   Buildings,
   FolderSimple,
-  Images,
   Archive,
   CheckSquare,
   FilmSlate,
@@ -69,11 +68,10 @@ import {
 import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
 import "./assistant-lifecycle";
 const MyWork = lazy(() => import("./MyWork"));
-const MediaWorkspace = lazy(() => import("./MediaWorkspace"));
+const AssetLibrary = lazy(() => import("./AssetLibrary"));
 const SceneProductionWorkspace = lazy(
   () => import("./SceneProductionWorkspace"),
 );
-const AssetWorkspace = lazy(() => import("./AssetWorkspace"));
 import classes from "./workbench.module.css";
 import { ProjectUpdates } from "./ProjectUpdates";
 import {
@@ -493,7 +491,7 @@ function Workspace({ hash }: { hash: string }) {
                 href={`#/app/t/${tenantId}/assets`}
               >
                 <Archive size={22} />
-                <span>资产</span>
+                <span>资产库</span>
               </UnstyledButton>
             </>
           )}
@@ -614,7 +612,7 @@ function Workspace({ hash }: { hash: string }) {
 const projectSections = [
   { id: "content", label: "场次", Icon: FilmSlate },
   { id: "script", label: "剧本与设定", Icon: FileText },
-  { id: "assets", label: "项目资产", Icon: Archive },
+  { id: "assets", label: "资产库", Icon: Archive },
 ] as const;
 function ProjectDirectory({
   tenantId,
@@ -645,22 +643,16 @@ function ProjectDirectory({
             (id === "assets" && section === "media") ||
             undefined
           }
-          aria-current={section === id ? "page" : undefined}
+          aria-current={
+            section === id || (id === "assets" && section === "media")
+              ? "page"
+              : undefined
+          }
         >
           <Icon size={17} />
           <span>{label}</span>
         </UnstyledButton>
       ))}
-      <UnstyledButton
-        component="a"
-        href={`${base}/media`}
-        className={`${classes.projectLink} ${classes.projectSubLink}`}
-        aria-current={section === "media" ? "page" : undefined}
-        data-active={section === "media" || undefined}
-      >
-        <Images size={16} />
-        <span>素材库</span>
-      </UnstyledButton>
       <UnstyledButton
         component="a"
         href={base}
@@ -808,16 +800,19 @@ function TenantArea({
         <MyWork tenantId={tenantId} own={own} />
       </Suspense>
     );
-  if (section === "media" || (projectId && mediaView))
+  if (
+    ["media", "assets"].includes(section ?? "") ||
+    (projectId && (mediaView || assetView))
+  )
     return (
-      <Suspense fallback={<Loader aria-label="正在加载素材工作区" />}>
-        <MediaWorkspace tenantId={tenantId} own={own} projectId={projectId} />
-      </Suspense>
-    );
-  if (section === "assets" || (projectId && assetView))
-    return (
-      <Suspense fallback={<Loader aria-label="正在加载资产工作区" />}>
-        <AssetWorkspace tenantId={tenantId} own={own} projectId={projectId} />
+      <Suspense fallback={<Loader aria-label="正在加载资产库" />}>
+        <AssetLibrary
+          key={`${tenantId}/${projectId ?? "shared"}`}
+          tenantId={tenantId}
+          own={own}
+          projectId={projectId}
+          legacyMedia={section === "media" || !!mediaView}
+        />
       </Suspense>
     );
   return (

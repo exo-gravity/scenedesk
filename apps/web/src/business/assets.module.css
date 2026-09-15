@@ -376,3 +376,12 @@
   background: var(--ws-panel);
   border-top: 1px solid var(--ws-border);
 }
+
+.galleryPreview[data-kind="location"],
+.galleryPreview[data-kind="style"],
+.galleryPreview[data-kind="voice"] {
+  aspect-ratio: 16 / 10;
+}
+.galleryPreview[data-kind="prop"] {
+  aspect-ratio: 4 / 3;
+}

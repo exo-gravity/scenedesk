@@ -1,0 +1,49 @@
+.targets {
+  min-width: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ws-field-border) transparent;
+}
+.target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  padding-block: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--ws-border-subtle);
+}
+.target > div,
+.description {
+  min-width: 0;
+  flex: 1;
+}
+.text {
+  overflow-wrap: anywhere;
+}
+.pending {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border-subtle);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-panel);
+}
+.preview {
+  width: 88px;
+  flex: 0 0 88px;
+  border-radius: var(--ws-media-radius);
+  overflow: hidden;
+}
+.action {
+  max-width: 100%;
+  align-self: flex-start;
+  height: auto;
+  min-height: var(--button-height);
+}
+.action :global(.mantine-Button-label) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
