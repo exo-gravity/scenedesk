@@ -2199,6 +2199,7 @@ function CanvasAssistantContent({
                       )}
                   {!discussion && (
                     <>
+                      <div role="group" aria-label="准备提示的目标模型">
                       <Menu.Label>准备提示的目标模型</Menu.Label>
                       {targets.map((model) => (
                         <ModelOption
@@ -2224,9 +2225,11 @@ function CanvasAssistantContent({
                           继续调整沿用原目标；取消引用后可更换。
                         </Text>
                       )}
+                      </div>
                       <Menu.Divider />
                     </>
                   )}
+                  <div role="group" aria-label="助手模型">
                   <Menu.Label>助手模型</Menu.Label>
                   {textModels.map((model) => (
                     <ModelOption
@@ -2241,6 +2244,7 @@ function CanvasAssistantContent({
                   {!textModels.length && (
                     <Menu.Item disabled>尚未连接可用的助手模型</Menu.Item>
                   )}
+                  </div>
                     </>
                   )}
                 </Menu.Dropdown>
