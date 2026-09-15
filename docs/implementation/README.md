@@ -113,3 +113,5 @@ python docs/implementation/check_design.py
 [精确制作副本](37-production-copies.md)记录正在实施的视频源映射、无损内部工件和流式隔离验证；音频、持久化归一、确认与固定渲染继续接入。
 
 最新助手体验及验证见[68 对话侧栏](68-assistant-conversation-sidebar.md)：连续对话、统一输入、固定引用、任务往返与按需结果操作。
+
+统一资产库入口、固定共享版本图库和图片加入角色的实施与验收见[69 统一资产库](69-unified-asset-library.md)。

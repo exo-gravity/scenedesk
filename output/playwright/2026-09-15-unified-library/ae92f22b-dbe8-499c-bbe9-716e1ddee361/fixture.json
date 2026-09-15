@@ -1,0 +1,236 @@
+{
+  "runId": "ae92f22b-dbe8-499c-bbe9-716e1ddee361",
+  "origin": "http://localhost:4347",
+  "tenantId": "a265db93-f93e-4959-80c5-2b7b157402db",
+  "projectId": "0c20bf6d-20fd-45de-a42e-7f700bab4c80",
+  "path": "/v1/tenants/a265db93-f93e-4959-80c5-2b7b157402db/projects/0c20bf6d-20fd-45de-a42e-7f700bab4c80",
+  "emptyProjectId": "1cc61f7e-27a9-4635-b0fa-3ba549ce1f62",
+  "assets": {
+    "projectVoice": {
+      "id": "cc7c7686-f71f-4ace-9a77-ef091ce5855f",
+      "revisionId": "0c6286cb-6b30-49a4-87b6-89341d50cb30",
+      "number": 1,
+      "scope": "project",
+      "kind": "voice",
+      "name": "项目声音 · 温和讲述（技术参考）"
+    },
+    "projectCharacter": {
+      "id": "89f812ea-0474-4664-bf2f-fb84655062bc",
+      "revisionId": "834fc95d-da38-4715-9757-6f4ae5d9dd62",
+      "number": 1,
+      "scope": "project",
+      "kind": "character",
+      "name": "项目角色 · 林夏（合成设定）",
+      "lookIds": [
+        "731c3682-b26e-4040-835c-2dace2eb5101",
+        "fdf70d1a-b4c9-4b4e-8b1a-aed9cf230a25"
+      ]
+    },
+    "projectLocation": {
+      "id": "ce015bcd-ef0f-4f9c-bed3-4dfde8f76551",
+      "revisionId": "c0395b89-c20a-47ca-8818-d325bfa5f5c7",
+      "number": 1,
+      "scope": "project",
+      "kind": "location",
+      "name": "项目场景 · 午后的咖啡厅"
+    },
+    "projectProp": {
+      "id": "55056003-da4f-4fd7-96fe-e00aca21ee4b",
+      "revisionId": "432ed222-bdd1-41b5-af98-08d2c9c4021e",
+      "number": 1,
+      "scope": "project",
+      "kind": "prop",
+      "name": "项目道具 · 旧铜钥匙"
+    },
+    "projectStyle": {
+      "id": "c7f03936-de1e-4e0a-bc88-e6d990046ee0",
+      "revisionId": "0680d7e9-b361-4d38-8cb2-5279fcb0c0d5",
+      "number": 1,
+      "scope": "project",
+      "kind": "style",
+      "name": "项目风格 · 胶片质感与自然窗光的克制叙事参考，长名称用于窄屏和多列资产卡片的换行与省略验证"
+    },
+    "sharedVoice": {
+      "id": "2d3fc6ff-3751-4f9d-b200-605969a51212",
+      "revisionId": "72fd7a69-f894-4148-9dc4-de23a7a97a50",
+      "number": 1,
+      "scope": "shared",
+      "kind": "voice",
+      "name": "共享声音 · 温和讲述（技术参考）"
+    },
+    "sharedCharacter": {
+      "id": "00b048dd-fb98-4f8e-b40e-d3ed3150a769",
+      "revisionId": "11022bbc-88a8-42f5-b422-b1d7c15f02fc",
+      "number": 1,
+      "scope": "shared",
+      "kind": "character",
+      "name": "共享角色 · 林夏（合成设定）",
+      "lookIds": [
+        "dedd66bf-d084-4c9c-95db-90db97a184fd",
+        "ad4ac2fe-9b1b-4be9-a2ac-5d8ced7ecdf9"
+      ]
+    },
+    "sharedLocation": {
+      "id": "55d2dbf0-460b-4e7b-96e4-8ef11895f6a2",
+      "revisionId": "38f1e9d6-6162-4720-86b3-e8379b3db7ef",
+      "number": 1,
+      "scope": "shared",
+      "kind": "location",
+      "name": "共享场景 · 午后的咖啡厅"
+    },
+    "sharedProp": {
+      "id": "7fa2de01-fd88-46ec-8914-5d76bd27a5cb",
+      "revisionId": "12f88e86-0007-4b16-83ca-16fd91996221",
+      "number": 1,
+      "scope": "shared",
+      "kind": "prop",
+      "name": "共享道具 · 旧铜钥匙"
+    },
+    "sharedStyle": {
+      "id": "d9ae5055-e0e9-4bc6-a76f-09e85a45bd9b",
+      "revisionId": "950e2c5a-f789-47c8-ba79-87b741f975b2",
+      "number": 1,
+      "scope": "shared",
+      "kind": "style",
+      "name": "共享风格 · 胶片质感与自然窗光的克制叙事参考，长名称用于窄屏和多列资产卡片的换行与省略验证"
+    },
+    "noReference": {
+      "id": "9f0b3294-fa17-4cf8-9865-bcdc3c166e7e",
+      "revisionId": "70a8c212-151f-4316-8040-3151fdf7e570",
+      "number": 1,
+      "scope": "project",
+      "kind": "location",
+      "name": "无参考场景 · 等待创作的空白设定"
+    }
+  },
+  "sharedImport": {
+    "id": "9f62085a-fb31-462c-ae39-706c5415a1db",
+    "assetId": "7fa2de01-fd88-46ec-8914-5d76bd27a5cb",
+    "importedRevisionId": "12f88e86-0007-4b16-83ca-16fd91996221",
+    "currentRevisionId": "8d080d03-43ef-40bf-80cb-e444a3bbba34"
+  },
+  "media": {
+    "projectImage": {
+      "id": "4e308e38-fadb-4b87-b912-31feffa87219",
+      "kind": "image",
+      "scope": "project",
+      "status": "ready",
+      "displayName": "项目图片 · 旧铜钥匙.png",
+      "sha256": "0d172aa5d602e1af7ff3ba0c7baee8ef00ad476f153358a6ebbc68eca76970bc",
+      "bytes": 2318884,
+      "width": 1254,
+      "height": 1254,
+      "derivatives": [
+        {
+          "kind": "poster",
+          "status": "ready"
+        }
+      ]
+    },
+    "projectVideo": {
+      "id": "d2ca311d-97cf-4c60-a402-0b878064d329",
+      "kind": "video",
+      "scope": "project",
+      "status": "ready",
+      "displayName": "项目视频 · 预制技术预览（非模型）.mp4",
+      "sha256": "d9d0cd34cb56eb77ea259eef96fb5d053100b99a218210377a711fc116f458b1",
+      "bytes": 478467,
+      "width": 360,
+      "height": 640,
+      "durationUs": 4000000,
+      "derivatives": [
+        {
+          "kind": "poster",
+          "status": "ready"
+        },
+        {
+          "kind": "proxy",
+          "status": "ready"
+        }
+      ]
+    },
+    "projectAudio": {
+      "id": "0f1134f3-8cd7-4216-853c-c51f5997ad8c",
+      "kind": "audio",
+      "scope": "project",
+      "status": "ready",
+      "displayName": "项目音频 · 440Hz 技术提示音（非人声）.wav",
+      "sha256": "9ac999ec9de78d4a97726762aa9d9e7f06663e83f1cff22325d06bf010a63716",
+      "bytes": 96044,
+      "durationUs": 2000000,
+      "derivatives": [
+        {
+          "kind": "proxy",
+          "status": "ready"
+        }
+      ]
+    },
+    "projectDocument": {
+      "id": "52250074-9585-4e1f-b34f-09976a973a34",
+      "kind": "document",
+      "scope": "project",
+      "status": "ready",
+      "displayName": "项目文档 · 隔离说明.txt",
+      "sha256": "bc30f8f6ac32cddf4eab500c20581f0ddbc393755202bfb294809de1cb020245",
+      "bytes": 152,
+      "derivatives": []
+    },
+    "sharedImageV1": {
+      "id": "9e2db0c8-11c2-4180-975c-b7da08e60adb",
+      "kind": "image",
+      "scope": "shared",
+      "status": "ready",
+      "displayName": "共享图片 · 旧钥匙全貌.png",
+      "sha256": "0d172aa5d602e1af7ff3ba0c7baee8ef00ad476f153358a6ebbc68eca76970bc",
+      "bytes": 2318884,
+      "width": 1254,
+      "height": 1254,
+      "derivatives": [
+        {
+          "kind": "poster",
+          "status": "ready"
+        }
+      ]
+    },
+    "sharedImageV2": {
+      "id": "816a04c0-b1f6-4b76-a9c5-b3e3b1138c68",
+      "kind": "image",
+      "scope": "shared",
+      "status": "ready",
+      "displayName": "共享图片 · 手部构图.png",
+      "sha256": "3595886b5e7444e29c395553a80ed23052794bbc08447446c7c24ba1ea6d8bf8",
+      "bytes": 1700579,
+      "width": 941,
+      "height": 1672,
+      "derivatives": [
+        {
+          "kind": "poster",
+          "status": "ready"
+        }
+      ]
+    },
+    "sharedAudio": {
+      "id": "b287252e-6d22-418c-b6cb-ef9aec3219c4",
+      "kind": "audio",
+      "scope": "shared",
+      "status": "ready",
+      "displayName": "共享声音 · 技术音色预览（非人声）.wav",
+      "sha256": "9ac999ec9de78d4a97726762aa9d9e7f06663e83f1cff22325d06bf010a63716",
+      "bytes": 96044,
+      "durationUs": 2000000,
+      "derivatives": [
+        {
+          "kind": "proxy",
+          "status": "ready"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "outsiderStatus": 404,
+    "sharedImportStillV1": true,
+    "syntheticOnly": true,
+    "generationExecutorStarted": false,
+    "providerCalls": 0
+  }
+}
