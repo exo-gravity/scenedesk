@@ -265,6 +265,20 @@
 .modelButton :global(.mantine-Button-inner) {
   justify-content: flex-start;
 }
+.modelMenu {
+  max-width: calc(100dvw - 24px);
+  max-height: min(360px, var(--model-menu-height, calc(100dvh - 96px)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ws-field-border) transparent;
+}
+.modelMenu :global(.mantine-Menu-item),
+.modelMenu :global(.mantine-Menu-itemLabel) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
 .actionPicker {
   display: flex;
   flex-direction: column;
@@ -302,6 +316,12 @@
   gap: 8px;
   overflow-x: auto;
   padding-block: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ws-field-border) transparent;
+}
+.referenceStrip:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
 }
 .referenceChip {
   flex: 0 0 auto;

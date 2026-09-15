@@ -196,16 +196,51 @@ function CanvasAssistantContent({
     capabilities.data?.filter(
       (c) => c.enabled && c.purpose === "creative_assistance",
     ) ?? [];
+  const targetOrder: Record<string, number> = { image: 0, video: 1, audio: 2 };
   const targets =
-    capabilities.data?.filter(
-      (c) => c.enabled && ["image", "video", "audio"].includes(c.purpose),
-    ) ?? [];
+    capabilities.data
+      ?.filter(
+        (c) => c.enabled && ["image", "video", "audio"].includes(c.purpose),
+      )
+      .sort(
+        (a, b) =>
+          (targetOrder[a.purpose] ?? 3) - (targetOrder[b.purpose] ?? 3) ||
+          a.modelVersion.localeCompare(b.modelVersion, "zh-CN") ||
+          a.id.localeCompare(b.id),
+      ) ?? [];
+  const purposeLabel = (purpose: string) =>
+    ({ image: "图片", video: "视频", audio: "音频" } as Record<string, string>)[
+      purpose
+    ] ?? purpose;
   const modelLabel = (c: Schema<"Capability">) =>
-    (c as { executionMode?: string }).executionMode === "test_fixture"
-      ? "演示助手"
-      : c.modelVersion;
+    `${c.modelVersion}${c.executionMode === "test_fixture" ? " · 演示" : ""}`;
   const targetLabel = (c: Schema<"Capability">) =>
-    `${({ image: "图片", video: "视频", audio: "声音" } as Record<string, string>)[c.purpose] ?? c.purpose} · ${c.executionMode === "test_fixture" ? "演示模型" : c.modelVersion}`;
+    `${purposeLabel(c.purpose)} · ${modelLabel(c)}${c.mode === "target_profile_fixture" ? " · 仅提示目标" : ""}`;
+  const selectedModelLabel = discussion
+    ? assistant && modelLabel(assistant)
+    : target && targetLabel(target);
+  const modelChipLabel = (() => {
+    if (discussion && assistant)
+      return assistant.executionMode === "test_fixture"
+        ? "演示助手"
+        : assistant.modelVersion;
+    if (!discussion && target) {
+      const name =
+        target.mode === "target_profile_fixture"
+          ? "演示提示目标"
+          : target.executionMode === "test_fixture"
+            ? "演示模型"
+            : target.modelVersion;
+      return `${purposeLabel(target.purpose)} · ${name}`;
+    }
+    if (capabilities.isPending || capabilities.isFetching) return "读取模型…";
+    if (capabilities.error) return "模型读取失败";
+    if (discussion ? draft?.capabilityId : draft?.targetCapabilityId)
+      return "原模型不可用";
+    if (!(discussion ? textModels : targets).length)
+      return discussion ? "暂无助手模型" : "暂无提示目标";
+    return discussion ? "选择助手模型" : "选择目标模型";
+  })();
   const quotedReply = useFreshCanvasResource<Schema<"AssistanceArtifact">>(
     `${path}/assistance-artifacts/${draft?.replyTo?.artifactId ?? "unavailable"}/revisions/${draft?.replyTo?.revision ?? 1}`,
     state.access === "ready" &&
@@ -1133,7 +1168,14 @@ function CanvasAssistantContent({
             error={savedArtifacts.error}
             retry={() => void savedArtifacts.refetch()}
           />
-          {!olderArtifacts.length &&
+          {(savedArtifacts.isPending || savedArtifacts.isFetching) && (
+            <Text size="sm" c="dimmed" role="status">
+              正在读取历史…
+            </Text>
+          )}
+          {savedArtifacts.isSuccess &&
+            !savedArtifacts.isFetching &&
+            !olderArtifacts.length &&
             !record?.previous.length &&
             !draft?.artifact && (
               <Text size="sm" c="dimmed">
@@ -2070,6 +2112,15 @@ function CanvasAssistantContent({
               <Menu
                 position="top-start"
                 width={260}
+                middlewares={{
+                  size: {
+                    apply: ({ availableHeight, elements }) =>
+                      elements.floating.style.setProperty(
+                        "--model-menu-height",
+                        `${Math.max(0, availableHeight)}px`,
+                      ),
+                  },
+                }}
                 opened={composerMenu === "model"}
                 onChange={(opened) => changeComposerMenu("model", opened)}
               >
@@ -2082,24 +2133,37 @@ function CanvasAssistantContent({
                       discussion ? "选择助手模型" : "选择生成目标与助手模型"
                     }
                     disabled={disabled}
+                    title={selectedModelLabel ?? modelChipLabel}
                     leftSection={<GearSix size={13} />}
                     rightSection={<CaretDown size={12} />}
                   >
-                    {!discussion
-                      ? target
-                        ? targetLabel(target)
-                        : "选择目标模型"
-                      : isDemo
-                        ? "演示 · 未连接模型"
-                        : assistant
-                          ? modelLabel(assistant)
-                          : "选择模型"}
+                    {modelChipLabel}
                   </Button>
                 </Menu.Target>
-                <Menu.Dropdown>
+                <Menu.Dropdown className={classes.modelMenu}>
+                  {capabilities.isPending ? (
+                    <Menu.Item disabled>正在读取模型…</Menu.Item>
+                  ) : capabilities.error ? (
+                    <>
+                      <Menu.Label>模型读取失败，原选择仍保留</Menu.Label>
+                      <Menu.Item
+                        leftSection={<ArrowsClockwise size={16} />}
+                        disabled={capabilities.isFetching}
+                        onClick={() => void capabilities.refetch()}
+                      >
+                        {capabilities.isFetching
+                          ? "正在重新读取…"
+                          : "重新读取模型"}
+                      </Menu.Item>
+                    </>
+                  ) : (
+                    <>
+                      {capabilities.isFetching && (
+                        <Menu.Label>正在更新可用模型…</Menu.Label>
+                      )}
                   {!discussion && (
                     <>
-                      <Menu.Label>生成提示用于</Menu.Label>
+                      <Menu.Label>准备提示的目标模型</Menu.Label>
                       {targets.map((model) => (
                         <Menu.Item
                           key={model.id}
@@ -2117,7 +2181,7 @@ function CanvasAssistantContent({
                         </Menu.Item>
                       ))}
                       {!targets.length && (
-                        <Menu.Item disabled>尚未连接生成模型</Menu.Item>
+                        <Menu.Item disabled>尚未连接可用的提示目标</Menu.Item>
                       )}
                       {!!draft?.replyTo && (
                         <Text size="xs" c="dimmed" px="sm" py="xs">
@@ -2139,12 +2203,14 @@ function CanvasAssistantContent({
                     </Menu.Item>
                   ))}
                   {!textModels.length && (
-                    <Menu.Item disabled>尚未连接可用模型</Menu.Item>
+                    <Menu.Item disabled>尚未连接可用的助手模型</Menu.Item>
                   )}
                   {isDemo && (
                     <Text size="xs" c="dimmed" px="sm" py="xs">
                       当前回复仅用于演示，不调用真实模型。
                     </Text>
+                  )}
+                    </>
                   )}
                 </Menu.Dropdown>
               </Menu>
@@ -2214,7 +2280,12 @@ function ComposerReferences({
 }) {
   if (!sources.length) return null;
   return (
-    <div className={classes.referenceStrip} aria-label="本次消息的画布参考">
+    <div
+      className={classes.referenceStrip}
+      role="region"
+      tabIndex={0}
+      aria-label="本次消息的画布参考"
+    >
       {sources.map((item, index) => (
         <div className={classes.referenceChip} key={item.source.nodeId}>
           <Popover position="top-start" width={300} trapFocus returnFocus>
