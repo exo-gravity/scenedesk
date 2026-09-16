@@ -482,9 +482,10 @@ function ScriptImport({
   }
   return (
     <Stack gap="md">
-      {(draft.dirty || draft.recovered || draft.committed || draft.error) && (
-        <DraftNotice draft={draft} />
-      )}
+      {!completed &&
+        (draft.dirty || draft.recovered || draft.committed || draft.error) && (
+          <DraftNotice draft={draft} />
+        )}
       {completed && <Text size="sm">导入已保存。</Text>}
       {!draft.committed && !completed && (
         <>

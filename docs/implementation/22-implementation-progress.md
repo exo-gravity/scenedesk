@@ -12,6 +12,8 @@
 
 ## 当前工作
 
+2026-09-16 第一轮并行切片整合：导航 PR #42（`de29b08`）及 E2E 基础 PR #43（`ce456ef`）已合入。项目画布 [PR #44](https://github.com/exo-gravity/scenedesk/pull/44) 稳定产品头 `590dfc7` 和 Word [PR #45](https://github.com/exo-gravity/scenedesk/pull/45) 已整合到后者分支，重新生成契约并按 0106→0110 应用到独立 schema。具体 API／数据库／生产浏览器证据见[71](71-project-canvas-workspace.md)、[72](72-script-docx-import.md)；最终整合头 CI 与 44→45 合入顺序以对应 PR 为准。Word 原件、预览、固定阅读、下载、历史与恢复是本轮范围，选文带入项目画布仍待连续创作切片，飞书／真实模型／团队完整试作未完成；不将基础切片交付标记为 MVP 完工。
+
 2026-09-16 并行与验收补充：用户要求尽可能并行开发多个 PR，并对核心设计／页面做端到端测试。项目级画布、Word 导入与阅读、自动 E2E 支持已分别启动独立分支。边界、数据库合入顺序见[70](70-creative-workspace-refactor.md)，主流程、失败恢复与生产视觉门槛见[73](73-creative-workspace-e2e.md)。开发启动不代表实现或验收完成，外部模型付费调用仍需真实服务与授权额度。
 
 2026-09-16 创作工作区重构已获实施授权：按[确认方向](../design/creative-workspace-approved-2026-09-16.md)拆为[八个 PR](70-creative-workspace-refactor.md)，PR-1 正式项目导航、画布入口与旧链接兼容已通过本机 240 项检查、干净 checkout 文档检查及正式构建浏览器验证，产品源 `597e96f`；最终提交 `1ac1f87` 的远端 240 项单元、316 项数据库、78 项媒体及部署／恢复检查全部通过，[PR #42](https://github.com/exo-gravity/scenedesk/pull/42) 已合入 `de29b08`。无场次画布、文档导入、连续生成、镜头收敛及真实模型尚未因原型通过而完成。

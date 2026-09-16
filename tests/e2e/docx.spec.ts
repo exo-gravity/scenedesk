@@ -14,7 +14,7 @@ const invalidFile = fileURLToPath(
 );
 const readBody = { name: "剧本阅读正文", exact: true };
 
-test("CW-03: real Word upload previews before import, preserves original, updates and reads fixed history", async ({
+test("CW-05/06: real Word upload previews before import, preserves original, updates and reads fixed history", async ({
   page,
   workspace: w,
 }, info) => {
@@ -97,7 +97,7 @@ test("CW-03: real Word upload previews before import, preserves original, update
   expect((await w.content()).currentScriptRevisionId).not.toBe(imported.id);
 });
 
-test("CW-03: malformed file remains recoverable after failed preview and navigation", async ({
+test("CW-05: malformed file remains recoverable after failed preview and navigation", async ({
   page,
   workspace: w,
 }) => {
@@ -131,7 +131,7 @@ test("CW-03: malformed file remains recoverable after failed preview and navigat
   ).toHaveCount(0);
 });
 
-test("CW-03 fault injection: committed Word response is lost, refresh recovers through read-only receipt", async ({
+test("CW-07 fault injection: committed Word response is lost, refresh recovers through read-only receipt", async ({
   page,
   workspace: w,
 }) => {
@@ -181,7 +181,7 @@ test("CW-03 fault injection: committed Word response is lost, refresh recovers t
   ).toHaveCount(0);
 });
 
-test("CW-03: concurrent content change preserves Word preview and creates a new intent only after review", async ({
+test("CW-07: concurrent content change preserves Word preview and creates a new intent only after review", async ({
   page,
   workspace: w,
 }) => {
@@ -225,7 +225,7 @@ test("CW-03: concurrent content change preserves Word preview and creates a new 
   expect(scripts.find((s) => s.number === 4)?.parentRevisionId).toBe(other.id);
 });
 
-test("CW-03 fault injection: an old delayed receipt cannot clear a replacement Word draft after navigation", async ({
+test("CW-07 fault injection: an old delayed receipt cannot clear a replacement Word draft after navigation", async ({
   page,
   workspace: w,
 }) => {
