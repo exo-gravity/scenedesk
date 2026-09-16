@@ -322,4 +322,134 @@ test("project canvas generation and assistant retain fixed inputs without a scen
     canvasId: legacy.id,
     sceneId: f.scene.id,
   });
+  for (const scope of ["project", "scene"] as const) {
+    const target =
+      scope === "project"
+        ? canvas
+        : await f.ok(
+            "PUT",
+            `${f.path}/canvases/${legacy.id}`,
+            {
+              schemaVersion: 1,
+              document: {
+                nodes: [{ ...node, id: randomUUID() }],
+                edges: [],
+                groups: [],
+              },
+            },
+            legacy.revision,
+          );
+    const preparePath =
+      scope === "project"
+        ? `${path}/canvases/${canvas.id}/generation-plans`
+        : `${f.path}/scenes/${f.scene.id}/canvas/generation-plans`;
+    const body = { ...planInput, nodeId: target.document.nodes[0].id },
+      key = randomUUID();
+    const prepared = await f.request(
+      "POST",
+      preparePath,
+      body,
+      target.revision,
+      key,
+    );
+    assert.equal(prepared.statusCode, 201, prepared.body);
+    assert.deepEqual(
+      (await f.request("POST", preparePath, body, target.revision, key)).json(),
+      prepared.json(),
+      "active replay retains exactly the fixed plan",
+    );
+    if (scope === "project")
+      await f.ok("POST", `${path}/archive`, undefined, project.revision);
+    else
+      await f.ok(
+        "PUT",
+        `${f.path}/scenes/${f.scene.id}`,
+        {
+          episodeId: f.scene.episodeId,
+          title: f.scene.title,
+          summary: f.scene.summary,
+          position: f.scene.position,
+          state: f.scene.state,
+          status: "archived",
+        },
+        f.scene.revision,
+      );
+    const replay = await f.request(
+      "POST",
+      preparePath,
+      body,
+      target.revision,
+      key,
+    );
+    const fresh = await f.request("POST", preparePath, body, target.revision);
+    assert.equal(
+      replay.statusCode,
+      scope === "project" ? 404 : 409,
+      replay.body,
+    );
+    assert.equal(
+      replay.json().code,
+      scope === "project" ? "CANVAS_CONTEXT_UNAVAILABLE" : "PARENT_ARCHIVED",
+    );
+    assert.equal(
+      fresh.statusCode,
+      replay.statusCode,
+      "cached replay rechecks the same active scope as a new preparation",
+    );
+    assert.equal(
+      (
+        await f.ok(
+          "GET",
+          `${scope === "project" ? path : f.path}/canvases/${target.id}`,
+        )
+      ).id,
+      target.id,
+      "archived canvas history remains readable",
+    );
+    if (scope === "scene") {
+      const scene = (await f.ok("GET", `${f.path}/content`)).scenes.find(
+        (item: { id: string }) => item.id === f.scene.id,
+      );
+      await f.ok(
+        "PUT",
+        `${f.path}/scenes/${f.scene.id}`,
+        {
+          episodeId: scene.episodeId,
+          title: scene.title,
+          summary: scene.summary,
+          position: scene.position,
+          state: scene.state,
+          status: "active",
+        },
+        scene.revision,
+      );
+      assert.equal(
+        (await f.request("POST", preparePath, body, target.revision, key))
+          .statusCode,
+        201,
+      );
+      const episode = (await f.ok("GET", `${f.path}/content`)).episodes.find(
+        (item: { id: string }) => item.id === scene.episodeId,
+      );
+      await f.ok(
+        "PUT",
+        `${f.path}/episodes/${episode.id}`,
+        {
+          title: episode.title,
+          position: episode.position,
+          status: "archived",
+        },
+        episode.revision,
+      );
+      const episodeReplay = await f.request(
+        "POST",
+        preparePath,
+        body,
+        target.revision,
+        key,
+      );
+      assert.equal(episodeReplay.statusCode, 409, episodeReplay.body);
+      assert.equal(episodeReplay.json().code, "PARENT_ARCHIVED");
+    }
+  }
 });
