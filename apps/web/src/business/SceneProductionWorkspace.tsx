@@ -604,6 +604,20 @@ export function SceneCanvasSession({
     ids: string[];
     nonce: number;
   }>();
+  const entryFocus = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const nodeId = new URLSearchParams(location.hash.split("?")[1]).get("node");
+    if (
+      !nodeId ||
+      entryFocus.current === nodeId ||
+      state?.phase !== "ready" ||
+      !state.local?.document.nodes.some((node) => node.id === nodeId)
+    )
+      return;
+    entryFocus.current = nodeId;
+    changePreference({ selectedNodeIds: [nodeId], mode: "canvas" });
+    setFocusRequest({ ids: [nodeId], nonce: Date.now() });
+  }, [state?.phase, state?.local?.document, changePreference]);
   const focusCompleted = useCallback((nonce: number) => {
     setFocusRequest((current) =>
       current?.nonce === nonce ? undefined : current,

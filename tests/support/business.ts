@@ -12,11 +12,12 @@ export async function businessFixture(
   configure?: (
     database: Awaited<ReturnType<typeof databaseFixture>>,
   ) => Promise<Pick<BusinessOptions, "media">>,
+  options: { origin?: string } = {},
 ) {
   const db = await databaseFixture(t);
   const secret = randomBytes(32).toString("base64url"),
     secrets = new Secrets(secret);
-  const origin = "http://127.0.0.1:4311";
+  const origin = options.origin ?? "http://127.0.0.1:4311";
   const extra = await configure?.(db);
   const app = buildApp(db.runtime, {
     schema: db.schema,

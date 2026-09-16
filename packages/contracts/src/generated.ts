@@ -2380,6 +2380,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/script-excerpts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 明确添加固定剧本选文；同一节点身份不重复添加
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["placeCanvasScriptExcerpt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/script-excerpts/{nodeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 核对固定选文回执，节点移除后仍可查询
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getCanvasScriptExcerpt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/uploads": {
         parameters: {
             query?: never;
@@ -4702,6 +4742,21 @@ export interface components {
             /** @enum {string} */
             type: "text";
             text: string;
+            sourceExcerpt?: components["schemas"]["ScriptExcerpt"];
+        };
+        PlaceCanvasScriptExcerpt: {
+            /** Format: uuid */
+            nodeId: string;
+            sourceExcerpt: components["schemas"]["ScriptExcerpt"];
+            position: components["schemas"]["CanvasPoint"];
+        };
+        CanvasScriptExcerptReceipt: {
+            /** Format: uuid */
+            canvasId: string;
+            /** Format: uuid */
+            nodeId: string;
+            sourceExcerpt: components["schemas"]["ScriptExcerpt"];
+            nodeActive: boolean;
         };
         CanvasMediaContent: {
             /** @enum {string} */
@@ -10752,6 +10807,82 @@ export interface operations {
             410: components["responses"]["Problem"];
             412: components["responses"]["Problem"];
             413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    placeCanvasScriptExcerpt: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                canvasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceCanvasScriptExcerpt"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasScriptExcerptReceipt"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getCanvasScriptExcerpt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                canvasId: string;
+                nodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasScriptExcerptReceipt"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
             422: components["responses"]["Problem"];
             429: components["responses"]["Problem"];
             503: components["responses"]["Problem"];

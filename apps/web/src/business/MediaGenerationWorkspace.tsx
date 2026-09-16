@@ -1,3 +1,4 @@
+import { editingCanonical } from "@drama/domain";
 import { CanvasShotSources, FixedPlanShotSources } from "./CanvasShotSources";
 import { fixedShotSources } from "./canvas-shot-sources";
 import { canvasResultPosition } from "./canvas-result-position";
@@ -38,7 +39,11 @@ import {
   type Schema,
 } from "./api";
 import { ErrorNotice, projectPath, tenantPath } from "./common";
-import { jobFinished, jobStatusLabel } from "./assistant-session";
+import {
+  canContinueCreation,
+  jobFinished,
+  jobStatusLabel,
+} from "./assistant-session";
 import { cancellationDescription } from "./generation-lifecycle";
 import type { PromptDraft } from "./prompt-draft";
 import {
@@ -282,7 +287,15 @@ function GenerationWorkspace({
       setError(cause instanceof Error ? cause.message : "请核对镜头来源。");
       return;
     }
-    void controller.prepareFrom(draft, async () => {
+    const expectedDocument =
+      source.kind === "canvas"
+        ? editingCanonical(source.canvas.document)
+        : undefined;
+    const run =
+      source.kind === "canvas"
+        ? controller.generateFrom.bind(controller)
+        : controller.prepareFrom.bind(controller);
+    void run(draft, async () => {
       if (source.kind === "shot") {
         if (!capability) throw Error(`请选择可执行${label}模型。`);
         return {
@@ -292,7 +305,10 @@ function GenerationWorkspace({
         }[kind](source.creation, projectId, capability, output);
       }
       const canvas = await source.save();
-      if (canvas.id !== source.canvas.id)
+      if (
+        canvas.id !== source.canvas.id ||
+        editingCanonical(canvas.document) !== expectedDocument
+      )
         throw Error("画布目标已改变，请重新核对。");
       return {
         image: canvasImageRequest,
@@ -671,31 +687,36 @@ function GenerationWorkspace({
   );
   const nextAction = (
     <>
-      {plan && !inspection && (!record?.execution || jobFinished(job)) && (
-        <Button
-          variant="subtle"
-          disabled={
-            disabled ||
-            placement?.phase === "unknown" ||
-            placement?.phase === "review"
-          }
-          onClick={() =>
-            draft &&
-            void controller.revise(
-              {
-                capabilityId: draft.capabilityId,
-                output: draft.output,
-                ...(draft.shotSources === undefined
-                  ? {}
-                  : { shotSources: draft.shotSources }),
-              },
-              draft,
-            )
-          }
-        >
-          {`保留原任务，准备${next}`}
-        </Button>
-      )}
+      {plan &&
+        !inspection &&
+        (!record?.execution ||
+          jobFinished(job) ||
+          (source.kind === "canvas" && canContinueCreation(job))) && (
+          <Button
+            variant="subtle"
+            disabled={
+              disabled ||
+              placement?.phase === "unknown" ||
+              placement?.phase === "review"
+            }
+            onClick={() =>
+              draft &&
+              void controller.revise(
+                {
+                  capabilityId: draft.capabilityId,
+                  output: draft.output,
+                  ...(draft.shotSources === undefined
+                    ? {}
+                    : { shotSources: draft.shotSources }),
+                },
+                draft,
+                source.kind === "canvas",
+              )
+            }
+          >
+            {`保留原任务，准备${next}`}
+          </Button>
+        )}
     </>
   );
   const taskDetails = (
@@ -798,7 +819,9 @@ function GenerationWorkspace({
               }
               onClick={() => void controller.execute()}
             >
-              {`确认执行${label}生成`}
+              {source.kind === "canvas"
+                ? `继续生成${label}`
+                : `确认执行${label}生成`}
             </Button>
           )}
           {nextAction}
@@ -953,7 +976,9 @@ function GenerationWorkspace({
                 }
                 onClick={() => void controller.execute()}
               >
-                {`确认执行${label}生成`}
+                {source.kind === "canvas"
+                  ? `继续生成${label}`
+                  : `确认执行${label}生成`}
               </Button>
             </>
           )}
@@ -1195,7 +1220,7 @@ function GenerationWorkspace({
       )}
       {!plan && !inspection && awaitingSave && (
         <Text role="status" size="sm">
-          先完成画布保存或核对，完成后可准备生成。
+          生成时会先保存本次画布输入；保存失败会保留草稿。
         </Text>
       )}
       {!plan && !inspection && (
@@ -1205,16 +1230,15 @@ function GenerationWorkspace({
           disabled={
             disabled ||
             !capability ||
-            awaitingSave ||
             (source.kind === "shot" && !source.creation.prompt.trim()) ||
             (source.kind === "canvas" && !content)
           }
           onClick={prepare}
         >
           {record?.planRequest
-            ? `恢复原${label}计划请求`
-            : compact
-              ? "准备生成"
+            ? `继续原${label}生成`
+            : source.kind === "canvas"
+              ? `生成${label}`
               : `查看${label}生成计划`}
         </Button>
       )}

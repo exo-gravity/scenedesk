@@ -1,3 +1,4 @@
+import { canvasScriptExcerptRoutes } from "./script-excerpts.js";
 import { projectWorkspaceRoutes } from "./project-workspace.js";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
@@ -22,6 +23,7 @@ import {
 } from "./scene-bindings.js";
 
 export function canvasRoutes(app: FastifyInstance, context: ApiContext) {
+  canvasScriptExcerptRoutes(app, context);
   canvasUploadRoutes(app, context);
   projectWorkspaceRoutes(app, context);
   registerAction(app, context, "ensureSceneCanvas", async (tx, input) => {

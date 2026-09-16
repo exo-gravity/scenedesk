@@ -69,7 +69,12 @@ export function CanvasContextualEditor({
     screenY + height.current * viewport.zoom <= safe.y ||
     screenY >= safe.y + safe.height;
   const showLocator =
-    !focused && (offscreen || viewport.zoom < 0.6 || safe.width < 300);
+    !focused &&
+    (offscreen ||
+      screenY < safe.y ||
+      screenY + 160 * viewport.zoom > safe.y + safe.height ||
+      viewport.zoom < 0.6 ||
+      safe.width < 300);
   const enterFocus = () => {
     focusReturn.current =
       window.document.activeElement instanceof HTMLElement
@@ -117,7 +122,19 @@ export function CanvasContextualEditor({
                   width: Math.max(0, boardSize.width - 24),
                   height: Math.max(0, boardSize.height - 24),
                 }
-              : { left: nodePosition.x, top: nodePosition.y, width: nodeWidth }
+              : {
+                  left: nodePosition.x,
+                  top: nodePosition.y,
+                  width: nodeWidth,
+                  maxHeight: Math.max(
+                    160,
+                    Math.min(
+                      560,
+                      (safe.y + safe.height - Math.max(safe.y, screenY)) /
+                        viewport.zoom,
+                    ),
+                  ),
+                }
           }
           onPointerDown={(event) => event.stopPropagation()}
           onDoubleClick={(event) => event.stopPropagation()}

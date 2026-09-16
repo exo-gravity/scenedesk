@@ -30,6 +30,15 @@ export function canvasNodeIdentity(node: CanvasNode) {
   return {
     kind: node.kind,
     type: node.content.type,
+    ...(node.content.type === "text" && node.content.sourceExcerpt
+      ? {
+          sourceExcerpt: {
+            ...node.content.sourceExcerpt,
+            scriptRevisionId:
+              node.content.sourceExcerpt.scriptRevisionId.toLowerCase(),
+          },
+        }
+      : {}),
     ...(node.content.type === "media"
       ? {
           mediaId: node.content.mediaId.toLowerCase(),
@@ -79,6 +88,12 @@ export function inspectCanvasDocument(document: CanvasDocument) {
   const nodes = new Map(document.nodes.map((n) => [n.id.toLowerCase(), n]));
   const groups = new Set(document.groups.map((g) => g.id.toLowerCase()));
   for (const node of document.nodes) {
+    if (
+      node.content.type === "text" &&
+      node.content.sourceExcerpt &&
+      node.content.text !== node.content.sourceExcerpt.quote
+    )
+      invalid("固定剧本原文不可修改，请另建文字或生成描述。");
     if (!Number.isFinite(node.position.x) || !Number.isFinite(node.position.y))
       invalid("节点坐标必须是有限数。");
     if (node.groupId && !groups.has(node.groupId.toLowerCase()))

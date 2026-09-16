@@ -1641,6 +1641,12 @@ function CanvasComposer({
   return (
     <div className={classes.composer}>
       <div className={classes.composerFields}>
+        {node.content.type === "text" && node.content.sourceExcerpt && (
+          <Text size="xs" c="dimmed">
+            固定剧本原文 ·
+            选中文字节点可继续创作图片或视频，生成描述可以另行修改。
+          </Text>
+        )}
         {node.content.type !== "media" && (
           <Textarea
             aria-label={
@@ -1661,6 +1667,9 @@ function CanvasComposer({
             maxRows={4}
             maxLength={20000}
             disabled={readOnly}
+            readOnly={
+              node.content.type === "text" && !!node.content.sourceExcerpt
+            }
             onCompositionStart={() => composing(true)}
             onCompositionEnd={() => composing(false)}
             onChange={(e) =>
