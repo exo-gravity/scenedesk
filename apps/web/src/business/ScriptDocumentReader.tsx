@@ -83,6 +83,8 @@ function DocumentBody({
                   src={block.imageData}
                   alt={block.alt ?? "文档图片"}
                   fit="contain"
+                  w="auto"
+                  maw="100%"
                   mah={560}
                   loading="lazy"
                 />
