@@ -1816,17 +1816,21 @@ function CanvasAssistantContent({
                       size="xs"
                       variant="subtle"
                       disabled={disabled}
-                      onClick={() => void runLocalAction(async () => {
-                        await controller.settle();
-                        const current = controller.getSnapshot();
-                        if (
-                          current.access !== "ready" ||
-                          !current.draftSaved ||
-                          current.record?.draft.application?.key !== application.key ||
-                          current.record.draft.application.phase !== "applied"
-                        ) throw Error("助手输入或应用记录尚未保留，暂未切换到草稿。");
-                        await onEditDraft(application.body.nodeId);
-                      })}
+                      onClick={() =>
+                        void runLocalAction(async () => {
+                          await controller.settle();
+                          const current = controller.getSnapshot(),
+                            savedApplication = current.record?.draft.application;
+                          if (
+                            current.access !== "ready" ||
+                            !current.draftSaved ||
+                            savedApplication?.key !== application.key ||
+                            savedApplication.phase !== "applied"
+                          )
+                            throw Error("助手输入或应用记录尚未保留，暂未切换到草稿。");
+                          await onEditDraft(application.body.nodeId);
+                        })
+                      }
                     >
                       继续编辑此草稿
                     </Button>
