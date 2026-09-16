@@ -57,7 +57,7 @@
 
 ## 并行整合与恢复竞态修复
 
-已合入的基础为 PR #42 `de29b08` 和 PR #43 `ce456ef`。本分支整合 PR #44 稳定产品提交 `590dfc7`，联合契约重生为 164 个操作、127 个路径、241 个 schema；迁移在新独立 schema 按 0106→0110 验证。PR #44／45 的最终同头 CI 和合入事实以 PR 记录为准，不为未执行检查预填通过。
+已合入的基础为 PR #42 `de29b08` 和 PR #43 `ce456ef`。本分支整合 PR #44 稳定产品提交 `590dfc7`，联合契约重生为 164 个操作、127 个路径、241 个 schema；迁移在新独立 schema 按 0106→0110 验证。PR #44 最终四项 CI 已通过并合入 `432dcfd81d03ec31a5f6b3b43c2f7f6342d8db93`；PR #45 的最终远端检查和合入仍待后述条件，不为未执行检查预填通过。
 
 真实延迟回执 GET 暴露一个丢稿竞态：A 导入成功但丢响应，核对回执期间离开页面，再返回放弃 A、选择并保留 B；旧 A 回执此时返回，会调用旧组件的草稿清理并删掉 B。失败证据是 `output/playwright/20260916-docx-stale-repro2/`。修复为导入实例与当前操作 token 持有本地变更权，卸载后旧预览／读取／提交响应不能 stage 或 complete 新实例的草稿；检查、暂存、提交、重基与放弃互斥。服务器回执仍按原身份只读恢复，未确认的提交不改成自动新意图。
 
@@ -66,3 +66,15 @@
 根协调对 194af8d 正式构建的最后视觉复查：1440px 桌面和 390px 窄屏无横向溢出，1px fixture 图片实际 natural=1／rendered=1／loaded=true；没有空的草稿提示。证据位于主工作目录 `output/playwright/2026-09-16-word-manual/history-desktop.png`、`history-390.png`。最终联合构建会重建本片专属合成预览 schema，避免在已经应用 0110 的旧隔离 schema 上后补 0106，不涉及用户现有演示数据。
 
 联合契约与产品源码整合后，本机 `npm run check` 通过 246 项单元测试及契约／UI／类型／正式构建；Word、内容、项目画布三个文件的独立 schema 数据库集成共 11 项通过。联合文档检查通过 164 个操作、127 个路径、241 个 schema、1,579 处本地链接；新报告为 `output/documentation-checks/2026-09-16-docx-integrated/`。15 条联合浏览器回归由最终提交的 GitHub CI 执行，未以编写完成替代执行通过。
+
+
+## 最终收束（产品头 d1fff1b）
+
+PR #42 `de29b08`、PR #43 `ce456ef`、PR #44 `432dcfd` 已合入。PR #45 的产品头 `d1fff1b` 包含 PR #44 全部最终实现，保持草稿；本次收束只更新交付文档，不改变产品或重复已通过的业务测试。
+
+- 本机 `npm run check`：246 项单元、契约／UI／类型与正式构建通过。随后顺序运行完整数据库集成 **319／319 通过**，零跳过，耗时 668.95 秒，包含此前较慢的长对话历史；与先前 11 项专项证据分开记录。日志在本片工作目录 `output/implementation/2026-09-16-docx-final-checks/`。
+- 根协调在最终正式构建用 CUA 通过迟到回执恢复：本片私有代理等待真实 import 201 后断回包，等待真实 GET receipt 200 后挂起；核对中不能放弃或确认；离开／返回恢复 A、明确放弃并保留新文件 B 后，释放旧回执；再导航／刷新仍恢复 B 和“钥匙在窗边”正文，明确确认后正常读取 v3。截图为主工作目录 `output/playwright/2026-09-16-word-manual/d1fff1b-late-receipt-new-draft-restored.png`。正常整合画布文字与 83% 视口跨页／刷新亦通过，截图 `integrated-d1fff1b-canvas-after-refresh.png` 在同目录。代理已关闭，4343 合成预览保留，未增加生产故障端点。
+- 本机完整媒体补验**未通过／未完成**。首用例在进入媒体业务断言前因 `Storage permission fixture admin/policy/attach timed out` 失败；为避免重复放大环境故障，停止全套。停掉 runner 后只运行一次未改参数的独立存储初始化，仍在同一步骤超时（总计 48.4 秒），专属测试容器已清理。没有修改产品／测试超时、重启 Docker 或清理用户容器；未证实唯一宿主根因。PR #44 相同媒体实现的 78 项远端 CI 通过仅作相邻证据，不能替代本片最终检查。
+- 最终 GitHub Actions **没有开始执行**：平台 annotation 指明账户付款或 spending limit 限制。主检查、15 条联合 E2E、部署和隔离恢复均须在额度恢复后针对最终文档头执行。`d1fff1b` 的未启动记录分别为 [主检查](https://github.com/exo-gravity/scenedesk/actions/runs/35063748733)、[工作区 E2E](https://github.com/exo-gravity/scenedesk/actions/runs/35063748885)、[部署／恢复](https://github.com/exo-gravity/scenedesk/actions/runs/35063748727)。没有将人工通过或本机数据库通过视为绕过最终 CI 的依据。
+
+CW-06 只完成原件、固定历史、权限及既有固定引用协议；选文直接进入项目画布仍接后续连续创作切片。飞书、团队实际 Word 模板、真实模型和完整短剧试作仍未验收，本轮基础 PR 不代表整体 MVP 完工。

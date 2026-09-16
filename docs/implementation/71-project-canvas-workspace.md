@@ -1,6 +1,6 @@
 # 项目画布：直接创作与兼容场次画布
 
-2026-09-16。[PR #44](https://github.com/exo-gravity/scenedesk/pull/44)，产品提交 `db8b7c9`。属于 [重构计划 PR-2](70-creative-workspace-refactor.md)，依据 [已确认独立 Web 方向](../design/creative-workspace-approved-2026-09-16.md)。
+2026-09-16。[PR #44](https://github.com/exo-gravity/scenedesk/pull/44)，最初产品提交 `db8b7c9`，最终产品提交 `590dfc7`。四项 GitHub CI 已通过，2026-09-16 合入 `432dcfd81d03ec31a5f6b3b43c2f7f6342d8db93`。属于 [重构计划 PR-2](70-creative-workspace-refactor.md)，依据 [已确认独立 Web 方向](../design/creative-workspace-approved-2026-09-16.md)。
 
 ## 行为与边界
 
@@ -12,12 +12,12 @@
 
 ## 验证记录
 
-- 已运行 `npm run check`：契约、UI、类型、生产构建及 240 项单元测试通过。本机最终生产构建通过，远端主 verify 已完成 npm check 并进入数据库验证。
+- 已运行 `npm run check`：契约、UI、类型、生产构建及 240 项单元测试通过。本机生产构建通过；最终 `590dfc7` 的远端主验证、工作区 E2E、部署及隔离恢复检查均已通过。
 - 新项目画布数据库集成：零集零场、并发唯一创建、重开内容、固定历史、CAS 冲突、跨项目／外部身份拒绝、个人偏好隔离、撤权后的缓存回放拒绝、归档后新建与缓存回放拒绝、归档后的个人浏览位置保存。两个完整专项顶层用例及追加断言通过。
 - 项目草稿生成固定计划及项目助手固定节点上下文通过真实 API／受限 PostgreSQL 角色验证，技术 fixture worker 完成助手任务；旧场次助手 scope 保持原样。既有场次画布 10 项集成回归通过。
 - 根任务用 CUA 验收实际生产构建：零场次创建画布；文字保存；侧栏离开／返回与刷新恢复；图片草稿准备固定 32×32 计划，明确确认执行，fixture worker 完成并归档媒体，浏览器图片 `complete` 且 `naturalWidth=32`，确认添加独立结果节点，刷新后原草稿与蓝图结果同时存在；Local Demo 助手消息与 worker 回复完成。最终场次目录仍为零集、零场、零镜。截图在主工作目录 `output/playwright/2026-09-16-project-canvas-manual/result-after-refresh.png`。这些是隔离 synthetic 数据和明确 fixture 模型，不代表真实模型、真实团队或真实用户数据验收。
-- 自动化沿用 PR #43 的真实生产 Web／受限角色 API 基础，适配旧场次入口并新增 3 项项目画布用例：两标签创建同一零场次项目画布，文字、助手未发输入和视口经导航／刷新恢复；归档只读与服务端写拒绝；协作者撤权后不显示缓存项目画布且 API 拒绝读取。修复下述偏好缓存问题后，`a00f4bf` 的 [10 项 E2E 全部通过](https://github.com/exo-gravity/scenedesk/actions/runs/35063054518)；后续归档回放修复仍需最终同 head CI。
-- 本机完整数据库运行 318 项，316 通过、1 个真实失败及其外层套件失败：20 轮对话历史在 `generation_plans` INSERT 的 `guard_discussion_plan → canvas_discussion_history → canvas_assistance_reply_snapshot → project_role` 路径触发既有 10 秒 statement timeout。原样单独重跑 `canvas-discussion.test.ts` 16 项全部通过（214.96 秒）；未放宽数据库或测试超时。该次本机并行运行不记为全套通过；最终远端数据库、媒体和 E2E 仍以同一 PR head 的 CI 为准。
+- 自动化沿用 PR #43 的真实生产 Web／受限角色 API 基础，适配旧场次入口并新增 3 项项目画布用例：两标签创建同一零场次项目画布，文字、助手未发输入和视口经导航／刷新恢复；归档只读与服务端写拒绝；协作者撤权后不显示缓存项目画布且 API 拒绝读取。修复下述偏好缓存问题后，`a00f4bf` 的 [10 项 E2E 全部通过](https://github.com/exo-gravity/scenedesk/actions/runs/35063054518)；后续归档回放修复已随最终 `590dfc7` 通过同 head CI。
+- 本机完整数据库运行 318 项，316 通过、1 个真实失败及其外层套件失败：20 轮对话历史在 `generation_plans` INSERT 的 `guard_discussion_plan → canvas_discussion_history → canvas_assistance_reply_snapshot → project_role` 路径触发既有 10 秒 statement timeout。原样单独重跑 `canvas-discussion.test.ts` 16 项全部通过（214.96 秒）；未放宽数据库或测试超时。该次本机并行运行不记为全套通过；最终 `590dfc7` 远端数据库、78 项媒体和 E2E 均通过；保留本次本机失败，不能把重跑单文件冒充本机全套通过。
 
 初次隔离预览在 Canvas 初始化时暴露配置缺口：未代理 `/design/openapi.json`，编辑器收到 HTML 而非契约 JSON。已补代理并重建隔离预览继续验收；该检查是实际 CanvasBoard 初始化，不以入口外壳可见替代。第二次本机 MinIO 权限 fixture 初始化超时，失败容器已清理；重试只延长本机预览启动等待，未改变正式测试断言或超时。
 
@@ -28,3 +28,5 @@
 已记录的体验后续项：1280×720 视口中，部分节点内模型编辑操作在视口底部之外，专注编辑仍可完成；后续连续创作切片需改进编辑器放置和操作可见性。本次不把项目 scope 扩展混为节点布局重做。
 
 运行日志保存在本机 `output/implementation/2026-09-16-project-canvas/`；测试数据库使用独立随机 schema 和受限角色，不修改共享业务演示数据。没有付费模型调用。
+
+PR #45 产品头 `d1fff1b` 已含本片最终实现。根协调在整合后的 4343 独立合成预览用 CUA 再验画布文字和 83% 视口跨页面／刷新恢复，截图为主工作目录 `output/playwright/2026-09-16-word-manual/integrated-d1fff1b-canvas-after-refresh.png`。该联合头顺序完整数据库 319 项通过；PR #45 自己的最终远端检查因 GitHub 账户付款／额度限制尚未开始，不复用本片 CI 替代它的验收。
