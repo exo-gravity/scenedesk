@@ -144,7 +144,7 @@ test("CW-10/11: lost assistant application reply recovers the same draft, then d
       generations++;
   });
   await page.goto(
-    `${f.origin}/#/app/t/${f.tenant.id}/p/${f.project.id}/canvas`,
+    `${f.origin}/#/app/t/${f.tenant.id}/p/${f.project.id}/canvas?node=${f.referenceId}`,
   );
   await page.getByRole("button", { name: "AI 助手", exact: true }).click();
   await page
@@ -171,6 +171,9 @@ test("CW-10/11: lost assistant application reply recovers the same draft, then d
   await page
     .getByRole("button", { name: "继续编辑此草稿", exact: true })
     .click();
+  await expect(page).toHaveURL((url) =>
+    new URLSearchParams(url.hash.split("?")[1]).get("node") === f.draftId,
+  );
   await page
     .getByRole("button", { name: "专注编辑", exact: true })
     .first()
@@ -182,6 +185,10 @@ test("CW-10/11: lost assistant application reply recovers the same draft, then d
   await page.getByRole("button", { name: "保存画布", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "画布保存状态：已保存", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByText("已选 · 待助手调整的草稿", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("navigation", { name: "项目导航", exact: true })

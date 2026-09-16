@@ -641,6 +641,10 @@ export function SceneCanvasSession({
     setFocusRequest({ ids, nonce: Date.now() });
     const query = new URLSearchParams(location.hash.split("?")[1]);
     query.set("mode", "canvas");
+    // An explicit focus supersedes an old entry link. Keep a single-node link
+    // refreshable; a multi-node focus stays in the saved selection preference.
+    if (ids.length === 1) query.set("node", ids[0]!);
+    else query.delete("node");
     location.hash = `${location.hash.split("?")[0]}?${query}`;
   };
   const editBinding = (node: CanvasNode | null) => {
