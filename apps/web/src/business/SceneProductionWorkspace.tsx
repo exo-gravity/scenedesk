@@ -65,6 +65,7 @@ import {
 import { CanvasAssistant } from "./CanvasAssistant";
 import { AssistantProposal } from "./AssistantProposal";
 import { CanvasShotConnections } from "./CanvasShotConnections";
+import { ShotListLauncher } from "./ShotListWorkspace";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CanvasEntryDetails } from "./CanvasEntryDetails";
 import { CanvasRecovery, canvasSaveLabel } from "./CanvasRecovery";
@@ -684,6 +685,12 @@ export function SceneCanvasSession({
       />
     );
   const document = state.local?.document;
+  const selectedContent =
+    preference.selectedNodeIds.length === 1
+      ? document?.nodes.find(
+          (node) => node.id === preference.selectedNodeIds[0],
+        )?.content
+      : undefined;
   const readOnly =
     !active ||
     bindingBusy ||
@@ -783,6 +790,31 @@ export function SceneCanvasSession({
                     保存画布
                   </Button>
                 )}
+              <ShotListLauncher
+                tenantId={tenantId}
+                projectId={projectId}
+                sceneId={sceneId}
+                sourceMediaId={
+                  selectedContent?.type === "media"
+                    ? selectedContent.mediaId
+                    : undefined
+                }
+                onBeforeOpen={async () => {
+                  await retainGenerationDraft.current?.();
+                  await controller.retryLocal();
+                  const current = controller.getSnapshot();
+                  if (
+                    current.local &&
+                    !current.localSaved &&
+                    !current.recovery &&
+                    !current.recoveryBlocked
+                  )
+                    throw (
+                      current.storageError ??
+                      new Error("画布输入尚未保留到本机，请先处理保存问题。")
+                    );
+                }}
+              />
               <SceneTasksButton
                 open={dock === "results"}
                 buttonRef={auxiliaryFallback}

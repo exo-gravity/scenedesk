@@ -38,6 +38,8 @@ scope=project 必须有 projectId；scope=shared 必须省略。路径、正文�
 
 幂等记录的敏感响应加密、限期保留；邀请查验使用令牌哈希，创建响应为了同键重放可受控保存邀请链接密文，列表不返回链接。转移所有权事务将原 Owner 变为 Admin，目标有效成员成为唯一 Owner，项目参与不自动清除。access 同键回放可能得到已过期短时 URL，客户端用新键重新授权申请，不把幂等当延长 URL 生命周期。
 
+镜头列表原片下载使用 `POST /projects/{projectId}/shots/{shotId}/selection/download`，必须携带点击时固定的 `selectionId`。每次申请（含同键重试）均重新鉴权并核对当前选用，变化时返回 `409 SELECTION_CHANGED`，不代换下载对象；返回固定 Take、Media、区间及完整原件短时授权。候选区间不代表文件已裁剪。原有短时授权固定原媒体，到期失效；归档后的历史选用仍可由有权成员读取。见[镜头整理实现](76-shot-list-workspace.md)。
+
 ## 3. 剧本、状态和输入解析
 
 **文本范围。** TextRange 使用固定 ScriptRevision.text 内 Unicode 码点偏移，[startOffset,endOffset)，不是字节、行号或媒体微秒。ScriptExcerpt.quote 必须与原文完全匹配；服务端与浏览器使用一致的码点计数。script_analysis 必须带 sourceScriptRevisionId＋scriptRange，只分析选区及明确显示的所需上下文，不能暗中发送整剧。
