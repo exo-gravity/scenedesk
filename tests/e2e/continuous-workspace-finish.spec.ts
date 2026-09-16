@@ -179,6 +179,10 @@ test("CW-10/11: lost assistant application reply recovers the same draft, then d
   await expect(prompt).toHaveValue("合成助手建议：雨夜窗边的人物，轻轻抬头。");
   await prompt.fill("助手建议后，用户继续修改同一草稿。");
   await page.getByRole("button", { name: "返回画布", exact: true }).click();
+  await page.getByRole("button", { name: "保存画布", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "画布保存状态：已保存", exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("navigation", { name: "项目导航", exact: true })
     .getByRole("link", { name: "剧本", exact: true })
