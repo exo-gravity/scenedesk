@@ -640,17 +640,24 @@ export class AssistantSession<
   revise(nextDraft?: Draft, expected?: Draft, continueAccepted = false) {
     return this.action(async (epoch) => {
       const record = this.state.record;
-      if (
-        !record ||
-        (record.execution &&
-          !jobFinished(this.state.job) &&
-          !(
-            continueAccepted &&
-            record.execution.jobId === this.state.job?.id &&
-            canContinueCreation(this.state.job)
-          ))
-      )
-        return;
+      if (!record) return;
+      if (record.execution && continueAccepted) {
+        // Polling is only a display hint. The original job may have entered an
+        // unknown submission state since the last queued/running observation.
+        if (!record.execution.jobId) return;
+        const current = await this.transport.getJob(record.execution.jobId);
+        this.assertCurrent(epoch);
+        if (
+          current.id !== record.execution.jobId ||
+          current.planId !== record.execution.planId
+        )
+          throw new Error("返回的任务与原提交不一致，请保留原记录并核对。");
+        this.publish({ job: current });
+        if (!jobFinished(current) && !canContinueCreation(current))
+          throw new Error(
+            "原任务当前仍需核对，暂未进入下一稿。原输入与提交记录已保留。",
+          );
+      } else if (record.execution && !jobFinished(this.state.job)) return;
       if (expected && JSON.stringify(record.draft) !== JSON.stringify(expected))
         throw new Error("输入已改变，请重新核对本次操作。");
       const previous = record.planId

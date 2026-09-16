@@ -433,3 +433,54 @@ test("continuous creation never releases an unknown submission or a lost executi
     assert.ok(session.getSnapshot().record?.execution);
   }
 });
+
+test("continue creation rechecks the original job instead of trusting a stale queued observation", async () => {
+  for (const status of [
+    "submission_unknown",
+    "dispatching",
+    "reconciliation_required",
+  ] as const) {
+    const f = fixture();
+    f.transport.execute = async () => ({ ...job, status: "queued" });
+    let reads = 0;
+    f.transport.getJob = async () => {
+      reads++;
+      return { ...job, status };
+    };
+    const session = f.session();
+    await session.load(draft);
+    await session.generateFrom(draft, async () => input);
+    const intent = structuredClone(f.current()!.execution);
+    await session.revise({ ...draft, prompt: "下一稿" }, draft, true);
+    assert.equal(reads, 1);
+    assert.deepEqual(f.current()!.execution, intent);
+    assert.equal(session.getSnapshot().record?.draft.prompt, draft.prompt);
+    assert.equal(session.getSnapshot().job?.status, status);
+    assert.match(session.getSnapshot().error!, /原任务当前仍需核对/);
+  }
+});
+
+test("failed or mismatched fresh job reads cannot release the original execution for a next draft", async () => {
+  for (const response of ["offline", "wrong-job", "wrong-plan"]) {
+    const f = fixture();
+    f.transport.execute = async () => ({ ...job, status: "queued" });
+    f.transport.getJob = async () => {
+      if (response === "offline") throw Error("network unavailable");
+      return {
+        ...job,
+        status: "succeeded",
+        ...(response === "wrong-job"
+          ? { id: "another-job" }
+          : { planId: "another-plan" }),
+      };
+    };
+    const session = f.session();
+    await session.load(draft);
+    await session.generateFrom(draft, async () => input);
+    const intent = structuredClone(f.current()!.execution);
+    await session.revise({ ...draft, prompt: "下一稿" }, draft, true);
+    assert.deepEqual(f.current()!.execution, intent);
+    assert.equal(session.getSnapshot().record?.draft.prompt, draft.prompt);
+    assert.ok(session.getSnapshot().error);
+  }
+});

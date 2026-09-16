@@ -12,7 +12,7 @@ import {
 import { ArrowRight } from "@phosphor-icons/react";
 import { api, ApiError, useSession, type Schema } from "./api";
 import { DraftNotice, useContentDraft } from "./content-drafts";
-import { selectedRange } from "./assistant-session";
+import { selectedTextareaRange } from "./script-excerpt-selection";
 import { ErrorNotice } from "./common";
 
 type Intent = {
@@ -212,8 +212,9 @@ export function ScriptCanvasExcerpt({
                     const el = event.currentTarget;
                     if (el.selectionStart === el.selectionEnd) return;
                     try {
-                      const selected = selectedRange(
+                      const selected = selectedTextareaRange(
                         script.text,
+                        el.value,
                         el.selectionStart,
                         el.selectionEnd,
                       );
