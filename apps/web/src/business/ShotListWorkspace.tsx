@@ -24,12 +24,16 @@ export function ShotListLauncher({
   projectId,
   sceneId,
   sourceMediaId,
+  initialShotId,
+  label = "镜头列表",
   onBeforeOpen,
 }: {
   tenantId: string;
   projectId: string;
   sceneId?: string | undefined;
   sourceMediaId?: string | undefined;
+  initialShotId?: string | undefined;
+  label?: string | undefined;
   onBeforeOpen: () => Promise<void>;
 }) {
   const [opened, setOpened] = useState(false),
@@ -85,7 +89,7 @@ export function ShotListLauncher({
           }
         }}
       >
-        镜头列表
+        {label}
       </Button>
       {error && (
         <Text role="alert" size="xs">
@@ -106,6 +110,7 @@ export function ShotListLauncher({
               tenantId={tenantId}
               projectId={projectId}
               initialSceneId={sceneId}
+              initialShotId={initialShotId}
               sourceMediaId={source}
               transition={transition}
             />
@@ -120,12 +125,14 @@ function ShotListWorkspace({
   tenantId,
   projectId,
   initialSceneId,
+  initialShotId,
   sourceMediaId,
   transition,
 }: {
   tenantId: string;
   projectId: string;
   initialSceneId?: string | undefined;
+  initialShotId?: string | undefined;
   sourceMediaId?: string | undefined;
   transition: (next: () => void) => Promise<void>;
 }) {
@@ -134,7 +141,7 @@ function ShotListWorkspace({
   const project = useResource<Schema<"Project">>(path),
     content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const [sceneId, setSceneId] = useState(initialSceneId ?? ""),
-    [shotId, setShotId] = useState(""),
+    [shotId, setShotId] = useState(initialShotId ?? ""),
     [creating, setCreating] = useState(false);
   const tree = content.data;
   const scenes = [...(tree?.scenes ?? [])].sort((a, b) => {
