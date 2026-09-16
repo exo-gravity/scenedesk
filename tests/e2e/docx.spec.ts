@@ -224,3 +224,98 @@ test("CW-03: concurrent content change preserves Word preview and creates a new 
   expect(other.text).toBe("另一位作者更新的正文");
   expect(scripts.find((s) => s.number === 4)?.parentRevisionId).toBe(other.id);
 });
+
+test("CW-03 fault injection: an old delayed receipt cannot clear a replacement Word draft after navigation", async ({
+  page,
+  workspace: w,
+}) => {
+  await page.goto(`${w.runtime.origin}${w.basePath}/script`);
+  await page.locator('input[type="file"]').setInputFiles(initialFile);
+  await expect(
+    page.getByRole("button", { name: "确认导入为新版本", exact: true }),
+  ).toBeEnabled();
+  await page.route(`**${w.path}/scripts/import-docx`, async (route) => {
+    const response = await route.fetch();
+    expect(response.status()).toBe(201);
+    await route.abort("failed");
+  });
+  await page
+    .getByRole("button", { name: "确认导入为新版本", exact: true })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "连接中断" }),
+  ).toBeVisible();
+  let release!: () => void, observed!: () => void;
+  const held = new Promise<void>((resolve) => {
+      release = resolve;
+    }),
+    received = new Promise<void>((resolve) => {
+      observed = resolve;
+    });
+  await page.route(`**${w.path}/script-imports/*`, async (route) => {
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    observed();
+    await held;
+    await route.fulfill({ response });
+  });
+  await page
+    .getByRole("button", { name: "核对本次导入结果", exact: true })
+    .click();
+  await received;
+  await expect(
+    page.getByRole("button", { name: "放弃本次导入", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "确认导入为新版本", exact: true }),
+  ).toBeDisabled();
+  const navigation = page.getByRole("navigation", {
+    name: "项目导航",
+    exact: true,
+  });
+  await navigation.getByRole("link", { name: "项目资产", exact: true }).click();
+  await navigation.getByRole("link", { name: "剧本", exact: true }).click();
+  await page
+    .getByRole("button", { name: "恢复未提交内容", exact: true })
+    .click();
+  await page.getByRole("button", { name: "放弃本次导入", exact: true }).click();
+  await expect(
+    page.getByRole("region", { name: "Word 导入预览", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "导入 Word 初稿 / 更新版本",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  await page.locator('input[type="file"]').setInputFiles(updatedFile);
+  const preview = page.getByRole("region", {
+    name: "Word 导入预览",
+    exact: true,
+  });
+  await expect(preview.getByRole("article", readBody)).toContainText(
+    "林夏：钥匙在窗边。😀",
+  );
+  await expect(
+    page.getByText("修改已保存在本标签页，尚未提交。", { exact: true }),
+  ).toBeVisible();
+  const delivered = page.waitForResponse((response) =>
+    response.url().includes(`${w.path}/script-imports/`),
+  );
+  release();
+  await (await delivered).finished();
+  // User-visible navigation lets the old completion settle before re-opening the retained draft.
+  await navigation.getByRole("link", { name: "项目资产", exact: true }).click();
+  await navigation.getByRole("link", { name: "剧本", exact: true }).click();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "恢复未提交内容", exact: true })
+    .click();
+  await expect(
+    preview.getByText("updated-draft.docx", { exact: true }),
+  ).toBeVisible();
+  await expect(preview.getByRole("article", readBody)).toContainText(
+    "林夏：钥匙在窗边。😀",
+  );
+  expect((await w.scripts()).items).toHaveLength(3);
+});

@@ -305,16 +305,56 @@ function ScriptImport({
     [reading, setReading] = useState(false);
   const [checking, setChecking] = useState(false),
     [notSaved, setNotSaved] = useState(false);
-  const submissionLock = useRef(false);
-  const [stagingSubmission, setStagingSubmission] = useState(false);
+  const [busy, setBusy] = useState(false),
+    [submitting, setSubmitting] = useState(false),
+    [completed, setCompleted] = useState(false);
+  const operation = useRef<symbol | null>(null),
+    mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      operation.current = null;
+    };
+  }, []);
+  // A late response belongs to this mounted import intent, never to a draft
+  // restored or replaced by another instance at the same storage key.
+  const current = (token: symbol) =>
+    mounted.current && operation.current === token;
+  function begin() {
+    if (!mounted.current || operation.current || completed || draft.committed)
+      return null;
+    const token = Symbol();
+    operation.current = token;
+    setBusy(true);
+    return token;
+  }
+  function finish(token: symbol) {
+    if (!current(token)) return;
+    operation.current = null;
+    setBusy(false);
+  }
   const conflict = draft.baseVersion !== tree.revision;
+  function complete(token: symbol) {
+    if (!current(token)) return Promise.resolve();
+    return draft.complete(() => {
+      // Cleanup may be explicitly retried after a local storage error. The
+      // operation can end meanwhile, but this import instance must still own it.
+      if (!mounted.current) return;
+      setCompleted(true);
+      done();
+    });
+  }
   async function checkReceipt() {
+    const token = begin();
+    if (!token) return;
     setChecking(true);
     setError(undefined);
     try {
       const receipt = await api<Schema<"ScriptImportReceipt">>(
         `${path}/script-imports/${draft.value.importRequestId}`,
       );
+      if (!current(token)) return;
       if (receipt.found && receipt.script) {
         if (
           receipt.script.sha256 !== draft.value.preview?.sha256 ||
@@ -322,64 +362,75 @@ function ScriptImport({
           receipt.baseVersion !== draft.baseVersion
         )
           throw new Error("服务器回执与本机文件不一致，请核对历史版本。");
-        await draft.complete(done);
+        await complete(token);
       } else setNotSaved(true);
     } catch (error) {
-      setError(error as Error);
+      if (current(token)) setError(error as Error);
     } finally {
-      setChecking(false);
+      if (current(token)) setChecking(false);
+      finish(token);
     }
   }
   async function submit() {
-    if (submissionLock.current || !draft.value.preview) return;
-    submissionLock.current = true;
-    setStagingSubmission(true);
-    try {
-      if (!(await draft.stage({ ...draft.value, attempted: true }))) return;
-      commit.mutate(
-        {
-          path: `${path}/scripts/import-docx`,
-          body: {
-            fileName: draft.value.fileName,
-            data: draft.value.data,
-            previewSha256: draft.value.preview.sha256,
-            importRequestId: draft.value.importRequestId,
-          },
-          version: draft.baseVersion,
-        },
-        {
-          onCommitted: () => {
-            void draft.complete(done);
-          },
-        },
-      );
-    } finally {
-      submissionLock.current = false;
-      setStagingSubmission(false);
-    }
-  }
-  async function previewFile(value = draft.value) {
+    if (!draft.value.preview) return;
+    const token = begin();
+    if (!token) return;
+    setSubmitting(true);
     setError(undefined);
     try {
-      const result = await preview.mutateAsync({
-        path: `${path}/scripts/preview-docx`,
-        body: { fileName: value.fileName, data: value.data },
+      if (
+        !(await draft.stage({ ...draft.value, attempted: true })) ||
+        !current(token)
+      )
+        return;
+      await commit.mutateAsync({
+        path: `${path}/scripts/import-docx`,
+        body: {
+          fileName: draft.value.fileName,
+          data: draft.value.data,
+          previewSha256: draft.value.preview.sha256,
+          importRequestId: draft.value.importRequestId,
+        },
+        version: draft.baseVersion,
       });
-      await draft.stage({ ...value, preview: result });
+      await complete(token);
     } catch (error) {
-      setError(error as Error);
+      if (current(token)) setError(error as Error);
+    } finally {
+      if (current(token)) setSubmitting(false);
+      finish(token);
+    }
+  }
+  async function parseFile(value: ImportDraft, token: symbol) {
+    const result = await preview.mutateAsync({
+      path: `${path}/scripts/preview-docx`,
+      body: { fileName: value.fileName, data: value.data },
+    });
+    if (current(token)) await draft.stage({ ...value, preview: result });
+  }
+  async function previewFile() {
+    const token = begin();
+    if (!token) return;
+    setError(undefined);
+    try {
+      await parseFile(draft.value, token);
+    } catch (error) {
+      if (current(token)) setError(error as Error);
+    } finally {
+      finish(token);
     }
   }
   async function choose(file: File | null) {
     if (!file) return;
+    const token = begin();
+    if (!token) return;
     setError(undefined);
-    if (!/\.docx$/i.test(file.name) || file.size > 4 * 1024 * 1024) {
-      setError(new Error("请选择不超过 4 MB 的 .docx 文件。"));
-      return;
-    }
     setReading(true);
     try {
+      if (!/\.docx$/i.test(file.name) || file.size > 4 * 1024 * 1024)
+        throw new Error("请选择不超过 4 MB 的 .docx 文件。");
       const bytes = new Uint8Array(await file.arrayBuffer());
+      if (!current(token)) return;
       let binary = "";
       for (let offset = 0; offset < bytes.length; offset += 8192)
         binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
@@ -390,11 +441,43 @@ function ScriptImport({
         preview: null,
         attempted: false,
       };
-      if (await draft.stage(value)) await previewFile(value);
+      if ((await draft.stage(value)) && current(token))
+        await parseFile(value, token);
     } catch (error) {
-      setError(error as Error);
+      if (current(token)) setError(error as Error);
     } finally {
-      setReading(false);
+      if (current(token)) setReading(false);
+      finish(token);
+    }
+  }
+  async function abandon() {
+    const token = begin();
+    if (!token) return;
+    try {
+      if ((await draft.clear()) && current(token)) reset();
+    } finally {
+      finish(token);
+    }
+  }
+  async function rebase() {
+    const token = begin();
+    if (!token) return;
+    try {
+      const saved = await draft.stage(
+        {
+          ...draft.value,
+          importRequestId: crypto.randomUUID(),
+          attempted: false,
+        },
+        tree.revision,
+      );
+      if (saved && current(token)) {
+        setNotSaved(false);
+        commit.reset();
+        setError(undefined);
+      }
+    } finally {
+      finish(token);
     }
   }
   return (
@@ -402,7 +485,8 @@ function ScriptImport({
       {(draft.dirty || draft.recovered || draft.committed || draft.error) && (
         <DraftNotice draft={draft} />
       )}
-      {!draft.committed && (
+      {completed && <Text size="sm">导入已保存。</Text>}
+      {!draft.committed && !completed && (
         <>
           <Group>
             <FileButton
@@ -418,7 +502,7 @@ function ScriptImport({
                   disabled={
                     !draft.ready ||
                     !!draft.recovered ||
-                    commit.isPending ||
+                    busy ||
                     !!draft.value.fileName
                   }
                 >
@@ -439,12 +523,8 @@ function ScriptImport({
                 </div>
                 <Button
                   variant="subtle"
-                  disabled={reading || preview.isPending || commit.isPending}
-                  onClick={() => {
-                    void draft.clear().then((ok) => {
-                      if (ok) reset();
-                    });
-                  }}
+                  disabled={busy}
+                  onClick={() => void abandon()}
                 >
                   放弃本次导入
                 </Button>
@@ -453,7 +533,7 @@ function ScriptImport({
                 <Button
                   variant="default"
                   loading={preview.isPending}
-                  disabled={!draft.ready || !!draft.recovered || reading}
+                  disabled={!draft.ready || !!draft.recovered || busy}
                   onClick={() => void previewFile()}
                 >
                   重新解析预览
@@ -474,24 +554,8 @@ function ScriptImport({
                       <Button
                         mt="sm"
                         variant="default"
-                        disabled={!notSaved}
-                        onClick={() => {
-                          void draft
-                            .stage(
-                              {
-                                ...draft.value,
-                                importRequestId: crypto.randomUUID(),
-                                attempted: false,
-                              },
-                              tree.revision,
-                            )
-                            .then((ok) => {
-                              if (ok) {
-                                setNotSaved(false);
-                                commit.reset();
-                              }
-                            });
-                        }}
+                        disabled={!notSaved || busy}
+                        onClick={() => void rebase()}
                       >
                         已核对最新版本，继续导入
                       </Button>
@@ -502,9 +566,7 @@ function ScriptImport({
                       <Button
                         variant="default"
                         loading={checking}
-                        disabled={
-                          commit.isPending || !!draft.recovered || !draft.ready
-                        }
+                        disabled={busy || !!draft.recovered || !draft.ready}
                         onClick={() => void checkReceipt()}
                       >
                         核对本次导入结果
@@ -517,8 +579,11 @@ function ScriptImport({
                     </Group>
                   )}
                   <Button
-                    loading={commit.isPending || stagingSubmission}
+                    loading={
+                      busy && !checking && !reading && !preview.isPending
+                    }
                     disabled={
+                      busy ||
                       conflict ||
                       !draft.ready ||
                       !!draft.recovered ||
