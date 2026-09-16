@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { test as base, expect } from "@playwright/test";
 import { preview } from "vite";
 import type { components } from "@drama/contracts";
-import { buildApp } from "../../apps/api/src/app.js";
+import { buildApp, type BusinessOptions } from "../../apps/api/src/app.js";
 import { Secrets } from "../../apps/api/src/kernel/crypto.js";
 import { issueSession } from "../../apps/api/src/modules/identity/sessions.js";
 import { databaseFixture } from "../support/database.js";
@@ -15,7 +15,7 @@ type Session = Awaited<ReturnType<typeof issueSession>>;
 type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 /** Real production API and built Web, with isolated synthetic identity bootstrap. */
-export async function startWorkspaceRuntime() {
+export async function startWorkspaceRuntime(extra: Pick<BusinessOptions, "media"> = {}) {
   const databaseURL = process.env.DATABASE_URL;
   if (!databaseURL || !/^\/drama_e2e(?:_|$)/.test(new URL(databaseURL).pathname))
     throw new Error("E2E requires a dedicated drama_e2e or drama_e2e_* database");
@@ -28,7 +28,10 @@ export async function startWorkspaceRuntime() {
   const port = Number(process.env.SCENEDESK_E2E_PORT ?? 4461);
   if (!Number.isSafeInteger(port) || port < 1024 || port > 65535)
     throw new Error("SCENEDESK_E2E_PORT must be a non-privileged TCP port");
-  const origin = `http://127.0.0.1:${port}`;
+  const host = process.env.SCENEDESK_E2E_HOST ?? "127.0.0.1";
+  if (!["127.0.0.1", "::1"].includes(host))
+    throw new Error("E2E Web host must be an explicit loopback address");
+  const origin = `http://${host === "::1" ? "[::1]" : host}:${port}`;
   const cleanup: (() => void | Promise<void>)[] = [];
   let stopped = false;
   async function stop() {
@@ -44,7 +47,7 @@ export async function startWorkspaceRuntime() {
     const database = await databaseFixture({ after: (close) => { cleanup.push(close); } });
     const secret = randomBytes(32).toString("base64url"), secrets = new Secrets(secret);
     const app = buildApp(database.runtime, {
-      schema: database.schema, secret, origin, localIdentity: true,
+      schema: database.schema, secret, origin, localIdentity: true, ...extra,
     });
     cleanup.push(async () => {
       app.server.closeAllConnections();
@@ -55,7 +58,7 @@ export async function startWorkspaceRuntime() {
       configFile: false, root, logLevel: "error",
       build: { outDir: "dist" },
       preview: {
-        host: "127.0.0.1", port, strictPort: true,
+        host, port, strictPort: true,
         proxy: { "/v1": apiOrigin, "/health": apiOrigin, "/design": apiOrigin },
       },
     });
@@ -97,7 +100,7 @@ export async function startWorkspaceRuntime() {
 
 export type WorkspaceRuntime = Awaited<ReturnType<typeof startWorkspaceRuntime>>;
 
-async function seedWorkspace(runtime: WorkspaceRuntime) {
+export async function seedWorkspace(runtime: WorkspaceRuntime) {
   const owner = await runtime.identity("owner");
   const command = <T>(method: Method, path: string, body?: unknown, revision?: number) =>
     runtime.command<T>(owner, method, path, body, revision);

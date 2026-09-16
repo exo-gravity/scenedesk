@@ -1,6 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Alert, Button, Group, Text } from "@mantine/core";
 import { useSession } from "./api";
+
+/** Optional view barrier: existing content editors keep their original behavior. */
+export const ContentDraftRetention = createContext<
+  ((retain: () => Promise<void>) => () => void) | undefined
+>(undefined);
 
 type LocalDraft<T> = { value: T; baseVersion: number; savedAt: string };
 const receiptKey = (key: string) => `scenedesk-draft-committed:${key}`;
@@ -275,6 +280,68 @@ export function useContentDraft<T>(
       return false;
     }
   };
+  const registerRetention = useContext(ContentDraftRetention);
+  const retentionSnapshot = useRef({
+    key,
+    ready,
+    recovered,
+    dirty,
+    value,
+    baseVersion,
+    completion,
+  });
+  retentionSnapshot.current = {
+    key,
+    ready,
+    recovered,
+    dirty,
+    value,
+    baseVersion,
+    completion,
+  };
+  useEffect(
+    () =>
+      registerRetention?.(async () => {
+        // Retain accepted input without setting an older value back into the editor.
+        // A late keystroke must be drained as well before its view can disappear.
+        for (;;) {
+          const current = retentionSnapshot.current;
+          if (
+            current.recovered ||
+            current.completion !== "idle" ||
+            !current.dirty
+          )
+            return;
+          if (!current.key || !current.ready || !active.current)
+            throw new Error("输入尚未准备好保留，请稍后重试。");
+          const write = queue.current.then(() =>
+            storage(current.key!, {
+              value: {
+                value: current.value,
+                baseVersion: current.baseVersion,
+                savedAt: new Date().toISOString(),
+              },
+            }),
+          );
+          queue.current = write.then(() => {}).catch(() => {});
+          try {
+            await write;
+          } catch {
+            setError(true);
+            throw new Error("输入未能保留到本机，请先重试本地保存。");
+          }
+          if (
+            retentionSnapshot.current.value === current.value &&
+            retentionSnapshot.current.baseVersion === current.baseVersion
+          ) {
+            setSaved(true);
+            setError(false);
+            return;
+          }
+        }
+      }),
+    [registerRetention],
+  );
   return {
     value,
     setValue,

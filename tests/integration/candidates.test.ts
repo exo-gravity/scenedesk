@@ -441,6 +441,9 @@ test("fixed video candidates and append-only adoption remain distinct from shot 
   await t.test(
     "tenant membership alone cannot read private candidates or replay cached creation",
     async () => {
+      // Restore the parent for this separate authorization test. Archived parents
+      // now reject creation before the idempotent response can be replayed.
+      scene = await f.ok("PUT", `${f.path}/scenes/${scene.id}`, sceneInput, scene.revision);
       const member = await f.identity("member");
       const invitation = await f.ok(
         "POST",

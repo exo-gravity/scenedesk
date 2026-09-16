@@ -24,6 +24,7 @@ export function CandidateEditor({
   media,
   active,
   source,
+  presentation = "full",
   onClose,
   onCreated,
 }: {
@@ -33,6 +34,7 @@ export function CandidateEditor({
   media: Schema<"Media">;
   active: boolean;
   source?: Schema<"Take"> | undefined;
+  presentation?: "full" | "list";
   onClose: () => void;
   onCreated: (take: Schema<"Take">) => void;
 }) {
@@ -116,9 +118,11 @@ export function CandidateEditor({
             {media.displayName} · {sourceSeconds(media.durationUs ?? 0)} 秒
           </Text>
           <Text size="sm">
-            固定要求{" "}
+            {presentation === "list" ? "镜头要求：" : "固定要求 "}
             {fixed.data
-              ? `v${fixed.data.number}：${fixed.data.spec.intent}`
+              ? presentation === "list"
+                ? fixed.data.spec.intent
+                : `v${fixed.data.number}：${fixed.data.spec.intent}`
               : "读取中…"}
           </Text>
           {changed && (
@@ -181,8 +185,9 @@ export function CandidateEditor({
               />
             </Group>
             <Text size="xs" c="dimmed">
-              最多 6
-              位小数；区间包含入点、不包含出点。代理播放用于核对，精确制作副本将在剪辑时生成。
+              {presentation === "list"
+                ? "填写原视频中的开始与结束时间。下载仍为完整原片。"
+                : "最多 6 位小数；区间包含入点、不包含出点。代理播放用于核对，精确制作副本将在剪辑时生成。"}
             </Text>
             {!valid && (
               <Text role="alert" c="var(--ws-danger)">
@@ -226,12 +231,14 @@ export function SelectionEditor({
   shot,
   take,
   active,
+  presentation = "full",
   onClose,
 }: {
   path: string;
   shot: Schema<"Shot">;
   take?: Schema<"Take"> | undefined;
   active: boolean;
+  presentation?: "full" | "list";
   onClose: () => void;
 }) {
   const cache = useQueryClient(),
@@ -256,7 +263,9 @@ export function SelectionEditor({
           ? `采用候选 ${take.id.slice(0, 8)}，区间 ${sourceSeconds(take.range.inUs)}–${sourceSeconds(take.range.outUs)} 秒。`
           : "清除本镜当前采用，保留所有候选与决定历史。"}
       </Text>
-      <Text size="sm">此操作记录本镜偏好；不表示审阅通过。</Text>
+      {presentation === "full" && (
+        <Text size="sm">此操作记录本镜偏好；不表示审阅通过。</Text>
+      )}
       <ErrorNotice
         error={save.error ?? current.error}
         retry={() =>
@@ -265,9 +274,9 @@ export function SelectionEditor({
       />
       {current.data && (
         <Text size="sm">
-          服务器当前采用：
-          {current.data.currentSelection?.takeId?.slice(0, 8) ?? "尚未采用"} ·
-          修改版本 {current.data.revision}
+          {presentation === "list" ? "当前选用：" : "服务器当前采用："}
+          {current.data.currentSelection?.takeId?.slice(0, 8) ?? "尚未采用"}
+          {presentation === "full" && ` · 修改版本 ${current.data.revision}`}
         </Text>
       )}
       {obsolete && <Alert>候选绑定旧要求，请关闭后核对沿用到当前要求。</Alert>}
