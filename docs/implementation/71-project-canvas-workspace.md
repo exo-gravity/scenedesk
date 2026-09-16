@@ -15,8 +15,12 @@
 - 已运行 `npm run check`：契约、UI、类型、生产构建及 240 项单元测试通过。本机最终生产构建通过，远端主 verify 已完成 npm check 并进入数据库验证。
 - 新项目画布数据库集成：零集零场、并发唯一创建、重开内容、固定历史、CAS 冲突、跨项目／外部身份拒绝、个人偏好隔离、撤权后的缓存回放拒绝、归档后新建与缓存回放拒绝、归档后的个人浏览位置保存。两个完整专项顶层用例及追加断言通过。
 - 项目草稿生成固定计划及项目助手固定节点上下文通过真实 API／受限 PostgreSQL 角色验证，技术 fixture worker 完成助手任务；旧场次助手 scope 保持原样。既有场次画布 10 项集成回归通过。
-- 生产构建浏览器、完整数据库回归及远端主 CI 正在验收，尚未标记通过；远端 isolated recovery 和 deployment 已通过。隔离 synthetic 预览与接口 fixture 不代表真实模型、真实团队或真实用户数据验收。
+- 根任务用 CUA 验收实际生产构建：零场次创建画布；文字保存；侧栏离开／返回与刷新恢复；图片草稿准备固定 32×32 计划，明确确认执行，fixture worker 完成并归档媒体，浏览器图片 `complete` 且 `naturalWidth=32`，确认添加独立结果节点，刷新后原草稿与蓝图结果同时存在；Local Demo 助手消息与 worker 回复完成。最终场次目录仍为零集、零场、零镜。截图在主工作目录 `output/playwright/2026-09-16-project-canvas-manual/result-after-refresh.png`。这些是隔离 synthetic 数据和明确 fixture 模型，不代表真实模型、真实团队或真实用户数据验收。
+- 自动化沿用 PR #43 的真实生产 Web／受限角色 API 基础，适配旧场次入口并新增 3 项项目画布用例：两标签创建同一零场次项目画布，文字、助手未发输入和视口经导航／刷新恢复；归档只读与服务端写拒绝；协作者撤权后不显示缓存项目画布且 API 拒绝读取。共 10 项 E2E，远端运行结果待最终 head 核验，未预先标记通过。
+- 本机完整数据库运行 318 项，316 通过、1 个真实失败及其外层套件失败：20 轮对话历史在 `generation_plans` INSERT 的 `guard_discussion_plan → canvas_discussion_history → canvas_assistance_reply_snapshot → project_role` 路径触发既有 10 秒 statement timeout。原样单独重跑 `canvas-discussion.test.ts` 16 项全部通过（214.96 秒）；未放宽数据库或测试超时。该次本机并行运行不记为全套通过；最终远端数据库、媒体和 E2E 仍以同一 PR head 的 CI 为准。
 
 初次隔离预览在 Canvas 初始化时暴露配置缺口：未代理 `/design/openapi.json`，编辑器收到 HTML 而非契约 JSON。已补代理并重建隔离预览继续验收；该检查是实际 CanvasBoard 初始化，不以入口外壳可见替代。第二次本机 MinIO 权限 fixture 初始化超时，失败容器已清理；重试只延长本机预览启动等待，未改变正式测试断言或超时。
+
+已记录的体验后续项：1280×720 视口中，部分节点内模型编辑操作在视口底部之外，专注编辑仍可完成；后续连续创作切片需改进编辑器放置和操作可见性。本次不把项目 scope 扩展混为节点布局重做。
 
 运行日志保存在本机 `output/implementation/2026-09-16-project-canvas/`；测试数据库使用独立随机 schema 和受限角色，不修改共享业务演示数据。没有付费模型调用。
