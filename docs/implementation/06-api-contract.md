@@ -40,6 +40,10 @@ scope=project 必须有 projectId；scope=shared 必须省略。路径、正文�
 
 镜头列表原片下载使用 `POST /projects/{projectId}/shots/{shotId}/selection/download`，必须携带点击时固定的 `selectionId`。每次申请（含同键重试）均重新鉴权并核对当前选用，变化时返回 `409 SELECTION_CHANGED`，不代换下载对象；返回固定 Take、Media、区间及完整原件短时授权。候选区间不代表文件已裁剪。原有短时授权固定原媒体，到期失效；归档后的历史选用仍可由有权成员读取。见[镜头整理实现](76-shot-list-workspace.md)。
 
+镜头列表的本场批量原片交接使用 `GET /projects/{projectId}/scenes/{sceneId}/selected-delivery` 读取固定清单，再以 `POST .../selected-delivery/download` 提交确认票据并下载 ZIP。只包含未归档镜头的明确选用；无选用／归档项的数量随清单列出。确认绑定用户、项目、场次及实际顺序、镜头说明、Selection、Take、固定 Media 对象版本。准备前后分别重查当前授权和清单，变化返回 `409 DELIVERY_CHANGED`，不替换成新选择。该 POST 是只读文件下载，不创建资源或业务副作用，不适用业务创建的 Idempotency-Key 回执；每次重试仍重新检查当前权限与清单。票据 15 分钟到期，不是访问授权，且不能跨用户或项目复用。
+
+交接 ZIP 含完整原片、CSV 和 JSON 清单，不包含存储 key、签名 URL 或凭据；每份原件由服务端按固定对象版本、字节及 SHA-256 验证。仅在全部原件和 ZIP 完成并通过最终权限／身份核对后发送文件；中断、原件失败或变化返回错误，客户端收全并核对 Content-Length 后才触发浏览器保存，不宣称磁盘保存成功。每包最多 100 片、合计 256 MiB、单片 256 MiB，准备最长 180 秒（单原件下载最多 60 秒），完成包的响应传输最多 120 秒，每用户同进程一包、每进程最多两包；超限引导分场或单片下载。取消、失败和响应关闭均清理本次临时文件。归档上级拒绝新批量交接，原有单镜头历史下载仍保留。本入口复用既有固定选用事实，不产生 Delivery 审批／成片状态，也不改变后置的完整 DeliveryManifest 契约。
+
 ## 3. 剧本、状态和输入解析
 
 **文本范围。** TextRange 使用固定 ScriptRevision.text 内 Unicode 码点偏移，[startOffset,endOffset)，不是字节、行号或媒体微秒。ScriptExcerpt.quote 必须与原文完全匹配；服务端与浏览器使用一致的码点计数。script_analysis 必须带 sourceScriptRevisionId＋scriptRange，只分析选区及明确显示的所需上下文，不能暗中发送整剧。

@@ -528,6 +528,19 @@ route("get","/projects/{projectId}/shots/{shotId}/selection","getSelection","PR-
 schema("SelectedTakeDownloadInput", {"selectionId": ID}, ["selectionId"])
 schema("SelectedTakeDownload", {"selectionId": ID, "take": ref("Take"), "media": ref("Media"), "access": ref("AccessGrant")}, ["selectionId", "take", "media", "access"])
 route("post","/projects/{projectId}/shots/{shotId}/selection/download","downloadSelectedTake","PR-09","核对当前固定采用后下载完整原视频，候选区间随结果返回","SelectedTakeDownload","SelectedTakeDownloadInput",code=200)
+schema("SelectedDeliveryEntry", {"order":POS,"shotId":ID,"shotLabel":NAME,"shotRevisionId":ID,"intent":TEXT,"selectionId":ID,"selectionReason":TEXT,"takeId":ID,"takeNote":TEXT,"mediaId":ID,"fileName":NAME,"originalFileName":NAME,"bytes":POS,"sha256":string(pattern="^[0-9a-f]{64}$"),"range":ref("Range")}, ["order","shotId","shotLabel","shotRevisionId","intent","selectionId","selectionReason","takeId","takeNote","mediaId","fileName","originalFileName","bytes","sha256","range"])
+schema("SelectedDeliveryManifest", {"format":enum("scenedesk_selected_originals_v1"),"projectId":ID,"projectName":NAME,"sceneId":ID,"sceneTitle":NAME,"episodeTitle":NAME,"entries":arr(ref("SelectedDeliveryEntry"),minItems=1,maxItems=100),"unselectedCount":INT,"archivedCount":INT,"totalBytes":POS}, ["format","projectId","projectName","sceneId","sceneTitle","episodeTitle","entries","unselectedCount","archivedCount","totalBytes"])
+schema("SelectedDeliveryPreview", {"manifest":ref("SelectedDeliveryManifest"),"ticket":string(minLength=1,maxLength=2048),"expiresAt":TIME}, ["manifest","ticket","expiresAt"])
+schema("SelectedDeliveryDownload", {"ticket":string(minLength=1,maxLength=2048)}, ["ticket"])
+route("get","/projects/{projectId}/scenes/{sceneId}/selected-delivery","previewSelectedDelivery","PR-09","预览本场未归档镜头的固定选用原片交接清单","SelectedDeliveryPreview")
+route("post","/projects/{projectId}/scenes/{sceneId}/selected-delivery/download","downloadSelectedDelivery","PR-09","重核权限与预览清单后下载完整原片及顺序区间清单 ZIP",request="SelectedDeliveryDownload",code=200)
+delivery_response=paths[PREFIX+"/projects/{projectId}/scenes/{sceneId}/selected-delivery/download"]["post"]["responses"]["200"]
+delivery_response["content"]={"application/zip":{"schema":string(format="binary")}}
+delivery_response["headers"]={"Content-Disposition":{"schema":string()},"Content-Length":{"schema":INT}}
+delivery_operation=paths[PREFIX+"/projects/{projectId}/scenes/{sceneId}/selected-delivery/download"]["post"]
+delivery_operation["parameters"]=[p for p in delivery_operation["parameters"] if p.get("$ref")!="#/components/parameters/IdempotencyKey"]
+delivery_operation["description"] += " 这是读取原片的下载操作，不创建业务资源，不使用业务创建幂等回执。每次请求重新验证票据、权限与固定清单；票据不代替权限。"
+delivery_operation["x-read-only-download"] = True
 route("get","/projects/{projectId}/shots/{shotId}/selections","listSelections","PR-09","读取采用与清除历史",page("Selection"),listing=True)
 route("put","/projects/{projectId}/shots/{shotId}/selection","selectTake","PR-09","采用候选，不自动改剪辑","Selection","SelectionInput",cas=True)
 route("delete","/projects/{projectId}/shots/{shotId}/selection","clearSelection","PR-09","清除当前采用并保留历史","Selection",cas=True)

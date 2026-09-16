@@ -95,6 +95,8 @@
 | PR-09 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/takes/{takeId}` | `getTake` | `project_member` |
 | PR-09 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selection` | `getSelection` | `project_member` |
 | PR-09 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selection/download` | `downloadSelectedTake` | `project_member` |
+| PR-09 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/selected-delivery` | `previewSelectedDelivery` | `project_member` |
+| PR-09 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/selected-delivery/download` | `downloadSelectedDelivery` | `project_member` |
 | PR-09 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selections` | `listSelections` | `project_member` |
 | PR-09 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selection` | `selectTake` | `project_member` |
 | PR-09 | DELETE | `/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selection` | `clearSelection` | `project_member` |
