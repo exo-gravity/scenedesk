@@ -45,6 +45,7 @@ function clean(controller: CanvasController) {
   );
 }
 export function CanvasShotConnections({
+  tenantId,
   path,
   sceneId,
   controller,
@@ -59,6 +60,7 @@ export function CanvasShotConnections({
   seed,
   place,
 }: {
+  tenantId: string;
   path: string;
   sceneId: string;
   controller: CanvasController;
@@ -153,7 +155,7 @@ export function CanvasShotConnections({
                   定位镜头节点
                 </Button>
                 <ShotListLauncher
-                  tenantId={canvas.tenantId}
+                  tenantId={tenantId}
                   projectId={canvas.projectId}
                   sceneId={sceneId}
                   initialShotId={shot.id}

@@ -1214,6 +1214,7 @@ export function SceneCanvasSession({
                   </Button>
                   {sceneId && connections.data && content.data ? (
                     <CanvasShotConnections
+                      tenantId={tenantId}
                       path={path}
                       sceneId={sceneId}
                       controller={controller}
