@@ -31,7 +31,7 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       context.secrets,
       "listScripts",
       input.query,
-      "SELECT id,project_id,number,revision,text,parent_revision_id,source_format,file_name,sha256,created_at FROM script_revisions WHERE tenant_id=$1 AND project_id=$2",
+      "SELECT id,project_id,number,revision,text,parent_revision_id,source_format,file_name,sha256,source,created_at FROM script_revisions WHERE tenant_id=$1 AND project_id=$2",
       [tx.tenantId, tx.projectId],
       contentRecord<Schema<"ScriptRevision">>,
     ),

@@ -158,7 +158,37 @@ export async function grantRuntimeAccess(
     `GRANT INSERT(tenant_id,actor_id,creation_request_id,request_hash,project_id) ON ${scope}.project_creation_requests TO ${target}`,
   );
   await client.query(
-    `GRANT SELECT, INSERT ON ${["tenants", "memberships", "invitations", "projects", "project_memberships", "productions", "project_content_versions", "idempotency_records", "script_revisions", "script_originals", "episodes", "scenes", "shots", "shot_revisions", "shot_source_shots", "shot_source_scripts", "dialogue_lines", "analysis_proposals", "analysis_proposal_revisions", "proposal_applications", "creative_subjects", "creative_basis_revisions", "creative_confirmations", "creative_current_confirmations", "production_tasks", "production_task_revisions"].map((t) => `${scope}.${t}`).join(", ")} TO ${target}`,
+    `GRANT SELECT, INSERT ON ${[
+      "tenants",
+      "memberships",
+      "invitations",
+      "projects",
+      "project_memberships",
+      "productions",
+      "project_content_versions",
+      "idempotency_records",
+      "script_revisions",
+      "script_originals",
+      "feishu_script_imports",
+      "episodes",
+      "scenes",
+      "shots",
+      "shot_revisions",
+      "shot_source_shots",
+      "shot_source_scripts",
+      "dialogue_lines",
+      "analysis_proposals",
+      "analysis_proposal_revisions",
+      "proposal_applications",
+      "creative_subjects",
+      "creative_basis_revisions",
+      "creative_confirmations",
+      "creative_current_confirmations",
+      "production_tasks",
+      "production_task_revisions",
+    ]
+      .map((t) => `${scope}.${t}`)
+      .join(", ")} TO ${target}`,
   );
   for (const [table, columns] of Object.entries({
     tenants: "name, revision, updated_at",
@@ -167,6 +197,8 @@ export async function grantRuntimeAccess(
     projects: "name, spec, status, revision, updated_at",
     productions:
       "title, brief, default_asset_revision_ids, revision, updated_at",
+    feishu_script_imports:
+      "state, document_id, title, observed_revision, ticket, lease_token, lease_until, next_poll_at, error_code, error_message, bytes, text, document, file_name, sha256, fetched_at",
     project_content_versions: "revision, current_script_revision_id",
     analysis_proposals: "revision, status, import_fingerprint, updated_at",
     creative_current_confirmations: "confirmation_id",
@@ -182,7 +214,7 @@ export async function grantRuntimeAccess(
       `GRANT UPDATE (${columns}) ON ${scope}.${table} TO ${target}`,
     );
   await client.query(
-    `GRANT DELETE ON ${scope}.project_memberships, ${scope}.idempotency_records TO ${target}`,
+    `GRANT DELETE ON ${scope}.project_memberships, ${scope}.idempotency_records, ${scope}.feishu_script_imports TO ${target}`,
   );
   await client.query(
     `GRANT SELECT, INSERT ON ${scope}.audit_events TO ${target}`,

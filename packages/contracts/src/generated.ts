@@ -516,6 +516,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取项目飞书配置状态
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getFeishuImportAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 准备本人私有的飞书文档读取
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["createFeishuImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 恢复本人固定飞书预览
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getFeishuImport"];
+        put?: never;
+        post?: never;
+        /**
+         * 放弃本人尚未导入的读取
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        delete: operations["deleteFeishuImport"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}/advance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 继续有界官方导出，不重复未知提交
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["advanceFeishuImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 重核源权限并确认同一固定预览
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["confirmFeishuImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/scripts/{revisionId}": {
         parameters: {
             query?: never;
@@ -2943,6 +3047,7 @@ export interface components {
             fileName?: string;
             sha256?: string;
             document?: components["schemas"]["ScriptDocument"];
+            source?: components["schemas"]["FeishuScriptSource"];
         };
         ScriptDocumentBlock: {
             /** @enum {string} */
@@ -2986,6 +3091,60 @@ export interface components {
             fileName: string;
             data: string;
             sha256: string;
+        };
+        FeishuScriptSource: {
+            /** @enum {string} */
+            provider: "feishu";
+            /** Format: uuid */
+            previewId: string;
+            sourceUrl: string;
+            /** @enum {string} */
+            sourceKind: "docx" | "wiki";
+            documentId: string;
+            title: string;
+            observedRevision: number;
+            /** Format: date-time */
+            fetchedAt: string;
+            /** Format: date-time */
+            permissionCheckedAt: string;
+            /** @enum {string} */
+            accessMode: "team_application";
+        };
+        FeishuImportAvailability: {
+            configured: boolean;
+            projectBound: boolean;
+            message: string;
+        };
+        FeishuImportCreate: {
+            /** Format: uuid */
+            requestId: string;
+            sourceUrl: string;
+        };
+        FeishuImportState: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            state: "pending" | "creating" | "exporting" | "ready" | "failed" | "unknown" | "expired";
+            sourceUrl: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            nextPollAt: string;
+            errorCode?: string;
+            errorMessage?: string;
+            preview?: components["schemas"]["ScriptDocumentPreview"];
+            title?: string;
+            /** Format: date-time */
+            fetchedAt?: string;
+            observedRevision?: number;
+        };
+        FeishuImportAdvance: Record<string, never>;
+        FeishuImportConfirm: {
+            /** Format: uuid */
+            importRequestId: string;
+            previewSha256: string;
         };
         ScriptInput: {
             text: string;
@@ -6434,6 +6593,225 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScriptImportReceipt"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getFeishuImportAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeishuImportAvailability"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    createFeishuImport: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeishuImportCreate"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeishuImportState"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getFeishuImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeishuImportState"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    deleteFeishuImport: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    advanceFeishuImport: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeishuImportAdvance"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeishuImportState"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    confirmFeishuImport: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeishuImportConfirm"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScriptRevision"];
                 };
             };
             400: components["responses"]["Problem"];

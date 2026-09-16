@@ -2580,6 +2580,513 @@
         "x-requirement": "PR-03"
       }
     },
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/availability": {
+      "get": {
+        "operationId": "getFeishuImportAvailability",
+        "tags": [
+          "PR-03"
+        ],
+        "summary": "读取项目飞书配置状态",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuImportAvailability"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-03"
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports": {
+      "post": {
+        "operationId": "createFeishuImport",
+        "tags": [
+          "PR-03"
+        ],
+        "summary": "准备本人私有的飞书文档读取",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuImportState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-03",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuImportCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}": {
+      "get": {
+        "operationId": "getFeishuImport",
+        "tags": [
+          "PR-03"
+        ],
+        "summary": "恢复本人固定飞书预览",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "importId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuImportState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-03"
+      },
+      "delete": {
+        "operationId": "deleteFeishuImport",
+        "tags": [
+          "PR-03"
+        ],
+        "summary": "放弃本人尚未导入的读取",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "importId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "成功"
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-03"
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}/advance": {
+      "post": {
+        "operationId": "advanceFeishuImport",
+        "tags": [
+          "PR-03"
+        ],
+        "summary": "继续有界官方导出，不重复未知提交",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "importId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuImportState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-03",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuImportAdvance"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}/confirm": {
+      "post": {
+        "operationId": "confirmFeishuImport",
+        "tags": [
+          "PR-03"
+        ],
+        "summary": "重核源权限并确认同一固定预览",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "importId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptRevision"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-03",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuImportConfirm"
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/tenants/{tenantId}/projects/{projectId}/scripts/{revisionId}": {
       "get": {
         "operationId": "getScriptRevision",
@@ -15790,6 +16297,9 @@
           },
           "document": {
             "$ref": "#/components/schemas/ScriptDocument"
+          },
+          "source": {
+            "$ref": "#/components/schemas/FeishuScriptSource"
           }
         },
         "required": [
@@ -16004,6 +16514,206 @@
           "fileName",
           "data",
           "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "FeishuScriptSource": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "feishu"
+            ]
+          },
+          "previewId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "docx",
+              "wiki"
+            ]
+          },
+          "documentId": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "observedRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "fetchedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "permissionCheckedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "accessMode": {
+            "type": "string",
+            "enum": [
+              "team_application"
+            ]
+          }
+        },
+        "required": [
+          "provider",
+          "previewId",
+          "sourceUrl",
+          "sourceKind",
+          "documentId",
+          "title",
+          "observedRevision",
+          "fetchedAt",
+          "permissionCheckedAt",
+          "accessMode"
+        ],
+        "additionalProperties": false
+      },
+      "FeishuImportAvailability": {
+        "type": "object",
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "projectBound": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "configured",
+          "projectBound",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "FeishuImportCreate": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "requestId",
+          "sourceUrl"
+        ],
+        "additionalProperties": false
+      },
+      "FeishuImportState": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "creating",
+              "exporting",
+              "ready",
+              "failed",
+              "unknown",
+              "expired"
+            ]
+          },
+          "sourceUrl": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextPollAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errorCode": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "errorMessage": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ScriptDocumentPreview"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "fetchedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "observedRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "sourceUrl",
+          "createdAt",
+          "expiresAt",
+          "nextPollAt"
+        ],
+        "additionalProperties": false
+      },
+      "FeishuImportAdvance": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "FeishuImportConfirm": {
+        "type": "object",
+        "properties": {
+          "importRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "previewSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "importRequestId",
+          "previewSha256"
         ],
         "additionalProperties": false
       },

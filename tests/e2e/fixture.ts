@@ -1,3 +1,4 @@
+import { feishuFixture } from "../support/feishu.js";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
@@ -43,8 +44,9 @@ export async function startWorkspaceRuntime() {
   try {
     const database = await databaseFixture({ after: (close) => { cleanup.push(close); } });
     const secret = randomBytes(32).toString("base64url"), secrets = new Secrets(secret);
+    const feishu = feishuFixture();
     const app = buildApp(database.runtime, {
-      schema: database.schema, secret, origin, localIdentity: true,
+      schema: database.schema, secret, origin, localIdentity: true, feishu:feishu.services,
     });
     cleanup.push(async () => {
       app.server.closeAllConnections();
@@ -88,7 +90,7 @@ export async function startWorkspaceRuntime() {
         `Synthetic fixture ${method} ${path}: ${JSON.stringify(result.value)}`);
       return result.value;
     }
-    return { origin, database, identity, request, command, stop };
+    return { origin, database, identity, request, command, stop, feishu };
   } catch (error) {
     await stop();
     throw error;

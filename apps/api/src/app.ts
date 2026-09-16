@@ -1,3 +1,5 @@
+import { feishuScriptRoutes } from "./modules/content/feishu/routes.js";
+import type { FeishuServices } from "./modules/content/feishu/client.js";
 import { canvasGenerationRoutes } from "./modules/generation/canvas-generation.js";
 import { canvasApplicationRoutes } from "./modules/generation/canvas-applications.js";
 import { assistanceArtifactRoutes } from "./modules/generation/artifacts.js";
@@ -34,6 +36,7 @@ export type BusinessOptions = {
   schema?: string;
   localIdentity?: boolean;
   media?: MediaServices;
+  feishu?: FeishuServices;
   auth?: { pool: Pool; config: Configuration };
 };
 
@@ -66,6 +69,10 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     invitationRoutes(app, context);
     projectRoutes(app, context);
     contentRoutes(app, context);
+    feishuScriptRoutes(app, {
+      ...context,
+      ...(business.feishu ? { feishu: business.feishu } : {}),
+    });
     const generationContext = {
       ...context,
       ...(business.media ? { media: business.media } : {}),
