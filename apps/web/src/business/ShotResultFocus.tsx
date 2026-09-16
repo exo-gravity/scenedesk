@@ -108,6 +108,7 @@ export function ShotResultFocus({
       )}
       {adding && source.data?.kind === "video" && !source.error ? (
         <CandidateEditor
+          presentation="list"
           path={path}
           mediaPath={mediaPath}
           shot={shot}
@@ -211,6 +212,7 @@ export function ShotResultFocus({
           {decision && (
             <section className={classes.confirmation} aria-label="确认镜头选用">
               <SelectionEditor
+                presentation="list"
                 key={decision.take?.id ?? "clear"}
                 path={path}
                 shot={fixedShot}

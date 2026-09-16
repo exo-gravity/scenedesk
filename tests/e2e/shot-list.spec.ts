@@ -40,6 +40,9 @@ test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly sele
   await dialog
     .getByRole("button", { name: "从所选画布视频建立候选", exact: true })
     .click();
+  await expect(
+    dialog.getByText(/固定要求.*v[0-9]|精确制作副本|剪辑时生成/),
+  ).toHaveCount(0);
   await dialog
     .getByRole("textbox", { name: "入点（秒）", exact: true })
     .fill("0.5");
@@ -60,6 +63,9 @@ test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly sele
   await dialog
     .getByRole("button", { name: "选用当前预览…", exact: true })
     .click();
+  await expect(dialog.getByText(/修改版本 [0-9]|不表示审阅通过/)).toHaveCount(
+    0,
+  );
   await dialog
     .getByRole("textbox", { name: "采用理由（可选）", exact: true })
     .fill("这版动作更清楚。");
@@ -148,6 +154,9 @@ test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly sele
   await expect(
     dialog.getByRole("button", { name: "保存镜头顺序", exact: true }),
   ).toBeDisabled();
+  await expect(
+    dialog.getByRole("heading", { name: "01 推门", exact: true }),
+  ).toBeVisible();
   expect(
     (await w.content()).shots
       .sort((a, b) => a.position - b.position)

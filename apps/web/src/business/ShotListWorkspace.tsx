@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -136,6 +136,21 @@ function ShotListWorkspace({
   const [sceneId, setSceneId] = useState(initialSceneId ?? ""),
     [shotId, setShotId] = useState(""),
     [creating, setCreating] = useState(false);
+  const tree = content.data;
+  const scenes = [...(tree?.scenes ?? [])].sort((a, b) => {
+    const ea = tree?.episodes.find((e) => e.id === a.episodeId),
+      eb = tree?.episodes.find((e) => e.id === b.episodeId);
+    return (ea?.position ?? 0) - (eb?.position ?? 0) || a.position - b.position;
+  });
+  const scene = scenes.find((s) => s.id === sceneId) ?? scenes[0];
+  const episode = tree?.episodes.find((e) => e.id === scene?.episodeId);
+  const shots = (tree?.shots ?? [])
+    .filter((s) => s.sceneId === scene?.id)
+    .sort((a, b) => a.position - b.position);
+  const shot = shots.find((s) => s.id === shotId) ?? shots[0];
+  useEffect(() => {
+    if (shot && shotId !== shot.id) setShotId(shot.id);
+  }, [shot?.id, shotId]);
   if (project.isError || content.isError)
     return (
       <ErrorNotice
@@ -146,20 +161,7 @@ function ShotListWorkspace({
         }}
       />
     );
-  if (!project.data || !content.data)
-    return <Loader aria-label="正在读取镜头列表" />;
-  const tree = content.data;
-  const scenes = [...tree.scenes].sort((a, b) => {
-    const ea = tree.episodes.find((e) => e.id === a.episodeId),
-      eb = tree.episodes.find((e) => e.id === b.episodeId);
-    return (ea?.position ?? 0) - (eb?.position ?? 0) || a.position - b.position;
-  });
-  const scene = scenes.find((s) => s.id === sceneId) ?? scenes[0];
-  const episode = tree.episodes.find((e) => e.id === scene?.episodeId);
-  const shots = tree.shots
-    .filter((s) => s.sceneId === scene?.id)
-    .sort((a, b) => a.position - b.position);
-  const shot = shots.find((s) => s.id === shotId) ?? shots[0];
+  if (!project.data || !tree) return <Loader aria-label="正在读取镜头列表" />;
   const active =
     project.data.status === "active" &&
     scene?.status === "active" &&
