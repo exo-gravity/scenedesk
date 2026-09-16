@@ -1,16 +1,17 @@
 import { ScriptCanvasExcerpt } from "./ScriptCanvasExcerpt";
+import { DocumentBody, Warnings } from "./ScriptDocumentBody";
+export { DocumentBody, Warnings } from "./ScriptDocumentBody";
+import { FeishuScriptImport } from "./FeishuScriptImport";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
   FileButton,
   Group,
-  Image,
   Loader,
   Menu,
   Select,
   Stack,
-  Table,
   Text,
 } from "@mantine/core";
 import {
@@ -42,84 +43,6 @@ const empty: ImportDraft = {
   preview: null,
   attempted: false,
 };
-function DocumentBody({
-  document,
-  text,
-}: {
-  document?: Schema<"ScriptDocument"> | undefined;
-  text: string;
-}) {
-  return (
-    <article className={classes.paper} aria-label="剧本阅读正文">
-      {document ? (
-        document.blocks.map((block, index) => {
-          if (block.kind === "heading")
-            return (
-              <Text
-                component="h2"
-                size={block.level === 1 ? "xl" : "lg"}
-                fw={600}
-                key={index}
-              >
-                {block.text}
-              </Text>
-            );
-          if (block.kind === "table")
-            return (
-              <Table.ScrollContainer minWidth={400} key={index}>
-                <Table withTableBorder withColumnBorders>
-                  <Table.Tbody>
-                    {block.rows?.map((row, i) => (
-                      <Table.Tr key={i}>
-                        {row.map((cell, j) => (
-                          <Table.Td key={j}>{cell}</Table.Td>
-                        ))}
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </Table.ScrollContainer>
-            );
-          if (block.kind === "image")
-            return (
-              <figure key={index}>
-                <Image
-                  src={block.imageData}
-                  alt={block.alt ?? "文档图片"}
-                  fit="contain"
-                  w="auto"
-                  maw="100%"
-                  mah={560}
-                  loading="lazy"
-                />
-                <figcaption>{block.alt}</figcaption>
-              </figure>
-            );
-          return <p key={index}>{block.text || "\u00a0"}</p>;
-        })
-      ) : (
-        <div className={classes.plain}>{text}</div>
-      )}
-    </article>
-  );
-}
-function Warnings({
-  document,
-}: {
-  document?: Schema<"ScriptDocument"> | undefined;
-}) {
-  return document?.warnings.length ? (
-    <Alert title="导入显示说明">
-      <Stack gap="xs">
-        {document.warnings.map((warning, i) => (
-          <Text size="sm" key={i}>
-            {warning}
-          </Text>
-        ))}
-      </Stack>
-    </Alert>
-  ) : null;
-}
 export function ScriptDocumentReader({
   tree,
   scripts,
@@ -189,7 +112,7 @@ export function ScriptDocumentReader({
           <Text size="sm" c="dimmed">
             {selected
               ? `${history && history !== tree.currentScriptRevisionId ? "历史稿 · 只读" : "当前稿"} · ${selected.createdAt ? new Date(selected.createdAt).toLocaleString() : ""}`
-              : "把已确定的 Word 初稿带到这里，与项目成员一起阅读。"}
+              : "把已确定的剧本带到这里，与项目成员一起阅读。"}
           </Text>
         </div>
         <Group gap="sm">
@@ -213,7 +136,7 @@ export function ScriptDocumentReader({
               </Menu.Item>
               {selected?.sourceFormat === "docx" && (
                 <Menu.Item leftSection={<DownloadSimple size={16} />} disabled={downloading}
-                  onClick={() => void downloadOriginal()}>下载原件</Menu.Item>
+                  onClick={() => void downloadOriginal()}>{selected.source ? "下载本次导出文件" : "下载原件"}</Menu.Item>
               )}
               {!!fixed.data?.document?.warnings.length && (
                 <Menu.Item onClick={() => setShowNotes(!showNotes)}>导入说明</Menu.Item>
@@ -258,6 +181,8 @@ export function ScriptDocumentReader({
           done={done}
         />
       )}
+      {active && <FeishuScriptImport path={path} tree={tree} done={done} />}
+      {selected?.source && <Text size="sm" c="dimmed">飞书 · {selected.source.title} · 读取于 {new Date(selected.source.fetchedAt).toLocaleString()} <a href={selected.source.sourceUrl} target="_blank" rel="noopener noreferrer">查看源文档</a></Text>}
       {selected ? (
         <>
           <ErrorNotice error={fixed.error} retry={() => void fixed.refetch()} />

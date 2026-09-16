@@ -1,9 +1,66 @@
 import { randomUUID } from "node:crypto";
+import type { Transaction } from "../../kernel/database.js";
 import type { FastifyInstance } from "fastify";
 import { registerAction, type ApiContext } from "../../kernel/routes.js";
 import { requireThat } from "../../kernel/errors.js";
 import { contentRecord, contentVersion, type Schema } from "./model.js";
 import { parseScriptDocument } from "./docx.js";
+
+export async function appendScriptDocument(
+  tx: Transaction,
+  parsed: Awaited<ReturnType<typeof parseScriptDocument>>,
+  requestId: string,
+  version: number | undefined,
+  source?: Schema<"FeishuScriptSource">,
+) {
+  const existing = await tx.sql.query(
+    "SELECT * FROM script_revisions WHERE tenant_id=$1 AND project_id=$2 AND import_request_id=$3",
+    [tx.tenantId, tx.projectId, requestId],
+  );
+  if (existing.rows[0]) {
+    const row = existing.rows[0];
+    requireThat(
+      row.imported_by === tx.session.userId &&
+        row.sha256 === parsed.sha256 &&
+        row.file_name === parsed.fileName &&
+        (row.source?.previewId ?? null) === (source?.previewId ?? null) &&
+        Number(row.import_base_version) === version,
+      409,
+      "IMPORT_REQUEST_CONFLICT",
+      "导入身份已用于另一份文件，请核对已保存版本。",
+    );
+    return { body: contentRecord<Schema<"ScriptRevision">>(row), etag: 1 };
+  }
+  const root = await contentVersion(tx, version);
+  const result = await tx.sql.query(
+    `INSERT INTO script_revisions(id,tenant_id,project_id,number,text,parent_revision_id,source_format,document,file_name,sha256,import_request_id,imported_by,import_base_version,source)
+      SELECT $1,$2,$3,coalesce(max(number),0)+1,$4,$5,'docx',$6,$7,$8,$9,$10,$11,$12 FROM script_revisions WHERE tenant_id=$2 AND project_id=$3 RETURNING *`,
+    [
+      randomUUID(),
+      tx.tenantId,
+      tx.projectId,
+      parsed.text,
+      root.current_script_revision_id,
+      parsed.document,
+      parsed.fileName,
+      parsed.sha256,
+      requestId,
+      tx.session.userId,
+      version,
+      source ?? null,
+    ],
+  );
+  const saved = result.rows[0]!;
+  await tx.sql.query(
+    "INSERT INTO script_originals(id,tenant_id,project_id,bytes) VALUES($1,$2,$3,$4)",
+    [saved.id, tx.tenantId, tx.projectId, parsed.original],
+  );
+  await tx.sql.query(
+    "UPDATE project_content_versions SET revision=revision+1,current_script_revision_id=$3 WHERE tenant_id=$1 AND project_id=$2",
+    [tx.tenantId, tx.projectId, saved.id],
+  );
+  return { body: contentRecord<Schema<"ScriptRevision">>(saved), etag: 1 };
+}
 
 export function scriptDocumentRoutes(
   app: FastifyInstance,
@@ -34,51 +91,12 @@ export function scriptDocumentRoutes(
         "SCRIPT_PREVIEW_CHANGED",
         "文件与预览不一致，请重新预览后导入。",
       );
-      const existing = await tx.sql.query(
-        "SELECT * FROM script_revisions WHERE tenant_id=$1 AND project_id=$2 AND import_request_id=$3",
-        [tx.tenantId, tx.projectId, body.importRequestId],
+      return appendScriptDocument(
+        tx,
+        parsed,
+        body.importRequestId,
+        input.version,
       );
-      if (existing.rows[0]) {
-        const row = existing.rows[0];
-        requireThat(
-          row.imported_by === tx.session.userId &&
-            row.sha256 === parsed.sha256 &&
-            row.file_name === parsed.fileName &&
-            Number(row.import_base_version) === input.version,
-          409,
-          "IMPORT_REQUEST_CONFLICT",
-          "导入身份已用于另一份文件，请核对已保存版本。",
-        );
-        return { body: contentRecord<Schema<"ScriptRevision">>(row), etag: 1 };
-      }
-      const root = await contentVersion(tx, input.version);
-      const result = await tx.sql.query(
-        `INSERT INTO script_revisions(id,tenant_id,project_id,number,text,parent_revision_id,source_format,document,file_name,sha256,import_request_id,imported_by,import_base_version)
-      SELECT $1,$2,$3,coalesce(max(number),0)+1,$4,$5,'docx',$6,$7,$8,$9,$10,$11 FROM script_revisions WHERE tenant_id=$2 AND project_id=$3 RETURNING *`,
-        [
-          randomUUID(),
-          tx.tenantId,
-          tx.projectId,
-          parsed.text,
-          root.current_script_revision_id,
-          parsed.document,
-          parsed.fileName,
-          parsed.sha256,
-          body.importRequestId,
-          tx.session.userId,
-          input.version,
-        ],
-      );
-      const saved = result.rows[0]!;
-      await tx.sql.query(
-        "INSERT INTO script_originals(id,tenant_id,project_id,bytes) VALUES($1,$2,$3,$4)",
-        [saved.id, tx.tenantId, tx.projectId, parsed.original],
-      );
-      await tx.sql.query(
-        "UPDATE project_content_versions SET revision=revision+1,current_script_revision_id=$3 WHERE tenant_id=$1 AND project_id=$2",
-        [tx.tenantId, tx.projectId, saved.id],
-      );
-      return { body: contentRecord<Schema<"ScriptRevision">>(saved), etag: 1 };
     },
     { replayCachedResponse: () => false },
   );

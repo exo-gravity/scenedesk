@@ -1,3 +1,8 @@
+import { readFile } from "node:fs/promises";
+import {
+  feishuConfiguration,
+  createFeishuServices,
+} from "./modules/content/feishu/client.js";
 import { Pool } from "pg";
 import { buildApp } from "./app.js";
 import { discoverIssuer } from "./modules/identity/oidc.js";
@@ -66,6 +71,18 @@ const mediaQueue = mediaStore
         console.error("Media scheduling service reported a failure"),
     })
   : undefined;
+let feishu;
+if (businessEnabled && process.env.FEISHU_CONFIG_FILE) {
+  try {
+    feishu = createFeishuServices(
+      feishuConfiguration(
+        JSON.parse(await readFile(process.env.FEISHU_CONFIG_FILE, "utf8")),
+      ),
+    );
+  } catch {
+    throw new Error("FEISHU_CONFIG_FILE_INVALID");
+  }
+}
 const app = buildApp(
   pool,
   businessEnabled
@@ -75,6 +92,7 @@ const app = buildApp(
         schema: process.env.DATABASE_SCHEMA ?? "drama",
         auth: { pool: authPool!, config: config! },
         localIdentity: process.env.OIDC_ALLOW_LOCAL === "true",
+        ...(feishu ? { feishu } : {}),
         ...(mediaStore && mediaQueue
           ? { media: { store: mediaStore, schedule: mediaQueue.schedule } }
           : {}),

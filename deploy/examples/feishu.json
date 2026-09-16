@@ -1,0 +1,11 @@
+{
+  "tenantId": "11111111-1111-4111-8111-111111111111",
+  "appId": "cli_REPLACE_WITH_TEAM_APP_ID",
+  "appSecret": "REPLACE_WITH_PRIVATE_TEAM_APP_SECRET",
+  "sources": [
+    {
+      "projectId": "22222222-2222-4222-8222-222222222222",
+      "url": "https://your-team.feishu.cn/docx/REPLACE_WITH_DOCUMENT_TOKEN"
+    }
+  ]
+}

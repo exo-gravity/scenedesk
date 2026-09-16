@@ -1,3 +1,4 @@
+import { feishuConfiguration } from "../../apps/api/src/modules/content/feishu/client.js";
 import { readFile } from "node:fs/promises";
 import { Pool } from "pg";
 import {
@@ -158,6 +159,7 @@ export function apiConfiguration(input: unknown) {
     "origin",
     "databaseUrl",
     "authDatabaseUrl",
+    "feishu",
     "appSecret",
     "oidc",
     "media",
@@ -190,6 +192,17 @@ export function apiConfiguration(input: unknown) {
       localIssuer: false,
     },
     media: storage(value.media),
+    ...(value.feishu === undefined
+      ? {}
+      : {
+          feishu: (() => {
+            try {
+              return feishuConfiguration(value.feishu);
+            } catch {
+              return fail("CONFIG_FEISHU_INVALID");
+            }
+          })(),
+        }),
   };
 }
 export function workerConfiguration(input: unknown) {
