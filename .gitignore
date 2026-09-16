@@ -10,3 +10,4 @@ __pycache__/
 *.tsbuildinfo
 .playwright-cli/
 output/engineering/*.log
+output/playwright/

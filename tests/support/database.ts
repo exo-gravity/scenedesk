@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import type { TestContext } from "node:test";
 import { Pool } from "pg";
 import {
   migrate,
@@ -9,7 +8,12 @@ import {
   sqlIdentifier,
 } from "@drama/database";
 
-export async function databaseFixture(t: TestContext) {
+/** The same restricted-role database fixture can be owned by node:test or E2E. */
+export type FixtureLifecycle = {
+  after: (cleanup: () => void | Promise<void>) => void;
+};
+
+export async function databaseFixture(t: FixtureLifecycle) {
   const connectionString = process.env.DATABASE_URL;
   if (
     !connectionString ||
