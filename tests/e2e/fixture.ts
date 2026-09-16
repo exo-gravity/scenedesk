@@ -29,7 +29,9 @@ export async function startWorkspaceRuntime() {
   const port = Number(process.env.SCENEDESK_E2E_PORT ?? 4461);
   if (!Number.isSafeInteger(port) || port < 1024 || port > 65535)
     throw new Error("SCENEDESK_E2E_PORT must be a non-privileged TCP port");
-  const origin = `http://127.0.0.1:${port}`;
+  const host = process.env.SCENEDESK_E2E_HOST ?? "127.0.0.1";
+  if (!["127.0.0.1", "::1"].includes(host)) throw new Error("E2E host must be loopback");
+  const origin = `http://${host === "::1" ? "[::1]" : host}:${port}`;
   const cleanup: (() => void | Promise<void>)[] = [];
   let stopped = false;
   async function stop() {
@@ -57,7 +59,7 @@ export async function startWorkspaceRuntime() {
       configFile: false, root, logLevel: "error",
       build: { outDir: "dist" },
       preview: {
-        host: "127.0.0.1", port, strictPort: true,
+        host, port, strictPort: true,
         proxy: { "/v1": apiOrigin, "/health": apiOrigin, "/design": apiOrigin },
       },
     });
@@ -99,7 +101,7 @@ export async function startWorkspaceRuntime() {
 
 export type WorkspaceRuntime = Awaited<ReturnType<typeof startWorkspaceRuntime>>;
 
-async function seedWorkspace(runtime: WorkspaceRuntime) {
+export async function seedWorkspace(runtime: WorkspaceRuntime) {
   const owner = await runtime.identity("owner");
   const command = <T>(method: Method, path: string, body?: unknown, revision?: number) =>
     runtime.command<T>(owner, method, path, body, revision);
