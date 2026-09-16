@@ -1,30 +1,18 @@
-# 幕序 · SceneDesk
+# SceneDesk
 
-2026-09-11 首发范围更新：优先发布私有创作工作台，**画布与 AI 按原计划推进**；后期剪辑／渲染、完整团队管理、开放注册和运营移出本次 MVP，商业计费与费用运营后置。当前范围与上线顺序以[38 当前 MVP](docs/implementation/38-first-release-scope-review.md)为准，覆盖下文旧完整平台的首发门槛；已实现的后期代码保留，不再作为上线依赖。
+SceneDesk 是独立 Web 的短剧视觉创作工作台。当前主路径是 **导入剧本 → 画布创作 → 比较与明确选用 → 整理镜头 → 交付原片**。项目采用左侧「剧本、画布、项目资产」导航，场次管理为次级入口；没有剧本或场次也可以先在项目画布开始。
 
-2026-09-10 更新：用户已授权正式工程实施与 GitHub 合入，当前已推进至内容、任务、素材导入和资产固定版本，继续实施制作与交付。先以导入素材及模拟供应商推进，无真实模型也可实施制作、剪辑、审阅与交付。完成情况和实际验收以[实施进度](docs/implementation/22-implementation-progress.md)为准；下文原型和 S0 说明仍描述现有交付，不能视为完整 MVP 已完成。
+2026-09-16 的[已确认方向](docs/design/creative-workspace-approved-2026-09-16.md)取代早期双完整工作区安排。Word 与飞书以预览、确认导入、阅读当前稿为主，历史按需查看；草稿、固定输入、生成任务、结果与选用保持各自的事实和恢复能力。助手与直接操作作用于同一份草稿。原分镜台代码和旧链接保留兼容，当前交互与完成证据见[八个工作包](docs/implementation/70-creative-workspace-refactor.md)及[实施进度](docs/implementation/22-implementation-progress.md)。
 
-产品名称已由用户确认：中文名 **幕序**，英文名 **SceneDesk**，中英文组合统一写作 **幕序 · SceneDesk**。产品类型为 AI 影像创作工作台；后续产品界面与现行文档采用这一名称。
+本轮先完成真实模型之外的工作区功能和受控验收，真实模型接入放到最后。测试适配器及演示媒体均明确标识，不能视为实际供应商验收；未具备服务、凭据与消费授权时不执行付费调用。真实飞书应用授权、团队文档和外部部署仍需各自环境验证。
 
-短剧优先，长期支持广告。首期核心场景是一位制作人员主责完成一场戏；完整 MVP 包含每场分镜／自由画布双模式，以及整集审阅交付、跨集复用和内部后期接手。
-
-当前已实现：**身份／权限／项目、手工内容结构、CSV 提案、项目默认创作确认与场次任务**，包括工作室、成员邀请、所有权交接、项目与负责人、剧目设定、剧本版本、集场镜、镜头要求与原文历史、归档恢复。有 PostgreSQL 持久化、RLS、CAS、幂等和对应业务页面。[基础运行说明](docs/implementation/23-identity-project-foundation.md)与[内容实现说明](docs/implementation/24-content-structure.md)列出边界。[CSV 提案](docs/implementation/25-csv-proposals.md)支持导入预览、修订、差异复核和一次采纳；[创作依据](docs/implementation/26-creative-bases.md)支持固定快照、正式确认及冲突恢复；[场次主责与任务](docs/implementation/27-scene-tasks.md)支持分派、个人筛选、资格失效提示和不可变处理历史。[素材导入](docs/implementation/30-media-import-service.md)已接通私有存储与独立处理器；[素材工作台](docs/implementation/31-media-workspace.md)支持断网续办、来源冲突核对、音视频预览和原文件下载。[资产工作区](docs/implementation/32-asset-versions.md)支持独立造型、固定版本、设定确认、明确引入共享声音和冲突恢复。[场镜资产引用](docs/implementation/33-creative-asset-bindings.md)已接通剧目／场次默认版本、角色与道具状态、镜头参考和单句声音覆盖，实际浏览器、冲突恢复和生产构建验收已通过。共享发布、候选采用、生成、编辑渲染和交付继续实施，完整 MVP 尚未完成。
-
-已确认的视觉原型继续保留，使用虚构内容；核心体验和专项样例仅在页面内存保留，刷新或离开会重置，不能替代业务验收。
-
-- [已确认核心体验](http://127.0.0.1:4311/#/journey/?variant=recommendation&screen=production&mode=storyboard&tone=light&assistant=off)：场次制作、剪辑、固定审阅与返工的设计参照。
-- [制作专项设计](http://127.0.0.1:4311/#/journey/?variant=finishing&topic=script&tone=light)：剧本准备、声音字幕、资产版本、保存冲突四项独立演示；本轮评审暂无异议，暂时收口。
-- [早期本地视觉预览](http://127.0.0.1:4311/#/scene/production)：故事板、剪辑、审阅、剧本、资产及项目等核心页面。
-- [当前 UI 执行规范](docs/design/mantine-ui-agent-spec-v0.1.md)；旧主题、布局和页面演示见[历史索引](docs/history/README.md)。
-- [早期场次双模式效果图](http://127.0.0.1:4311/#/layouts/)：自由画布可切换六镜头全场总览和 SH04 局部示意，图中控件不是已实现的画布业务。
+后期剪辑／渲染、完整团队管理、开放注册、公共 API 产品及商业运营继续后置，依据[当前首发范围](docs/implementation/38-first-release-scope-review.md)。已实现的后期代码与历史设计保留，不作为本次创作工作区的使用前提。
 
 - [当前文档总入口](docs/README.md)及[实施设计包](docs/implementation/README.md)
-- [技术协议定案与待验证门槛](docs/implementation/21-technical-baseline-closure.md)
-- [当前设计收口与后续实施入口](docs/implementation/19-design-closure-and-implementation-entry.md)
-- [画布工程设计](docs/implementation/18-canvas-workspace-contract.md)
-- [模型、部署与试点执行准备](docs/implementation/20-external-validation-and-launch-plan.md)
-- [工程就绪情况与验证记录](docs/implementation/15-engineering-readiness.md)
-- [下一批实施任务](docs/implementation/16-implementation-backlog.md)
+- [Word 剧本导入](docs/implementation/72-script-docx-import.md)与[飞书团队应用配置](docs/implementation/75-feishu-script-import.md)
+- [连续创作](docs/implementation/74-canvas-continuous-creation.md)与[镜头列表](docs/implementation/76-shot-list-workspace.md)
+- [端到端验收矩阵](docs/implementation/73-creative-workspace-e2e.md)、[私有部署](deploy/README.md)及[隔离恢复验收](deploy/recovery/smoke/README.md)
+- [UI 执行规范](docs/design/mantine-ui-agent-spec-v0.1.md)与[历史原型索引](docs/history/README.md)。原型中的虚构内容、内存交互和效果图不是生产实现或业务验收。
 
 ## 本地启动
 
