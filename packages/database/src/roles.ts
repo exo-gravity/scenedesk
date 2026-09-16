@@ -278,13 +278,13 @@ export async function grantRuntimeAccess(
     `GRANT EXECUTE ON FUNCTION ${scope}.recover_media_production(uuid,uuid,text) TO ${target}`,
   );
   await client.query(
-    `GRANT SELECT,INSERT ON ${["canvases", "canvas_history_bodies", "canvas_revisions", "scene_canvas_links", "canvas_node_index", "canvas_media_refs", "canvas_subject_refs", "canvas_outbox", "scene_workspace_preferences"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+    `GRANT SELECT,INSERT ON ${["canvases", "canvas_history_bodies", "canvas_revisions", "scene_canvas_links", "project_canvas_links", "project_workspace_preferences", "canvas_node_index", "canvas_media_refs", "canvas_subject_refs", "canvas_outbox", "scene_workspace_preferences"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
   );
   await client.query(
     `GRANT UPDATE(revision,updated_at) ON ${scope}.canvases TO ${target}`,
   );
   await client.query(
-    `GRANT UPDATE(revision,preference) ON ${scope}.scene_workspace_preferences TO ${target}`,
+    `GRANT UPDATE(revision,preference) ON ${scope}.scene_workspace_preferences,${scope}.project_workspace_preferences TO ${target}`,
   );
   await client.query(
     `GRANT DELETE ON ${scope}.canvas_revisions,${scope}.canvas_history_bodies TO ${target}`,
@@ -418,7 +418,7 @@ export async function hardenAuthorizationFunctions(
   );
   await client.query(`GRANT UPDATE(updated_at) ON ${scope}.media TO ${target}`);
   await client.query(
-    `GRANT SELECT ON ${["canvases", "scene_canvas_links", "scenes", "episodes", "cuts"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
+    `GRANT SELECT ON ${["canvases", "scene_canvas_links", "project_canvas_links", "scenes", "episodes", "cuts"].map((t) => `${scope}.${t}`).join(",")} TO ${target}`,
   );
   await client.query(
     `GRANT SELECT ON ${scope}.canvas_upload_placements,${scope}.canvas_node_index TO ${target}`,

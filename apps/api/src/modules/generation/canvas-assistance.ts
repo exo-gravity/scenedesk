@@ -1,7 +1,7 @@
 import type { Transaction } from "../../kernel/database.js";
 import { canonical } from "../../kernel/crypto.js";
 import { requireThat, versionMatches } from "../../kernel/errors.js";
-import { activeParent, type Schema } from "../content/model.js";
+import { type Schema } from "../content/model.js";
 import { validateReference } from "./prompt-input.js";
 
 /** Explicit node bodies only: neighbouring nodes and enabled edges are not consent. */
@@ -35,7 +35,7 @@ export async function resolveCanvasSources(
     seen.add(source.nodeId);
     const canvas = (
       await tx.sql.query(
-        "SELECT c.revision,l.scene_id FROM canvases c JOIN scene_canvas_links l ON l.canvas_id=c.id WHERE c.tenant_id=$1 AND c.project_id=$2 AND c.id=$3",
+        "SELECT c.revision FROM canvases c WHERE c.tenant_id=$1 AND c.project_id=$2 AND c.id=$3 AND discussion_canvas_scope(c.tenant_id,c.project_id,c.id,true) IS NOT NULL",
         [tx.tenantId, tx.projectId, source.canvasId],
       )
     ).rows[0];
@@ -45,7 +45,6 @@ export async function resolveCanvasSources(
       "CANVAS_CONTEXT_UNAVAILABLE",
       "明确选择的画布不存在或无访问权限。",
     );
-    await activeParent(tx, "scenes", canvas.scene_id);
     if (checkVersion)
       versionMatches(Number(canvas.revision), source.canvasRevision);
     const snapshot = (

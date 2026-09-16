@@ -232,3 +232,7 @@ CutWorkDraft与CutDraft分开，新增cut_work_drafts／cut_work_draft_revisions
 - INV-13：恢复历史可过期，当前、前一版及固定业务依赖不可被普通清理；加pin和清理同对象互斥。
 - INV-14：队列重复执行不产生第二次未知付费创建；账号在途额度与Worker槽位、请求速率分离。
 - INV-15：presence不构成锁、权限或内容版本；失权不因历史恢复重新获得访问。
+
+## 项目画布扩展（2026-09-16）
+
+Canvas 继续直接属于 Project。新增 `project_canvas_links` 为每个项目明确选择唯一独立画布，同一 Canvas 不得同时成为项目画布和场次画布；`scene_canvas_links` 与已有镜头关联不迁移。`project_workspace_preferences` 是 `(user_id, project_id)` 下带独立 CAS 的个人视口，不包含制作事实。助手固定 `canvasScope` 保留旧 `{canvasId, sceneId}`，项目画布使用 `{canvasId, projectId}`；对应投影的 `scene_id` 仅在项目作用域为空。详见 [项目画布实施](71-project-canvas-workspace.md)。

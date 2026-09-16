@@ -124,11 +124,11 @@ type ReviewFocus = { token: object; target: "review" | "input" } & (
 export type CanvasAssistantProps = {
   tenantId: string;
   projectId: string;
-  sceneId: string;
+  sceneId: string | undefined;
   controller: CanvasController;
   active: boolean;
   visible: boolean;
-  onPrepareStoryboard?: () => void;
+  onPrepareStoryboard?: (() => void) | undefined;
   onClose?: () => void;
   requestedContext?: { nodeIds: string[]; nonce: number } | undefined;
 };

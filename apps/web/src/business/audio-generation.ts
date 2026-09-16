@@ -77,7 +77,7 @@ export function shotAudioRequest(
 }
 export function canvasAudioRequest(
   canvas: Schema<"Canvas">,
-  sceneId: string,
+  sceneId: string | undefined,
   nodeId: string,
   capabilities: readonly ImageCapability[],
   shotSources: readonly Schema<"ShotSource">[] = [],

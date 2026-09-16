@@ -421,7 +421,7 @@ function SceneWorkspace({
     </div>
   );
 }
-function SceneCanvasSession({
+export function SceneCanvasSession({
   tenantId,
   projectId,
   canvasId,
@@ -438,7 +438,7 @@ function SceneCanvasSession({
   tenantId: string;
   projectId: string;
   canvasId: string;
-  sceneId: string;
+  sceneId: string | undefined;
   sceneTitle: string;
   preference: Preference;
   changePreference: (patch: Partial<Preference>) => void;
@@ -534,6 +534,7 @@ function SceneCanvasSession({
     session = useSession();
   const connections = useResource<Schema<"SceneCanvas">>(
     `${path}/scenes/${sceneId}/canvas`,
+    !!sceneId,
   );
   const content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const attempts = useList<Schema<"CanvasPlanEntry">>(
@@ -608,7 +609,7 @@ function SceneCanvasSession({
     );
   }, []);
   useEffect(() => {
-    if (state?.local?.base.revision !== undefined)
+    if (sceneId && state?.local?.base.revision !== undefined)
       void cache.invalidateQueries({
         queryKey: ["user", session.userId, `${path}/scenes/${sceneId}/canvas`],
       });
@@ -898,16 +899,18 @@ function SceneCanvasSession({
                         if (dock !== "assistant") selectDock("assistant");
                       }}
                       navigation={
-                        <Tooltip label="本场镜头与探索" position="right">
-                          <ActionIcon
-                            aria-label="本场镜头与探索"
-                            variant="subtle"
-                            aria-pressed={dock === "shots"}
-                            onClick={() => selectDock("shots")}
-                          >
-                            <FilmStrip size={19} />
-                          </ActionIcon>
-                        </Tooltip>
+                        sceneId ? (
+                          <Tooltip label="本场镜头与探索" position="right">
+                            <ActionIcon
+                              aria-label="本场镜头与探索"
+                              variant="subtle"
+                              aria-pressed={dock === "shots"}
+                              onClick={() => selectDock("shots")}
+                            >
+                              <FilmStrip size={19} />
+                            </ActionIcon>
+                          </Tooltip>
+                        ) : undefined
                       }
                       generation={
                         <CanvasImageGeneration
@@ -927,6 +930,7 @@ function SceneCanvasSession({
                         />
                       }
                       nodeActions={
+                        sceneId &&
                         preference.selectedNodeIds.length === 1 &&
                         document.nodes.find(
                           (n) => n.id === preference.selectedNodeIds[0],
@@ -953,23 +957,25 @@ function SceneCanvasSession({
                       }}
                     />
                   </SceneModePanel>
-                  <SceneModePanel
-                    visible={preference.mode === "storyboard"}
-                    label="分镜台工作区"
-                  >
-                    <CandidateWorkspace
-                      tenantId={tenantId}
-                      projectId={projectId}
-                      embedded
-                      externalDockOpen={!!dock}
-                      closeExternalDock={() => selectDock(null)}
-                      onNavigate={onNavigate}
-                      selectedShotId={preference.selectedShotId}
-                      onSelectShot={(selectedShotId) =>
-                        changePreference({ selectedShotId })
-                      }
-                    />
-                  </SceneModePanel>
+                  {sceneId && (
+                    <SceneModePanel
+                      visible={preference.mode === "storyboard"}
+                      label="分镜台工作区"
+                    >
+                      <CandidateWorkspace
+                        tenantId={tenantId}
+                        projectId={projectId}
+                        embedded
+                        externalDockOpen={!!dock}
+                        closeExternalDock={() => selectDock(null)}
+                        onNavigate={onNavigate}
+                        selectedShotId={preference.selectedShotId}
+                        onSelectShot={(selectedShotId) =>
+                          changePreference({ selectedShotId })
+                        }
+                      />
+                    </SceneModePanel>
+                  )}
                 </>
               )}
             </div>
@@ -1028,7 +1034,9 @@ function SceneCanvasSession({
                   active={active && !readOnly}
                   visible={dock === "assistant" && assistantView === "canvas"}
                   requestedContext={assistantContext}
-                  onPrepareStoryboard={() => switchAssistantView("scene")}
+                  onPrepareStoryboard={
+                    sceneId ? () => switchAssistantView("scene") : undefined
+                  }
                   onClose={() => selectDock("assistant")}
                 />
               </div>
@@ -1036,14 +1044,16 @@ function SceneCanvasSession({
                 className={layout.assistantSceneSlot}
                 hidden={assistantView !== "scene"}
               >
-                <SceneAssistant
-                  tenantId={tenantId}
-                  projectId={projectId}
-                  sceneId={sceneId}
-                  active={active}
-                  visible={dock === "assistant" && assistantView === "scene"}
-                  onOpenProposal={setAssistantProposalId}
-                />
+                {sceneId && (
+                  <SceneAssistant
+                    tenantId={tenantId}
+                    projectId={projectId}
+                    sceneId={sceneId}
+                    active={active}
+                    visible={dock === "assistant" && assistantView === "scene"}
+                    onOpenProposal={setAssistantProposalId}
+                  />
+                )}
               </div>
             </aside>
             <aside
@@ -1133,7 +1143,7 @@ function SceneCanvasSession({
                   <Button size="xs" onClick={() => void changedConnections()}>
                     刷新画布与关联
                   </Button>
-                  {connections.data && content.data ? (
+                  {sceneId && connections.data && content.data ? (
                     <CanvasShotConnections
                       path={path}
                       sceneId={sceneId}

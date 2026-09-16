@@ -193,3 +193,9 @@ normalize旧版直接传timeline的请求在1.3.0被拒绝；replacement预览�
 实施补充：任务详情和不可变处理历史分别由 `getTask` 与 `listTaskRevisions` 读取。`assigneeAvailable` 为当前成员／项目资格，不改写历史受派人。场次筛选同时匹配仅绑定该场镜头的任务；显式同时绑定场与镜的任务禁止镜头悄然跨场。当前一般任务、协助及场次主责可用；正式返工及结构化成果需真实审稿、意见与媒体来源，暂不接受裸引用。见 [27 场次主责与任务](27-scene-tasks.md)。
 
 资产实施补充：增加 `getAssetRevision` 读取确切固定修订，详情和引用无需加载全部历史；增加 `listSharedImports` 读取当前项目已明确引入的固定版本，刷新不会丢失引入状态。二者沿用现有授权、分页和读权限，不改变确认、发布或升级语义。
+
+## 项目画布协议扩展（2026-09-16）
+
+`GET/POST /projects/{projectId}/canvas` 读取／明确确保唯一项目画布；GET 不创建，首次未创建返回 `PROJECT_CANVAS_NOT_CREATED`。`POST /canvases/{canvasId}/generation-plans` 按 Canvas 修订固定草稿，支持项目画布及旧场次画布，执行仍走既有生成作业协议。项目画布不要求存在 Episode/Scene/Shot。
+
+`GET/PUT /projects/{projectId}/workspace-preference` 使用本用户自己的 revision（首次 0），支持画布视口、选中节点和辅助面板，`mode=canvas`、`selectedShotId=null`。私人视图修改不改业务内容，因此有当前项目读取权限的用户可在已归档项目保存浏览位置；创建／保存画布和新生成仍要求活动项目。所有写入继续校验 Origin、CSRF、当前租户/项目权限。来源、旧链接和迁移规则见 [项目画布实施](71-project-canvas-workspace.md)。

@@ -27,9 +27,9 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
   await page.getByRole("menuitem", { name: "切换浅色", exact: true }).click();
 
   await nav.getByRole("link", { name: "画布", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "画布", exact: true })).toBeVisible();
-  await expect(page.getByText(w.scene.title, { exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "打开画布", exact: true }).click();
+  await expect(page.getByRole("button", { name: "创建项目画布", exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "打开已有场次画布", exact: true }).click();
+  await page.getByRole("option", { name: `${w.episode.title} · ${w.scene.title}`, exact: true }).click();
   await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/production?scene=${w.scene.id}&mode=canvas`);
   await expect(page.getByRole("button", { name: "返回场次目录", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "创建本场画布", exact: true }).click();

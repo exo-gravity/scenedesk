@@ -375,7 +375,7 @@ schema("CanvasAssistanceSnapshot", {"source":ref("CanvasAssistanceSource"),"kind
 require_when("CanvasAssistanceSnapshot", {"properties":{"kind":{"const":"text"}},"required":["kind"]}, {"properties":{"content":ref("CanvasTextContent")}})
 require_when("CanvasAssistanceSnapshot", {"properties":{"content":{"properties":{"type":{"const":"media"}},"required":["type"]}},"required":["content"]}, {"properties":{"source":{"required":["purpose"]},"kind":{"enum":["image","video","audio"]}}})
 extend("PlanInput", {"canvasSources":arr(ref("CanvasAssistanceSource"),maxItems=20)})
-extend("ResolvedInput", {"canvasSnapshots":arr(ref("CanvasAssistanceSnapshot"),maxItems=20),"assistanceInstruction":TEXT,"assistanceHistory":arr(ref("AssistanceTurn"),minItems=1,maxItems=20),"canvasScope":obj({"canvasId":ID,"sceneId":ID},["canvasId","sceneId"])})
+extend("ResolvedInput", {"canvasSnapshots":arr(ref("CanvasAssistanceSnapshot"),maxItems=20),"assistanceInstruction":TEXT,"assistanceHistory":arr(ref("AssistanceTurn"),minItems=1,maxItems=20),"canvasScope":{"oneOf":[obj({"canvasId":ID,"sceneId":ID},["canvasId","sceneId"]),obj({"canvasId":ID,"projectId":ID},["canvasId","projectId"])]}})
 require_when("ResolvedInput", {"required":["assistanceInstruction"]}, {"required":["assistanceSnapshot","canvasSnapshots"]})
 for rule in S["PlanInput"]["allOf"]:
     if rule.get("if", {}).get("properties", {}).get("purpose", {}).get("const") == "creative_assistance":

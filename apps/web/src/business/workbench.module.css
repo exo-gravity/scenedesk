@@ -437,11 +437,24 @@
 }
 
 /* Project browsing shares one rail, including script and asset details. */
-.shell[data-project-workspace] > .header { display: none; }
-.layout[data-project] { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 48px minmax(0, 1fr); }
-.layout[data-project] > .sidebar { display: none; }
-.layout[data-project] > .content { grid-column: 2; grid-row: 2; }
-.layout[data-project] > .contextHeader { grid-column: 2; grid-row: 1; }
+.shell[data-project-workspace] > .header {
+  display: none;
+}
+.layout[data-project] {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 48px minmax(0, 1fr);
+}
+.layout[data-project] > .sidebar {
+  display: none;
+}
+.layout[data-project] > .content {
+  grid-column: 2;
+  grid-row: 2;
+}
+.layout[data-project] > .contextHeader {
+  grid-column: 2;
+  grid-row: 1;
+}
 
 .sectionHeading {
   gap: var(--mantine-spacing-xl);
@@ -497,4 +510,15 @@
   .projectCover {
     transition: none;
   }
+}
+
+.layout[data-project][data-project-canvas] {
+  grid-template-rows: minmax(0, 1fr);
+}
+.layout[data-project][data-project-canvas] > .content {
+  grid-row: 1;
+}
+.layout[data-project-canvas] .main {
+  padding: 0;
+  overflow: hidden;
 }

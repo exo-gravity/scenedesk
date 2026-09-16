@@ -472,7 +472,7 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
         tx.projectId,
         row.id,
         resolved.canvasScope.canvasId,
-        resolved.canvasScope.sceneId,
+        "sceneId" in resolved.canvasScope ? resolved.canvasScope.sceneId : null,
       ],
     );
   for (const [position, saved] of (resolved.canvasSnapshots ?? []).entries())

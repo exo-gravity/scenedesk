@@ -59,12 +59,21 @@ def schemas():
     preference = {"mode": enum("storyboard", "canvas"), "selectedShotId": {"anyOf": [ID, {"type": "null"}]}, "selectedNodeIds": {**array(ID, 2000), "uniqueItems": True}, "viewport": ref("CanvasViewport"), "assetPanelOpen": BOOL, "assistantOpen": BOOL}
     s["SaveSceneWorkspacePreference"] = obj(preference, list(preference))
     s["SceneWorkspacePreference"] = obj({"sceneId": ID, "revision": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, **preference}, ["sceneId", "revision", *preference])
+    s["ProjectCanvas"] = obj({"projectId": ID, "canvas": ref("Canvas")}, ["projectId", "canvas"])
+    project_preference = {**preference, "mode": enum("canvas"), "selectedShotId": {"type": "null"}}
+    s["SaveProjectWorkspacePreference"] = obj(project_preference, list(project_preference))
+    s["ProjectWorkspacePreference"] = obj({"projectId": ID, "revision": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, **project_preference}, ["projectId", "revision", *project_preference])
     return s
 
 def register_routes(route, paths):
     base = "/projects/{projectId}"
     scene = base + "/scenes/{sceneId}"
     canvas = base + "/canvases/{canvasId}"
+    route("post", base + "/canvas", "ensureProjectCanvas", "PR-16", "明确创建或取得项目唯一画布，不创建场次", "ProjectCanvas", code=200)
+    route("get", base + "/canvas", "getProjectCanvas", "PR-16", "读取项目画布", "ProjectCanvas")
+    route("post", canvas + "/generation-plans", "prepareProjectCanvasGeneration", "PR-16", "固定项目或场次画布草稿，只准备不执行", "CanvasPlanEntry", "PrepareCanvasGeneration", cas=True)
+    route("get", base + "/workspace-preference", "getProjectWorkspacePreference", "PR-17", "读取本人项目画布偏好", "ProjectWorkspacePreference")
+    route("put", base + "/workspace-preference", "saveProjectWorkspacePreference", "PR-17", "保存本人项目画布视口，不改共同画布", "ProjectWorkspacePreference", "SaveProjectWorkspacePreference", cas=True)
     route("post", scene + "/canvas", "ensureSceneCanvas", "PR-16", "显式创建或取得本场唯一画布", "SceneCanvas", code=200)
     route("get", scene + "/canvas", "getSceneCanvas", "PR-16", "读取本场画布和镜头关联", "SceneCanvas")
     route("get", canvas, "getCanvas", "PR-16", "读取通用画布当前文档", "Canvas")
@@ -83,7 +92,7 @@ def register_routes(route, paths):
     route("get", canvas + "/assistance-applications/{applicationId}", "getCanvasAssistanceApplication", "PR-16", "读取原建议应用结果及当前画布，不重复修改", "CanvasAssistanceApplicationResult")
     route("get", scene + "/workspace-preference", "getSceneWorkspacePreference", "PR-17", "读取本人偏好，无记录返回revision0默认值", "SceneWorkspacePreference")
     route("put", scene + "/workspace-preference", "saveSceneWorkspacePreference", "PR-17", "保存本人模式与视口，不改共同画布", "SceneWorkspacePreference", "SaveSceneWorkspacePreference", cas=True)
-    names = {"getCanvas", "getCanvasRevision", "saveCanvas", "materializeCanvasResults", "ensureSceneCanvas", "getSceneCanvas", "bindSceneCanvasNode", "unbindSceneCanvasNode", "prepareCanvasGeneration", "listCanvasPlans", "getSceneWorkspacePreference", "saveSceneWorkspacePreference", "listCanvasUploads", "getCanvasUpload", "getCanvasUploadRequest", "dismissCanvasUpload"}
+    names = {"ensureProjectCanvas", "getProjectCanvas", "prepareProjectCanvasGeneration", "getProjectWorkspacePreference", "saveProjectWorkspacePreference", "getCanvas", "getCanvasRevision", "saveCanvas", "materializeCanvasResults", "ensureSceneCanvas", "getSceneCanvas", "bindSceneCanvasNode", "unbindSceneCanvasNode", "prepareCanvasGeneration", "listCanvasPlans", "getSceneWorkspacePreference", "saveSceneWorkspacePreference", "listCanvasUploads", "getCanvasUpload", "getCanvasUploadRequest", "dismissCanvasUpload"}
     for methods in paths.values():
         for operation in methods.values():
             name = operation["operationId"]
@@ -94,7 +103,7 @@ def register_routes(route, paths):
             if name == "listCanvasPlans":
                 operation["parameters"].append({"name": "nodeId", "in": "query", "schema": ID})
                 operation["parameters"] = [p for p in operation["parameters"] if not (p.get("in") == "query" and p.get("name") == "projectId")]
-            if name == "saveSceneWorkspacePreference":
+            if name in {"saveSceneWorkspacePreference", "saveProjectWorkspacePreference"}:
                 operation["parameters"] = [p for p in operation["parameters"] if p.get("$ref") != "#/components/parameters/IfMatch"]
                 operation["parameters"].append({"name": "If-Match", "in": "header", "required": True, "schema": {"type": "string", "pattern": '^"(0|[1-9][0-9]*)"$'}, "description": "用户场次偏好版本，首次创建使用0；不使用canvas版本。"})
             operation["responses"]["413"] = {"$ref": "#/components/responses/Problem"}

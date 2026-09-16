@@ -22,7 +22,7 @@ import classes from "./image-generation.module.css";
 export type CanvasMediaGenerationProps = {
   tenantId: string;
   projectId: string;
-  sceneId: string;
+  sceneId: string | undefined;
   controller: CanvasController;
   /** Explicit editing target. Canvas selection must not change it implicitly. */
   selectedNodeId?: string | undefined;
@@ -32,7 +32,8 @@ export type CanvasMediaGenerationProps = {
   onInspectPlan?: ((planId: string) => void) | undefined;
   onCloseInspection?: (() => void) | undefined;
   onRetainDraft?:
-    ((retain: (() => Promise<void>) | undefined) => void) | undefined;
+    | ((retain: (() => Promise<void>) | undefined) => void)
+    | undefined;
   readOnly: boolean;
   focus: (ids: string[]) => void;
 };
