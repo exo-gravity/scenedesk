@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -29,12 +29,14 @@ type ImportDraft = {
   data: string;
   importRequestId: string;
   preview: Preview | null;
+  attempted: boolean;
 };
 const empty: ImportDraft = {
   fileName: "",
   data: "",
   importRequestId: "",
   preview: null,
+  attempted: false,
 };
 function DocumentBody({
   document,
@@ -301,6 +303,8 @@ function ScriptImport({
     [reading, setReading] = useState(false);
   const [checking, setChecking] = useState(false),
     [notSaved, setNotSaved] = useState(false);
+  const submissionLock = useRef(false);
+  const [stagingSubmission, setStagingSubmission] = useState(false);
   const conflict = draft.baseVersion !== tree.revision;
   async function checkReceipt() {
     setChecking(true);
@@ -322,6 +326,34 @@ function ScriptImport({
       setError(error as Error);
     } finally {
       setChecking(false);
+    }
+  }
+  async function submit() {
+    if (submissionLock.current || !draft.value.preview) return;
+    submissionLock.current = true;
+    setStagingSubmission(true);
+    try {
+      if (!(await draft.stage({ ...draft.value, attempted: true }))) return;
+      commit.mutate(
+        {
+          path: `${path}/scripts/import-docx`,
+          body: {
+            fileName: draft.value.fileName,
+            data: draft.value.data,
+            previewSha256: draft.value.preview.sha256,
+            importRequestId: draft.value.importRequestId,
+          },
+          version: draft.baseVersion,
+        },
+        {
+          onCommitted: () => {
+            void draft.complete(done);
+          },
+        },
+      );
+    } finally {
+      submissionLock.current = false;
+      setStagingSubmission(false);
     }
   }
   async function previewFile(value = draft.value) {
@@ -354,6 +386,7 @@ function ScriptImport({
         data: btoa(binary),
         importRequestId: crypto.randomUUID(),
         preview: null,
+        attempted: false,
       };
       if (await draft.stage(value)) await previewFile(value);
     } catch (error) {
@@ -364,7 +397,9 @@ function ScriptImport({
   }
   return (
     <Stack gap="md">
-      <DraftNotice draft={draft} />
+      {(draft.dirty || draft.recovered || draft.committed || draft.error) && (
+        <DraftNotice draft={draft} />
+      )}
       {!draft.committed && (
         <>
           <Group>
@@ -444,11 +479,15 @@ function ScriptImport({
                               {
                                 ...draft.value,
                                 importRequestId: crypto.randomUUID(),
+                                attempted: false,
                               },
                               tree.revision,
                             )
                             .then((ok) => {
-                              if (ok) setNotSaved(false);
+                              if (ok) {
+                                setNotSaved(false);
+                                commit.reset();
+                              }
                             });
                         }}
                       >
@@ -456,50 +495,34 @@ function ScriptImport({
                       </Button>
                     </Alert>
                   )}
-                  <Group>
-                    <Button
-                      variant="default"
-                      loading={checking}
-                      disabled={
-                        commit.isPending || !!draft.recovered || !draft.ready
-                      }
-                      onClick={() => void checkReceipt()}
-                    >
-                      核对本次导入结果
-                    </Button>
-                    {notSaved && (
-                      <Text size="sm" c="dimmed">
-                        尚无已保存回执，可以核对最新版本后继续。
-                      </Text>
-                    )}
-                  </Group>
+                  {(draft.value.attempted || commit.error || conflict) && (
+                    <Group>
+                      <Button
+                        variant="default"
+                        loading={checking}
+                        disabled={
+                          commit.isPending || !!draft.recovered || !draft.ready
+                        }
+                        onClick={() => void checkReceipt()}
+                      >
+                        核对本次导入结果
+                      </Button>
+                      {notSaved && (
+                        <Text size="sm" c="dimmed">
+                          尚无已保存回执，可以核对最新版本后继续。
+                        </Text>
+                      )}
+                    </Group>
+                  )}
                   <Button
-                    loading={commit.isPending}
+                    loading={commit.isPending || stagingSubmission}
                     disabled={
                       conflict ||
                       !draft.ready ||
                       !!draft.recovered ||
                       !!draft.error
                     }
-                    onClick={() =>
-                      commit.mutate(
-                        {
-                          path: `${path}/scripts/import-docx`,
-                          body: {
-                            fileName: draft.value.fileName,
-                            data: draft.value.data,
-                            previewSha256: draft.value.preview!.sha256,
-                            importRequestId: draft.value.importRequestId,
-                          },
-                          version: draft.baseVersion,
-                        },
-                        {
-                          onCommitted: () => {
-                            void draft.complete(done);
-                          },
-                        },
-                      )
-                    }
+                    onClick={() => void submit()}
                   >
                     确认导入为新版本
                   </Button>
