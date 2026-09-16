@@ -103,7 +103,12 @@ export async function startContinuousWorkspace(
     } as unknown as MediaStore;
     const fixtureCleanup: (() => unknown | Promise<unknown>)[] = [];
     cleanup.push(async () => {
-      for (const close of fixtureCleanup) await close();
+      const failures: unknown[] = [];
+      for (const close of fixtureCleanup) {
+        try { await close(); }
+        catch (error) { failures.push(error); }
+      }
+      if (failures.length) throw new AggregateError(failures, "Database fixture cleanup failed");
     });
     const f = await imageGenerationFixture(
       {

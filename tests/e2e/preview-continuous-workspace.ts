@@ -5,7 +5,8 @@ const fixture = await startContinuousWorkspace(
   Number(process.env.SCENEDESK_E2E_PORT ?? 4481),
   process.env.SCENEDESK_E2E_HOST ?? "::1",
 );
-await fixture.seedAdvice();
+try { await fixture.seedAdvice(); }
+catch (error) { await fixture.stop(); throw error; }
 let closing = false;
 let current: Promise<void> | undefined;
 const tick = () => {
