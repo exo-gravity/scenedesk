@@ -339,3 +339,148 @@ test("revocation cleanup failure keeps content hidden and can retry cleanup", as
   assert.equal(f.current(), undefined);
   assert.equal(session.getSnapshot().record, undefined);
 });
+
+test("one generate action saves a fixed request and execution once, and save failure never prepares", async () => {
+  const f = fixture(),
+    session = f.session();
+  await session.load(draft);
+  await session.generateFrom(draft, async () => {
+    throw Error("canvas conflict");
+  });
+  assert.equal(f.calls.length, 0);
+  assert.match(session.getSnapshot().error!, /canvas conflict/);
+  let saves = 0;
+  await Promise.all([
+    session.generateFrom(draft, async () => {
+      saves++;
+      return input;
+    }),
+    session.generateFrom(draft, async () => {
+      saves++;
+      return input;
+    }),
+  ]);
+  assert.equal(saves, 1);
+  assert.deepEqual(
+    f.calls.map((c) => c.kind),
+    ["plan", "execute"],
+  );
+});
+
+test("interrupted one-click generation preserves the original plan and never executes during reload", async () => {
+  const f = fixture();
+  let first = true;
+  f.transport.createPlan = async (fixed, key) => {
+    f.calls.push({ kind: "plan", key, input: fixed });
+    if (first) {
+      first = false;
+      throw Error("lost plan reply");
+    }
+    return plan;
+  };
+  const session = f.session();
+  await session.load(draft);
+  await session.generateFrom(draft, async () => input);
+  const savedKey = f.current()!.planRequest!.key;
+  const reopened = f.session();
+  await reopened.load(draft);
+  await reopened.refresh();
+  assert.equal(f.calls.filter((c) => c.kind === "execute").length, 0);
+  await reopened.generateFrom(draft, async () => {
+    throw Error("must reuse fixed request");
+  });
+  assert.equal(f.calls[1]!.key, savedKey);
+  assert.equal(f.calls.filter((c) => c.kind === "execute").length, 1);
+});
+
+test("a confirmed running job can be retained while the next draft survives later completion", async () => {
+  const f = fixture();
+  let running = { ...job, status: "provider_running" as const };
+  f.transport.execute = async () => running;
+  f.transport.getJob = async () => running;
+  f.transport.findJob = async () => running;
+  const session = f.session();
+  await session.load(draft);
+  await session.generateFrom(draft, async () => input);
+  const next = { ...draft, prompt: "下一稿更近一些" };
+  await session.revise(next, draft, true);
+  running = { ...running, status: "succeeded" as any };
+  await session.refresh();
+  const reopened = f.session();
+  await reopened.load(draft);
+  assert.equal(reopened.getSnapshot().record?.draft.prompt, next.prompt);
+  assert.deepEqual(reopened.getSnapshot().record?.previous, [
+    { planId: plan.id, jobId: job.id },
+  ]);
+  assert.equal(reopened.getSnapshot().record?.execution, undefined);
+  assert.equal(reopened.getSnapshot().job, undefined);
+});
+
+test("continuous creation never releases an unknown submission or a lost execution receipt", async () => {
+  for (const lost of [false, true]) {
+    const f = fixture();
+    if (lost) {
+      f.transport.execute = async () => {
+        throw Error("lost response");
+      };
+      f.transport.findJob = async () => undefined;
+    }
+    const session = f.session();
+    await session.load(draft);
+    await session.generateFrom(draft, async () => input);
+    await session.revise({ ...draft, prompt: "next" }, draft, true);
+    assert.equal(session.getSnapshot().record?.draft.prompt, draft.prompt);
+    assert.ok(session.getSnapshot().record?.execution);
+  }
+});
+
+test("continue creation rechecks the original job instead of trusting a stale queued observation", async () => {
+  for (const status of [
+    "submission_unknown",
+    "dispatching",
+    "reconciliation_required",
+  ] as const) {
+    const f = fixture();
+    f.transport.execute = async () => ({ ...job, status: "queued" });
+    let reads = 0;
+    f.transport.getJob = async () => {
+      reads++;
+      return { ...job, status };
+    };
+    const session = f.session();
+    await session.load(draft);
+    await session.generateFrom(draft, async () => input);
+    const intent = structuredClone(f.current()!.execution);
+    await session.revise({ ...draft, prompt: "下一稿" }, draft, true);
+    assert.equal(reads, 1);
+    assert.deepEqual(f.current()!.execution, intent);
+    assert.equal(session.getSnapshot().record?.draft.prompt, draft.prompt);
+    assert.equal(session.getSnapshot().job?.status, status);
+    assert.match(session.getSnapshot().error!, /原任务当前仍需核对/);
+  }
+});
+
+test("failed or mismatched fresh job reads cannot release the original execution for a next draft", async () => {
+  for (const response of ["offline", "wrong-job", "wrong-plan"]) {
+    const f = fixture();
+    f.transport.execute = async () => ({ ...job, status: "queued" });
+    f.transport.getJob = async () => {
+      if (response === "offline") throw Error("network unavailable");
+      return {
+        ...job,
+        status: "succeeded",
+        ...(response === "wrong-job"
+          ? { id: "another-job" }
+          : { planId: "another-plan" }),
+      };
+    };
+    const session = f.session();
+    await session.load(draft);
+    await session.generateFrom(draft, async () => input);
+    const intent = structuredClone(f.current()!.execution);
+    await session.revise({ ...draft, prompt: "下一稿" }, draft, true);
+    assert.deepEqual(f.current()!.execution, intent);
+    assert.equal(session.getSnapshot().record?.draft.prompt, draft.prompt);
+    assert.ok(session.getSnapshot().error);
+  }
+});
