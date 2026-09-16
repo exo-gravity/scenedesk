@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, useResource, useSession, type Schema } from "./api";
 import { sameValue } from "./prompt-draft";
 
@@ -17,6 +18,7 @@ function preferenceOnly(value: Saved): Preference {
 }
 export function useScenePreference(path: string) {
   const session = useSession(),
+    cache = useQueryClient(),
     initial = useResource<Saved>(path);
   const [view, setView] = useState<Preference | null>(null),
     [error, setError] = useState<Error | null>(null),
@@ -64,7 +66,17 @@ export function useScenePreference(path: string) {
         writing.current = true;
         setSaving(true);
         try {
-          if (retry) base.current = await api<Saved>(path);
+          const publish = async (saved: Saved) => {
+            const queryKey = ["user", session.userId, path];
+            // A mounted page seeds its view once. A stale pre-save read must
+            // not restore old viewport/panel state on the next navigation.
+            await cache.cancelQueries({ queryKey, exact: true });
+            cache.setQueryData(queryKey, saved);
+          };
+          if (retry) {
+            base.current = await api<Saved>(path);
+            await publish(base.current);
+          }
           if (epoch !== generation.current) return;
           const desired = draft.current;
           const saved = preferenceOnly(base.current);
@@ -83,6 +95,7 @@ export function useScenePreference(path: string) {
             },
             body: JSON.stringify(desired),
           });
+          await publish(result);
           if (epoch !== generation.current) return;
           base.current = result;
           failed.current = false;
@@ -113,7 +126,7 @@ export function useScenePreference(path: string) {
       });
       return operation;
     },
-    [path, session.csrfToken],
+    [path, session.csrfToken, session.userId, cache],
   );
   useEffect(() => {
     if (!view || !base.current || failed.current) return;

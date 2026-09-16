@@ -49,6 +49,9 @@ test("CW-03: zero-scene project creates one canvas across tabs and retains text,
   const nav = page.getByRole("navigation", { name: "项目导航", exact: true });
   await nav.getByRole("link", { name: "剧本", exact: true }).click();
   await expect(page).toHaveURL(`${p.baseURL}/script`);
+  const savedView = await w.command<Schema<"ProjectWorkspacePreference">>("GET", `${p.path}/workspace-preference`);
+  expect(`${Math.round(savedView.viewport.zoom * 100)}%`).toBe(zoomLabel);
+  expect(savedView.assistantOpen).toBe(true);
   await nav.getByRole("link", { name: "画布", exact: true }).click();
   await expect(page.getByRole("button", { name: "画布保存状态：已保存", exact: true })).toBeVisible();
   await expect(page.getByText(note, { exact: true })).toBeVisible();
