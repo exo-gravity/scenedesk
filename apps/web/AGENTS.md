@@ -1,5 +1,7 @@
 # Frontend implementation rules
 
+Latest direction and implementation authorization (2026-09-16): follow [creative workspace](../../docs/design/creative-workspace-approved-2026-09-16.md) and [eight-PR delivery plan](../../docs/implementation/70-creative-workspace-refactor.md). Project navigation is now `剧本`, `画布`, `项目资产` in a collapsible left sidebar; scene management is secondary. Build on real APIs and retain guarded navigation, drafts and fixed history. Replace the full storyboard workflow only after list/focus/compare/adoption are usable. During PR-1 the existing production workspace keeps its retention-aware shell; PR-2 integrates project canvas and guarded workspace navigation. This supersedes conflicting navigation/layout rules below, not their reliability or media semantics.
+
 Project navigation (user correction, 2026-09-15): show `剧本`, `场次`, `资产` in that exact order. The studio entry remains `资产库`.
 
 Unified library (user approval, 2026-09-15): use one visible `资产库` entry and direct content categories, with project/shared scope separate from category. Project-local assets and imported shared fixed revisions share the gallery; never derive an imported card from the current shared revision. Preserve legacy media links and upload recovery keys. See [accepted design](../../docs/design/unified-asset-library-2026-09-15.md) and [69](../../docs/implementation/69-unified-asset-library.md).

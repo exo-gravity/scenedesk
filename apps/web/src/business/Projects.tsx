@@ -192,7 +192,7 @@ function ProjectCard({
     `${path}/media?scope=project&projectId=${project.id}&kind=image&status=ready&limit=1`,
   );
   const cover = covers.data?.items[0];
-  const href = `#/app/t/${tenantId}/p/${project.id}/content`;
+  const href = `#/app/t/${tenantId}/p/${project.id}/script`;
   return (
     <article className={classes.projectCard}>
       <Anchor
