@@ -53,11 +53,12 @@ function children(node: Xml, name?: string): Xml[] {
     (c): c is Xml => typeof c !== "string" && (!name || c.name === name),
   );
 }
-function descendants(node: Xml, name: string): Xml[] {
-  return children(node).flatMap((c) => [
-    ...(c.name === name ? [c] : []),
-    ...descendants(c, name),
-  ]);
+function descendants(node: Xml, name: string, omitDeleted = false): Xml[] {
+  return children(node).flatMap((c) =>
+    omitDeleted && c.name === "w:del"
+      ? []
+      : [...(c.name === name ? [c] : []), ...descendants(c, name, omitDeleted)],
+  );
 }
 function textOf(node: Xml): string {
   if (["w:del", "w:instrText"].includes(node.name)) return "";
@@ -282,7 +283,7 @@ export async function parseScriptDocument(
       text,
       ...(level ? { level } : {}),
     });
-    for (const image of descendants(p, "a:blip")) {
+    for (const image of descendants(p, "a:blip", true)) {
       const relation = relations.find(
         (r) => r.attrs.Id === image.attrs["r:embed"],
       );
@@ -312,6 +313,17 @@ export async function parseScriptDocument(
           "部分图片为外部链接、不支持的格式或超过大小限制；请下载原件核对。支持内嵌 PNG/JPEG，每张 ≤1 MB、边长 ≤8192、≤1600 万像素，总计 ≤3 MB。损坏或动画图片不展开。",
         );
       }
+    }
+    if (
+      descendants(p, "w:drawing", true).some(
+        (drawing) => !descendants(drawing, "a:blip", true).length,
+      )
+    ) {
+      blocks.push({
+        kind: "paragraph",
+        text: "[图表或绘图对象未展开，请查阅原件]",
+      });
+      warnings.add("部分图表、文本框或绘图对象未展开，请查阅原件核对。");
     }
   }
   function render(node: Xml) {

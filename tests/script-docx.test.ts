@@ -103,3 +103,15 @@ test("Word ZIP expansion is bounded across compressed entries", async () => {
   assert.ok(bomb.length < 4 * 1024 * 1024);
   await assert.rejects(parse(bomb), /20 MB/);
 });
+
+test("Word exposes unsupported diagrams and omits deleted drawings from accepted-change reading", async () => {
+  const result = await parse(
+    docxFixture(
+      sampleParagraphs +
+        `<w:p><w:r><w:drawing><a:graphic/></w:drawing></w:r></w:p><w:p><w:del><w:r><w:drawing><a:blip r:embed="deleted"/></w:drawing></w:r></w:del></w:p>`,
+    ),
+  );
+  assert.match(result.text, /图表或绘图对象未展开/);
+  assert.doesNotMatch(result.text, /图片未展开/);
+  assert.ok(result.document.warnings.some((w) => w.includes("修订标记")));
+});
