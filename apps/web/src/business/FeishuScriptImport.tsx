@@ -362,6 +362,9 @@ function ImportLink({
                 尚未导入 · {state.title} · 读取于{" "}
                 {new Date(state.fetchedAt!).toLocaleString()}
               </Text>
+              <Text size="xs" c="dimmed">
+                按本次飞书导出的 Word 展示；画板、评论和嵌入内容可能简化，请核对源文档。
+              </Text>
               <Warnings document={state.preview.document} />
               <DocumentBody
                 document={state.preview.document}
