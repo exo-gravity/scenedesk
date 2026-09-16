@@ -1,9 +1,14 @@
 import { randomUUID } from "node:crypto";
-import type { Page } from "@playwright/test";
+import type { Page, TestInfo } from "@playwright/test";
 import { test, expect, type WorkspaceFixture } from "./fixture.js";
 
 const navigation = (page: Page) => page.getByRole("navigation", { name: "项目导航", exact: true });
 const scriptURL = (w: WorkspaceFixture) => `${w.runtime.origin}${w.basePath}/script`;
+async function captureEvidence(page: Page, info: TestInfo, name: string) {
+  const path = info.outputPath(`${name}.png`);
+  await page.screenshot({ path });
+  await info.attach(name, { path, contentType: "image/png" });
+}
 
 test("CW-01: project card opens script, all primary sections and legacy scene canvas remain reachable", async ({ page, workspace: w }, info) => {
   await page.goto(`${w.runtime.origin}/#/app/t/${w.tenant.id}`);
@@ -13,10 +18,10 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
   const nav = navigation(page);
   await expect(nav.getByRole("link")).toHaveCount(3);
   await expect(nav.getByRole("link", { name: "剧本", exact: true })).toHaveAttribute("aria-current", "page");
-  await info.attach("script-desktop", { body: await page.screenshot(), contentType: "image/png" });
+  await captureEvidence(page, info, "script-desktop");
   await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
   await page.getByRole("menuitem", { name: "切换深色", exact: true }).click();
-  await info.attach("script-desktop-dark", { body: await page.screenshot(), contentType: "image/png" });
+  await captureEvidence(page, info, "script-desktop-dark");
   await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
   await page.getByRole("menuitem", { name: "切换浅色", exact: true }).click();
 
@@ -26,6 +31,7 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
   await page.getByRole("link", { name: "打开画布", exact: true }).click();
   await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/production?scene=${w.scene.id}&mode=canvas`);
   await expect(page.getByRole("button", { name: "返回场次目录", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "创建本场画布", exact: true }).click();
   await expect(page.getByRole("button", { name: "AI 助手", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "返回场次目录", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/content\\?scene=${w.scene.id}$`));
@@ -36,7 +42,7 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
   await expect(page.getByRole("heading", { name: w.asset.name, exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: "项目资产", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByText("合成角色的固定设定：寻找来信人。", { exact: true })).toBeVisible();
-  await info.attach("asset-detail-desktop", { body: await page.screenshot(), contentType: "image/png" });
+  await captureEvidence(page, info, "asset-detail-desktop");
 });
 
 test("CW-01: compact rail and narrow drawer support keyboard navigation and restore focus", async ({ page, workspace: w }, info) => {
@@ -62,7 +68,7 @@ test("CW-01: compact rail and narrow drawer support keyboard navigation and rest
     await expect(drawer).toBeHidden();
     await expect(trigger).toBeFocused();
     await trigger.press("Enter");
-    await info.attach(`navigation-drawer-${width}`, { body: await page.screenshot(), contentType: "image/png" });
+    await captureEvidence(page, info, `navigation-drawer-${width}`);
     await drawer.getByRole("link", { name: "剧本", exact: true }).click();
     await expect(drawer).toBeHidden();
     await expect(page.getByRole("article", { name: "剧本正文", exact: true })).toHaveText(w.current.text);
@@ -95,6 +101,7 @@ test("CW-02: unsaved script survives navigation and refresh, then saves exactly 
   await navigation(page).getByRole("link", { name: "剧本", exact: true }).click();
   await page.getByRole("button", { name: "恢复未提交内容", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "剧本正文", exact: true })).toHaveValue(draft);
+  await expect(page.getByText("修改已保存在本标签页，尚未提交。", { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "恢复未提交内容", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "剧本正文", exact: true })).toHaveValue(draft);
