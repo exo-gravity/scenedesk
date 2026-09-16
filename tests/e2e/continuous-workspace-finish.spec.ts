@@ -165,6 +165,11 @@ test("CW-10/11: lost assistant application reply recovers the same draft, then d
     page.getByRole("button", { name: "查询原应用记录", exact: true }),
   ).toBeVisible();
   await page.reload();
+  const assistantToggle = page.getByRole("button", { name: "AI 助手", exact: true });
+  // Panel preferences save separately from the durable application receipt.
+  // A quick reload may close the panel; reopening must still recover that receipt.
+  if ((await assistantToggle.getAttribute("aria-pressed")) !== "true")
+    await assistantToggle.click();
   await page
     .getByRole("button", { name: "查询原应用记录", exact: true })
     .click();
@@ -212,7 +217,27 @@ test("CW-10/11: lost assistant application reply recovers the same draft, then d
 test("CW-12: default scene canvas uses the shot list while legacy storyboard deep links remain reachable", async ({
   page,
   continuous: f,
-}) => {
+}, info) => {
+  await page.goto(`${f.origin}/#/app/t/${f.tenant.id}/p/${f.project.id}/canvas`);
+  for (const width of [390, 820, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const name of ["镜头列表", "任务与结果", "素材", "AI 助手", "画布恢复与协作"]) {
+      const action = page.getByRole("button", { name, exact: true });
+      await expect(action).toBeVisible();
+      await expect.poll(async () => {
+        const box = await action.boundingBox();
+        return !!box && box.x >= 0 && box.x + box.width <= width;
+      }, { message: `${width}px: ${name} stays inside the viewport` }).toBe(true);
+    }
+    if (width === 390) {
+      const screenshot = info.outputPath("canvas-actions-390.png");
+      await page.screenshot({ path: screenshot });
+      await info.attach("canvas-actions-390", { path: screenshot, contentType: "image/png" });
+      await page.getByRole("button", { name: "AI 助手", exact: true }).click();
+      await expect(page.getByRole("textbox", { name: "发送给画布助手", exact: true })).toBeVisible();
+      await page.getByRole("button", { name: "收起 AI 助手", exact: true }).click();
+    }
+  }
   const ensured = await f.request(
     "POST",
     `${f.path}/scenes/${f.scene.id}/canvas`,

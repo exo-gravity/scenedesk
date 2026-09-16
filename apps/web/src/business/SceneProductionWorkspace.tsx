@@ -637,6 +637,9 @@ export function SceneCanvasSession({
     await Promise.all([connections.refetch(), content.refetch()]);
   };
   const focusNodes = (ids: string[]) => {
+    // The requested focus already consumes this entry target. Otherwise the
+    // next document edit could replay it and unexpectedly leave focus editing.
+    entryFocus.current = ids.length === 1 ? ids[0] : undefined;
     changePreference({ selectedNodeIds: ids, mode: "canvas" });
     setFocusRequest({ ids, nonce: Date.now() });
     const query = new URLSearchParams(location.hash.split("?")[1]);
@@ -782,7 +785,7 @@ export function SceneCanvasSession({
                 </Stack>
               </Popover.Dropdown>
             </Popover>
-            <Group gap={4} wrap="nowrap">
+            <Group gap={4} wrap="nowrap" className={layout.canvasActions}>
               {preference.mode === "canvas" &&
                 (state.dirty ||
                   state.hasInvalidInput ||

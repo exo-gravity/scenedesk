@@ -50,6 +50,9 @@
   justify-self: end;
   min-width: 0;
 }
+.canvasActions {
+  min-width: 0;
+}
 .headerActions [hidden] {
   display: none;
 }
@@ -244,7 +247,16 @@
   .headerActions {
     grid-column: 1 / -1;
     grid-row: 3;
-    justify-self: center;
+    justify-self: stretch;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .canvasActions {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 100%;
   }
   .headerActions .saveAction {
     display: none;
