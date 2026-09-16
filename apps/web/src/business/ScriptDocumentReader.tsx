@@ -3,6 +3,7 @@ import { DocumentBody, Warnings } from "./ScriptDocumentBody";
 export { DocumentBody, Warnings } from "./ScriptDocumentBody";
 import { FeishuScriptImport } from "./FeishuScriptImport";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Alert,
   Button,
@@ -27,6 +28,7 @@ import { DraftNotice, useContentDraft } from "./content-drafts";
 import { ScriptEditor } from "./ContentEditors";
 import { ErrorNotice } from "./common";
 import classes from "./script-document.module.css";
+import { selectedDocumentQuote } from "./script-excerpt-selection";
 
 type Preview = Schema<"ScriptDocumentPreview">;
 type ImportDraft = {
@@ -65,6 +67,12 @@ export function ScriptDocumentReader({
     [showHistory, setShowHistory] = useState(false),
     [showNotes, setShowNotes] = useState(false),
     [importEpoch, setImportEpoch] = useState(0);
+  // Move only entry buttons into the toolbar; import and recovery sessions stay mounted.
+  const [wordAction, setWordAction] = useState<HTMLDivElement | null>(null),
+    [feishuAction, setFeishuAction] = useState<HTMLDivElement | null>(null),
+    [excerptAction, setExcerptAction] = useState<HTMLDivElement | null>(null);
+  const [selectedExcerpt, setSelectedExcerpt] =
+    useState<Schema<"ScriptExcerpt">>();
   const [downloadError, setDownloadError] = useState<Error>(),
     [downloading, setDownloading] = useState(false);
   useEffect(() => {
@@ -103,53 +111,90 @@ export function ScriptDocumentReader({
     }
   }
   return (
-    <Stack gap="lg">
-      <Group justify="space-between" align="flex-start">
-        <div>
+    <Stack gap="lg" className={classes.reader}>
+      <div className={classes.toolbar}>
+        <div className={classes.documentIdentity}>
           <Text fw={600}>
-            {selected?.fileName ?? (selected ? "剧本正文" : "导入你的初稿剧本")}
-          </Text>
-          <Text size="sm" c="dimmed">
             {selected
-              ? `${history && history !== tree.currentScriptRevisionId ? "历史稿 · 只读" : "当前稿"} · ${selected.createdAt ? new Date(selected.createdAt).toLocaleString() : ""}`
-              : "把已确定的剧本带到这里，与项目成员一起阅读。"}
+              ? `${history && history !== tree.currentScriptRevisionId ? "历史稿 · 只读" : "当前稿"} · ${selected.source ? "飞书导入" : selected.sourceFormat === "docx" ? "Word 导入" : "纯文本"}`
+              : "导入你的初稿剧本"}
           </Text>
+          {(selected?.fileName || !selected) && (
+            <Text size="sm" c="dimmed">
+              {selected?.fileName ??
+                "把已确定的剧本带到这里，与项目成员一起阅读。"}
+            </Text>
+          )}
         </div>
-        <Group gap="sm">
+        <Group gap="xs" className={classes.documentActions}>
+          <div ref={setWordAction} />
+          <div ref={setFeishuAction} />
           {history && history !== tree.currentScriptRevisionId && (
-            <Button component="a" href={location.hash.split("?")[0]} variant="subtle" onClick={() => {
-              setHistory(null);
-              setShowHistory(false);
-              setLegacy(false);
-            }}>返回当前稿</Button>
+            <Button
+              component="a"
+              href={location.hash.split("?")[0]}
+              variant="subtle"
+              onClick={() => {
+                setHistory(null);
+                setShowHistory(false);
+                setLegacy(false);
+              }}
+            >
+              返回当前稿
+            </Button>
           )}
           <Menu position="bottom-end" withinPortal>
             <Menu.Target>
-              <Button variant="subtle" leftSection={<DotsThree size={18} />} aria-label="文档更多操作">
+              <Button
+                variant="subtle"
+                leftSection={<DotsThree size={18} />}
+                aria-label="文档更多操作"
+              >
                 更多
               </Button>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item leftSection={<ClockCounterClockwise size={16} />} disabled={!scripts.length}
-                onClick={() => setShowHistory(!showHistory)}>
+              <Menu.Item
+                leftSection={<ClockCounterClockwise size={16} />}
+                disabled={!scripts.length}
+                onClick={() => setShowHistory(!showHistory)}
+              >
                 查看历史
               </Menu.Item>
               {selected?.sourceFormat === "docx" && (
-                <Menu.Item leftSection={<DownloadSimple size={16} />} disabled={downloading}
-                  onClick={() => void downloadOriginal()}>{selected.source ? "下载本次导出文件" : "下载原件"}</Menu.Item>
+                <Menu.Item
+                  leftSection={<DownloadSimple size={16} />}
+                  disabled={downloading}
+                  onClick={() => void downloadOriginal()}
+                >
+                  {selected.source ? "下载本次导出文件" : "下载原件"}
+                </Menu.Item>
               )}
               {!!fixed.data?.document?.warnings.length && (
-                <Menu.Item onClick={() => setShowNotes(!showNotes)}>导入说明</Menu.Item>
+                <Menu.Item onClick={() => setShowNotes(!showNotes)}>
+                  导入说明
+                </Menu.Item>
               )}
               {active && !history && (
-                <Menu.Item leftSection={<PencilSimple size={16} />} onClick={() => setLegacy(!legacy)}>
+                <Menu.Item
+                  leftSection={<PencilSimple size={16} />}
+                  onClick={() => setLegacy(!legacy)}
+                >
                   {legacy ? "收起正文编辑" : "编辑纯文本"}
                 </Menu.Item>
               )}
             </Menu.Dropdown>
           </Menu>
         </Group>
-      </Group>
+        <div className={classes.excerptAction}>
+          <div ref={setExcerptAction} />
+          {fixed.data && !fixed.isError && (
+            <Text size="xs" c="dimmed">
+              选中正文，可带入画布作为参考
+            </Text>
+          )}
+        </div>
+      </div>
       {showHistory && (
         <Group align="end">
           <Select
@@ -168,7 +213,9 @@ export function ScriptDocumentReader({
                 label: `${script.createdAt ? new Date(script.createdAt).toLocaleString() : "导入时间未记录"} · ${script.fileName ?? "剧本文字"}${script.id === tree.currentScriptRevisionId ? " · 当前稿" : ""}`,
               }))}
           />
-          <Button variant="subtle" onClick={() => setShowHistory(false)}>收起历史</Button>
+          <Button variant="subtle" onClick={() => setShowHistory(false)}>
+            收起历史
+          </Button>
         </Group>
       )}
       <ErrorNotice error={downloadError ?? null} />
@@ -177,25 +224,65 @@ export function ScriptDocumentReader({
           key={importEpoch}
           path={path}
           tree={tree}
+          actionTarget={wordAction}
           reset={() => setImportEpoch((value) => value + 1)}
           done={done}
         />
       )}
-      {active && <FeishuScriptImport path={path} tree={tree} done={done} />}
-      {selected?.source && <Text size="sm" c="dimmed">飞书 · {selected.source.title} · 读取于 {new Date(selected.source.fetchedAt).toLocaleString()} <a href={selected.source.sourceUrl} target="_blank" rel="noopener noreferrer">查看源文档</a></Text>}
+      {active && (
+        <FeishuScriptImport
+          path={path}
+          tree={tree}
+          done={done}
+          actionTarget={feishuAction}
+        />
+      )}
+      {selected?.source && (
+        <Text size="sm" c="dimmed">
+          飞书 · {selected.source.title} · 读取于{" "}
+          {new Date(selected.source.fetchedAt).toLocaleString()}{" "}
+          <a
+            href={selected.source.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            查看源文档
+          </a>
+        </Text>
+      )}
       {selected ? (
         <>
           <ErrorNotice error={fixed.error} retry={() => void fixed.refetch()} />
           {fixed.isPending && <Loader aria-label="正在读取剧本正文" />}
-          {showNotes && <Warnings
-            document={!fixed.isError ? fixed.data?.document : undefined}
-          />}
+          {showNotes && (
+            <Warnings
+              document={!fixed.isError ? fixed.data?.document : undefined}
+            />
+          )}
           {fixed.data && !fixed.isError && (
             <>
-              <ScriptCanvasExcerpt script={fixed.data} current={fixed.data.id === tree.currentScriptRevisionId} active={active} path={path} />
+              <ScriptCanvasExcerpt
+                script={fixed.data}
+                current={fixed.data.id === tree.currentScriptRevisionId}
+                active={active}
+                path={path}
+                actionTarget={excerptAction}
+                selectedExcerpt={selectedExcerpt}
+              />
               <DocumentBody
                 document={fixed.data.document}
                 text={fixed.data.text}
+                onTextSelection={(quote) => {
+                  const selected = selectedDocumentQuote(
+                    fixed.data!.text,
+                    quote,
+                  );
+                  setSelectedExcerpt(
+                    selected
+                      ? { scriptRevisionId: fixed.data!.id, ...selected }
+                      : undefined,
+                  );
+                }}
               />
             </>
           )}
@@ -234,11 +321,13 @@ export function ScriptDocumentReader({
 function ScriptImport({
   path,
   tree,
+  actionTarget,
   reset,
   done,
 }: {
   path: string;
   tree: Schema<"ContentTree">;
+  actionTarget: HTMLDivElement | null;
   reset: () => void;
   done: () => void;
 }) {
@@ -430,41 +519,48 @@ function ScriptImport({
   }
   return (
     <Stack gap="md">
-      {!completed &&
-        (draft.recovered || draft.committed || draft.error) && (
-          <DraftNotice draft={draft} />
-        )}
-      {!completed && draft.dirty && !draft.recovered && !draft.committed && !draft.error && (
-        <Text size="xs" c="dimmed" aria-live="polite">
-          {draft.saved ? "文件已保留，离开后可继续导入。" : "正在保留文件…"}
-        </Text>
+      {!completed && (draft.recovered || draft.committed || draft.error) && (
+        <DraftNotice draft={draft} />
       )}
+      {!completed &&
+        draft.dirty &&
+        !draft.recovered &&
+        !draft.committed &&
+        !draft.error && (
+          <Text size="xs" c="dimmed" aria-live="polite">
+            {draft.saved ? "文件已保留，离开后可继续导入。" : "正在保留文件…"}
+          </Text>
+        )}
       {completed && <Text size="sm">导入已保存。</Text>}
       {!draft.committed && !completed && (
         <>
-          <Group>
-            <FileButton
-              onChange={(file) => void choose(file)}
-              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            >
-              {(props) => (
-                <Button
-                  {...props}
-                  variant="default"
-                  leftSection={<UploadSimple size={16} />}
-                  loading={reading || preview.isPending}
-                  disabled={
-                    !draft.ready ||
-                    !!draft.recovered ||
-                    busy ||
-                    !!draft.value.fileName
-                  }
-                >
-                  {tree.currentScriptRevisionId ? "重新导入 Word" : "导入 Word"}
-                </Button>
-              )}
-            </FileButton>
-          </Group>
+          {actionTarget &&
+            createPortal(
+              <FileButton
+                onChange={(file) => void choose(file)}
+                accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              >
+                {(props) => (
+                  <Button
+                    {...props}
+                    variant="default"
+                    leftSection={<UploadSimple size={16} />}
+                    loading={reading || preview.isPending}
+                    disabled={
+                      !draft.ready ||
+                      !!draft.recovered ||
+                      busy ||
+                      !!draft.value.fileName
+                    }
+                  >
+                    {tree.currentScriptRevisionId
+                      ? "重新导入 Word"
+                      : "导入 Word"}
+                  </Button>
+                )}
+              </FileButton>,
+              actionTarget,
+            )}
           <ErrorNotice error={error ?? commit.error} />
           {draft.value.fileName && (
             <section className={classes.import} aria-label="Word 导入预览">

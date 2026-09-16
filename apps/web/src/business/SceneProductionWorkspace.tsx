@@ -57,7 +57,9 @@ import {
   type SceneTaskView,
 } from "./SceneTaskPanel";
 import { SceneAssistant } from "./SceneAssistant";
-import { SceneNavigator } from "./SceneNavigator";
+import { CanvasNavigator } from "./SceneNavigator";
+import { useProjectNavigationGuard } from "./project-navigation-guard";
+import { canvasLocationHref, rememberCanvas } from "./canvas-navigation";
 import {
   retainProjectAssistantDrafts,
   retryProjectAssistantRetention,
@@ -113,6 +115,7 @@ function SceneWorkspace({
   const path = projectPath(tenantId, projectId),
     base = `#/app/t/${tenantId}/p/${projectId}`;
   const session = useSession();
+  const guard = useProjectNavigationGuard();
   const project = useResource<Schema<"Project">>(path),
     content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const canvas = useResource<Schema<"SceneCanvas">>(
@@ -144,8 +147,8 @@ function SceneWorkspace({
   const scene = content.data?.scenes.find((s) => s.id === sceneId),
     episode = content.data?.episodes.find((e) => e.id === scene?.episodeId);
   useEffect(() => {
-    document.title = `${scene?.title ?? "场次"} · 镜头制作 · SceneDesk`;
-  }, [scene?.title]);
+    document.title = `${project.isError || content.isError ? "场次不可访问" : (scene?.title ?? "场次")} · 画布 · SceneDesk`;
+  }, [scene?.title, project.isError, content.isError]);
   const active =
     project.data?.status === "active" &&
     scene?.status === "active" &&
@@ -154,49 +157,80 @@ function SceneWorkspace({
     canvas.error instanceof ApiError &&
     canvas.error.code === "SCENE_CANVAS_NOT_CREATED";
   const canvasId = canvas.data?.canvas.id ?? create.data?.canvas.id;
-  const navigate = async (destination: string, recheck = false) => {
-    if (navigationLock.current) throw new Error("正在保留当前编辑，请稍候。");
-    navigationLock.current = true;
-    setNavigating(true);
-    setNavigationError(null);
-    pendingDestination.current = destination;
-    try {
-      if (recheck)
-        await retryProjectAssistantRetention({
+  const navigate = useCallback(
+    async (destination: string, recheck = false) => {
+      if (navigationLock.current) throw new Error("正在保留当前编辑，请稍候。");
+      navigationLock.current = true;
+      setNavigating(true);
+      setNavigationError(null);
+      pendingDestination.current = destination;
+      try {
+        if (recheck)
+          await retryProjectAssistantRetention({
+            sessionId: session.id,
+            userId: session.userId,
+            tenantId,
+            projectId,
+          });
+        await beforeLeave.current?.();
+        await retainProjectAssistantDrafts({
           sessionId: session.id,
           userId: session.userId,
           tenantId,
           projectId,
         });
-      await beforeLeave.current?.();
-      await retainProjectAssistantDrafts({
-        sessionId: session.id,
-        userId: session.userId,
-        tenantId,
-        projectId,
-      });
-      await preference.flush();
-      await beforeLeave.current?.();
-      await retainProjectAssistantDrafts({
-        sessionId: session.id,
-        userId: session.userId,
-        tenantId,
-        projectId,
-      });
-      location.hash = destination;
-      pendingDestination.current = null;
-    } catch (cause) {
-      const error =
-        cause instanceof Error
-          ? cause
-          : new Error("当前编辑尚未保留，页面仍留在原处。");
-      setNavigationError(error);
-      throw error;
-    } finally {
-      navigationLock.current = false;
-      setNavigating(false);
-    }
-  };
+        await preference.flush();
+        await beforeLeave.current?.();
+        await retainProjectAssistantDrafts({
+          sessionId: session.id,
+          userId: session.userId,
+          tenantId,
+          projectId,
+        });
+        location.hash = destination;
+        pendingDestination.current = null;
+      } catch (cause) {
+        const error =
+          cause instanceof Error
+            ? cause
+            : new Error("当前编辑尚未保留，页面仍留在原处。");
+        setNavigationError(error);
+        throw error;
+      } finally {
+        navigationLock.current = false;
+        setNavigating(false);
+      }
+    },
+    [session.id, session.userId, tenantId, projectId, preference.flush],
+  );
+  useEffect(() => {
+    guard.current = navigate;
+    return () => {
+      if (guard.current === navigate) guard.current = undefined;
+    };
+  }, [guard, navigate]);
+  useEffect(() => {
+    if (
+      canvasId &&
+      !canvas.isError &&
+      !project.isError &&
+      !content.isError &&
+      scene?.status === "active" &&
+      episode?.status === "active"
+    )
+      rememberCanvas(session, tenantId, projectId, sceneId);
+  }, [
+    canvasId,
+    canvas.isError,
+    project.isError,
+    content.isError,
+    scene?.status,
+    episode?.status,
+    session,
+    tenantId,
+    projectId,
+    sceneId,
+  ]);
   const switchMode = (next: Preference["mode"]) => {
     if (next === mode) return;
     const query = new URLSearchParams(location.hash.split("?")[1]);
@@ -252,22 +286,6 @@ function SceneWorkspace({
   const modeTools = (
     <>
       <Group gap="xs" wrap="nowrap" className={layout.contextTools}>
-        <Tooltip label="返回场次目录">
-          <ActionIcon
-            disabled={navigating}
-            onClick={() =>
-              void navigate(`${base}/content?scene=${sceneId}`).catch(() => {})
-            }
-            variant="subtle"
-            aria-label="返回场次目录"
-          >
-            <ArrowLeft size={18} />
-          </ActionIcon>
-        </Tooltip>
-        <Text className={layout.brand} fw={600}>
-          SceneDesk
-        </Text>
-        <SceneEnvironmentBadge />
         <Text
           className={layout.projectName}
           size="sm"
@@ -277,12 +295,16 @@ function SceneWorkspace({
         >
           {project.data.name}
         </Text>
-        <SceneNavigator
+        <CaretRight size={14} className={layout.contextDivider} aria-hidden />
+        <CanvasNavigator
           content={content.data}
           sceneId={sceneId}
           disabled={navigating}
-          onSelect={(id) =>
-            navigate(`${base}/production?scene=${id}&mode=canvas`)
+          canCreate={project.data.status === "active"}
+          onSelect={(id) => navigate(canvasLocationHref(base, id))}
+          onDirectory={() => navigate(`${base}/content`)}
+          onCreate={() =>
+            navigate(`${base}/content?create=scene&episode=${scene.episodeId}`)
           }
         />
       </Group>
@@ -353,7 +375,7 @@ function SceneWorkspace({
       {!active && (
         <Alert title="只读场次">项目或场次已归档，可继续查看原有内容。</Alert>
       )}
-      {canvasId ? (
+      {canvasId && !canvas.isError ? (
         <SceneCanvasSession
           tenantId={tenantId}
           projectId={projectId}

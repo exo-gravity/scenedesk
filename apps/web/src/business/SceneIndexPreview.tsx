@@ -29,7 +29,7 @@ export function SceneIndexPreview({
     <Anchor
       href={href}
       className={layout.scenePreview}
-      aria-label={`进入${title}制作`}
+      aria-label={`打开${title}画布`}
     >
       {media.data && !media.isError && !take.isError ? (
         <MediaPreview thumbnail media={media.data} path={mediaPath} />
@@ -41,7 +41,7 @@ export function SceneIndexPreview({
               ? "预览暂不可用"
               : shot?.currentTakeId
                 ? "正在读取画面"
-                : "等待第一帧"}
+                : "尚无画面"}
           </Text>
         </div>
       )}

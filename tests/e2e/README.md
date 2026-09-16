@@ -30,6 +30,12 @@ The fixture exports `WorkspaceRuntime` and `WorkspaceFixture` from [fixture.ts](
 
 Screenshots are attached for desktop script (light/dark), the saved scene canvas, asset detail and both drawer widths. These are review evidence, **not approved pixel baselines**: inspect them against the accepted design before reporting visual acceptance. The initial suite does not prove document import, canvas generation, external provider execution, media decoding, OIDC login, or full refactor acceptance. The matrix marks those separate gates. CI run links and actual pass/fail evidence belong in the implementation progress record after execution, not in this file as assumed results.
 
+## Unified canvas and directory coverage
+
+`canvas-navigation.spec.ts` covers the existing-scene default, explicit project destination and browser Back, remembered/archived workspaces, fresh authorized index after an external update, cross-navigation canvas/assistant drafts, directory creation, local details and legacy links. It checks canvas menu bounds and restored focus at 820px and 390px, plus explicit episode creation in an empty project without creating a canvas as a side effect.
+
+`script-paper-selection.spec.ts` verifies direct paper selection with Unicode/CRLF fixed offsets and exact confirmation preview. Repeated text must use canonical selection; keyboard selection remains readonly and stores the intended occurrence. Existing receipt-loss, draft recovery, Word/Feishu and immutable source tests remain part of the full suite.
+
 
 ## Word import coverage
 

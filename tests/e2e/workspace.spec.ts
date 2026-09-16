@@ -28,10 +28,10 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
 
   await nav.getByRole("link", { name: "画布", exact: true }).click();
   await expect(page.getByRole("button", { name: "创建项目画布", exact: true })).toBeVisible();
-  await page.getByRole("combobox", { name: "打开已有场次画布", exact: true }).click();
-  await page.getByRole("option", { name: `${w.episode.title} · ${w.scene.title}`, exact: true }).click();
+  await page.getByRole("button", { name: "切换画布：项目画布", exact: true }).click();
+  await page.getByRole("button", { name: `${w.episode.title} · ${w.scene.title}`, exact: true }).click();
   await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/production?scene=${w.scene.id}&mode=canvas`);
-  await expect(page.getByRole("button", { name: "返回场次目录", exact: true })).toBeEnabled();
+  await expect(nav.getByRole("link", { name: "画布", exact: true })).toHaveAttribute("aria-current", "page");
   await page.getByRole("button", { name: "创建本场画布", exact: true }).click();
   await expect(page.getByRole("button", { name: "AI 助手", exact: true })).toBeVisible();
   // The surrounding workspace can render even when the browser contract compiler fails.
@@ -51,8 +51,9 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
   await expect(page.getByRole("button", { name: "画布保存状态：已保存", exact: true })).toBeVisible();
   await expect(page.getByText(canvasNote, { exact: true })).toBeVisible();
   await captureEvidence(page, info, "scene-canvas");
-  await page.getByRole("button", { name: "返回场次目录", exact: true }).click();
-  await expect(page).toHaveURL(new RegExp(`/content\\?scene=${w.scene.id}$`));
+  await page.getByRole("button", { name: /^切换画布：/ }).click();
+  await page.getByRole("button", { name: "场次目录", exact: true }).click();
+  await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/content`);
 
   await nav.getByRole("link", { name: "项目资产", exact: true }).click();
   await page.getByRole("link", { name: `查看资产 ${w.asset.name}`, exact: true }).click();
@@ -64,6 +65,35 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
 });
 
 test("CW-01: compact rail and narrow drawer support keyboard navigation and restore focus", async ({ page, workspace: w }, info) => {
+  // A resize can update the native viewport before React receives its media-query
+  // notification. Keep this activation race deterministic without weakening the
+  // drawer, keyboard trap or focus-return assertions below.
+  await page.addInitScript(() => {
+    const matchMedia = window.matchMedia.bind(window);
+    window.matchMedia = (query) => {
+      const media = matchMedia(query);
+      if (query !== "(max-width: 900px)") return media;
+      window.matchMedia = matchMedia;
+      const add = media.addEventListener.bind(media),
+        remove = media.removeEventListener.bind(media);
+      Object.defineProperty(media, "addEventListener", {
+        configurable: true,
+        value: (type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) => {
+          Object.defineProperty(media, "addEventListener", { value: add });
+          if (!listener) return;
+          if (type !== "change") return add(type, listener, options);
+          const delayed = (event: Event) => {
+            remove("change", delayed, options);
+            add("change", listener, options);
+            // Native matching/listeners are restored before the drawer opens.
+            window.setTimeout(() => typeof listener === "function" ? listener.call(media, event) : listener.handleEvent(event), 1000);
+          };
+          add("change", delayed, options);
+        },
+      });
+      return media;
+    };
+  });
   await page.goto(scriptURL(w));
   await expect(page.getByRole("article", { name: "剧本阅读正文", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "收起项目导航", exact: true }).click();

@@ -1,12 +1,48 @@
 .paper {
-  max-width: 860px;
+  max-width: 960px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--mantine-spacing-xl);
-  background: var(--mantine-color-body);
-  border: 1px solid var(--mantine-color-default-border);
-  line-height: 1.85;
+  padding: clamp(28px, 4vw, 60px);
+  background: var(--ws-raised);
+  border: 1px solid var(--ws-border-subtle);
+  border-radius: var(--ws-media-radius);
+  font-size: var(--ws-reading-size);
+  line-height: 2.05;
   overflow-wrap: anywhere;
+}
+.reader {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+}
+.reader > :global(.mantine-Stack-root):empty {
+  display: none;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+  padding-bottom: var(--mantine-spacing-sm);
+}
+.documentIdentity {
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.documentActions {
+  flex: 0 1 auto;
+}
+.documentActions > div:empty,
+.excerptAction:empty {
+  display: none;
+}
+.excerptAction {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--mantine-spacing-xs);
 }
 .paper p,
 .plain {

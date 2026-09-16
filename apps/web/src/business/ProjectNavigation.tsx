@@ -21,13 +21,15 @@ import { useResource, type Schema } from "./api";
 import { projectPath } from "./common";
 import styles from "./project-navigation.module.css";
 
+const narrowNavigationQuery = "(max-width: 900px)";
+
 export const projectSections = [
   { id: "script", label: "剧本", Icon: FileText },
   { id: "canvas", label: "画布", Icon: Stack },
   { id: "assets", label: "项目资产", Icon: Archive },
 ] as const;
 
-/** Project browsing only; production keeps its existing retention-aware exit. */
+/** Project-wide browsing; the active workspace supplies the retention barrier. */
 export function ProjectNavigation({
   tenantId,
   projectId,
@@ -46,7 +48,7 @@ export function ProjectNavigation({
   const project = useResource<Schema<"Project">>(
     projectPath(tenantId, projectId),
   );
-  const narrow = useMediaQuery("(max-width: 900px)", false, {
+  const narrow = useMediaQuery(narrowNavigationQuery, false, {
     getInitialValueInEffect: false,
   });
   const [collapsed, setCollapsed] = useState(false);
@@ -58,9 +60,11 @@ export function ProjectNavigation({
     : (project.data?.name ?? "正在读取项目");
   const active = scriptView
     ? "script"
-    : section === "media"
-      ? "assets"
-      : section;
+    : section === "content" || section === "production"
+      ? "canvas"
+      : section === "media"
+        ? "assets"
+        : section;
   const body = (compact: boolean, drawer = false) => (
     <>
       <div className={styles.brand}>
@@ -70,9 +74,14 @@ export function ProjectNavigation({
             variant="subtle"
             aria-label={compact ? "展开项目导航" : "收起项目导航"}
             aria-expanded={narrow ? drawerOpen : !compact}
-            onClick={() =>
-              narrow ? setDrawerOpen(true) : setCollapsed(!collapsed)
-            }
+            aria-haspopup={narrow ? "dialog" : undefined}
+            onClick={() => {
+              // Activation can precede the media-query hook's resize render.
+              // Use the live viewport so Enter cannot expand a hidden desktop rail.
+              if (window.matchMedia(narrowNavigationQuery).matches)
+                setDrawerOpen(true);
+              else setCollapsed((value) => !value);
+            }}
           >
             {compact ? <ArrowRight size={17} /> : <ArrowLeft size={17} />}
           </ActionIcon>
@@ -136,17 +145,6 @@ export function ProjectNavigation({
         className={styles.management}
         onClick={() => setDrawerOpen(false)}
       >
-        <UnstyledButton
-          component="a"
-          href={`${base}/content`}
-          title="场次管理"
-          aria-label="场次管理"
-          aria-current={active === "content" ? "page" : undefined}
-          className={styles.link}
-        >
-          <FilmSlate size={17} />
-          {!compact && <span>场次管理</span>}
-        </UnstyledButton>
         <UnstyledButton
           component="a"
           href={base}

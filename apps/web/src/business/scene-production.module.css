@@ -29,8 +29,11 @@
 .projectName {
   min-width: 0;
   max-width: 160px;
-  padding-inline: 12px;
-  border-inline-start: 1px solid var(--ws-border);
+  padding-inline: 0;
+}
+.contextDivider {
+  flex: 0 0 auto;
+  color: var(--ws-secondary);
 }
 .environment {
   flex: 0 0 auto;
@@ -182,7 +185,8 @@
   }
 }
 @media (max-width: 1390px) {
-  .projectName {
+  .projectName,
+  .contextDivider {
     display: none;
   }
 }

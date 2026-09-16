@@ -1,4 +1,5 @@
 import { ScriptDocumentReader } from "./ScriptDocumentReader";
+import { ShotListLauncher } from "./ShotListWorkspace";
 import { ProposalDetail, ProposalWorkspace } from "./ProposalWorkspace";
 import { SceneAssistant } from "./SceneAssistant";
 import { CreativeWorkspace } from "./CreativeWorkspace";
@@ -10,13 +11,13 @@ import {
   Alert,
   Badge,
   Button,
+  Drawer,
   Group,
   Loader,
   Menu,
   Modal,
   Select,
   Stack,
-  Switch,
   Tabs,
   Tooltip,
   Text,
@@ -24,6 +25,8 @@ import {
 } from "@mantine/core";
 import {
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUp,
   Archive,
   ArrowCounterClockwise,
@@ -80,6 +83,8 @@ export function ContentWorkspace({
     linkedScene = linked.get("scene"),
     linkedShot = linked.get("shot"),
     linkedRevision = linked.get("revision");
+  const createSceneRequested = linked.get("create") === "scene",
+    linkedEpisode = linked.get("episode");
   const scriptView = view === "script" || !!(linkedRevision && !linkedShot);
   const scriptTab = linked.get("tab") === "settings" ? "settings" : "text";
   function setScriptTab(value: string | null) {
@@ -98,6 +103,37 @@ export function ContentWorkspace({
   useEffect(() => {
     if (scriptView) setScriptMounted(true);
   }, [scriptView]);
+  useEffect(() => {
+    if (
+      !createSceneRequested ||
+      scriptView ||
+      !content.data ||
+      !project.data ||
+      project.data.status !== "active"
+    )
+      return;
+    const parent =
+      content.data.episodes.find(
+        (ep) => ep.id === linkedEpisode && ep.status === "active",
+      ) ?? content.data.episodes.find((ep) => ep.status === "active");
+    setEditing({ kind: "scene", parentId: parent?.id ?? "" });
+    // This is an explicit entry action, not a durable URL state. The editor's
+    // existing local draft remains recoverable when opened again.
+    const query = new URLSearchParams(location.hash.split("?")[1]);
+    query.delete("create");
+    query.delete("episode");
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${location.hash.split("?")[0]}${query.size ? `?${query}` : ""}`,
+    );
+  }, [
+    createSceneRequested,
+    linkedEpisode,
+    scriptView,
+    content.data,
+    project.data,
+  ]);
   const handledLink = useRef("");
   useEffect(() => {
     const key = JSON.stringify([linkedScene, linkedShot, linkedRevision]);
@@ -153,7 +189,7 @@ export function ContentWorkspace({
   useEffect(() => {
     if (blockedAccess) document.title = "内容不可访问 · SceneDesk";
     else if (project.data)
-      document.title = `${project.data.name} · ${scriptView ? "剧本与设定" : "场次"} · SceneDesk`;
+      document.title = `${project.data.name} · ${scriptView ? "剧本与设定" : "场次目录"} · SceneDesk`;
   }, [project.data?.name, blockedAccess, scriptView]);
   if (
     blockedAccess ||
@@ -337,35 +373,71 @@ export function ContentWorkspace({
         }}
       />
       {!scriptView && (
-        <SectionHeading
-          title={scriptView ? "剧本与设定" : "场次"}
-          description={
-            scriptView
-              ? "导入已确定的初稿，与项目成员一起阅读，再带着原文进入画布。"
-              : "按单集组织场次，从这里进入每一场的制作。"
-          }
-          action={
-            <Group gap="sm">
-              <Button variant="subtle" onClick={() => setCreativeOpen(true)}>
-                创作依据
-              </Button>
-              <Button variant="default" onClick={() => setProposalOpen(true)}>
-                CSV 与提案
-              </Button>
-              {!scriptView && (
+        <>
+          <Group mb="md" className={layout.directoryBreadcrumb}>
+            <Button
+              component="a"
+              href={`#/app/t/${tenantId}/p/${projectId}/canvas`}
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+            >
+              返回画布
+            </Button>
+          </Group>
+          <SectionHeading
+            title="场次目录"
+            description="按单集整理场次，打开画布继续创作。"
+            action={
+              <Group gap="sm">
                 <Button
+                  variant="filled"
                   leftSection={<Plus size={16} />}
                   disabled={!active}
                   onClick={() =>
-                    setEditing({ kind: "episode", parentId: projectId })
+                    setEditing({
+                      kind: "scene",
+                      parentId:
+                        (episode?.status === "active"
+                          ? episode.id
+                          : tree.episodes.find((ep) => ep.status === "active")
+                              ?.id) ?? "",
+                    })
                   }
                 >
-                  新建单集
+                  新增场次
                 </Button>
-              )}
-            </Group>
-          }
-        />
+                <Menu position="bottom-end" withinPortal>
+                  <Menu.Target>
+                    <ActionIcon variant="subtle" aria-label="场次目录更多操作">
+                      <DotsThree size={22} />
+                    </ActionIcon>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={<Plus size={16} />}
+                      disabled={!active}
+                      onClick={() =>
+                        setEditing({ kind: "episode", parentId: projectId })
+                      }
+                    >
+                      新建单集
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item onClick={() => setCreativeOpen(true)}>
+                      创作依据
+                    </Menu.Item>
+                    <Menu.Item onClick={() => setProposalOpen(true)}>
+                      CSV 与提案
+                    </Menu.Item>
+                    <Menu.Item onClick={() => setArchived((value) => !value)}>
+                      {archived ? "隐藏归档内容" : "显示归档内容"}
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
+            }
+          />
+        </>
       )}
       <ErrorNotice error={scripts.error} retry={() => void scripts.refetch()} />
       <ErrorNotice error={command.error} />
@@ -417,7 +489,7 @@ export function ContentWorkspace({
                   <article key={sc.id} className={layout.sceneRow}>
                     <SceneIndexPreview
                       path={path}
-                      href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}`}
+                      href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}&mode=canvas`}
                       shot={tree.shots.find(
                         (sh) =>
                           sh.sceneId === sc.id &&
@@ -435,17 +507,18 @@ export function ContentWorkspace({
                           {sc.summary}
                         </Text>
                       )}
-                      <Text size="xs" c="dimmed">
-                        {
-                          tree.shots.filter(
-                            (s) => s.sceneId === sc.id && s.status === "active",
-                          ).length
-                        }{" "}
-                        镜头
-                        {[sc.locationLabel, sc.timeLabel].filter(Boolean).length
-                          ? ` · ${[sc.locationLabel, sc.timeLabel].filter(Boolean).join(" / ")}`
-                          : ""}
+                      <Text size="sm" c="dimmed">
+                        {[sc.locationLabel, sc.timeLabel]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </Text>
+                      <ShotListLauncher
+                        tenantId={tenantId}
+                        projectId={projectId}
+                        sceneId={sc.id}
+                        label={`${tree.shots.filter((shot) => shot.sceneId === sc.id && shot.status === "active").length} 镜头 · ${tree.shots.filter((shot) => shot.sceneId === sc.id && shot.status === "active" && !!shot.currentTakeId).length} 已选用`}
+                        onBeforeOpen={async () => {}}
+                      />
                     </div>
                     {(sc.status === "archived" || ep.status === "archived") && (
                       <Text size="xs" c="dimmed" className={layout.sceneState}>
@@ -453,6 +526,14 @@ export function ContentWorkspace({
                       </Text>
                     )}
                     <Group gap="sm" className={layout.sceneActions}>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        component="a"
+                        href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}&mode=canvas`}
+                      >
+                        打开画布
+                      </Button>
                       <Button
                         size="xs"
                         variant="subtle"
@@ -463,16 +544,14 @@ export function ContentWorkspace({
                           setDetailsOpen(!(detailsOpen && scene?.id === sc.id));
                         }}
                       >
-                        场次与镜头要求
+                        详情
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="filled"
-                        component="a"
-                        href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}`}
-                      >
-                        进入制作
-                      </Button>
+                      {controls(
+                        "scene",
+                        sc,
+                        ep.id,
+                        active && ep.status === "active",
+                      )}
                     </Group>
                   </article>
                 ))}
@@ -491,176 +570,192 @@ export function ContentWorkspace({
             {tree.scenes.filter((s) => s.status === "active").length} 场 ·{" "}
             {tree.shots.filter((s) => s.status === "active").length} 镜
           </Text>
-          <Group gap="lg">
+          {archived && (
             <Text size="xs" c="dimmed">
-              内容版本 {tree.revision}
+              包含归档内容
             </Text>
-            <Switch
-              label="显示归档内容"
-              checked={archived}
-              onChange={(e) => setArchived(e.currentTarget.checked)}
-            />
-          </Group>
+          )}
         </Group>
-        <section
-          hidden={!detailsOpen}
-          className={layout.content}
-          aria-label="场次镜头"
+        <Drawer
+          opened={
+            !scriptView && detailsOpen && !editing && !history && !archive
+          }
+          onClose={() => setDetailsOpen(false)}
+          position="right"
+          size="lg"
+          closeButtonProps={{ "aria-label": "关闭场次详情" }}
+          title={scene?.title ? `${scene.title} · 场次详情` : "场次详情"}
         >
-          {!scene ? (
-            <Empty>
-              <FilmSlate size={32} />
-              <Text mt="md">选择或创建场次，开始安排镜头。</Text>
-            </Empty>
-          ) : (
-            <>
-              <SectionHeading
-                level={2}
-                title={scene.title}
-                description={
-                  [scene.timeLabel, scene.locationLabel]
-                    .filter(Boolean)
-                    .join(" · ") || "场次梗概与镜头要求"
-                }
-                action={
-                  <Group>
-                    <Button
-                      variant="subtle"
-                      onClick={() => setDetailsOpen(false)}
-                    >
-                      收起要求
-                    </Button>
-                    {controls(
-                      "scene",
-                      scene,
-                      scene.episodeId,
-                      active && episode?.status === "active",
-                    )}
-                  </Group>
-                }
-              />
-              {(scene.status === "archived" ||
-                episode?.status === "archived") && (
-                <Alert mb="lg">此场次或所属单集已归档，历史镜头保留。</Alert>
-              )}
-              {scene.summary && (
-                <Text mb="md" className={layout.prose}>
-                  {scene.summary}
-                </Text>
-              )}
-              {scene.state.spatialNotes && (
-                <Text c="dimmed" size="sm" mb="xl" className={layout.prose}>
-                  {scene.state.spatialNotes}
-                </Text>
-              )}
-              {!!(
-                scene.state.characters?.length ||
-                scene.state.props?.length ||
-                scene.defaultAssetRevisionIds?.length
-              ) && (
-                <details>
-                  <summary>查看场次角色、道具与默认资产</summary>
-                  <Stack my="md">
-                    <ContinuitySummary
-                      path={path.split("/projects/")[0]!}
-                      value={scene.state}
-                      label="场次预期状态"
-                    />
-                    {scene.defaultAssetRevisionIds?.map((id) => (
-                      <FixedAssetLabel
-                        key={id}
-                        path={path.split("/projects/")[0]!}
-                        id={id}
-                      />
-                    ))}
-                  </Stack>
-                </details>
-              )}
-              <Group justify="space-between" mb="lg">
-                <Text fw={600}>
-                  镜头列表{" "}
-                  <Text span c="dimmed" fw={400}>
-                    · {shots.length}
-                  </Text>
-                </Text>
-                <Button
-                  variant="filled"
-                  size="sm"
-                  leftSection={<Plus size={18} />}
-                  disabled={!sceneEditable}
-                  onClick={() =>
-                    setEditing({ kind: "shot", parentId: scene.id })
+          <section
+            hidden={!detailsOpen}
+            className={layout.content}
+            aria-label="场次镜头"
+          >
+            {!scene ? (
+              <Empty>
+                <FilmSlate size={32} />
+                <Text mt="md">选择或创建场次，开始安排镜头。</Text>
+              </Empty>
+            ) : (
+              <>
+                <SectionHeading
+                  level={2}
+                  title={scene.title}
+                  description={
+                    [scene.timeLabel, scene.locationLabel]
+                      .filter(Boolean)
+                      .join(" · ") || "场次梗概与镜头要求"
                   }
+                  action={
+                    <Group>
+                      {controls(
+                        "scene",
+                        scene,
+                        scene.episodeId,
+                        active && episode?.status === "active",
+                      )}
+                    </Group>
+                  }
+                />
+                {(scene.status === "archived" ||
+                  episode?.status === "archived") && (
+                  <Alert mb="lg">此场次或所属单集已归档，历史镜头保留。</Alert>
+                )}
+                {scene.summary && (
+                  <Text mb="md" className={layout.prose}>
+                    {scene.summary}
+                  </Text>
+                )}
+                {scene.state.spatialNotes && (
+                  <Text c="dimmed" size="sm" mb="xl" className={layout.prose}>
+                    {scene.state.spatialNotes}
+                  </Text>
+                )}
+                {!!(
+                  scene.state.characters?.length ||
+                  scene.state.props?.length ||
+                  scene.defaultAssetRevisionIds?.length
+                ) && (
+                  <details>
+                    <summary>查看场次角色、道具与默认资产</summary>
+                    <Stack my="md">
+                      <ContinuitySummary
+                        path={path.split("/projects/")[0]!}
+                        value={scene.state}
+                        label="场次预期状态"
+                      />
+                      {scene.defaultAssetRevisionIds?.map((id) => (
+                        <FixedAssetLabel
+                          key={id}
+                          path={path.split("/projects/")[0]!}
+                          id={id}
+                        />
+                      ))}
+                    </Stack>
+                  </details>
+                )}
+                <Button
+                  component="a"
+                  href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${scene.id}&mode=canvas`}
+                  rightSection={<ArrowRight size={16} />}
+                  mb="lg"
                 >
-                  添加镜头
+                  打开画布
                 </Button>
-              </Group>
-              {!shots.length && (
-                <Empty>
-                  还没有镜头。先写明叙事意图，再逐步补充动作、台词和原文依据。
-                </Empty>
-              )}
-              <div className={layout.shots}>
-                {shots.map((sh) => (
-                  <article className={layout.shot} key={sh.id}>
-                    <div className={layout.shotTop}>
-                      <Group>
-                        <Text fw={600}>{sh.label}</Text>
-                        {sh.status === "archived" && (
-                          <Badge size="xs">归档</Badge>
-                        )}
-                      </Group>
-                      {controls("shot", sh, sh.sceneId, !!sceneEditable)}
-                    </div>
-                    <Text className={layout.prose} mt="md">
-                      {sh.spec.intent || "尚未填写叙事意图"}
-                    </Text>
-                    {sh.spec.action && (
-                      <Text
-                        className={layout.prose}
-                        c="dimmed"
-                        size="sm"
-                        mt="sm"
-                      >
-                        {sh.spec.action}
-                      </Text>
-                    )}
-                    {!!sh.spec.dialogue?.length && (
-                      <div className={layout.dialogue}>
-                        {sh.spec.dialogue.map((d) => (
-                          <Text key={d.id} size="sm">
-                            “{d.text}”
-                          </Text>
-                        ))}
-                      </div>
-                    )}
-                    <Group justify="space-between" mt="lg">
-                      <Text size="xs" c="dimmed">
-                        {sh.spec.plannedDurationUs !== undefined
-                          ? `${sh.spec.plannedDurationUs / 1000000} 秒`
-                          : "时长待定"}
-                        {sh.spec.camera ? ` · ${sh.spec.camera}` : ""}
-                        {sh.spec.sourceExcerpts?.length
-                          ? ` · ${sh.spec.sourceExcerpts.length} 处原文`
-                          : ""}
+                <details
+                  className={layout.legacyRequirements}
+                  open={!!linkedShot}
+                >
+                  <summary>镜头要求与历史 · {shots.length} 镜头</summary>
+                  <div className={layout.requirementsBody}>
+                    <Group justify="space-between" mb="lg">
+                      <Text fw={600}>
+                        镜头列表{" "}
+                        <Text span c="dimmed" fw={400}>
+                          · {shots.length}
+                        </Text>
                       </Text>
                       <Button
-                        size="xs"
-                        variant="subtle"
-                        onClick={() => {
-                          setHistoryRevision(undefined);
-                          setHistory(sh);
-                        }}
+                        variant="filled"
+                        size="sm"
+                        leftSection={<Plus size={18} />}
+                        disabled={!sceneEditable}
+                        onClick={() =>
+                          setEditing({ kind: "shot", parentId: scene.id })
+                        }
                       >
-                        要求历史
+                        添加镜头
                       </Button>
                     </Group>
-                  </article>
-                ))}
-              </div>
-            </>
-          )}
-        </section>
+                    {!shots.length && (
+                      <Empty>
+                        还没有镜头。先写明叙事意图，再逐步补充动作、台词和原文依据。
+                      </Empty>
+                    )}
+                    <div className={layout.shots}>
+                      {shots.map((sh) => (
+                        <article className={layout.shot} key={sh.id}>
+                          <div className={layout.shotTop}>
+                            <Group>
+                              <Text fw={600}>{sh.label}</Text>
+                              {sh.status === "archived" && (
+                                <Badge size="xs">归档</Badge>
+                              )}
+                            </Group>
+                            {controls("shot", sh, sh.sceneId, !!sceneEditable)}
+                          </div>
+                          <Text className={layout.prose} mt="md">
+                            {sh.spec.intent || "尚未填写叙事意图"}
+                          </Text>
+                          {sh.spec.action && (
+                            <Text
+                              className={layout.prose}
+                              c="dimmed"
+                              size="sm"
+                              mt="sm"
+                            >
+                              {sh.spec.action}
+                            </Text>
+                          )}
+                          {!!sh.spec.dialogue?.length && (
+                            <div className={layout.dialogue}>
+                              {sh.spec.dialogue.map((d) => (
+                                <Text key={d.id} size="sm">
+                                  “{d.text}”
+                                </Text>
+                              ))}
+                            </div>
+                          )}
+                          <Group justify="space-between" mt="lg">
+                            <Text size="xs" c="dimmed">
+                              {sh.spec.plannedDurationUs !== undefined
+                                ? `${sh.spec.plannedDurationUs / 1000000} 秒`
+                                : "时长待定"}
+                              {sh.spec.camera ? ` · ${sh.spec.camera}` : ""}
+                              {sh.spec.sourceExcerpts?.length
+                                ? ` · ${sh.spec.sourceExcerpts.length} 处原文`
+                                : ""}
+                            </Text>
+                            <Button
+                              size="xs"
+                              variant="subtle"
+                              onClick={() => {
+                                setHistoryRevision(undefined);
+                                setHistory(sh);
+                              }}
+                            >
+                              要求历史
+                            </Button>
+                          </Group>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                </details>
+              </>
+            )}
+          </section>
+        </Drawer>
       </div>
       {(scriptMounted || scriptView) && (
         <div
@@ -686,6 +781,15 @@ export function ContentWorkspace({
                       </ActionIcon>
                     </Menu.Target>
                     <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={<Sparkle size={16} />}
+                        onClick={() => {
+                          setScriptTab("text");
+                          setAssistantOpen(true);
+                        }}
+                      >
+                        分镜建议
+                      </Menu.Item>
                       <Menu.Item onClick={() => setProposalOpen(true)}>
                         提案历史与导入
                       </Menu.Item>
@@ -696,34 +800,10 @@ export function ContentWorkspace({
                         component="a"
                         href={`#/app/t/${tenantId}/p/${projectId}/content`}
                       >
-                        返回场次
+                        场次目录
                       </Menu.Item>
                     </Menu.Dropdown>
                   </Menu>
-                  <Button
-                    variant={assistantOpen ? "default" : "filled"}
-                    leftSection={<Sparkle size={16} />}
-                    aria-expanded={assistantOpen}
-                    onClick={() => {
-                      setScriptTab("text");
-                      setAssistantOpen(
-                        scriptTab === "text" ? !assistantOpen : true,
-                      );
-                    }}
-                  >
-                    整理为镜头
-                  </Button>
-                  {!scriptView && (
-                    <Button
-                      leftSection={<Plus size={16} />}
-                      disabled={!active}
-                      onClick={() =>
-                        setEditing({ kind: "episode", parentId: projectId })
-                      }
-                    >
-                      新建单集
-                    </Button>
-                  )}
                 </Group>
               }
             />
@@ -880,6 +960,9 @@ export function ContentWorkspace({
             tree={tree}
             path={path}
             scripts={scripts.data ?? []}
+            onCreateEpisode={() =>
+              setEditing({ kind: "episode", parentId: projectId })
+            }
             done={() => setEditing(undefined)}
           />
         )}

@@ -178,7 +178,7 @@ function ShotListWorkspace({
     <Stack gap="md">
       <Group justify="space-between" align="end">
         <Select
-          label="所属场次"
+          label="查看场次"
           value={scene?.id ?? null}
           className={classes.sceneSelect}
           placeholder="先建立所属场次"
@@ -227,7 +227,7 @@ function ShotListWorkspace({
       )}
       {!scene ? (
         <Alert title="先确定镜头所属场次">
-          画布可以独立创作。整理镜头时，请在项目场次管理中建立所属场次，然后回到这里。
+          画布可以独立创作。整理镜头时，可关闭列表，在左上角的画布切换菜单中新增场次，再回到这里。
         </Alert>
       ) : (
         <>

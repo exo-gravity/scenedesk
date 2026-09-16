@@ -2408,6 +2408,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvas-workspaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 只读列出现有项目画布及活动场次画布身份，不返回文档或媒体
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getCanvasWorkspaceIndex"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-plans": {
         parameters: {
             query?: never;
@@ -5153,6 +5173,13 @@ export interface components {
             /** Format: uuid */
             projectId: string;
             canvas: components["schemas"]["Canvas"];
+        };
+        CanvasWorkspaceIndex: {
+            items: {
+                /** Format: uuid */
+                canvasId: string;
+                sceneId: string | null;
+            }[];
         };
         SaveProjectWorkspacePreference: {
             /** @enum {string} */
@@ -11000,6 +11027,38 @@ export interface operations {
             409: components["responses"]["Problem"];
             412: components["responses"]["Problem"];
             413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getCanvasWorkspaceIndex: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasWorkspaceIndex"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
             422: components["responses"]["Problem"];
             429: components["responses"]["Problem"];
             503: components["responses"]["Problem"];

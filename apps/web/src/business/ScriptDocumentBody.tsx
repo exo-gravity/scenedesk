@@ -1,15 +1,39 @@
 import { Alert, Image, Stack, Table, Text } from "@mantine/core";
+import { useRef } from "react";
 import type { Schema } from "./api";
 import classes from "./script-document.module.css";
 export function DocumentBody({
   document,
   text,
+  onTextSelection,
 }: {
   document?: Schema<"ScriptDocument"> | undefined;
   text: string;
+  onTextSelection?: ((quote: string) => void) | undefined;
 }) {
+  const paper = useRef<HTMLElement>(null);
+  function captureSelection() {
+    if (!onTextSelection) return;
+    const selection = window.getSelection();
+    onTextSelection(
+      selection &&
+        !selection.isCollapsed &&
+        selection.anchorNode &&
+        selection.focusNode &&
+        paper.current?.contains(selection.anchorNode) &&
+        paper.current.contains(selection.focusNode)
+        ? selection.toString()
+        : "",
+    );
+  }
   return (
-    <article className={classes.paper} aria-label="剧本阅读正文">
+    <article
+      ref={paper}
+      className={classes.paper}
+      aria-label="剧本阅读正文"
+      onPointerUp={captureSelection}
+      onKeyUp={captureSelection}
+    >
       {document ? (
         document.blocks.map((block, index) => {
           if (block.kind === "heading")

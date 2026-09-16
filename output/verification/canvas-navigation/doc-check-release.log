@@ -1,0 +1,1 @@
+{"result": "PASS", "operations": 176, "paths": 138, "schemas": 256, "examples": 163, "localLinks": 1624, "versions": {"openapi-spec-validator": "0.9.0", "jsonschema": "4.26.0"}, "report": "output/documentation-checks/2026-09-16-canvas-navigation-03/validation-report.md", "manifest": "output/documentation-checks/2026-09-16-canvas-navigation-03/documentation-manifest.json"}
