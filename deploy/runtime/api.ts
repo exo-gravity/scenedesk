@@ -1,3 +1,4 @@
+import { createFeishuServices } from "../../apps/api/src/modules/content/feishu/client.js";
 import { buildApp } from "../../apps/api/src/app.js";
 import { discoverIssuer } from "../../apps/api/src/modules/identity/oidc.js";
 import { createScheduler } from "@drama/queue";
@@ -38,6 +39,7 @@ try {
   cleanup.push(() => queue.close());
   stage = "business_database_roles";
   const app = buildApp(database, {
+    ...(config.feishu ? { feishu: createFeishuServices(config.feishu) } : {}),
     origin: config.origin,
     secret: config.secret,
     localIdentity: false,

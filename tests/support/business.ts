@@ -11,7 +11,7 @@ export async function businessFixture(
   t: TestContext,
   configure?: (
     database: Awaited<ReturnType<typeof databaseFixture>>,
-  ) => Promise<Pick<BusinessOptions, "media">>,
+  ) => Promise<Pick<BusinessOptions, "media" | "feishu">>,
   options: { origin?: string } = {},
 ) {
   const db = await databaseFixture(t);

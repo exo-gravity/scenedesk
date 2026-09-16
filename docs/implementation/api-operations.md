@@ -36,6 +36,12 @@
 | PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/preview-docx` | `previewScriptDocument` | `project_member` |
 | PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/import-docx` | `importScriptDocument` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/script-imports/{requestId}` | `getScriptImportReceipt` | `project_member` |
+| PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/availability` | `getFeishuImportAvailability` | `project_member` |
+| PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports` | `createFeishuImport` | `project_member` |
+| PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}` | `getFeishuImport` | `project_member` |
+| PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}/advance` | `advanceFeishuImport` | `project_member` |
+| PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}/confirm` | `confirmFeishuImport` | `project_member` |
+| PR-03 | DELETE | `/v1/tenants/{tenantId}/projects/{projectId}/feishu-imports/{importId}` | `deleteFeishuImport` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/{revisionId}` | `getScriptRevision` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/{revisionId}/original` | `getScriptOriginal` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/content` | `getContent` | `project_member` |

@@ -81,3 +81,36 @@ test("invalid configuration diagnostics do not echo supplied credentials", () =>
     assert.ok(!error.message.includes(secret));
   }
 });
+test("Feishu is optional and accepts only explicit tenant/project source bindings without logging secrets", () => {
+  const feishu = {
+    tenantId: "11111111-1111-4111-8111-111111111111",
+    appId: "cli_synthetic",
+    appSecret: "synthetic-secret",
+    sources: [
+      {
+        projectId: "22222222-2222-4222-8222-222222222222",
+        url: "https://team.feishu.cn/docx/SyntheticDocument001",
+      },
+    ],
+  };
+  assert.equal(
+    apiConfiguration({ ...api(), feishu }).feishu?.sources.length,
+    1,
+  );
+  for (const invalid of [
+    { ...feishu, endpoint: "https://attacker.test" },
+    {
+      ...feishu,
+      sources: [{ projectId: feishu.tenantId, url: "http://127.0.0.1/secret" }],
+    },
+    { ...feishu, tenantId: "bad" },
+  ]) {
+    assert.throws(
+      () => apiConfiguration({ ...api(), feishu: invalid }),
+      (error) =>
+        error instanceof DeploymentError &&
+        error.code === "CONFIG_FEISHU_INVALID" &&
+        !error.message.includes(feishu.appSecret),
+    );
+  }
+});
