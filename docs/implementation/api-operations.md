@@ -149,6 +149,7 @@
 | PR-05 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/creative-confirmations` | `confirmCreativeBasis` | `project_lead_or_admin` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvas` | `ensureProjectCanvas` | `project_member` |
 | PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvas` | `getProjectCanvas` | `project_member` |
+| PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvas-workspaces` | `getCanvasWorkspaceIndex` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-plans` | `prepareProjectCanvasGeneration` | `project_member` |
 | PR-17 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/workspace-preference` | `getProjectWorkspacePreference` | `project_member` |
 | PR-17 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/workspace-preference` | `saveProjectWorkspacePreference` | `project_member` |

@@ -46,6 +46,28 @@ export function projectWorkspaceRoutes(
   app: FastifyInstance,
   context: ApiContext,
 ) {
+  registerAction(app, context, "getCanvasWorkspaceIndex", async (tx) => {
+    const result = await tx.sql.query<{
+      canvasId: string;
+      sceneId: string | null;
+    }>(
+      `SELECT canvas_id AS "canvasId", NULL::uuid AS "sceneId"
+       FROM project_canvas_links WHERE tenant_id=$1 AND project_id=$2
+       UNION ALL
+       SELECT link.canvas_id AS "canvasId", link.scene_id AS "sceneId"
+       FROM scene_canvas_links link
+       JOIN scenes scene ON scene.tenant_id=link.tenant_id
+         AND scene.project_id=link.project_id AND scene.id=link.scene_id
+       JOIN episodes episode ON episode.tenant_id=scene.tenant_id
+         AND episode.project_id=scene.project_id AND episode.id=scene.episode_id
+       WHERE link.tenant_id=$1 AND link.project_id=$2
+         AND scene.status='active' AND episode.status='active'
+       ORDER BY "sceneId" NULLS FIRST, "canvasId"`,
+      [tx.tenantId, tx.projectId],
+    );
+    const body: Schema<"CanvasWorkspaceIndex"> = { items: result.rows };
+    return { body };
+  });
   registerAction(app, context, "getProjectCanvas", async (tx) => {
     const body = await readProjectCanvas(tx);
     return { body, etag: body.canvas.revision };

@@ -9,7 +9,7 @@ SceneDesk 当前是独立 Web 的私有短剧创作工作台，以画布为主�
 | 目的 | 入口 |
 |---|---|
 | 了解产品、运行本地工作台 | [仓库 README](../README.md) |
-| 看当前布局与产品取舍 | [创作工作区方向](design/creative-workspace-approved-2026-09-16.md)、[首版范围](implementation/38-first-release-scope-review.md) |
+| 看当前布局与产品取舍 | [创作工作区方向](design/creative-workspace-approved-2026-09-16.md)、[画布导航与场次目录](design/canvas-navigation-approved-2026-09-16.md)、[首版范围](implementation/38-first-release-scope-review.md) |
 | 看落地节奏、已交付和待验收项 | [八个工作包](implementation/70-creative-workspace-refactor.md)、[实施进度](implementation/22-implementation-progress.md)、[非模型收尾](implementation/77-non-provider-workspace-closure.md) |
 | 导入并阅读剧本 | [Word 导入](implementation/72-script-docx-import.md)、[飞书正文导入与配置](implementation/75-feishu-script-import.md) |
 | 理解画布、助手与镜头列表 | [项目画布](implementation/71-project-canvas-workspace.md)、[连续创作](implementation/74-canvas-continuous-creation.md)、[镜头列表与原片包](implementation/76-shot-list-workspace.md) |
@@ -19,7 +19,7 @@ SceneDesk 当前是独立 Web 的私有短剧创作工作台，以画布为主�
 
 ## 当前范围
 
-- 主导航是剧本、画布和项目资产；场次管理为次级入口，旧分镜台链接保留兼容。
+- 主导航是剧本、画布和项目资产；画布菜单负责切换创作空间、新增场次和打开场次目录，旧分镜台链接保留兼容。
 - 剧本以“预览 → 确认导入 → 阅读当前稿”为主。版本与固定引用在后台保留，历史按需查看，不建立复杂的分支或发布流程。
 - 画布保留生成草稿、固定输入、结果、比较和恢复。助手建议与手工操作作用于同一份草稿，生成不会自动选用。
 - 镜头列表整理已存在的制作事实；本场 ZIP 交付选用原片和有序清单，不生成剪辑成片。

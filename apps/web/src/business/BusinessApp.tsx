@@ -395,7 +395,7 @@ function Workspace({
       (projectSection === "content" &&
         params.has("revision") &&
         !params.has("shot")));
-  const projectDirectory = !!projectId && !production;
+  const projectDirectory = !!projectId && (!production || params.has("scene"));
   const section = projectId ? "projects" : (segments[4] ?? "projects");
   const studio = tenants.data?.find((tenant) => tenant.id === tenantId);
   const detailObject = params.get("asset") ?? params.get("media");
@@ -511,7 +511,11 @@ function Workspace({
     <>
       <div
         className={classes.layout}
-        data-project-canvas={projectSection === "canvas" || undefined}
+        data-project-canvas={
+          projectSection === "canvas" ||
+          (production && params.has("scene")) ||
+          undefined
+        }
         onClickCapture={(event) => {
           if (
             !navigationGuard.current ||
@@ -718,7 +722,7 @@ function WorkspaceContext({
       (section === "media"
         ? "项目资产"
         : section === "content"
-          ? "场次管理"
+          ? "场次目录"
           : "项目设置"))
     : ({
         projects: "项目",
@@ -739,6 +743,14 @@ function WorkspaceContext({
               {project.isError
                 ? "项目不可访问"
                 : (project.data?.name ?? "项目")}
+            </Anchor>
+            <CaretRight size={14} />
+          </>
+        )}
+        {projectId && section === "content" && (
+          <>
+            <Anchor href={`#/app/t/${tenantId}/p/${projectId}/canvas`}>
+              画布
             </Anchor>
             <CaretRight size={14} />
           </>

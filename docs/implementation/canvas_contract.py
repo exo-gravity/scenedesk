@@ -62,6 +62,7 @@ def schemas():
     s["SaveSceneWorkspacePreference"] = obj(preference, list(preference))
     s["SceneWorkspacePreference"] = obj({"sceneId": ID, "revision": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, **preference}, ["sceneId", "revision", *preference])
     s["ProjectCanvas"] = obj({"projectId": ID, "canvas": ref("Canvas")}, ["projectId", "canvas"])
+    s["CanvasWorkspaceIndex"] = obj({"items": {"type": "array", "items": obj({"canvasId": ID, "sceneId": {"anyOf": [ID, {"type": "null"}]}}, ["canvasId", "sceneId"])}}, ["items"])
     project_preference = {**preference, "mode": enum("canvas"), "selectedShotId": {"type": "null"}}
     s["SaveProjectWorkspacePreference"] = obj(project_preference, list(project_preference))
     s["ProjectWorkspacePreference"] = obj({"projectId": ID, "revision": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, **project_preference}, ["projectId", "revision", *project_preference])
@@ -73,6 +74,7 @@ def register_routes(route, paths):
     canvas = base + "/canvases/{canvasId}"
     route("post", base + "/canvas", "ensureProjectCanvas", "PR-16", "明确创建或取得项目唯一画布，不创建场次", "ProjectCanvas", code=200)
     route("get", base + "/canvas", "getProjectCanvas", "PR-16", "读取项目画布", "ProjectCanvas")
+    route("get", base + "/canvas-workspaces", "getCanvasWorkspaceIndex", "PR-16", "只读列出现有项目画布及活动场次画布身份，不返回文档或媒体", "CanvasWorkspaceIndex")
     route("post", canvas + "/generation-plans", "prepareProjectCanvasGeneration", "PR-16", "固定项目或场次画布草稿，只准备不执行", "CanvasPlanEntry", "PrepareCanvasGeneration", cas=True)
     route("get", base + "/workspace-preference", "getProjectWorkspacePreference", "PR-17", "读取本人项目画布偏好", "ProjectWorkspacePreference")
     route("put", base + "/workspace-preference", "saveProjectWorkspacePreference", "PR-17", "保存本人项目画布视口，不改共同画布", "ProjectWorkspacePreference", "SaveProjectWorkspacePreference", cas=True)

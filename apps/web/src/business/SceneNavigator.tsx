@@ -1,14 +1,26 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Loader, Popover, TextInput, UnstyledButton } from "@mantine/core";
-import { CaretDown, Check, MagnifyingGlass } from "@phosphor-icons/react";
+import {
+  CaretDown,
+  CaretRight,
+  Check,
+  ListBullets,
+  MagnifyingGlass,
+  Plus,
+  Image as ImageIcon,
+} from "@phosphor-icons/react";
 import type { Schema } from "./api";
 import classes from "./scene-navigator.module.css";
 
-export interface SceneNavigatorProps {
+export interface CanvasNavigatorProps {
   content: Schema<"ContentTree">;
-  sceneId: string;
+  sceneId?: string | undefined;
+  unselected?: boolean;
+  canCreate: boolean;
+  onDirectory: () => void | Promise<void>;
+  onCreate: () => void | Promise<void>;
   /** Resolve after navigation is safe; reject to keep the current context and show why. */
-  onSelect: (sceneId: string) => void | Promise<void>;
+  onSelect: (sceneId: string | null) => void | Promise<void>;
   disabled?: boolean;
 }
 
@@ -17,12 +29,16 @@ const byPosition = (
   b: { position: number; id: string },
 ) => a.position - b.position || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
-export function SceneNavigator({
+export function CanvasNavigator({
   content,
   sceneId,
   onSelect,
   disabled = false,
-}: SceneNavigatorProps) {
+  unselected = false,
+  canCreate,
+  onDirectory,
+  onCreate,
+}: CanvasNavigatorProps) {
   const [opened, setOpened] = useState(false);
   const [query, setQuery] = useState("");
   const [pending, setPending] = useState<string | null>(null);
@@ -40,7 +56,11 @@ export function SceneNavigator({
     current?.status === "archived" || episode?.status === "archived";
   const currentLabel = current
     ? `${episode?.title ?? "未找到所属集"} · ${current.title}${archived ? " · 已归档" : ""}`
-    : "选择集与场次";
+    : sceneId
+      ? "场次不可访问"
+      : unselected
+        ? "选择画布"
+        : "项目画布";
 
   useEffect(() => {
     request.current += 1;
@@ -94,13 +114,18 @@ export function SceneNavigator({
     (sum, group) => sum + group.scenes.length,
     0,
   );
-  const navigable = groups.flatMap((group) =>
-    group.episode.status === "active"
-      ? group.scenes
-          .filter((scene) => scene.status === "active")
-          .map((scene) => scene.id)
-      : [],
-  );
+  const showProject =
+    !query.trim() || "项目画布 自由探索".includes(query.trim());
+  const navigable = [
+    ...(showProject ? ["project"] : []),
+    ...groups.flatMap((group) =>
+      group.episode.status === "active"
+        ? group.scenes
+            .filter((scene) => scene.status === "active")
+            .map((scene) => scene.id)
+        : [],
+    ),
+  ];
   const focusScene = (index: number) => {
     const next = navigable[index];
     if (next && !disabled && !selecting.current) {
@@ -111,7 +136,7 @@ export function SceneNavigator({
   };
   const select = async (next: string) => {
     if (disabled || selecting.current) return;
-    if (next === sceneId) {
+    if ((next === sceneId || (next === "project" && !sceneId)) && !unselected) {
       setOpened(false);
       return;
     }
@@ -120,14 +145,16 @@ export function SceneNavigator({
     setPending(next);
     setError(null);
     try {
-      await onSelect(next);
+      if (next === "directory") await onDirectory();
+      else if (next === "create") await onCreate();
+      else await onSelect(next === "project" ? null : next);
       if (request.current === token) setOpened(false);
     } catch (cause) {
       if (request.current === token)
         setError(
           cause instanceof Error && cause.message
             ? cause.message
-            : "暂时无法切换场次，请重试。当前场次未改变。",
+            : "暂时无法切换，请重试。当前画布未改变。",
         );
     } finally {
       if (request.current === token) {
@@ -153,7 +180,7 @@ export function SceneNavigator({
           type="button"
           className={classes.trigger}
           disabled={disabled}
-          aria-label={`切换集与场次：${currentLabel}`}
+          aria-label={`切换画布：${currentLabel}`}
           aria-busy={!!pending}
           title={currentLabel}
           onClick={() => setOpened((value) => !value)}
@@ -162,14 +189,14 @@ export function SceneNavigator({
           <CaretDown size={14} aria-hidden className={classes.caret} />
         </UnstyledButton>
       </Popover.Target>
-      <Popover.Dropdown aria-label="切换集与场次">
+      <Popover.Dropdown aria-label="切换画布">
         <div className={classes.search}>
           <TextInput
             ref={search}
             data-autofocus
             size="sm"
-            aria-label="搜索集或场次"
-            placeholder="搜索集、场次或地点"
+            aria-label="搜索画布或场次"
+            placeholder="搜索画布或场次"
             leftSection={<MagnifyingGlass size={16} aria-hidden />}
             value={query}
             readOnly={!!pending}
@@ -182,6 +209,45 @@ export function SceneNavigator({
           />
         </div>
         <div className={classes.list} aria-busy={!!pending}>
+          {showProject && (
+            <UnstyledButton
+              ref={(element) => {
+                if (element) buttons.current.set("project", element);
+                else buttons.current.delete("project");
+              }}
+              className={classes.scene}
+              data-current={(!sceneId && !unselected) || undefined}
+              aria-current={!sceneId && !unselected ? "location" : undefined}
+              aria-label="项目画布"
+              disabled={disabled || !!pending}
+              onClick={() => void select("project")}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  focusScene(1);
+                } else if (event.key === "ArrowUp") {
+                  event.preventDefault();
+                  search.current?.focus();
+                } else if (event.key === "End") {
+                  event.preventDefault();
+                  focusScene(navigable.length - 1);
+                }
+              }}
+            >
+              <ImageIcon size={18} aria-hidden />
+              <span className={classes.sceneText}>
+                <span className={classes.sceneTitle}>项目画布</span>
+              </span>
+              <span className={classes.detail}>自由探索</span>
+              <span className={classes.indicator} aria-hidden>
+                {pending === "project" ? (
+                  <Loader size={14} />
+                ) : !sceneId && !unselected ? (
+                  <Check size={16} weight="bold" />
+                ) : null}
+              </span>
+            </UnstyledButton>
+          )}
           {groups.map((group) => (
             <section
               key={group.episode.id}
@@ -213,7 +279,7 @@ export function SceneNavigator({
                     className={classes.scene}
                     data-current={selected || undefined}
                     aria-current={selected ? "location" : undefined}
-                    aria-label={`${group.episode.title} · ${scene.title}${inactive ? " · 已归档" : ""}${selected ? " · 当前场次" : ""}`}
+                    aria-label={`${group.episode.title} · ${scene.title}${inactive ? " · 已归档" : ""}${selected ? " · 当前画布" : ""}`}
                     disabled={disabled || !!pending || inactive}
                     onClick={() => void select(scene.id)}
                     onKeyDown={(event) => {
@@ -255,11 +321,9 @@ export function SceneNavigator({
               })}
             </section>
           ))}
-          {!visibleCount && (
+          {!visibleCount && !showProject && (
             <div className={classes.empty} role="status">
-              {query.trim()
-                ? "没有匹配的场次，试试其他关键词。"
-                : "还没有可切换的场次。"}
+              {query.trim() ? "没有匹配的画布或场次。" : "还没有可切换的画布。"}
             </div>
           )}
         </div>
@@ -268,10 +332,29 @@ export function SceneNavigator({
             {error}
           </div>
         )}
-        <div className={classes.footer} role="status" aria-live="polite">
-          {pending
-            ? "正在切换场次…"
-            : `${visibleCount} 个场次${query.trim() ? "匹配" : ""}`}
+        <div className={classes.footer}>
+          <UnstyledButton
+            className={classes.scene}
+            disabled={disabled || !!pending || !canCreate}
+            onClick={() => void select("create")}
+          >
+            <Plus size={18} aria-hidden />
+            <span className={classes.sceneText}>新增场次</span>
+            {pending === "create" && <Loader size={14} />}
+          </UnstyledButton>
+          <UnstyledButton
+            className={classes.scene}
+            disabled={disabled || !!pending}
+            onClick={() => void select("directory")}
+          >
+            <ListBullets size={18} aria-hidden />
+            <span className={classes.sceneText}>场次目录</span>
+            {pending === "directory" ? (
+              <Loader size={14} />
+            ) : (
+              <CaretRight size={15} aria-hidden />
+            )}
+          </UnstyledButton>
         </div>
       </Popover.Dropdown>
     </Popover>

@@ -52,8 +52,7 @@
   padding-block: var(--mantine-spacing-xl);
 }
 .content {
-  padding-top: var(--mantine-spacing-xl);
-  border-top: 1px solid var(--ws-border);
+  padding-top: var(--mantine-spacing-sm);
 }
 .shots {
   display: grid;
@@ -236,8 +235,8 @@
   margin-inline: auto;
 }
 .scenePreview {
-  width: 180px;
-  flex: 0 0 180px;
+  width: 220px;
+  flex: 0 0 220px;
   border-radius: var(--ws-media-radius);
   overflow: hidden;
 }
@@ -270,9 +269,31 @@
   align-items: center;
 }
 .sceneActions {
-  flex-direction: column-reverse;
-  align-items: stretch;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+.directoryBreadcrumb {
+  min-height: 32px;
+}
+.legacyRequirements,
+.advancedScene {
+  border-top: 1px solid var(--ws-border-subtle);
+  padding-block: var(--mantine-spacing-md);
+}
+.legacyRequirements > summary,
+.advancedScene > summary {
+  cursor: pointer;
+  color: var(--ws-secondary);
+  font-size: var(--mantine-font-size-sm);
+}
+.legacyRequirements > summary:focus-visible,
+.advancedScene > summary:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 4px;
+}
+.requirementsBody {
+  padding-top: var(--mantine-spacing-lg);
 }
 .episodeHeader {
   padding-block: 18px;

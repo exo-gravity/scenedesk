@@ -1,5 +1,6 @@
 import { editingCanonical } from "@drama/domain";
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Alert,
   Button,
@@ -12,7 +13,7 @@ import {
 import { ArrowRight } from "@phosphor-icons/react";
 import { api, ApiError, useSession, type Schema } from "./api";
 import { DraftNotice, useContentDraft } from "./content-drafts";
-import { selectedTextareaRange } from "./script-excerpt-selection";
+import { moveReadonlySelection, selectedTextareaRange } from "./script-excerpt-selection";
 import { ErrorNotice } from "./common";
 
 type Intent = {
@@ -31,11 +32,15 @@ export function ScriptCanvasExcerpt({
   current,
   active,
   path,
+  actionTarget,
+  selectedExcerpt,
 }: {
   script: Schema<"ScriptRevision">;
   current: boolean;
   active: boolean;
   path: string;
+  actionTarget?: HTMLDivElement | null;
+  selectedExcerpt?: Schema<"ScriptExcerpt"> | undefined;
 }) {
   const session = useSession();
   const draft = useContentDraft<Intent>(`${path}/canvas-excerpt`, empty, 1);
@@ -165,21 +170,49 @@ export function ScriptCanvasExcerpt({
       intent,
     );
   };
+  function captureCanonicalSelection(el: HTMLTextAreaElement) {
+    if (lock.current || pending || draft.recovered || draft.committed || el.selectionStart === el.selectionEnd)
+      return;
+    try {
+      const selected = selectedTextareaRange(
+        script.text, el.value, el.selectionStart, el.selectionEnd,
+      );
+      if (Array.from(selected.quote).length > 20000)
+        throw Error("每次最多选择两万字，请分段带入画布。");
+      draft.setValue({ excerpt: { scriptRevisionId: script.id, ...selected } });
+      setError(undefined);
+    } catch (cause) {
+      setError(cause as Error);
+    }
+  }
+  const trigger = (
+    <Button
+      variant="filled"
+      rightSection={<ArrowRight size={16} />}
+      disabled={!active}
+      onClick={() => {
+        if (
+          selectedExcerpt?.scriptRevisionId === script.id &&
+          draft.ready &&
+          !draft.recovered &&
+          !draft.committed &&
+          !pending
+        )
+          draft.setValue({ excerpt: selectedExcerpt });
+        setOpened(true);
+      }}
+    >
+      选文带入画布
+    </Button>
+  );
   return (
     <Stack gap="xs">
-      <Group>
-        <Button
-          variant="light"
-          leftSection={<ArrowRight size={16} />}
-          disabled={!active}
-          onClick={() => setOpened(true)}
-        >
-          选文带入画布
-        </Button>
-        {(draft.recovered || pending) && (
-          <Text size="sm">有待核对的选文，原请求仍保留。</Text>
-        )}
-      </Group>
+      {actionTarget === undefined
+        ? trigger
+        : actionTarget && createPortal(trigger, actionTarget)}
+      {(draft.recovered || pending) && (
+        <Text size="sm">有待核对的选文，原请求仍保留。</Text>
+      )}
       <Modal
         opened={opened}
         onClose={() => {
@@ -202,31 +235,20 @@ export function ScriptCanvasExcerpt({
               {!pending && (
                 <Textarea
                   label={current ? "当前稿原文" : "历史稿原文"}
-                  description="拖动选中，或使用键盘 Shift + 方向键。"
+                  description="拖动选中，或使用键盘 Shift + 左右方向键。"
                   value={script.text}
                   readOnly
                   minRows={9}
                   maxRows={14}
                   autosize
-                  onSelect={(event) => {
+                  onSelect={(event) => captureCanonicalSelection(event.currentTarget)}
+                  onKeyDown={(event) => {
+                    if (event.altKey || event.ctrlKey || event.metaKey || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+                    event.preventDefault();
                     const el = event.currentTarget;
-                    if (el.selectionStart === el.selectionEnd) return;
-                    try {
-                      const selected = selectedTextareaRange(
-                        script.text,
-                        el.value,
-                        el.selectionStart,
-                        el.selectionEnd,
-                      );
-                      if (Array.from(selected.quote).length > 20000)
-                        throw Error("每次最多选择两万字，请分段带入画布。");
-                      draft.setValue({
-                        excerpt: { scriptRevisionId: script.id, ...selected },
-                      });
-                      setError(undefined);
-                    } catch (cause) {
-                      setError(cause as Error);
-                    }
+                    const next = moveReadonlySelection(el.value, el.selectionStart, el.selectionEnd, el.selectionDirection, event.key, event.shiftKey);
+                    el.setSelectionRange(next.start, next.end, next.direction);
+                    captureCanonicalSelection(el);
                   }}
                 />
               )}
@@ -261,7 +283,7 @@ export function ScriptCanvasExcerpt({
                     mt="sm"
                     onClick={() =>
                       void draft.complete(() => {
-                        location.hash = `${path.replace(/^\/v1\/tenants\//, "#/app/t/").replace("/projects/", "/p/")}/canvas${receipt.nodeActive ? `?node=${receipt.nodeId}` : ""}`;
+                        location.hash = `${path.replace(/^\/v1\/tenants\//, "#/app/t/").replace("/projects/", "/p/")}/canvas?scope=project${receipt.nodeActive ? `&node=${receipt.nodeId}` : ""}`;
                       })
                     }
                   >

@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, Button, Group, Loader, Stack, Text } from "@mantine/core";
 import {
-  Alert,
-  Button,
-  Group,
-  Loader,
-  Select,
-  Stack,
-  Text,
-} from "@mantine/core";
-import {
+  api,
   ApiError,
   useCommand,
   useResource,
@@ -23,6 +16,14 @@ import {
 } from "./assistant-lifecycle";
 import { SceneCanvasSession } from "./SceneProductionWorkspace";
 import { useProjectNavigationGuard } from "./project-navigation-guard";
+import { useQuery } from "@tanstack/react-query";
+import { CaretRight } from "@phosphor-icons/react";
+import { CanvasNavigator } from "./SceneNavigator";
+import {
+  canvasLocationHref,
+  recentCanvas,
+  rememberCanvas,
+} from "./canvas-navigation";
 import classes from "./canvas.module.css";
 import layout from "./scene-production.module.css";
 
@@ -30,11 +31,137 @@ export default function ProjectCanvasEntry(props: {
   tenantId: string;
   projectId: string;
 }) {
-  return (
+  const explicitProject =
+    new URLSearchParams(location.hash.split("?")[1]).get("scope") === "project";
+  return explicitProject ? (
     <ProjectCanvasWorkspace
-      key={`${props.tenantId}:${props.projectId}`}
+      key={`${props.tenantId}:${props.projectId}:project`}
       {...props}
     />
+  ) : (
+    <CanvasEntryResolution
+      key={`${props.tenantId}:${props.projectId}:recent`}
+      {...props}
+    />
+  );
+}
+
+/** Resolve only from a fresh authorized index. The hint never supplies names or access. */
+function CanvasEntryResolution({
+  tenantId,
+  projectId,
+}: {
+  tenantId: string;
+  projectId: string;
+}) {
+  const session = useSession();
+  const path = projectPath(tenantId, projectId),
+    base = `#/app/t/${tenantId}/p/${projectId}`;
+  const index = useQuery({
+    queryKey: ["user", session.userId, `${path}/canvas-workspaces`],
+    queryFn: ({ signal }) =>
+      api<Schema<"CanvasWorkspaceIndex">>(`${path}/canvas-workspaces`, {
+        signal,
+      }),
+    refetchOnMount: "always",
+  });
+  const content = useQuery({
+    queryKey: ["user", session.userId, `${path}/content`],
+    queryFn: ({ signal }) =>
+      api<Schema<"ContentTree">>(`${path}/content`, { signal }),
+    refetchOnMount: "always",
+  });
+  const project = useResource<Schema<"Project">>(path);
+  useEffect(() => {
+    document.title = "画布 · SceneDesk";
+  }, []);
+  const [resolution, setResolution] = useState<"choose" | "redirect" | null>(
+    null,
+  );
+  useEffect(() => {
+    if (
+      resolution ||
+      !index.isFetchedAfterMount ||
+      !content.isFetchedAfterMount ||
+      index.isError ||
+      !index.data ||
+      !content.data ||
+      content.isError ||
+      project.isError
+    )
+      return;
+    const choices = index.data.items;
+    const hint = recentCanvas(session, tenantId, projectId);
+    const choice =
+      choices.find((item) => (item.sceneId ?? "project") === hint) ??
+      (choices.length === 1 ? choices[0] : undefined);
+    if (choice || choices.length === 0) {
+      setResolution("redirect");
+      // History always names the resolved workspace, so Back cannot re-resolve
+      // its former entry using a newer "recent" hint and bounce forward again.
+      const query = new URLSearchParams(location.hash.split("?")[1]);
+      query.set("scope", "project");
+      location.replace(
+        choice?.sceneId
+          ? canvasLocationHref(base, choice.sceneId)
+          : `${base}/canvas?${query}`,
+      );
+    } else setResolution("choose");
+  }, [
+    resolution,
+    index.isFetchedAfterMount,
+    index.isError,
+    index.data,
+    content.data,
+    content.isFetchedAfterMount,
+    content.isError,
+    project.isError,
+    session,
+    tenantId,
+    projectId,
+    base,
+  ]);
+  const error = index.error ?? content.error ?? project.error;
+  if (error)
+    return (
+      <Stack p="md">
+        <ErrorNotice
+          error={error}
+          retry={() => {
+            void index.refetch();
+            void content.refetch();
+            void project.refetch();
+          }}
+        />
+      </Stack>
+    );
+  if (resolution === "choose" && content.data)
+    return (
+      <Stack p="xl" align="center" gap="lg">
+        <Text fw={600} size="lg">
+          继续在哪张画布创作？
+        </Text>
+        <Text c="dimmed">选择项目画布或场次。下次会回到你最近使用的画布。</Text>
+        <CanvasNavigator
+          content={content.data}
+          unselected
+          canCreate={project.data?.status === "active"}
+          onSelect={(id) => {
+            location.hash = canvasLocationHref(base, id);
+          }}
+          onDirectory={() => {
+            location.hash = `${base}/content`;
+          }}
+          onCreate={() => {
+            location.hash = `${base}/content?create=scene`;
+          }}
+        />
+      </Stack>
+    );
+  return (
+    <Stack p="md">
+      <Loader aria-label="正在读取画布入口" />
+    </Stack>
   );
 }
 function ProjectCanvasWorkspace({
@@ -115,37 +242,35 @@ function ProjectCanvasWorkspace({
   const missing =
     canvas.error instanceof ApiError &&
     canvas.error.code === "PROJECT_CANVAS_NOT_CREATED";
+  useEffect(() => {
+    if (canvasId && !canvas.isError && !project.isError)
+      rememberCanvas(session, tenantId, projectId, "project");
+  }, [canvasId, canvas.isError, project.isError, session, tenantId, projectId]);
   const toolbar = (
     <Group gap="sm" wrap="nowrap" className={layout.contextTools}>
-      <Text fw={600}>项目画布</Text>
-      {content.isError && (
+      <Text className={layout.projectName} size="sm" c="dimmed" truncate>
+        {project.isError ? "项目不可访问" : project.data?.name}
+      </Text>
+      <CaretRight size={14} className={layout.contextDivider} aria-hidden />
+      {content.isError ? (
         <Button
           size="xs"
           variant="subtle"
           onClick={() => void content.refetch()}
         >
-          重新读取场次入口
+          重新读取画布入口
         </Button>
-      )}
-      {!content.isError && !!content.data?.scenes.length && (
-        <Select
-          aria-label="打开已有场次画布"
-          placeholder="已有场次画布"
-          value={null}
-          size="xs"
+      ) : content.data ? (
+        <CanvasNavigator
+          content={content.data}
           disabled={navigating}
-          searchable
-          data={content.data.scenes.map((scene) => ({
-            value: scene.id,
-            label: `${content.data?.episodes.find((e) => e.id === scene.episodeId)?.title ?? ""} · ${scene.title}${scene.status === "archived" ? " · 已归档" : ""}`,
-          }))}
-          onChange={(id) => {
-            if (id)
-              void navigate(`${base}/production?scene=${id}&mode=canvas`).catch(
-                () => {},
-              );
-          }}
+          canCreate={active}
+          onSelect={(id) => navigate(canvasLocationHref(base, id))}
+          onDirectory={() => navigate(`${base}/content`)}
+          onCreate={() => navigate(`${base}/content?create=scene`)}
         />
+      ) : (
+        <Text fw={600}>项目画布</Text>
       )}
     </Group>
   );

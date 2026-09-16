@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Alert,
   Button,
@@ -30,7 +31,12 @@ const empty: Draft = {
   sha256: "",
   attempted: false,
 };
-type Props = { path: string; tree: Schema<"ContentTree">; done: () => void };
+type Props = {
+  path: string;
+  tree: Schema<"ContentTree">;
+  done: () => void;
+  actionTarget?: HTMLDivElement | null;
+};
 export function FeishuScriptImport(props: Props) {
   const [epoch, setEpoch] = useState(0);
   return (
@@ -45,6 +51,7 @@ function ImportLink({
   path,
   tree,
   done,
+  actionTarget,
   reset,
 }: Props & { reset: () => void }) {
   const draft = useContentDraft<Draft>(
@@ -282,25 +289,31 @@ function ImportLink({
     }
   }
   const disabled = !draft.ready || !!draft.recovered || busy || !!draft.error;
-  if (completed)
-    return (
+  if (completed) {
+    const again = (
       <Button variant="subtle" onClick={reset}>
         再次导入飞书文档
       </Button>
     );
+    return actionTarget === undefined
+      ? again
+      : actionTarget && createPortal(again, actionTarget);
+  }
+  const trigger = (
+    <Button
+      variant="subtle"
+      leftSection={<LinkSimple size={16} />}
+      onClick={() => setOpen(true)}
+    >
+      从飞书导入
+    </Button>
+  );
   return (
     <Stack gap="sm">
-      {!show && (
-        <Group>
-          <Button
-            variant="subtle"
-            leftSection={<LinkSimple size={16} />}
-            onClick={() => setOpen(true)}
-          >
-            从飞书导入
-          </Button>
-        </Group>
-      )}
+      {!show &&
+        (actionTarget === undefined
+          ? trigger
+          : actionTarget && createPortal(trigger, actionTarget))}
       {(draft.recovered || draft.error || draft.committed) && (
         <DraftNotice draft={draft} />
       )}
@@ -363,7 +376,8 @@ function ImportLink({
                 {new Date(state.fetchedAt!).toLocaleString()}
               </Text>
               <Text size="xs" c="dimmed">
-                按本次飞书导出的 Word 展示；画板、评论和嵌入内容可能简化，请核对源文档。
+                按本次飞书导出的 Word
+                展示；画板、评论和嵌入内容可能简化，请核对源文档。
               </Text>
               <Warnings document={state.preview.document} />
               <DocumentBody

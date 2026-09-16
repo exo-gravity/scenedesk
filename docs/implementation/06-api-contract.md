@@ -210,4 +210,6 @@ normalize旧版直接传timeline的请求在1.3.0被拒绝；replacement预览�
 
 `GET/POST /projects/{projectId}/canvas` 读取／明确确保唯一项目画布；GET 不创建，首次未创建返回 `PROJECT_CANVAS_NOT_CREATED`。`POST /canvases/{canvasId}/generation-plans` 按 Canvas 修订固定草稿，支持项目画布及旧场次画布，执行仍走既有生成作业协议。项目画布不要求存在 Episode/Scene/Shot。
 
+`GET /projects/{projectId}/canvas-workspaces` 在当前项目读取授权下返回 `CanvasWorkspaceIndex`，仅含已有链接的 `{canvasId, sceneId}`；项目画布的 `sceneId` 为 `null`，场次画布仅在场次与所属单集均活动时列出。没有画布时返回空 `items`，读取不创建任何对象。此索引不返回名称、画布文档或媒体，界面使用同一项目的当前 `ContentTree` 取得名称；撤权后不能继续读取索引。归档项目仍遵守已有只读规则，旧场次／画布历史链接保持可读。
+
 `GET/PUT /projects/{projectId}/workspace-preference` 使用本用户自己的 revision（首次 0），支持画布视口、选中节点和辅助面板，`mode=canvas`、`selectedShotId=null`。私人视图修改不改业务内容，因此有当前项目读取权限的用户可在已归档项目保存浏览位置；创建／保存画布和新生成仍要求活动项目。所有写入继续校验 Origin、CSRF、当前租户/项目权限。来源、旧链接和迁移规则见 [项目画布实施](71-project-canvas-workspace.md)。

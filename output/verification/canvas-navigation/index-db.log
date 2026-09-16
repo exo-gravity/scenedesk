@@ -1,0 +1,47 @@
+TAP version 13
+# Subtest: canvas workspace index exposes only current authorized linked workspace identities
+    # Subtest: empty reads do not create a canvas or workspace preference
+    ok 1 - empty reads do not create a canvas or workspace preference
+      ---
+      duration_ms: 6.427542
+      type: 'test'
+      ...
+    # Subtest: index contains only linked identities for the requested project
+    ok 2 - index contains only linked identities for the requested project
+      ---
+      duration_ms: 8.434333
+      type: 'test'
+      ...
+    # Subtest: archived scenes and episodes disappear without destroying their history
+    ok 3 - archived scenes and episodes disappear without destroying their history
+      ---
+      duration_ms: 73.143417
+      type: 'test'
+      ...
+    # Subtest: archived project keeps its existing authorized read behavior
+    ok 4 - archived project keeps its existing authorized read behavior
+      ---
+      duration_ms: 38.560875
+      type: 'test'
+      ...
+    # Subtest: foreign or revoked project access cannot obtain an index
+    ok 5 - foreign or revoked project access cannot obtain an index
+      ---
+      duration_ms: 34.622833
+      type: 'test'
+      ...
+    1..5
+ok 1 - canvas workspace index exposes only current authorized linked workspace identities
+  ---
+  duration_ms: 3063.479042
+  type: 'test'
+  ...
+1..1
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4004.375459

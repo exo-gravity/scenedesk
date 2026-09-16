@@ -87,12 +87,14 @@ export function StructureEditor({
   tree,
   path,
   scripts,
+  onCreateEpisode,
   done,
 }: {
   editing: ContentEditing;
   tree: Schema<"ContentTree">;
   path: string;
   scripts: Schema<"ScriptRevision">[];
+  onCreateEpisode?: (() => void) | undefined;
   done: () => void;
 }) {
   const collection =
@@ -320,6 +322,13 @@ export function StructureEditor({
     );
   }
   if (draft.committed) return <DraftNotice draft={draft} />;
+  if (editing.kind === "scene" && !entity && !parents.length)
+    return (
+      <Stack>
+        <Text>场次需要归属一个单集。先新建单集，再添加这场戏。</Text>
+        {onCreateEpisode && <Button onClick={onCreateEpisode}>新建单集</Button>}
+      </Stack>
+    );
   return (
     <form onSubmit={submit}>
       <Stack gap="lg">
@@ -532,29 +541,36 @@ export function StructureEditor({
                   value={values.summary}
                   onChange={(e) => set("summary", e.currentTarget.value)}
                 />
-                <ContinuityFields
-                  path={tenantPath}
-                  projectId={projectId}
-                  label="场次状态"
-                  value={{
-                    ...values.sceneState,
-                    spatialNotes: values.spatialNotes,
-                  }}
-                  onChange={(state) =>
-                    draft.setValue((v) => ({
-                      ...v,
-                      sceneState: state,
-                      spatialNotes: state.spatialNotes ?? "",
-                    }))
-                  }
-                />
-                <Text fw={600}>场次默认资产</Text>
-                <FixedAssetList
-                  path={tenantPath}
-                  projectId={projectId}
-                  value={values.defaultAssetRevisionIds}
-                  onChange={(value) => set("defaultAssetRevisionIds", value)}
-                />
+                <details className={layout.advancedScene}>
+                  <summary>角色、道具与默认资产（可选）</summary>
+                  <Stack gap="lg" mt="lg">
+                    <ContinuityFields
+                      path={tenantPath}
+                      projectId={projectId}
+                      label="场次状态"
+                      value={{
+                        ...values.sceneState,
+                        spatialNotes: values.spatialNotes,
+                      }}
+                      onChange={(state) =>
+                        draft.setValue((v) => ({
+                          ...v,
+                          sceneState: state,
+                          spatialNotes: state.spatialNotes ?? "",
+                        }))
+                      }
+                    />
+                    <Text fw={600}>场次默认资产</Text>
+                    <FixedAssetList
+                      path={tenantPath}
+                      projectId={projectId}
+                      value={values.defaultAssetRevisionIds}
+                      onChange={(value) =>
+                        set("defaultAssetRevisionIds", value)
+                      }
+                    />
+                  </Stack>
+                </details>
               </>
             )}
             {editing.kind === "shot" && (
