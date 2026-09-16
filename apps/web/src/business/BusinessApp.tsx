@@ -283,35 +283,37 @@ function AuthenticatedApp({ hash }: { hash: string }) {
             }
           : {})}
       />
-      <header className={classes.header}>
-        <Anchor href="#/app" className={classes.brand}>
-          SceneDesk
-        </Anchor>
-        <Group gap="lg" wrap="nowrap" className={classes.headerStatus}>
-          {health.data?.providerMode === "mock" && (
-            <Text size="xs" c="dimmed">
-              未连接真实模型
-            </Text>
-          )}
-          {health.data?.identityMode === "local_test" && (
-            <Text size="xs" c="dimmed">
-              本地测试身份
-            </Text>
-          )}
-          <Tooltip label={colorScheme === "light" ? "切换深色" : "切换浅色"}>
-            <ActionIcon
-              variant="subtle"
-              size="xs"
-              aria-label={colorScheme === "light" ? "切换深色" : "切换浅色"}
-              onClick={() =>
-                setColorScheme(colorScheme === "light" ? "dark" : "light")
-              }
-            >
-              {colorScheme === "light" ? <Moon size={16} /> : <Sun size={16} />}
-            </ActionIcon>
-          </Tooltip>
-        </Group>
-      </header>
+      {session.isError && (
+        <header className={classes.header}>
+          <Anchor href="#/app" className={classes.brand}>
+            SceneDesk
+          </Anchor>
+          <Group gap="lg" wrap="nowrap" className={classes.headerStatus}>
+            {health.data?.providerMode === "mock" && (
+              <Text size="xs" c="dimmed">
+                未连接真实模型
+              </Text>
+            )}
+            {health.data?.identityMode === "local_test" && (
+              <Text size="xs" c="dimmed">
+                本地测试身份
+              </Text>
+            )}
+            <Tooltip label={colorScheme === "light" ? "切换深色" : "切换浅色"}>
+              <ActionIcon
+                variant="subtle"
+                size="xs"
+                aria-label={colorScheme === "light" ? "切换深色" : "切换浅色"}
+                onClick={() =>
+                  setColorScheme(colorScheme === "light" ? "dark" : "light")
+                }
+              >
+                {colorScheme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+        </header>
+      )}
       {session.isPending || checkingSession ? (
         <div className={classes.welcome}>
           <Loader aria-label="正在读取会话" />
@@ -452,24 +454,6 @@ function Workspace({
       <Menu.Dropdown>
         <Menu.Label>{session.email}</Menu.Label>
         {environment && <Menu.Label>{environment}</Menu.Label>}
-        {tenantId && (
-          <>
-            <Menu.Item
-              component="a"
-              href={`#/app/t/${tenantId}/work`}
-              leftSection={<CheckSquare size={16} />}
-            >
-              我的工作
-            </Menu.Item>
-            <Menu.Item
-              component="a"
-              href={`#/app/t/${tenantId}/assets`}
-              leftSection={<Archive size={16} />}
-            >
-              工作室资产库
-            </Menu.Item>
-          </>
-        )}
         <Menu.Item
           leftSection={
             colorScheme === "light" ? <Moon size={16} /> : <Sun size={16} />
