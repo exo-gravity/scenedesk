@@ -1,6 +1,6 @@
 # 项目画布：直接创作与兼容场次画布
 
-2026-09-16。属于 [重构计划 PR-2](70-creative-workspace-refactor.md)，依据 [已确认独立 Web 方向](../design/creative-workspace-approved-2026-09-16.md)。
+2026-09-16。[PR #44](https://github.com/exo-gravity/scenedesk/pull/44)，产品提交 `db8b7c9`。属于 [重构计划 PR-2](70-creative-workspace-refactor.md)，依据 [已确认独立 Web 方向](../design/creative-workspace-approved-2026-09-16.md)。
 
 ## 行为与边界
 
@@ -12,9 +12,11 @@
 
 ## 验证记录
 
-- 已运行 `npm run check`：契约、UI、类型、生产构建及 240 项单元测试通过。之后的最终 diff 会重新运行并补证据。
-- 新项目画布数据库集成：零集零场、并发唯一创建、重开内容、固定历史、CAS 冲突、跨项目／外部身份拒绝、个人偏好、归档后新建与缓存回放拒绝。
+- 已运行 `npm run check`：契约、UI、类型、生产构建及 240 项单元测试通过。本机最终生产构建通过，远端主 verify 已完成 npm check 并进入数据库验证。
+- 新项目画布数据库集成：零集零场、并发唯一创建、重开内容、固定历史、CAS 冲突、跨项目／外部身份拒绝、个人偏好隔离、撤权后的缓存回放拒绝、归档后新建与缓存回放拒绝、归档后的个人浏览位置保存。两个完整专项顶层用例及追加断言通过。
 - 项目草稿生成固定计划及项目助手固定节点上下文通过真实 API／受限 PostgreSQL 角色验证，技术 fixture worker 完成助手任务；旧场次助手 scope 保持原样。既有场次画布 10 项集成回归通过。
-- 生产构建浏览器、完整数据库回归及远端 CI 正在验收，尚未标记通过。隔离 synthetic 预览与接口 fixture 不代表真实模型、真实团队或真实用户数据验收。
+- 生产构建浏览器、完整数据库回归及远端主 CI 正在验收，尚未标记通过；远端 isolated recovery 和 deployment 已通过。隔离 synthetic 预览与接口 fixture 不代表真实模型、真实团队或真实用户数据验收。
+
+初次隔离预览在 Canvas 初始化时暴露配置缺口：未代理 `/design/openapi.json`，编辑器收到 HTML 而非契约 JSON。已补代理并重建隔离预览继续验收；该检查是实际 CanvasBoard 初始化，不以入口外壳可见替代。第二次本机 MinIO 权限 fixture 初始化超时，失败容器已清理；重试只延长本机预览启动等待，未改变正式测试断言或超时。
 
 运行日志保存在本机 `output/implementation/2026-09-16-project-canvas/`；测试数据库使用独立随机 schema 和受限角色，不修改共享业务演示数据。没有付费模型调用。
