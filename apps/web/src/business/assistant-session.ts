@@ -81,6 +81,15 @@ export const jobStatusLabel: Record<Schema<"GenerationJob">["status"], string> =
 export function jobFinished(job?: Schema<"GenerationJob">) {
   return !!job && ["succeeded", "failed", "cancelled"].includes(job.status);
 }
+/** A confirmed original job stays recoverable in history while the next draft is edited. */
+export function canContinueCreation(job?: Schema<"GenerationJob">) {
+  return (
+    !!job &&
+    ["queued", "provider_pending", "provider_running", "archiving"].includes(
+      job.status,
+    )
+  );
+}
 export function selectedRange(text: string, start: number, end: number) {
   // Browser text selection offsets use UTF-16; the API uses Unicode code points.
   const points = Array.from(text),
@@ -443,6 +452,24 @@ export class AssistantSession<
       await this.prepareCurrent(request, epoch);
     });
   }
+  /** One explicit user action; durable plan and execution intents remain separate.
+   * Recovery never calls this method automatically. */
+  generateFrom(expected: Draft, resolve: () => Promise<Request>) {
+    return this.action(async (epoch) => {
+      await this.queue;
+      this.assertCurrent(epoch);
+      const record = this.state.record;
+      if (!record || JSON.stringify(record.draft) !== JSON.stringify(expected))
+        throw new Error("输入已改变，请重新核对本次操作。");
+      if (record.execution) return;
+      if (!record.planId) {
+        const request = record.planRequest?.input ?? (await resolve());
+        this.assertCurrent(epoch);
+        await this.prepareCurrent(request, epoch);
+      }
+      await this.executeCurrent(epoch);
+    });
+  }
   openExisting(
     planId: string,
     validate: (plan: Schema<"GenerationPlan">) => void,
@@ -491,26 +518,27 @@ export class AssistantSession<
       this.publish({ plan, job });
     });
   }
+  private async executeCurrent(epoch: number) {
+    const record = this.state.record;
+    if (!record?.planId || record.execution) return;
+    const plan = await this.transport.getPlan(record.planId);
+    this.assertCurrent(epoch);
+    this.publish({ plan });
+    if (plan.status !== "ready" || Date.parse(plan.expiresAt) <= Date.now())
+      throw new Error("这次生成暂不可执行，请查看详情并核对输入。");
+    const execution = { key: crypto.randomUUID(), planId: record.planId };
+    await this.persist({ ...record, execution }, epoch);
+    this.assertCurrent(epoch);
+    const job = await this.transport.execute(record.planId, execution.key);
+    this.assertCurrent(epoch);
+    this.publish({ job });
+    await this.persist(
+      { ...record, execution: { ...execution, jobId: job.id } },
+      epoch,
+    );
+  }
   execute() {
-    return this.action(async (epoch) => {
-      const record = this.state.record;
-      if (!record?.planId || record.execution) return;
-      const plan = await this.transport.getPlan(record.planId);
-      this.assertCurrent(epoch);
-      this.publish({ plan });
-      if (plan.status !== "ready" || Date.parse(plan.expiresAt) <= Date.now())
-        throw new Error("这份计划已不可执行。请保留输入并重新查看计划。");
-      const execution = { key: crypto.randomUUID(), planId: record.planId };
-      await this.persist({ ...record, execution }, epoch);
-      this.assertCurrent(epoch);
-      const job = await this.transport.execute(record.planId, execution.key);
-      this.assertCurrent(epoch);
-      this.publish({ job });
-      await this.persist(
-        { ...record, execution: { ...execution, jobId: job.id } },
-        epoch,
-      );
-    });
+    return this.action((epoch) => this.executeCurrent(epoch));
   }
   resumeSubmission() {
     return this.action(async (epoch) => {
@@ -609,10 +637,20 @@ export class AssistantSession<
       await this.recoverExecution(epoch);
     });
   }
-  revise(nextDraft?: Draft, expected?: Draft) {
+  revise(nextDraft?: Draft, expected?: Draft, continueAccepted = false) {
     return this.action(async (epoch) => {
       const record = this.state.record;
-      if (!record || (record.execution && !jobFinished(this.state.job))) return;
+      if (
+        !record ||
+        (record.execution &&
+          !jobFinished(this.state.job) &&
+          !(
+            continueAccepted &&
+            record.execution.jobId === this.state.job?.id &&
+            canContinueCreation(this.state.job)
+          ))
+      )
+        return;
       if (expected && JSON.stringify(record.draft) !== JSON.stringify(expected))
         throw new Error("输入已改变，请重新核对本次操作。");
       const previous = record.planId

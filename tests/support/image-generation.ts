@@ -26,7 +26,7 @@ import { createAssistanceWorker } from "../../apps/api/src/modules/generation/wo
 export async function imageGenerationFixture(
   t: TestContext,
   store = { verify: async () => undefined } as unknown as MediaStore,
-  options: { purpose?: "image" | "video" | "audio" } = {},
+  options: { purpose?: "image" | "video" | "audio"; origin?: string } = {},
 ) {
   const kind = options.purpose ?? "image";
   const queueErrors: Error[] = [];
@@ -56,34 +56,38 @@ export async function imageGenerationFixture(
       await admin.end();
     }
   });
-  const f = await businessFixture(t, async (db) => {
-    for (const role of roles) {
-      const password = randomBytes(24).toString("hex");
-      await db.admin.query(
-        `CREATE ROLE ${sqlIdentifier(role)} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB PASSWORD '${password}'`,
-      );
-      const url = new URL(process.env.DATABASE_URL!);
-      url.username = role;
-      url.password = password;
-      pools.push(new Pool({ connectionString: url.href, max: 3 }));
-    }
-    await installQueue(db.admin, queueSchema);
-    const sql = await db.admin.connect();
-    try {
-      await grantGenerationWorkerAccess(sql, db.schema, roles[0]!);
-      await grantMediaWorkerAccess(sql, db.schema, roles[1]!, roles[2]!);
-      for (const role of [db.apiRole, roles[0]!, roles[1]!])
-        await grantQueueAccess(sql, queueSchema, role, roles[2]!);
-    } finally {
-      sql.release();
-    }
-    const producer = await createScheduler(db.runtime, {
-      schema: queueSchema,
-      onError: (error) => queueErrors.push(error),
-    });
-    stops.push(producer.close);
-    return { media: { store, schedule: producer.schedule } };
-  });
+  const f = await businessFixture(
+    t,
+    async (db) => {
+      for (const role of roles) {
+        const password = randomBytes(24).toString("hex");
+        await db.admin.query(
+          `CREATE ROLE ${sqlIdentifier(role)} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB PASSWORD '${password}'`,
+        );
+        const url = new URL(process.env.DATABASE_URL!);
+        url.username = role;
+        url.password = password;
+        pools.push(new Pool({ connectionString: url.href, max: 3 }));
+      }
+      await installQueue(db.admin, queueSchema);
+      const sql = await db.admin.connect();
+      try {
+        await grantGenerationWorkerAccess(sql, db.schema, roles[0]!);
+        await grantMediaWorkerAccess(sql, db.schema, roles[1]!, roles[2]!);
+        for (const role of [db.apiRole, roles[0]!, roles[1]!])
+          await grantQueueAccess(sql, queueSchema, role, roles[2]!);
+      } finally {
+        sql.release();
+      }
+      const producer = await createScheduler(db.runtime, {
+        schema: queueSchema,
+        onError: (error) => queueErrors.push(error),
+      });
+      stops.push(producer.close);
+      return { media: { store, schedule: producer.schedule } };
+    },
+    { ...(options.origin ? { origin: options.origin } : {}) },
+  );
   const [generationDb, mediaDb, schedulerDb] = pools as [Pool, Pool, Pool];
   const producer = await createScheduler(generationDb, {
     schema: queueSchema,

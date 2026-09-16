@@ -1,3 +1,4 @@
+import { ScriptCanvasExcerpt } from "./ScriptCanvasExcerpt";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -233,10 +234,13 @@ export function ScriptDocumentReader({
             document={!fixed.isError ? fixed.data?.document : undefined}
           />
           {fixed.data && !fixed.isError && (
-            <DocumentBody
-              document={fixed.data.document}
-              text={fixed.data.text}
-            />
+            <>
+              <ScriptCanvasExcerpt script={fixed.data} current={fixed.data.id === tree.currentScriptRevisionId} active={active} path={path} />
+              <DocumentBody
+                document={fixed.data.document}
+                text={fixed.data.text}
+              />
+            </>
           )}
         </>
       ) : (
