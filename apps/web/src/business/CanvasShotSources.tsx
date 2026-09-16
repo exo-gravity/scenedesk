@@ -31,7 +31,7 @@ export function CanvasShotSources({
 }: {
   path: string;
   projectId: string;
-  sceneId: string;
+  sceneId: string | undefined;
   sources: readonly ShotSource[] | undefined;
   disabled: boolean;
   onChange: (sources: ShotSource[]) => void;
@@ -193,12 +193,12 @@ function SourcePicker({
 }: {
   path: string;
   projectId: string;
-  currentSceneId: string;
+  currentSceneId: string | undefined;
   sources: ShotSource[];
   onChange: (sources: ShotSource[]) => void;
 }) {
   const tree = useResource<Schema<"ContentTree">>(`${path}/content`);
-  const [sceneId, setSceneId] = useState<string | null>(currentSceneId),
+  const [sceneId, setSceneId] = useState<string | null>(currentSceneId ?? null),
     [shot, setShot] = useState<Schema<"Shot">>();
   // Hide cached text while authority/current availability is being checked. The
   // selected references above survive a failed browse and are never reset to [].

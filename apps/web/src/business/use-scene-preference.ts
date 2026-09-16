@@ -3,7 +3,18 @@ import { api, ApiError, useResource, useSession, type Schema } from "./api";
 import { sameValue } from "./prompt-draft";
 
 type Preference = Schema<"SaveSceneWorkspacePreference">;
-type Saved = Schema<"SceneWorkspacePreference">;
+type Saved =
+  | Schema<"SceneWorkspacePreference">
+  | Schema<"ProjectWorkspacePreference">;
+function preferenceOnly(value: Saved): Preference {
+  const { revision: _revision, ...rest } = value;
+  if ("sceneId" in rest) {
+    const { sceneId: _scene, ...preference } = rest;
+    return preference;
+  }
+  const { projectId: _project, ...preference } = rest;
+  return preference;
+}
 export function useScenePreference(path: string) {
   const session = useSession(),
     initial = useResource<Saved>(path);
@@ -19,11 +30,7 @@ export function useScenePreference(path: string) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     if (!initial.data || base.current) return;
-    const {
-      sceneId: _scene,
-      revision: _revision,
-      ...preference
-    } = initial.data;
+    const preference = preferenceOnly(initial.data);
     base.current = initial.data;
     draft.current = preference;
     setView(preference);
@@ -60,11 +67,7 @@ export function useScenePreference(path: string) {
           if (retry) base.current = await api<Saved>(path);
           if (epoch !== generation.current) return;
           const desired = draft.current;
-          const {
-            sceneId: _scene,
-            revision: _revision,
-            ...saved
-          } = base.current;
+          const saved = preferenceOnly(base.current);
           if (sameValue(desired, saved)) {
             failed.current = false;
             setError(null);
@@ -114,7 +117,7 @@ export function useScenePreference(path: string) {
   );
   useEffect(() => {
     if (!view || !base.current || failed.current) return;
-    const { sceneId: _scene, revision: _revision, ...saved } = base.current;
+    const saved = preferenceOnly(base.current);
     if (sameValue(draft.current, saved)) return;
     const timer = setTimeout(() => void save(), 500);
     return () => clearTimeout(timer);
@@ -127,7 +130,7 @@ export function useScenePreference(path: string) {
         "视图位置尚未保存，请先重新保存本页视图；当前页面仍保留。",
       );
     if (draft.current && base.current) {
-      const { sceneId: _scene, revision: _revision, ...saved } = base.current;
+      const saved = preferenceOnly(base.current);
       if (!sameValue(draft.current, saved)) {
         await save();
         if (failed.current)
@@ -135,7 +138,7 @@ export function useScenePreference(path: string) {
       }
     }
     if (draft.current && base.current) {
-      const { sceneId: _scene, revision: _revision, ...saved } = base.current;
+      const saved = preferenceOnly(base.current);
       if (!sameValue(draft.current, saved))
         throw new Error("视图刚有新变化，当前页面仍保留，请再次切换。");
     }

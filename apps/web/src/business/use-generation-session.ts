@@ -108,7 +108,9 @@ export function useGenerationSession(
             ? post(`${tenant}/generation-plans`, request.input, key)
             : (
                 await post<Schema<"CanvasPlanEntry">>(
-                  `${path}/scenes/${request.sceneId}/canvas/generation-plans`,
+                  request.sceneId
+                    ? `${path}/scenes/${request.sceneId}/canvas/generation-plans`
+                    : `${path}/canvases/${request.canvasId}/generation-plans`,
                   request.input,
                   key,
                   request.canvasRevision,

@@ -68,7 +68,7 @@ export type MediaInputSource =
   | {
       kind: "canvas";
       canvas: Schema<"Canvas">;
-      sceneId: string;
+      sceneId: string | undefined;
       nodeId: string;
       awaitingSave: boolean;
       configure: (
@@ -96,7 +96,8 @@ export type MediaGenerationProps = {
   presentation?: "node" | "detail" | undefined;
   onInspectPlan?: ((planId: string) => void) | undefined;
   onRetainDraft?:
-    ((retain: (() => Promise<void>) | undefined) => void) | undefined;
+    | ((retain: (() => Promise<void>) | undefined) => void)
+    | undefined;
 };
 export function MediaGenerationWorkspace(
   props: MediaGenerationProps & { kind: "image" | "video" | "audio" },
@@ -795,7 +796,6 @@ function GenerationWorkspace({
                 plan.status !== "ready" ||
                 Date.parse(plan.expiresAt) <= Date.now()
               }
-
               onClick={() => void controller.execute()}
             >
               {`确认执行${label}生成`}

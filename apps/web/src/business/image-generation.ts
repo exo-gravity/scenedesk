@@ -10,7 +10,7 @@ export type ImageRequest =
   | {
       kind: "canvas";
       canvasId: string;
-      sceneId: string;
+      sceneId: string | undefined;
       canvasRevision: number;
       input: Schema<"PrepareCanvasGeneration">;
       label: string;
@@ -20,7 +20,8 @@ export type ImageDraft = {
   output: Schema<"OutputOptions">;
   shotSources?: Schema<"ShotSource">[];
   archiveRequest?:
-    { key: string; jobId: string; checked?: boolean } | undefined;
+    | { key: string; jobId: string; checked?: boolean }
+    | undefined;
   placement?:
     | {
         phase: "review" | "unknown" | "conflict" | "placed";
@@ -110,7 +111,7 @@ export function shotImageRequest(
 }
 export function canvasImageRequest(
   canvas: Schema<"Canvas">,
-  sceneId: string,
+  sceneId: string | undefined,
   nodeId: string,
   capabilities: readonly ImageCapability[],
   shotSources: readonly Schema<"ShotSource">[] = [],

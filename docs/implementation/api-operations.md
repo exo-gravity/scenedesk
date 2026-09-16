@@ -133,6 +133,11 @@
 | PR-05 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/creative-bases/{basisRevisionId}` | `getCreativeBasisRevision` | `project_member` |
 | PR-05 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/creative-confirmations` | `listCreativeConfirmations` | `project_member` |
 | PR-05 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/creative-confirmations` | `confirmCreativeBasis` | `project_lead_or_admin` |
+| PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvas` | `ensureProjectCanvas` | `project_member` |
+| PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvas` | `getProjectCanvas` | `project_member` |
+| PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-plans` | `prepareProjectCanvasGeneration` | `project_member` |
+| PR-17 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/workspace-preference` | `getProjectWorkspacePreference` | `project_member` |
+| PR-17 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/workspace-preference` | `saveProjectWorkspacePreference` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas` | `ensureSceneCanvas` | `project_member` |
 | PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas` | `getSceneCanvas` | `project_member` |
 | PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}` | `getCanvas` | `project_member` |

@@ -1,3 +1,4 @@
+import { projectWorkspaceRoutes } from "./project-workspace.js";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { inspectCanvasDocument } from "@drama/domain";
@@ -22,6 +23,7 @@ import {
 
 export function canvasRoutes(app: FastifyInstance, context: ApiContext) {
   canvasUploadRoutes(app, context);
+  projectWorkspaceRoutes(app, context);
   registerAction(app, context, "ensureSceneCanvas", async (tx, input) => {
     const sceneId = input.params.sceneId!;
     await findContent(tx, "scenes", sceneId);

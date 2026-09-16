@@ -1,6 +1,11 @@
 export type GenerationSubject =
   | { kind: "shot"; shotId: string; inputScope?: string }
-  | { kind: "canvas"; canvasId: string; nodeId: string; sceneId: string };
+  | {
+      kind: "canvas";
+      canvasId: string;
+      nodeId: string;
+      sceneId: string | undefined;
+    };
 /** Existing editing partitions remain unchanged; each inspected plan gets a distinct receipt owner. */
 export function generationSessionPath(
   subject: GenerationSubject,

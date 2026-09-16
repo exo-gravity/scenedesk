@@ -1,4 +1,8 @@
 import {
+  ProjectNavigationGuard,
+  useProjectNavigationGuard,
+} from "./project-navigation-guard";
+import {
   lazy,
   Suspense,
   useEffect,
@@ -98,7 +102,9 @@ export default function BusinessApp({ hash }: { hash: string }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <AuthenticatedApp hash={hash} />
+      <ProjectNavigationGuard>
+        <AuthenticatedApp hash={hash} />
+      </ProjectNavigationGuard>
     </QueryClientProvider>
   );
 }
@@ -372,6 +378,7 @@ function Workspace({
   const session = useSession(),
     cache = useQueryClient(),
     logout = useCommand<void>();
+  const navigationGuard = useProjectNavigationGuard();
   const tenants = useList<Schema<"Tenant">>("/v1/tenants");
   const segments = hash.split("?")[0]!.split("/");
   const tenantId = segments[2] === "t" ? segments[3] : undefined;
@@ -504,6 +511,31 @@ function Workspace({
     <>
       <div
         className={classes.layout}
+        data-project-canvas={projectSection === "canvas" || undefined}
+        onClickCapture={(event) => {
+          if (
+            !navigationGuard.current ||
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+          )
+            return;
+          const anchor = (event.target as Element).closest<HTMLAnchorElement>(
+            'a[href^="#"]',
+          );
+          const destination = anchor?.getAttribute("href");
+          if (
+            !destination ||
+            anchor?.target === "_blank" ||
+            destination === location.hash
+          )
+            return;
+          event.preventDefault();
+          void navigationGuard.current(destination).catch(() => {});
+        }}
         data-production={production || undefined}
         data-scene-production={(production && params.has("scene")) || undefined}
         data-project={projectDirectory || undefined}
@@ -572,7 +604,7 @@ function Workspace({
           )}
           <div className={classes.railFooter}>{accountMenu}</div>
         </nav>
-        {!production && (
+        {!production && projectSection !== "canvas" && (
           <WorkspaceContext
             tenantId={tenantId}
             projectId={projectId}
@@ -704,7 +736,9 @@ function WorkspaceContext({
         {projectId && (
           <>
             <Anchor href={`#/app/t/${tenantId}/p/${projectId}/script`}>
-              {project.isError ? "项目不可访问" : project.data?.name ?? "项目"}
+              {project.isError
+                ? "项目不可访问"
+                : (project.data?.name ?? "项目")}
             </Anchor>
             <CaretRight size={14} />
           </>
