@@ -12,6 +12,10 @@
 
 ## 当前工作
 
+2026-09-16 手动合入完成：用户在 Actions 额度暂时无法恢复后要求改用手动合并。已确认远端任务因账户计费未启动，按本机验收与实际浏览器证据顺序合入 Word [PR #45](https://github.com/exo-gravity/scenedesk/pull/45)（`e4f2767`）、连续创作 [PR #47](https://github.com/exo-gravity/scenedesk/pull/47)（`0b9e190`）、镜头列表 [PR #46](https://github.com/exo-gravity/scenedesk/pull/46)（`b4931d2`）、飞书导入 [PR #48](https://github.com/exo-gravity/scenedesk/pull/48)（`36a162e`）。产品合并头 `36a162e` 的文件树与已验收本地集成头 `065b3c4` 完全一致。未修改仓库可见性、工作流或保护设置，未使用管理员强制合并。用户随后明确继续推进，后续亦可由代理通过 GitHub 命令手动合并经过必要本机验证的变更；该授权取代下文“必须等待额度恢复”的处置，不代表 CI 已通过。
+
+组合验证为 258 项单元与契约／UI／类型／生产构建、9 项专项数据库测试；实际生产浏览器串联了飞书预览／导入、选文进入画布、镜头选用、Word 更新及刷新后旧引用不漂移。25 条自动 E2E 仅完成发现，尚未执行；完整媒体回归仍有既有嵌入音频超时，部署／恢复 CI 未运行。真实飞书应用授权、真实模型及团队完整试作仍待验收，不将本次合并标为 MVP 完成。具体顺序、证据和限制见[70](70-creative-workspace-refactor.md)及[73](73-creative-workspace-e2e.md)。以下同日条目保留为合入前历史。
+
 2026-09-16 轻量导入与第二批并行开发：用户要求 Word 导入简单、版本管理从轻。剧本默认只显示当前稿，历史、原件和纯文本编辑收于“更多”；不新增发布、分支、合并或审批。后台固定引用与失败恢复保持有效。Word [PR #45](https://github.com/exo-gravity/scenedesk/pull/45) 的简化页面已完成生产构建浏览器导入／刷新／历史返回／390px 检查，详见[72](72-script-docx-import.md)。镜头列表 [PR #46](https://github.com/exo-gravity/scenedesk/pull/46)、剧本选文与连续创作 [PR #47](https://github.com/exo-gravity/scenedesk/pull/47)、团队应用飞书导入 [PR #48](https://github.com/exo-gravity/scenedesk/pull/48) 已分别提交草稿，正在独立验收，尚未合入。各 PR 的本机证据与未验收项以各自说明为准；自动 E2E 不能以人工 CUA 或测试发现替代。
 
 当前外部门槛：PR #45–48 的 GitHub Actions 因账户付款／额度限制未启动，尚不能合并。Word 完整本机媒体补验出现既有嵌入音频用例超时，未宣称全套通过。真实飞书应用／文档授权和实际图片／视频模型调用仍待配置与授权验收。已合入的基础为导航 PR #42（`de29b08`）、E2E PR #43（`ce456ef`）和项目画布 PR #44（`432dcfd`）。
