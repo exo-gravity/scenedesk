@@ -56,7 +56,7 @@ export async function startWorkspaceRuntime() {
       build: { outDir: "dist" },
       preview: {
         host: "127.0.0.1", port, strictPort: true,
-        proxy: { "/v1": apiOrigin, "/health": apiOrigin },
+        proxy: { "/v1": apiOrigin, "/health": apiOrigin, "/design": apiOrigin },
       },
     });
     cleanup.push(() => new Promise<void>((resolve, reject) => {

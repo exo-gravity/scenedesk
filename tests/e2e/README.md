@@ -16,7 +16,7 @@ Synthetic identities are issued in the test process, then an HttpOnly session co
 
 ## Initial coverage
 
-- CW-01: project card → script → canvas → existing scene canvas → guarded exit → project assets → fixed asset detail, with the project navigation retained.
+- CW-01: project card → script → canvas → existing scene canvas → create the actual board → text node → save → public API readback → refresh → guarded exit → project assets → fixed asset detail, with the project navigation retained. The preview proxies `/design/openapi.json` as well as business routes, so the real browser contract compiler participates in the save.
 - CW-01: compact rail, 820 px and 390 px drawers, Enter, trapped keyboard focus, Escape and restored trigger focus.
 - CW-02: historical script read, read-only controls and fixed deep-link refresh without changing current history.
 - CW-02: unsaved draft → navigate away/back → explicit restore → refresh → restore → save one new immutable revision → refresh without stale draft recovery.
@@ -28,4 +28,4 @@ The fixture exports `WorkspaceRuntime` and `WorkspaceFixture` from [fixture.ts](
 
 ## Evidence boundaries
 
-Screenshots are attached for desktop script/asset detail and both drawer widths. These are review evidence, **not approved pixel baselines**: inspect them against the accepted design before reporting visual acceptance. The initial suite does not prove document import, canvas generation, external provider execution, media decoding, OIDC login, or full refactor acceptance. The matrix marks those separate gates. CI run links and actual pass/fail evidence belong in the implementation progress record after execution, not in this file as assumed results.
+Screenshots are attached for desktop script (light/dark), the saved scene canvas, asset detail and both drawer widths. These are review evidence, **not approved pixel baselines**: inspect them against the accepted design before reporting visual acceptance. The initial suite does not prove document import, canvas generation, external provider execution, media decoding, OIDC login, or full refactor acceptance. The matrix marks those separate gates. CI run links and actual pass/fail evidence belong in the implementation progress record after execution, not in this file as assumed results.

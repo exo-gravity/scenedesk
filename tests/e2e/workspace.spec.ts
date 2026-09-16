@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Page, TestInfo } from "@playwright/test";
+import type { CanvasDocument } from "@drama/domain";
 import { test, expect, type WorkspaceFixture } from "./fixture.js";
 
 const navigation = (page: Page) => page.getByRole("navigation", { name: "项目导航", exact: true });
@@ -33,6 +34,23 @@ test("CW-01: project card opens script, all primary sections and legacy scene ca
   await expect(page.getByRole("button", { name: "返回场次目录", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "创建本场画布", exact: true }).click();
   await expect(page.getByRole("button", { name: "AI 助手", exact: true })).toBeVisible();
+  // The surrounding workspace can render even when the browser contract compiler fails.
+  // Exercise the actual board and read back its saved document through the public API.
+  await expect(page.getByRole("button", { name: "画布保存状态：已保存", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "添加文字", exact: true }).click();
+  const canvasNote = "E2E 画布笔记：雨水映出咖啡店的暖光。";
+  await page.getByRole("textbox", { name: "文字内容", exact: true }).fill(canvasNote);
+  await page.getByRole("button", { name: "保存画布", exact: true }).click();
+  await expect(page.getByRole("button", { name: "画布保存状态：已保存", exact: true })).toBeVisible();
+  const savedCanvas = await w.command<{ canvas: { document: CanvasDocument } }>(
+    "GET", `${w.path}/scenes/${w.scene.id}/canvas`,
+  );
+  expect(savedCanvas.canvas.document.nodes).toHaveLength(1);
+  expect(savedCanvas.canvas.document.nodes[0]?.content).toEqual({ type: "text", text: canvasNote });
+  await page.reload();
+  await expect(page.getByRole("button", { name: "画布保存状态：已保存", exact: true })).toBeVisible();
+  await expect(page.getByText(canvasNote, { exact: true })).toBeVisible();
+  await captureEvidence(page, info, "scene-canvas");
   await page.getByRole("button", { name: "返回场次目录", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/content\\?scene=${w.scene.id}$`));
 
