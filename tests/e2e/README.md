@@ -29,3 +29,8 @@ The fixture exports `WorkspaceRuntime` and `WorkspaceFixture` from [fixture.ts](
 ## Evidence boundaries
 
 Screenshots are attached for desktop script (light/dark), the saved scene canvas, asset detail and both drawer widths. These are review evidence, **not approved pixel baselines**: inspect them against the accepted design before reporting visual acceptance. The initial suite does not prove document import, canvas generation, external provider execution, media decoding, OIDC login, or full refactor acceptance. The matrix marks those separate gates. CI run links and actual pass/fail evidence belong in the implementation progress record after execution, not in this file as assumed results.
+
+
+## Word import coverage
+
+`docx.spec.ts` adds real local-file upload, pre-import preview, exact original download bytes/SHA-256, immutable updated/history reading, invalid-file draft recovery, concurrent-content CAS recovery and explicitly labelled transport-fault tests. That fault sends the real authenticated import request and drops its response only after the actual server committed; refresh must recover with a read-only domain receipt and exactly one import POST. A second test holds a real receipt response while the user leaves, returns and replaces the import: the old response must never remove the replacement draft, including after refresh. No success response body is fabricated. Synthetic Word fixtures are in `tests/fixtures/scripts/`; actual team Word templates remain a separate acceptance gate.

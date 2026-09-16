@@ -1,3 +1,4 @@
+import { scriptDocumentRoutes } from "./script-documents.js";
 import { insertEpisode, insertScene, insertShot } from "./commands.js";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
@@ -19,6 +20,7 @@ import {
 } from "./model.js";
 
 export function contentRoutes(app: FastifyInstance, context: ApiContext) {
+  scriptDocumentRoutes(app, context);
   registerAction(app, context, "getContent", async (tx) => {
     const body = await contentTree(tx);
     return { body, etag: body.revision };
@@ -29,7 +31,7 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       context.secrets,
       "listScripts",
       input.query,
-      "SELECT * FROM script_revisions WHERE tenant_id=$1 AND project_id=$2",
+      "SELECT id,project_id,number,revision,text,parent_revision_id,source_format,file_name,sha256,created_at FROM script_revisions WHERE tenant_id=$1 AND project_id=$2",
       [tx.tenantId, tx.projectId],
       contentRecord<Schema<"ScriptRevision">>,
     ),

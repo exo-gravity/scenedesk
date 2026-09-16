@@ -33,6 +33,11 @@
 | PR-05 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/production` | `changeProduction` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scripts` | `listScripts` | `project_member` |
 | PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scripts` | `reviseScript` | `project_member` |
+| PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/preview-docx` | `previewScriptDocument` | `project_member` |
+| PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/import-docx` | `importScriptDocument` | `project_member` |
+| PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/script-imports/{requestId}` | `getScriptImportReceipt` | `project_member` |
+| PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/{revisionId}` | `getScriptRevision` | `project_member` |
+| PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/scripts/{revisionId}/original` | `getScriptOriginal` | `project_member` |
 | PR-03 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/content` | `getContent` | `project_member` |
 | PR-03 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/episodes` | `createEpisode` | `project_member` |
 | PR-03 | PUT | `/v1/tenants/{tenantId}/projects/{projectId}/episodes/{objectId}` | `updateEpisode` | `project_member` |

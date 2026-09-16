@@ -234,20 +234,25 @@ export function useContentDraft<T>(
     }
     return cleanCommitted();
   };
-  const stage = async (next: T) => {
+  const stage = async (next: T, nextBaseVersion = baseVersion) => {
     if (!key || !ready || recovered || !active.current) {
       setError(true);
       return false;
     }
     const write = queue.current.then(() =>
       storage(key, {
-        value: { value: next, baseVersion, savedAt: new Date().toISOString() },
+        value: {
+          value: next,
+          baseVersion: nextBaseVersion,
+          savedAt: new Date().toISOString(),
+        },
       }),
     );
     queue.current = write.then(() => {}).catch(() => {});
     try {
       await write;
       setValue(next);
+      setBaseVersion(nextBaseVersion);
       setSaved(true);
       setError(false);
       return true;

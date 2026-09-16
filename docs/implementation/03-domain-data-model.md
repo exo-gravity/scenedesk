@@ -233,6 +233,12 @@ CutWorkDraft与CutDraft分开，新增cut_work_drafts／cut_work_draft_revisions
 - INV-14：队列重复执行不产生第二次未知付费创建；账号在途额度与Worker槽位、请求速率分离。
 - INV-15：presence不构成锁、权限或内容版本；失权不因历史恢复重新获得访问。
 
+## 2026-09-16：本地 Word 剧本来源补充
+
+`ScriptRevision` 仍是不可变剧本原文身份，增加 `sourceFormat=docx`、来源文件名、原件 SHA-256 与 `docx_v1` 阅读块。规范 `text` 由服务端按块顺序及换行确定，镜头和生成引用继续使用固定 revision ID 与 Unicode codepoint 范围；重新导入不修改旧引用。`plain_text` 历史继续有效。原件在私有 `script_originals` 中与该修订一一对应，项目 RLS、不可变触发器和延迟摘要约束共同约束。
+
+导入请求身份与创建人、项目、原件 digest、文件名和原 `ContentTree.revision` 绑定，用于丢回包后的只读核对及幂等恢复；它不是新的创作聚合根。预览不建立正式版本，新基线的确认使用新请求身份。具体文件范围与验证见 [Word 导入说明](72-script-docx-import.md)。
+
 ## 项目画布扩展（2026-09-16）
 
 Canvas 继续直接属于 Project。新增 `project_canvas_links` 为每个项目明确选择唯一独立画布，同一 Canvas 不得同时成为项目画布和场次画布；`scene_canvas_links` 与已有镜头关联不迁移。`project_workspace_preferences` 是 `(user_id, project_id)` 下带独立 CAS 的个人视口，不包含制作事实。助手固定 `canvasScope` 保留旧 `{canvasId, sceneId}`，项目画布使用 `{canvasId, projectId}`；对应投影的 `scene_id` 仅在项目作用域为空。详见 [项目画布实施](71-project-canvas-workspace.md)。

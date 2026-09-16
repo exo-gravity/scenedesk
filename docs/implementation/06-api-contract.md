@@ -194,6 +194,12 @@ normalize旧版直接传timeline的请求在1.3.0被拒绝；replacement预览�
 
 资产实施补充：增加 `getAssetRevision` 读取确切固定修订，详情和引用无需加载全部历史；增加 `listSharedImports` 读取当前项目已明确引入的固定版本，刷新不会丢失引入状态。二者沿用现有授权、分页和读权限，不改变确认、发布或升级语义。
 
+## 2026-09-16：Word 导入与固定阅读
+
+`previewScriptDocument` 在当前项目权限下解析有界 `.docx` 原件，返回规范正文、结构阅读表示、原件摘要与显示警告，不写正式修订。`importScriptDocument` 重新解析原件并核对预览摘要，以 `ContentTree.revision` CAS 和稳定 `importRequestId` 原子创建固定修订、原件和当前指针；客户端提供的富文本或 HTML 不是可信输入。
+
+同一导入身份只恢复原文件、创建人、文件名及原基线的既有保存结果。`getScriptImportReceipt` 只读核对本人请求并返回原 `baseVersion`；丢回包时先据此清理恢复状态，没有回执才允许用户核对新基线并建立新请求身份。`getScriptRevision` 按固定 ID 返回正文和阅读表示，`getScriptOriginal` 每次当前鉴权后返回原件；归档仍可读、撤权不可读。更新不能漂移旧版和引用，具体范围见 [Word 导入说明](72-script-docx-import.md)。
+
 ## 项目画布协议扩展（2026-09-16）
 
 `GET/POST /projects/{projectId}/canvas` 读取／明确确保唯一项目画布；GET 不创建，首次未创建返回 `PROJECT_CANVAS_NOT_CREATED`。`POST /canvases/{canvasId}/generation-plans` 按 Canvas 修订固定草稿，支持项目画布及旧场次画布，执行仍走既有生成作业协议。项目画布不要求存在 Episode/Scene/Shot。
