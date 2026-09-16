@@ -13,6 +13,19 @@ async function captureEvidence(page: Page, info: TestInfo, name: string) {
 
 test("CW-01: project card opens script, all primary sections and legacy scene canvas remain reachable", async ({ page, workspace: w }, info) => {
   await page.goto(`${w.runtime.origin}/#/app/t/${w.tenant.id}`);
+  const studio = page.getByRole("navigation", { name: "工作室导航", exact: true });
+  await expect(studio.getByRole("link", { name: "我的工作", exact: true })).toBeVisible();
+  await expect(studio.getByRole("link", { name: "资产库", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "SceneDesk", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
+  const account = page.getByRole("menu");
+  await expect(account.getByRole("menuitem")).toHaveCount(2);
+  await expect(account.getByRole("menuitem", { name: "退出登录", exact: true })).toBeVisible();
+  await expect(account.getByText(/本地测试身份/)).toBeVisible();
+  await account.getByRole("menuitem", { name: "切换深色", exact: true }).click();
+  await captureEvidence(page, info, "studio-shell-dark");
+  await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
+  await account.getByRole("menuitem", { name: "切换浅色", exact: true }).click();
   await page.getByRole("link", { name: `进入项目 ${w.project.name}`, exact: true }).click();
   await expect(page).toHaveURL(scriptURL(w));
   await expect(page.getByRole("article", { name: "剧本阅读正文", exact: true })).toHaveText(w.current.text);

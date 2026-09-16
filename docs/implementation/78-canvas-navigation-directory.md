@@ -27,6 +27,8 @@
 
 ## 集成与本机切换
 
+PR #55 已于 2026-09-16 合入，merge `d6001fc984b6f5529c1afd0c0a1e9d2efc9cf104`。最终 head `1823c9627e24ec72e096e3e008dec21f6513db9d` 与下述验证头的产品文件相同；四项最终 CI annotation 同样为额度未启动，普通 merge 命令成功，未使用管理员覆盖。用户随后补充工作室名称与壳层精简，见 [79](79-workspace-shell-cleanup.md)，本机统一切换随该小片完成。
+
 交付以 [PR #55](https://github.com/exo-gravity/scenedesk/pull/55) 为审查与合入记录。完整验证产品头 `aada5ec7a618c8f5942e9bcb72203a65735afd89`，后续仅补验收文档。该 head 的四项 GitHub 检查都未实际启动，annotation 明确为账户付款／额度限制；检查、E2E、部署／恢复分别为 run `35109102015`、`35109102127`、`35109101735`。远端不是通过状态。按用户已有授权采用本机验证后普通手动合并，合并命令核对最终 head；不改变仓库可见性、保护或工作流，不使用管理员绕过。
 
 本机切换方案：4311 复用原数据库、媒体、身份及 worker 配置，只替换必要的 API 与生产 Web 服务；合并后的实际运行 head、前后数量及浏览器检查另保存于主工作目录 `output/implementation/2026-09-16-canvas-navigation-upgrade/`。没有新迁移，不重建用户数据或旧预览。团队飞书授权、真实模型、外部部署和此前完整媒体套件的未通过记录仍按 [77](77-non-provider-workspace-closure.md)保留，本次页面验收不扩展这些结论。

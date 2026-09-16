@@ -33,3 +33,7 @@ The console contained one failed lazy import from a tab left open while its temp
 ## Final gate
 
 No remaining visual P0/P1/P2 findings. The functional resize regression found during verification is fixed: activation reads the live media query rather than a stale rendered breakpoint. Deterministic targeted E2E passed 3/3 without weakening focus checks. The final production build was additionally opened at 820px: Enter opened 项目导航 with focus on its labelled close button; Escape restored the original trigger. Viewport override was reset again. Full-suite execution and CI/merge are recorded separately in implementation note 78.
+
+## Follow-up: studio shell
+
+The user's subsequent screenshots identified duplicate account-menu links and the separate thin global header on the studio page. The authenticated shell now retains only its contextual breadcrumb; work/library links stay in the studio rail. Account-menu E2E asserts exactly theme/sign-out actions while preserving the identity/environment labels. The production screenshot `output/verification/workspace-shell/studio-shell-dark.png` was inspected: the unwanted top band is gone, the breadcrumb starts at the top of the content region, the left rail and project controls retain their layout. Earlier approved project/canvas pages already hid this band, so their accepted layout is preserved. Sign-in/error pages retain the login header. This is a bounded structural refinement, not a new pixel-copy baseline.
