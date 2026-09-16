@@ -54,6 +54,16 @@
   border-block: 1px solid var(--ws-border);
   padding-block: var(--mantine-spacing-md);
 }
+.deliveryList {
+  margin: 0;
+  padding-inline-start: var(--mantine-spacing-xl);
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.deliveryList li + li {
+  margin-top: var(--mantine-spacing-sm);
+}
 @media (max-width: 820px) {
   .workspace {
     grid-template-columns: 1fr;

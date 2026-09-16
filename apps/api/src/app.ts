@@ -18,6 +18,7 @@ import { creativeRoutes } from "./modules/creative/routes.js";
 import { taskRoutes } from "./modules/tasks/routes.js";
 import { candidateRoutes } from "./modules/candidates/routes.js";
 import { selectedDownloadRoutes } from "./modules/candidates/selected-download.js";
+import { selectedDeliveryRoutes } from "./modules/candidates/selected-delivery.js";
 import { reviewRoutes } from "./modules/reviews/routes.js";
 import { editingRoutes } from "./modules/editing/routes.js";
 import { canvasRoutes } from "./modules/canvas/routes.js";
@@ -87,6 +88,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     taskRoutes(app, context);
     candidateRoutes(app, context);
     selectedDownloadRoutes(app, generationContext);
+    selectedDeliveryRoutes(app, generationContext);
     reviewRoutes(app, context);
     editingRoutes(app, context);
     canvasRoutes(app, context);

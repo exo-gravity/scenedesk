@@ -16,6 +16,7 @@ import { ContentDraftRetention } from "./content-drafts";
 import { StructureEditor } from "./ContentEditors";
 import { SceneShotOrder } from "./SceneShotOrder";
 import { ShotResultFocus } from "./ShotResultFocus";
+import { SelectedDelivery } from "./SelectedDelivery";
 import classes from "./shot-list.module.css";
 
 /** Optional organization surface; the canvas and its drafts remain mounted. */
@@ -24,12 +25,16 @@ export function ShotListLauncher({
   projectId,
   sceneId,
   sourceMediaId,
+  initialShotId,
+  label = "镜头列表",
   onBeforeOpen,
 }: {
   tenantId: string;
   projectId: string;
   sceneId?: string | undefined;
   sourceMediaId?: string | undefined;
+  initialShotId?: string | undefined;
+  label?: string | undefined;
   onBeforeOpen: () => Promise<void>;
 }) {
   const [opened, setOpened] = useState(false),
@@ -85,7 +90,7 @@ export function ShotListLauncher({
           }
         }}
       >
-        镜头列表
+        {label}
       </Button>
       {error && (
         <Text role="alert" size="xs">
@@ -106,6 +111,7 @@ export function ShotListLauncher({
               tenantId={tenantId}
               projectId={projectId}
               initialSceneId={sceneId}
+              initialShotId={initialShotId}
               sourceMediaId={source}
               transition={transition}
             />
@@ -120,12 +126,14 @@ function ShotListWorkspace({
   tenantId,
   projectId,
   initialSceneId,
+  initialShotId,
   sourceMediaId,
   transition,
 }: {
   tenantId: string;
   projectId: string;
   initialSceneId?: string | undefined;
+  initialShotId?: string | undefined;
   sourceMediaId?: string | undefined;
   transition: (next: () => void) => Promise<void>;
 }) {
@@ -134,7 +142,7 @@ function ShotListWorkspace({
   const project = useResource<Schema<"Project">>(path),
     content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const [sceneId, setSceneId] = useState(initialSceneId ?? ""),
-    [shotId, setShotId] = useState(""),
+    [shotId, setShotId] = useState(initialShotId ?? ""),
     [creating, setCreating] = useState(false);
   const tree = content.data;
   const scenes = [...(tree?.scenes ?? [])].sort((a, b) => {
@@ -208,6 +216,15 @@ function ShotListWorkspace({
           </Button>
         </Group>
       </Group>
+      {scene && (
+        <SelectedDelivery
+          key={scene.id}
+          path={path}
+          sceneId={scene.id}
+          active={!!active}
+          transition={transition}
+        />
+      )}
       {!scene ? (
         <Alert title="先确定镜头所属场次">
           画布可以独立创作。整理镜头时，请在项目场次管理中建立所属场次，然后回到这里。

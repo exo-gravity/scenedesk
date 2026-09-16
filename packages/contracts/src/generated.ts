@@ -1584,6 +1584,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/selected-delivery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 预览本场未归档镜头的固定选用原片交接清单
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["previewSelectedDelivery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/selected-delivery/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 重核权限与预览清单后下载完整原片及顺序区间清单 ZIP
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。 这是读取原片的下载操作，不创建业务资源，不使用业务创建幂等回执。每次请求重新验证票据、权限与固定清单；票据不代替权限。
+         */
+        post: operations["downloadSelectedDelivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selections": {
         parameters: {
             query?: never;
@@ -5435,6 +5475,52 @@ export interface components {
             media: components["schemas"]["Media"];
             access: components["schemas"]["AccessGrant"];
         };
+        SelectedDeliveryEntry: {
+            order: number;
+            /** Format: uuid */
+            shotId: string;
+            shotLabel: string;
+            /** Format: uuid */
+            shotRevisionId: string;
+            intent: string;
+            /** Format: uuid */
+            selectionId: string;
+            selectionReason: string;
+            /** Format: uuid */
+            takeId: string;
+            takeNote: string;
+            /** Format: uuid */
+            mediaId: string;
+            fileName: string;
+            originalFileName: string;
+            bytes: number;
+            sha256: string;
+            range: components["schemas"]["Range"];
+        };
+        SelectedDeliveryManifest: {
+            /** @enum {string} */
+            format: "scenedesk_selected_originals_v1";
+            /** Format: uuid */
+            projectId: string;
+            projectName: string;
+            /** Format: uuid */
+            sceneId: string;
+            sceneTitle: string;
+            episodeTitle: string;
+            entries: components["schemas"]["SelectedDeliveryEntry"][];
+            unselectedCount: number;
+            archivedCount: number;
+            totalBytes: number;
+        };
+        SelectedDeliveryPreview: {
+            manifest: components["schemas"]["SelectedDeliveryManifest"];
+            ticket: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        SelectedDeliveryDownload: {
+            ticket: string;
+        };
         SelectionPage: {
             items: components["schemas"]["Selection"][];
             nextCursor?: string;
@@ -9027,6 +9113,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SelectedTakeDownload"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    previewSelectedDelivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                sceneId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelectedDeliveryPreview"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    downloadSelectedDelivery: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                sceneId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelectedDeliveryDownload"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    "Content-Length"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
                 };
             };
             400: components["responses"]["Problem"];

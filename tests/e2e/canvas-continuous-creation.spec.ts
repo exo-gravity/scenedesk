@@ -15,7 +15,7 @@ test("CW-09/11: one click submits fixed inputs once and the next draft survives 
     page.getByRole("button", { name: "画布保存状态：已保存", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "新建画布内容", exact: true }).click();
-    await page.getByRole("menuitem", { name: "图片草稿", exact: true }).click();
+  await page.getByRole("menuitem", { name: "图片草稿", exact: true }).click();
   const focus = page
     .getByRole("button", { name: "专注编辑", exact: true })
     .first();
@@ -24,7 +24,7 @@ test("CW-09/11: one click submits fixed inputs once and the next draft survives 
     .getByRole("textbox", { name: "本次提示词", exact: true })
     .fill("第一稿：雨夜中的门。");
   await page
-    .getByLabel("图片生成模型", { exact: true })
+    .getByRole("combobox", { name: "图片生成模型", exact: true })
     .click();
   await page.getByRole("option", { name: /显式文件 fixture/ }).click();
   let plans = 0,
@@ -63,6 +63,11 @@ test("CW-09/11: one click submits fixed inputs once and the next draft survives 
     .getByRole("link", { name: "画布", exact: true })
     .click();
   await page.reload();
+  await expect(page.getByRole("alert", {
+    name: "发现尚未同步的本机画布", exact: true,
+  })).toBeVisible();
+  await page.getByRole("button", { name: "恢复本机修改", exact: true }).click();
+  await page.getByRole("button", { name: "保存画布", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "画布保存状态：已保存", exact: true }),
   ).toBeVisible();
