@@ -12,7 +12,7 @@
 
 ## 当前工作
 
-2026-09-16 手动合入完成：用户在 Actions 额度暂时无法恢复后要求改用手动合并。已确认远端任务因账户计费未启动，按本机验收与实际浏览器证据顺序合入 Word [PR #45](https://github.com/exo-gravity/scenedesk/pull/45)（`e4f2767`）、连续创作 [PR #47](https://github.com/exo-gravity/scenedesk/pull/47)（`0b9e190`）、镜头列表 [PR #46](https://github.com/exo-gravity/scenedesk/pull/46)（`b4931d2`）、飞书导入 [PR #48](https://github.com/exo-gravity/scenedesk/pull/48)（`36a162e`）。最终 `main` 的文件树与已验收本地集成头 `065b3c4` 完全一致。未修改仓库可见性、工作流或保护设置，未使用管理员强制合并。本轮授权取代下文合入前记录中“必须等待额度恢复”的处置，不代表 CI 已通过。
+2026-09-16 手动合入完成：用户在 Actions 额度暂时无法恢复后要求改用手动合并。已确认远端任务因账户计费未启动，按本机验收与实际浏览器证据顺序合入 Word [PR #45](https://github.com/exo-gravity/scenedesk/pull/45)（`e4f2767`）、连续创作 [PR #47](https://github.com/exo-gravity/scenedesk/pull/47)（`0b9e190`）、镜头列表 [PR #46](https://github.com/exo-gravity/scenedesk/pull/46)（`b4931d2`）、飞书导入 [PR #48](https://github.com/exo-gravity/scenedesk/pull/48)（`36a162e`）。产品合并头 `36a162e` 的文件树与已验收本地集成头 `065b3c4` 完全一致。未修改仓库可见性、工作流或保护设置，未使用管理员强制合并。用户随后明确继续推进，后续亦可由代理通过 GitHub 命令手动合并经过必要本机验证的变更；该授权取代下文“必须等待额度恢复”的处置，不代表 CI 已通过。
 
 组合验证为 258 项单元与契约／UI／类型／生产构建、9 项专项数据库测试；实际生产浏览器串联了飞书预览／导入、选文进入画布、镜头选用、Word 更新及刷新后旧引用不漂移。25 条自动 E2E 仅完成发现，尚未执行；完整媒体回归仍有既有嵌入音频超时，部署／恢复 CI 未运行。真实飞书应用授权、真实模型及团队完整试作仍待验收，不将本次合并标为 MVP 完成。具体顺序、证据和限制见[70](70-creative-workspace-refactor.md)及[73](73-creative-workspace-e2e.md)。以下同日条目保留为合入前历史。
 
