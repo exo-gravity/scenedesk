@@ -12,8 +12,7 @@ async function selectExcerpt(
   const source = page.getByRole("textbox", { name: "当前稿原文", exact: true });
   await expect(source).toHaveValue(text);
   await source.focus();
-  await source.press("ControlOrMeta+Home");
-  await source.press("ControlOrMeta+Shift+End");
+  await source.press("ControlOrMeta+A");
   await expect(
     page.getByRole("alert").filter({ hasText: "选中的原文" }),
   ).toContainText(text);
