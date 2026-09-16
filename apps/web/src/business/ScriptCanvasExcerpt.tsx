@@ -1,3 +1,4 @@
+import { editingCanonical } from "@drama/domain";
 import { useRef, useState } from "react";
 import {
   Alert,
@@ -79,7 +80,16 @@ export function ScriptCanvasExcerpt({
       setBusy(false);
     }
   };
-  const acknowledge = (found: Schema<"CanvasScriptExcerptReceipt">) => {
+  const acknowledge = (
+    found: Schema<"CanvasScriptExcerptReceipt">,
+    intent: Intent,
+  ) => {
+    if (
+      found.canvasId !== intent.canvasId ||
+      found.nodeId !== intent.nodeId ||
+      editingCanonical(found.sourceExcerpt) !== editingCanonical(intent.excerpt)
+    )
+      throw Error("返回的选文与原请求不一致，请保留原记录并核对。");
     setReceipt(found);
     setMissing(false);
   };
@@ -94,6 +104,7 @@ export function ScriptCanvasExcerpt({
         await api<Schema<"CanvasScriptExcerptReceipt">>(
           `${path}/canvases/${intent.canvasId}/script-excerpts/${intent.nodeId}`,
         ),
+        intent,
       );
     } catch (cause) {
       if (
@@ -151,6 +162,7 @@ export function ScriptCanvasExcerpt({
         },
         canvas.revision,
       ),
+      intent,
     );
   };
   return (

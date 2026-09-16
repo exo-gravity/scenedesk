@@ -109,10 +109,55 @@ test("fixed script selections append once, retain tombstone receipts and reject 
           canvas.revision + 1,
         ),
     );
-  const draftNode = { id: randomUUID(), kind: "image" as const, title: "下一张画面", width: 320, position: { x: 450, y: 80 }, content: { type: "draft" as const, prompt: "保留原文的夜雨", output: {} } };
-  canvas = await f.ok("PUT", route, { schemaVersion: 1, document: { ...canvas.document, nodes: [...canvas.document.nodes, draftNode], edges: [{ id: randomUUID(), sourceNodeId: input.nodeId, targetNodeId: draftNode.id, enabled: true, position: 0, purpose: "prompt" }] } }, canvas.revision);
-  const snapshot = await db.transaction(f.owner.token, { tenantId: f.tenant.id, projectId: f.project.id, write: false }, tx => canvasDraftInput(tx, { kind: "canvas_draft", objectId: draftNode.id, revision: canvas.revision }, true));
-  assert.deepEqual(JSON.parse(snapshot.snapshot.text).inputs[0].content.sourceExcerpt, sourceExcerpt, "generation fixes the original script reference even after the current manuscript changes");
+  const draftNode = {
+    id: randomUUID(),
+    kind: "image" as const,
+    title: "下一张画面",
+    width: 320,
+    position: { x: 450, y: 80 },
+    content: { type: "draft" as const, prompt: "保留原文的夜雨", output: {} },
+  };
+  canvas = await f.ok(
+    "PUT",
+    route,
+    {
+      schemaVersion: 1,
+      document: {
+        ...canvas.document,
+        nodes: [...canvas.document.nodes, draftNode],
+        edges: [
+          {
+            id: randomUUID(),
+            sourceNodeId: input.nodeId,
+            targetNodeId: draftNode.id,
+            enabled: true,
+            position: 0,
+            purpose: "prompt",
+          },
+        ],
+      },
+    },
+    canvas.revision,
+  );
+  const snapshot = await db.transaction(
+    f.owner.token,
+    { tenantId: f.tenant.id, projectId: f.project.id, write: false },
+    (tx) =>
+      canvasDraftInput(
+        tx,
+        {
+          kind: "canvas_draft",
+          objectId: draftNode.id,
+          revision: canvas.revision,
+        },
+        true,
+      ),
+  );
+  assert.deepEqual(
+    JSON.parse(snapshot.snapshot.text).inputs[0].content.sourceExcerpt,
+    sourceExcerpt,
+    "generation fixes the original script reference even after the current manuscript changes",
+  );
   const node = canvas.document.nodes[0];
   await assert.rejects(
     mutate({ ...node, content: { type: "text", text: node.content.text } }),

@@ -367,8 +367,7 @@ function GenerationWorkspace({
     void controller
       .commitDraft(draft, draft, async (current) => {
         const canvas = await source.save();
-        if (canvas.id !== source.canvas.id)
-          throw Error("结果接收画布已改变。");
+        if (canvas.id !== source.canvas.id) throw Error("结果接收画布已改变。");
         const position = canvasResultPosition(
           canvas.document.nodes,
           source.nodeId,

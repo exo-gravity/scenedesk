@@ -8,13 +8,17 @@ import { imageGenerationFixture } from "../support/image-generation.js";
  * We stop at queued/unknown in these browser tests; no media decoding or AI quality claim. */
 export async function startCanvasGenerationRuntime(
   port = Number(process.env.SCENEDESK_E2E_PORT ?? 4461) + 2,
+  options: { host?: string; manualSignIn?: boolean } = {},
 ) {
   if (process.env.PROVIDER_MODE !== "mock")
     throw Error("Canvas E2E requires PROVIDER_MODE=mock");
   if (!Number.isSafeInteger(port) || port < 1024 || port > 65535)
     throw Error("Invalid fixture port");
   const cleanups: (() => void | Promise<void>)[] = [];
-  const origin = `http://127.0.0.1:${port}`;
+  const host = options.host ?? "127.0.0.1";
+  if (!["127.0.0.1", "::1", "localhost"].includes(host))
+    throw Error("Fixture requires a loopback host");
+  const origin = `http://${host === "::1" ? "[::1]" : host}:${port}`;
   const lifecycle = {
     after: (close: () => void | Promise<void>) => {
       cleanups.push(close);
@@ -25,7 +29,8 @@ export async function startCanvasGenerationRuntime(
   async function stop() {
     if (web)
       await new Promise<void>((resolve, reject) => {
-        if ("closeAllConnections" in web!.httpServer) web!.httpServer.closeAllConnections();
+        if ("closeAllConnections" in web!.httpServer)
+          web!.httpServer.closeAllConnections();
         web!.httpServer.close((error) => (error ? reject(error) : resolve()));
       });
     fixture?.app.server.closeAllConnections();
@@ -45,14 +50,37 @@ export async function startCanvasGenerationRuntime(
   }
   try {
     fixture = await imageGenerationFixture(lifecycle, undefined, { origin });
-    const apiOrigin = await fixture.app.listen({ host: "127.0.0.1", port: 0 });
+    const apiOrigin = await fixture.app.listen({ host, port: 0 });
     web = await preview({
       configFile: false,
       root: fileURLToPath(new URL("../../apps/web/", import.meta.url)),
       logLevel: "error",
       build: { outDir: "dist" },
+      plugins: options.manualSignIn
+        ? [
+            {
+              name: "synthetic-manual-sign-in",
+              configurePreviewServer(server) {
+                server.middlewares.use((request, response, next) => {
+                  if (
+                    request.url !== "/__fixture/sign-in" ||
+                    request.method !== "GET"
+                  )
+                    return next();
+                  response.statusCode = 302;
+                  response.setHeader(
+                    "Set-Cookie",
+                    `session=${fixture!.owner.token}; Path=/; HttpOnly; SameSite=Lax`,
+                  );
+                  response.setHeader("Location", "/#/app");
+                  response.end();
+                });
+              },
+            },
+          ]
+        : [],
       preview: {
-        host: "127.0.0.1",
+        host,
         port,
         strictPort: true,
         proxy: { "/v1": apiOrigin, "/health": apiOrigin, "/design": apiOrigin },
