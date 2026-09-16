@@ -29,9 +29,9 @@ export async function startWorkspaceRuntime(extra: Pick<BusinessOptions, "media"
   if (!Number.isSafeInteger(port) || port < 1024 || port > 65535)
     throw new Error("SCENEDESK_E2E_PORT must be a non-privileged TCP port");
   const host = process.env.SCENEDESK_E2E_HOST ?? "127.0.0.1";
-  if (!["127.0.0.1", "127.0.0.2"].includes(host))
+  if (!["127.0.0.1", "::1"].includes(host))
     throw new Error("E2E Web host must be an explicit loopback address");
-  const origin = `http://${host}:${port}`;
+  const origin = `http://${host === "::1" ? "[::1]" : host}:${port}`;
   const cleanup: (() => void | Promise<void>)[] = [];
   let stopped = false;
   async function stop() {

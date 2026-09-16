@@ -91,6 +91,32 @@ test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly sele
         ),
     )
     .toBe(true);
+  await dialog
+    .getByRole("button", { name: /^(play|播放)$/i })
+    .first()
+    .click();
+  await expect
+    .poll(() =>
+      dialog
+        .locator("video")
+        .first()
+        .evaluate((video) => (video as HTMLVideoElement).currentTime),
+    )
+    .toBeGreaterThan(0.6);
+  await expect
+    .poll(() =>
+      dialog
+        .locator("video")
+        .first()
+        .evaluate((video) => (video as HTMLVideoElement).paused),
+    )
+    .toBe(true);
+  expect(
+    await dialog
+      .locator("video")
+      .first()
+      .evaluate((video) => (video as HTMLVideoElement).currentTime),
+  ).toBeLessThanOrEqual(2.51);
   const screenshot = info.outputPath("shot-list-comparison.png");
   await page.screenshot({ path: screenshot, animations: "disabled" });
   await info.attach("shot-list-comparison", {

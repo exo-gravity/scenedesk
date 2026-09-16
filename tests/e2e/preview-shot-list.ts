@@ -5,7 +5,7 @@ import { startShotMedia } from "./shot-media.js";
 import { seedShotList } from "./shot-list-fixture.js";
 
 // Standalone synthetic acceptance harness, never imported by a product entrypoint.
-process.env.SCENEDESK_E2E_HOST ??= "127.0.0.2";
+process.env.SCENEDESK_E2E_HOST ??= "::1";
 process.env.SCENEDESK_E2E_PORT ??= "4464";
 const host = process.env.SCENEDESK_E2E_HOST;
 const storage = await startShotMedia();
@@ -50,7 +50,7 @@ try {
     bootstrap!.listen(0, host, resolve);
   });
   console.log(
-    `Synthetic shot-list preview: http://${host}:${(bootstrap.address() as AddressInfo).port}/`,
+    `Synthetic shot-list preview: http://${host === "::1" ? "[::1]" : host}:${(bootstrap.address() as AddressInfo).port}/`,
   );
   console.log(
     "Open the loopback link to enter the synthetic identity. Ctrl-C removes the isolated schema and both servers.",

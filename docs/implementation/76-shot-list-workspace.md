@@ -25,10 +25,10 @@
 - 初次专项运行发现原候选测试在归档场次之后继续把成功重复候选当撤权前置。已保持既有 `422 INVALID_CANDIDATE` 语义，并在独立撤权用例恢复场次，再验证成功／撤权／拒绝；新增归档缓存负例保留。不是降低权限门禁换取测试通过。
 - `tests/e2e/shot-list.spec.ts` 提供三条真实 Web/API 流程：从画布视频建立候选→比较→明确选用→切换预览→下载 SHA-256 核对→含归档子项排序→刷新；排序传输失败后关闭／刷新／恢复及窄屏归档只读；并发选用保留理由、明确核对与撤权缓存隐藏。
 - E2E 使用 checked-in 蓝色／橙色四秒 MP4、隔离 PostgreSQL、真实生产 Web/API 和测试进程内媒体存储；不伪造业务成功响应。视频的已验收元数据直接作为关系 fixture 装载；不证明实际上传探测、对象存储集成或供应商生成通过。排序负例明确只注入一次网络中断。
-- 当前 E2E 仅完成类型与测试发现检查（全套 18 条，其中新增 3 条）。实际浏览器、视觉和远端 CI 需按执行结果补证据，不能把 `--list` 当通过。根任务统一 CUA 验收；CI 若受账户账单限制未启动，明确保持未验收。
+- 当前 E2E 仅完成类型与测试发现检查（全套 18 条，其中新增 3 条）。[PR #46](https://github.com/exo-gravity/scenedesk/pull/46) 的首轮 CI 四个 job 均因账户付款／额度限制未启动（[verify 记录](https://github.com/exo-gravity/scenedesk/actions/runs/35070003070)），不是测试失败或通过。实际浏览器与视觉由根任务统一 CUA 验收后补证据，不能把 `--list` 当通过。
 
 ## 独立生产预览
 
-`tests/e2e/preview-shot-list.ts` 只用于本机验收，不被产品入口引用。先 `npm run build`，使用专用 loopback `drama_e2e*` 数据库、`PROVIDER_MODE=mock` 启动。默认 Web 为 `127.0.0.2:4464`，与常见 `127.0.0.1` / `localhost` 会话 cookie 分离；现有 E2E 默认 host 仍为 `127.0.0.1`。runner 打印一个临时 loopback 入口，打开后以 HttpOnly Cookie 进入合成身份，不打印会话值。Ctrl-C 停止服务器、移除专用 schema 与角色。不要指向已有业务数据库。
+`tests/e2e/preview-shot-list.ts` 只用于本机验收，不被产品入口引用。先 `npm run build`，使用专用 loopback `drama_e2e*` 数据库、`PROVIDER_MODE=mock` 启动。默认 Web 为 `[::1]:4464`，与常见 `127.0.0.1` / `localhost` 会话 cookie 分离；现有 E2E 默认 host 仍为 `127.0.0.1`。runner 打印一个临时 loopback 入口，打开后以 HttpOnly Cookie 进入合成身份，不打印会话值。Ctrl-C 停止服务器、移除专用 schema 与角色。不要指向已有业务数据库。
 
 本片尚未完成：真实视频生成验收、完整连续创作／助手集成、批量按选用交接包、团队实际镜头组验收以及重复工作台入口移除。仅在替代能力完成后再删除旧入口。
