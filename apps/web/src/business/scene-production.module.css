@@ -39,22 +39,10 @@
   background: var(--ws-hover);
   white-space: nowrap;
 }
-.modeSwitch {
+.legacyNavigation {
   grid-column: 2;
   grid-row: 1;
   justify-self: center;
-  padding: 3px;
-  border: 1px solid var(--ws-border);
-  border-radius: var(--ws-tool-radius);
-  background: var(--ws-raised);
-}
-.modeSwitch button {
-  min-width: 76px;
-  color: var(--ws-secondary);
-}
-.modeSwitch button[aria-pressed="true"] {
-  color: var(--ws-on-accent);
-  background: var(--ws-accent);
 }
 .headerActions {
   grid-column: 3;
@@ -209,7 +197,7 @@
   .headerActions button {
     padding-inline: 6px;
   }
-  .modeSwitch button {
+  .legacyNavigation button {
     min-width: 60px;
   }
 }
@@ -222,7 +210,7 @@
     grid-column: 1 / -1;
     padding-bottom: 4px;
   }
-  .modeSwitch {
+  .legacyNavigation {
     grid-column: 1;
     grid-row: 2;
     justify-self: start;
@@ -249,7 +237,7 @@
   }
 }
 @media (max-width: 560px) {
-  .modeSwitch {
+  .legacyNavigation {
     grid-column: 1 / -1;
     justify-self: center;
   }

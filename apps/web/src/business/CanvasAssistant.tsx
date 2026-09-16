@@ -129,6 +129,7 @@ export type CanvasAssistantProps = {
   active: boolean;
   visible: boolean;
   onPrepareStoryboard?: (() => void) | undefined;
+  onEditDraft?: ((nodeId: string) => Promise<void>) | undefined;
   onClose?: () => void;
   requestedContext?: { nodeIds: string[]; nonce: number } | undefined;
 };
@@ -152,6 +153,7 @@ function CanvasAssistantContent({
   active,
   visible,
   onPrepareStoryboard,
+  onEditDraft,
   onClose,
   requestedContext,
   canvasId,
@@ -1804,10 +1806,32 @@ function CanvasAssistantContent({
                 </Alert>
               )}
               {application.phase === "applied" && (
-                <Text size="xs" c="dimmed" role="status">
-                  已保存 · 画布 r
-                  {application.result?.application.resultCanvasRevision}
-                </Text>
+                <Group gap="xs">
+                  <Text size="xs" c="dimmed" role="status">
+                    已保存 · 画布 r
+                    {application.result?.application.resultCanvasRevision}
+                  </Text>
+                  {onEditDraft && (
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      disabled={disabled}
+                      onClick={() => void runLocalAction(async () => {
+                        await controller.settle();
+                        const current = controller.getSnapshot();
+                        if (
+                          current.access !== "ready" ||
+                          !current.draftSaved ||
+                          current.record?.draft.application?.key !== application.key ||
+                          current.record.draft.application.phase !== "applied"
+                        ) throw Error("助手输入或应用记录尚未保留，暂未切换到草稿。");
+                        await onEditDraft(application.body.nodeId);
+                      })}
+                    >
+                      继续编辑此草稿
+                    </Button>
+                  )}
+                </Group>
               )}
             </Stack>
           )}
