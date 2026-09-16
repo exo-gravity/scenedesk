@@ -19,7 +19,7 @@ test("CW-09/10: image reference → video draft → exact results, explicit plac
   await page
     .getByRole("textbox", { name: "本次提示词", exact: true })
     .fill("第一段：雨夜窗边，缓慢推近。");
-  await page.getByLabel("视频生成模型", { exact: true }).click();
+  await page.getByRole("combobox", { name: "视频生成模型", exact: true }).click();
   await page.getByRole("option", { name: /Local Video Demo/ }).click();
   let jobPosts = 0;
   page.on("request", (request) => {
@@ -152,7 +152,7 @@ test("CW-10/11: lost assistant application reply recovers the same draft, then d
     .click();
   await page.getByText("应用到画布草稿", { exact: true }).click();
   await page
-    .getByRole("textbox", { name: "明确应用到哪个草稿", exact: true })
+    .getByRole("combobox", { name: "明确应用到哪个草稿", exact: true })
     .click();
   await page
     .getByRole("option", { name: "待助手调整的草稿", exact: true })
