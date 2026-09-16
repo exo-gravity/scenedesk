@@ -98,10 +98,13 @@ test("CW-01: compact rail and narrow drawer support keyboard navigation and rest
 
 test("CW-02: fixed script history is read-only and does not replace the current revision", async ({ page, workspace: w }) => {
   await page.goto(scriptURL(w));
+  await expect(page.getByRole("combobox", { name: "查阅历史剧本", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "文档更多操作", exact: true }).click();
+  await page.getByRole("menuitem", { name: "查看历史", exact: true }).click();
   await page.getByRole("combobox", { name: "查阅历史剧本", exact: true }).click();
-  await page.getByRole("option", { name: /^第 1 版/ }).click();
+  await page.getByRole("option", { name: / · 剧本文字$/ }).click();
   await expect(page.getByRole("article", { name: "剧本阅读正文", exact: true })).toHaveText(w.first.text);
-  await expect(page.getByText(/^第 1 版 · 历史只读/)).toBeVisible();
+  await expect(page.getByText(/^历史稿 · 只读/)).toBeVisible();
   await expect(page.getByRole("button", { name: /^保存为第/ })).toHaveCount(0);
   expect((await w.content()).currentScriptRevisionId).toBe(w.current.id);
   expect((await w.scripts()).items).toHaveLength(2);
@@ -113,26 +116,29 @@ test("CW-02: fixed script history is read-only and does not replace the current 
 
 test("CW-02: unsaved script survives navigation and refresh, then saves exactly one new revision", async ({ page, workspace: w }) => {
   await page.goto(scriptURL(w));
-  await page.getByRole("button", { name: "打开原有纯文本编辑", exact: true }).click();
+  await page.getByRole("button", { name: "文档更多操作", exact: true }).click();
+  await page.getByRole("menuitem", { name: "编辑纯文本", exact: true }).click();
   await page.getByRole("button", { name: "编辑正文", exact: true }).click();
   const draft = `${w.current.text}\n林收起信，走向车站。`;
   await page.getByRole("textbox", { name: "剧本正文", exact: true }).fill(draft);
   await expect(page.getByText("修改已保存在本标签页，尚未提交。", { exact: true })).toBeVisible();
   await navigation(page).getByRole("link", { name: "画布", exact: true }).click();
   await navigation(page).getByRole("link", { name: "剧本", exact: true }).click();
-  await page.getByRole("button", { name: "打开原有纯文本编辑", exact: true }).click();
+  await page.getByRole("button", { name: "文档更多操作", exact: true }).click();
+  await page.getByRole("menuitem", { name: "编辑纯文本", exact: true }).click();
   await page.getByRole("button", { name: "恢复未提交内容", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "剧本正文", exact: true })).toHaveValue(draft);
   await expect(page.getByText("修改已保存在本标签页，尚未提交。", { exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "打开原有纯文本编辑", exact: true }).click();
+  await page.getByRole("button", { name: "文档更多操作", exact: true }).click();
+  await page.getByRole("menuitem", { name: "编辑纯文本", exact: true }).click();
   await page.getByRole("button", { name: "恢复未提交内容", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "剧本正文", exact: true })).toHaveValue(draft);
   expect((await w.content()).currentScriptRevisionId).toBe(w.current.id);
   expect((await w.scripts()).items).toHaveLength(2);
 
   await page.getByRole("button", { name: "保存为第 3 版", exact: true }).click();
-  await expect(page.getByText(/^第 3 版 · 当前版本/)).toBeVisible();
+  await expect(page.getByText(/^当前稿 ·/)).toBeVisible();
   await expect(page.getByRole("article", { name: "剧本阅读正文", exact: true })).toHaveText(draft);
   const revisions = (await w.scripts()).items;
   expect(revisions).toHaveLength(3);
@@ -146,7 +152,8 @@ test("CW-02: unsaved script survives navigation and refresh, then saves exactly 
 
 test("CW-02: concurrent server update preserves the local draft and requires explicit rebase", async ({ page, workspace: w }) => {
   await page.goto(scriptURL(w));
-  await page.getByRole("button", { name: "打开原有纯文本编辑", exact: true }).click();
+  await page.getByRole("button", { name: "文档更多操作", exact: true }).click();
+  await page.getByRole("menuitem", { name: "编辑纯文本", exact: true }).click();
   await page.getByRole("button", { name: "编辑正文", exact: true }).click();
   const draft = `${w.current.text}\n本地分支：林决定留下。`;
   await page.getByRole("textbox", { name: "剧本正文", exact: true }).fill(draft);
@@ -155,14 +162,15 @@ test("CW-02: concurrent server update preserves the local draft and requires exp
     text: "其他作者提交：林离开了城市。", parentRevisionId: w.current.id,
   }, (await w.content()).revision);
   await page.reload();
-  await page.getByRole("button", { name: "打开原有纯文本编辑", exact: true }).click();
+  await page.getByRole("button", { name: "文档更多操作", exact: true }).click();
+  await page.getByRole("menuitem", { name: "编辑纯文本", exact: true }).click();
   await page.getByRole("button", { name: "恢复未提交内容", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "剧本正文", exact: true })).toHaveValue(draft);
   await expect(page.getByRole("textbox", { name: "服务器当前剧本", exact: true })).toHaveValue("其他作者提交：林离开了城市。");
   await expect(page.getByRole("button", { name: "保存为第 4 版", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "核对后使用最新版本作为保存基线", exact: true }).click();
   await page.getByRole("button", { name: "保存为第 4 版", exact: true }).click();
-  await expect(page.getByText(/^第 4 版 · 当前版本/)).toBeVisible();
+  await expect(page.getByText(/^当前稿 ·/)).toBeVisible();
   const revisions = (await w.scripts()).items;
   expect(revisions).toHaveLength(4);
   expect(revisions.find((r) => r.number === 3)?.text).toBe("其他作者提交：林离开了城市。");

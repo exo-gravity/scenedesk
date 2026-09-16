@@ -8,13 +8,16 @@ import {
   FileButton,
   Group,
   Loader,
+  Menu,
   Select,
   Stack,
   Text,
 } from "@mantine/core";
 import {
   DownloadSimple,
+  DotsThree,
   FileDoc,
+  ClockCounterClockwise,
   PencilSimple,
   UploadSimple,
 } from "@phosphor-icons/react";
@@ -58,6 +61,8 @@ export function ScriptDocumentReader({
       initialHistoryId ?? null,
     ),
     [legacy, setLegacy] = useState(false),
+    [showHistory, setShowHistory] = useState(false),
+    [showNotes, setShowNotes] = useState(false),
     [importEpoch, setImportEpoch] = useState(0);
   const [downloadError, setDownloadError] = useState<Error>(),
     [downloading, setDownloading] = useState(false);
@@ -105,39 +110,66 @@ export function ScriptDocumentReader({
           </Text>
           <Text size="sm" c="dimmed">
             {selected
-              ? `第 ${selected.number} 版 · ${history && history !== tree.currentScriptRevisionId ? "历史只读" : "当前版本"} · ${selected.createdAt ? new Date(selected.createdAt).toLocaleString() : ""}`
-              : "把已确定的 Word 初稿带到这里，与项目成员一起阅读。"}
+              ? `${history && history !== tree.currentScriptRevisionId ? "历史稿 · 只读" : "当前稿"} · ${selected.createdAt ? new Date(selected.createdAt).toLocaleString() : ""}`
+              : "把已确定的剧本带到这里，与项目成员一起阅读。"}
           </Text>
         </div>
         <Group gap="sm">
+          {history && history !== tree.currentScriptRevisionId && (
+            <Button component="a" href={location.hash.split("?")[0]} variant="subtle" onClick={() => {
+              setHistory(null);
+              setShowHistory(false);
+              setLegacy(false);
+            }}>返回当前稿</Button>
+          )}
+          <Menu position="bottom-end" withinPortal>
+            <Menu.Target>
+              <Button variant="subtle" leftSection={<DotsThree size={18} />} aria-label="文档更多操作">
+                更多
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item leftSection={<ClockCounterClockwise size={16} />} disabled={!scripts.length}
+                onClick={() => setShowHistory(!showHistory)}>
+                查看历史
+              </Menu.Item>
+              {selected?.sourceFormat === "docx" && (
+                <Menu.Item leftSection={<DownloadSimple size={16} />} disabled={downloading}
+                  onClick={() => void downloadOriginal()}>{selected.source ? "下载本次导出文件" : "下载原件"}</Menu.Item>
+              )}
+              {!!fixed.data?.document?.warnings.length && (
+                <Menu.Item onClick={() => setShowNotes(!showNotes)}>导入说明</Menu.Item>
+              )}
+              {active && !history && (
+                <Menu.Item leftSection={<PencilSimple size={16} />} onClick={() => setLegacy(!legacy)}>
+                  {legacy ? "收起正文编辑" : "编辑纯文本"}
+                </Menu.Item>
+              )}
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Group>
+      {showHistory && (
+        <Group align="end">
           <Select
             aria-label="查阅历史剧本"
-            placeholder="当前版本"
-            clearable
+            label="历史稿"
+            placeholder="当前稿"
             value={history}
             onChange={(value) => {
-              setHistory(value);
+              setHistory(value === tree.currentScriptRevisionId ? null : value);
               setLegacy(false);
             }}
             data={[...scripts]
               .sort((a, b) => b.number - a.number)
               .map((script) => ({
                 value: script.id,
-                label: `第 ${script.number} 版${script.id === tree.currentScriptRevisionId ? " · 当前" : ""}`,
+                label: `${script.createdAt ? new Date(script.createdAt).toLocaleString() : "导入时间未记录"} · ${script.fileName ?? "剧本文字"}${script.id === tree.currentScriptRevisionId ? " · 当前稿" : ""}`,
               }))}
           />
-          {selected?.sourceFormat === "docx" && (
-            <Button
-              variant="default"
-              leftSection={<DownloadSimple size={16} />}
-              loading={downloading}
-              onClick={() => void downloadOriginal()}
-            >
-              {selected.source ? "下载本次导出文件" : "下载原件"}
-            </Button>
-          )}
+          <Button variant="subtle" onClick={() => setShowHistory(false)}>收起历史</Button>
         </Group>
-      </Group>
+      )}
       <ErrorNotice error={downloadError ?? null} />
       {active && (
         <ScriptImport
@@ -154,9 +186,9 @@ export function ScriptDocumentReader({
         <>
           <ErrorNotice error={fixed.error} retry={() => void fixed.refetch()} />
           {fixed.isPending && <Loader aria-label="正在读取剧本正文" />}
-          <Warnings
+          {showNotes && <Warnings
             document={!fixed.isError ? fixed.data?.document : undefined}
-          />
+          />}
           {fixed.data && !fixed.isError && (
             <DocumentBody
               document={fixed.data.document}
@@ -169,7 +201,7 @@ export function ScriptDocumentReader({
           <FileDoc size={40} />
           <Text>支持 .docx · 最大 4 MB</Text>
           <Text size="sm" c="dimmed">
-            先预览再导入。每次更新保存一个新版本，旧版本和引用保留。
+            选择文件，预览正文后确认导入。
           </Text>
         </div>
       )}
@@ -178,31 +210,18 @@ export function ScriptDocumentReader({
           没有找到此固定剧本版本，请重新选择历史版本。
         </Alert>
       )}
-      {active && !history && (
+      {active && !history && legacy && (
         <>
-          <Button
-            variant="subtle"
-            size="sm"
-            leftSection={<PencilSimple size={16} />}
-            onClick={() => setLegacy(!legacy)}
-          >
-            {legacy ? "收起正文编辑" : "打开原有纯文本编辑"}
-          </Button>
-          {legacy && (
-            <>
-              <Alert title="纯文本编辑">
-                编辑后保存为纯文本新版本，不包含 Word
-                版式。导入原件与原版仍保留在历史中。
-              </Alert>
-              <ScriptEditor
-                tree={tree}
-                scripts={scripts}
-                path={path}
-                presentation="document"
-                done={done}
-              />
-            </>
-          )}
+          <Alert title="纯文本编辑">
+            保存后显示纯文本，不保留 Word 版式。原稿会自动留存在历史中。
+          </Alert>
+          <ScriptEditor
+            tree={tree}
+            scripts={scripts}
+            path={path}
+            presentation="document"
+            done={done}
+          />
         </>
       )}
     </Stack>
@@ -408,9 +427,14 @@ function ScriptImport({
   return (
     <Stack gap="md">
       {!completed &&
-        (draft.dirty || draft.recovered || draft.committed || draft.error) && (
+        (draft.recovered || draft.committed || draft.error) && (
           <DraftNotice draft={draft} />
         )}
+      {!completed && draft.dirty && !draft.recovered && !draft.committed && !draft.error && (
+        <Text size="xs" c="dimmed" aria-live="polite">
+          {draft.saved ? "文件已保留，离开后可继续导入。" : "正在保留文件…"}
+        </Text>
+      )}
       {completed && <Text size="sm">导入已保存。</Text>}
       {!draft.committed && !completed && (
         <>
@@ -432,7 +456,7 @@ function ScriptImport({
                     !!draft.value.fileName
                   }
                 >
-                  导入 Word 初稿 / 更新版本
+                  {tree.currentScriptRevisionId ? "重新导入 Word" : "导入 Word"}
                 </Button>
               )}
             </FileButton>
@@ -517,7 +541,7 @@ function ScriptImport({
                     }
                     onClick={() => void submit()}
                   >
-                    确认导入为新版本
+                    确认导入
                   </Button>
                 </>
               )}

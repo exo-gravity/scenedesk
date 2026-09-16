@@ -20,6 +20,7 @@ test("CW-05/06: real Word upload previews before import, preserves original, upd
 }, info) => {
   await page.goto(`${w.runtime.origin}${w.basePath}/script`);
   await expect(page.getByText("修改后可保存", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "查阅历史剧本", exact: true })).toHaveCount(0);
   await page.locator('input[type="file"]').setInputFiles(initialFile);
   const preview = page.getByRole("region", {
     name: "Word 导入预览",
@@ -46,7 +47,7 @@ test("CW-05/06: real Word upload previews before import, preserves original, upd
   expect((await w.content()).currentScriptRevisionId).toBe(w.current.id);
   await page.screenshot({ path: info.outputPath("docx-preview.png") });
   await page
-    .getByRole("button", { name: "确认导入为新版本", exact: true })
+    .getByRole("button", { name: "确认导入", exact: true })
     .click();
   await expect(preview).toHaveCount(0);
   await expect(page.getByRole("article", readBody)).toContainText(
@@ -55,7 +56,8 @@ test("CW-05/06: real Word upload previews before import, preserves original, upd
   const imported = (await w.scripts()).items.find((r) => r.number === 3)!;
   expect(imported.sourceFormat).toBe("docx");
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "下载原件", exact: true }).click();
+  await page.getByRole("button", { name: "文档更多操作", exact: true }).click();
+  await page.getByRole("menuitem", { name: "下载原件", exact: true }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("initial-draft.docx");
   const downloaded = await readFile((await download.path())!);
@@ -77,7 +79,7 @@ test("CW-05/06: real Word upload previews before import, preserves original, upd
   );
   expect((await w.scripts()).items).toHaveLength(3);
   await page
-    .getByRole("button", { name: "确认导入为新版本", exact: true })
+    .getByRole("button", { name: "确认导入", exact: true })
     .click();
   await expect(preview).toHaveCount(0);
   await expect(page.getByRole("article", readBody)).toContainText(
@@ -138,7 +140,7 @@ test("CW-07 fault injection: committed Word response is lost, refresh recovers t
   await page.goto(`${w.runtime.origin}${w.basePath}/script`);
   await page.locator('input[type="file"]').setInputFiles(initialFile);
   await expect(
-    page.getByRole("button", { name: "确认导入为新版本", exact: true }),
+    page.getByRole("button", { name: "确认导入", exact: true }),
   ).toBeEnabled();
   let submissions = 0;
   await page.route(`**${w.path}/scripts/import-docx`, async (route) => {
@@ -149,7 +151,7 @@ test("CW-07 fault injection: committed Word response is lost, refresh recovers t
     await route.abort("failed");
   });
   await page
-    .getByRole("button", { name: "确认导入为新版本", exact: true })
+    .getByRole("button", { name: "确认导入", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "连接中断" }),
@@ -188,7 +190,7 @@ test("CW-07: concurrent content change preserves Word preview and creates a new 
   await page.goto(`${w.runtime.origin}${w.basePath}/script`);
   await page.locator('input[type="file"]').setInputFiles(initialFile);
   await expect(
-    page.getByRole("button", { name: "确认导入为新版本", exact: true }),
+    page.getByRole("button", { name: "确认导入", exact: true }),
   ).toBeEnabled();
   await w.command(
     "POST",
@@ -197,7 +199,7 @@ test("CW-07: concurrent content change preserves Word preview and creates a new 
     (await w.content()).revision,
   );
   await page
-    .getByRole("button", { name: "确认导入为新版本", exact: true })
+    .getByRole("button", { name: "确认导入", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "项目内容已更新" }),
@@ -213,7 +215,7 @@ test("CW-07: concurrent content change preserves Word preview and creates a new 
   await expect(review).toBeEnabled();
   await review.click();
   await page
-    .getByRole("button", { name: "确认导入为新版本", exact: true })
+    .getByRole("button", { name: "确认导入", exact: true })
     .click();
   await expect(
     page.getByRole("region", { name: "Word 导入预览", exact: true }),
@@ -232,7 +234,7 @@ test("CW-07 fault injection: an old delayed receipt cannot clear a replacement W
   await page.goto(`${w.runtime.origin}${w.basePath}/script`);
   await page.locator('input[type="file"]').setInputFiles(initialFile);
   await expect(
-    page.getByRole("button", { name: "确认导入为新版本", exact: true }),
+    page.getByRole("button", { name: "确认导入", exact: true }),
   ).toBeEnabled();
   await page.route(`**${w.path}/scripts/import-docx`, async (route) => {
     const response = await route.fetch();
@@ -240,7 +242,7 @@ test("CW-07 fault injection: an old delayed receipt cannot clear a replacement W
     await route.abort("failed");
   });
   await page
-    .getByRole("button", { name: "确认导入为新版本", exact: true })
+    .getByRole("button", { name: "确认导入", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "连接中断" }),
@@ -267,7 +269,7 @@ test("CW-07 fault injection: an old delayed receipt cannot clear a replacement W
     page.getByRole("button", { name: "放弃本次导入", exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "确认导入为新版本", exact: true }),
+    page.getByRole("button", { name: "确认导入", exact: true }),
   ).toBeDisabled();
   const navigation = page.getByRole("navigation", {
     name: "项目导航",
@@ -284,7 +286,7 @@ test("CW-07 fault injection: an old delayed receipt cannot clear a replacement W
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", {
-      name: "导入 Word 初稿 / 更新版本",
+      name: "重新导入 Word",
       exact: true,
     }),
   ).toBeEnabled();
@@ -297,7 +299,7 @@ test("CW-07 fault injection: an old delayed receipt cannot clear a replacement W
     "林夏：钥匙在窗边。😀",
   );
   await expect(
-    page.getByText("修改已保存在本标签页，尚未提交。", { exact: true }),
+    page.getByText("文件已保留，离开后可继续导入。", { exact: true }),
   ).toBeVisible();
   const delivered = page.waitForResponse((response) =>
     response.url().includes(`${w.path}/script-imports/`),

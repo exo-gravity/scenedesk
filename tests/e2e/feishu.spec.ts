@@ -33,9 +33,10 @@ test("Feishu synthetic provider: preview fixed content, confirm and download exa
   await expect(page.getByRole("article")).toContainText("林夏：钥匙在哪里？😀");
   await page.reload();
   await expect(page.getByRole("article")).toContainText("林夏：钥匙在哪里？😀");
+  await page.getByRole("button", { name: "文档更多操作" }).click();
   const downloading = page.waitForEvent("download");
   await page
-    .getByRole("button", { name: "下载本次导出文件", exact: true })
+    .getByRole("menuitem", { name: "下载本次导出文件", exact: true })
     .click();
   const download = await downloading,
     location = await download.path();
