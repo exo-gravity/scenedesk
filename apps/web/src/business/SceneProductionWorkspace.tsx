@@ -73,6 +73,7 @@ import { MediaPreview } from "./MediaPreview";
 import type { CanvasController } from "./canvas-controller";
 import { CanvasImageGeneration } from "./CanvasImageGeneration";
 import { jobStatusLabel } from "./assistant-session";
+import { retainCanvasEditing } from "./canvas-edit-handoff";
 import classes from "./canvas.module.css";
 import layout from "./scene-production.module.css";
 
@@ -285,31 +286,26 @@ function SceneWorkspace({
           }
         />
       </Group>
-      <Group
-        gap={2}
-        wrap="nowrap"
-        className={layout.modeSwitch}
-        aria-label="制作模式"
-      >
-        <Button
-          size="xs"
-          variant="subtle"
-          aria-pressed={mode === "canvas"}
-          disabled={navigating}
-          onClick={() => switchMode("canvas")}
+      {mode === "storyboard" && (
+        <Group
+          gap="xs"
+          wrap="nowrap"
+          className={layout.legacyNavigation}
+          aria-label="旧分镜工作区导航"
         >
-          画布
-        </Button>
-        <Button
-          size="xs"
-          variant="subtle"
-          aria-pressed={mode === "storyboard"}
-          disabled={navigating}
-          onClick={() => switchMode("storyboard")}
-        >
-          分镜台
-        </Button>
-      </Group>
+          <Text size="xs" c="dimmed">
+            旧分镜工作区
+          </Text>
+          <Button
+            size="xs"
+            variant="subtle"
+            disabled={navigating}
+            onClick={() => switchMode("canvas")}
+          >
+            返回画布
+          </Button>
+        </Group>
+      )}
     </>
   );
   return (
@@ -466,6 +462,13 @@ export function SceneCanvasSession({
   const [assistantProposalId, setAssistantProposalId] = useState<string>();
   const [editingNodeId, setEditingNodeId] = useState<string>();
   const [focusMode, setFocusMode] = useState(false);
+  const canvasSessionAlive = useRef(true);
+  useEffect(() => {
+    canvasSessionAlive.current = true;
+    return () => {
+      canvasSessionAlive.current = false;
+    };
+  }, []);
   const [assistantContext, setAssistantContext] = useState<{
     nodeIds: string[];
     nonce: number;
@@ -634,10 +637,17 @@ export function SceneCanvasSession({
     await Promise.all([connections.refetch(), content.refetch()]);
   };
   const focusNodes = (ids: string[]) => {
+    // The requested focus already consumes this entry target. Otherwise the
+    // next document edit could replay it and unexpectedly leave focus editing.
+    entryFocus.current = ids.length === 1 ? ids[0] : undefined;
     changePreference({ selectedNodeIds: ids, mode: "canvas" });
     setFocusRequest({ ids, nonce: Date.now() });
     const query = new URLSearchParams(location.hash.split("?")[1]);
     query.set("mode", "canvas");
+    // An explicit focus supersedes an old entry link. Keep a single-node link
+    // refreshable; a multi-node focus stays in the saved selection preference.
+    if (ids.length === 1) query.set("node", ids[0]!);
+    else query.delete("node");
     location.hash = `${location.hash.split("?")[0]}?${query}`;
   };
   const editBinding = (node: CanvasNode | null) => {
@@ -775,7 +785,7 @@ export function SceneCanvasSession({
                 </Stack>
               </Popover.Dropdown>
             </Popover>
-            <Group gap={4} wrap="nowrap">
+            <Group gap={4} wrap="nowrap" className={layout.canvasActions}>
               {preference.mode === "canvas" &&
                 (state.dirty ||
                   state.hasInvalidInput ||
@@ -1083,6 +1093,26 @@ export function SceneCanvasSession({
                   onPrepareStoryboard={
                     sceneId ? () => switchAssistantView("scene") : undefined
                   }
+                  onEditDraft={async (nodeId) => {
+                    await retainCanvasEditing(
+                      controller,
+                      async () => {
+                        await retainGenerationDraft.current?.();
+                        return true;
+                      },
+                      () => canvasSessionAlive.current,
+                    );
+                    const target = controller
+                      .getSnapshot()
+                      .local?.document.nodes.find((node) => node.id === nodeId);
+                    if (target?.content.type !== "draft")
+                      throw Error(
+                        "原草稿已移除或改变，请在画布中核对。助手建议仍保留。",
+                      );
+                    setEditingNodeId(nodeId);
+                    focusNodes([nodeId]);
+                    selectDock(null);
+                  }}
                   onClose={() => selectDock("assistant")}
                 />
               </div>
@@ -1191,6 +1221,7 @@ export function SceneCanvasSession({
                   </Button>
                   {sceneId && connections.data && content.data ? (
                     <CanvasShotConnections
+                      tenantId={tenantId}
                       path={path}
                       sceneId={sceneId}
                       controller={controller}

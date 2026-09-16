@@ -18,6 +18,8 @@ import type { CanvasController } from "./canvas-controller";
 import { MediaPreview } from "./MediaPreview";
 import classes from "./canvas.module.css";
 import { referencePurposes } from "./asset-queries";
+import { ShotListLauncher } from "./ShotListWorkspace";
+import { retainCanvasEditing } from "./canvas-edit-handoff";
 
 type Binding = Schema<"CanvasShotBinding">;
 type Seed = { shotId: string; shotRevisionId: string; take?: Schema<"Take"> };
@@ -43,6 +45,7 @@ function clean(controller: CanvasController) {
   );
 }
 export function CanvasShotConnections({
+  tenantId,
   path,
   sceneId,
   controller,
@@ -57,6 +60,7 @@ export function CanvasShotConnections({
   seed,
   place,
 }: {
+  tenantId: string;
   path: string;
   sceneId: string;
   controller: CanvasController;
@@ -75,7 +79,7 @@ export function CanvasShotConnections({
     [placement, setPlacement] = useState<Schema<"Shot"> | null>(null);
   const local = controller.getSnapshot().local!;
   const linked = new Set(sceneCanvas.bindings.map((b) => b.nodeId));
-  const base = location.hash.split("?")[0]!;
+  const canvas = controller.getSnapshot().local!.base;
   return (
     <Stack>
       {target && (
@@ -150,13 +154,16 @@ export function CanvasShotConnections({
                 >
                   定位镜头节点
                 </Button>
-                <Button
-                  size="xs"
-                  component="a"
-                  href={`${base}?scene=${sceneId}&shot=${shot.id}&mode=storyboard`}
-                >
-                  查看分镜
-                </Button>
+                <ShotListLauncher
+                  tenantId={tenantId}
+                  projectId={canvas.projectId}
+                  sceneId={sceneId}
+                  initialShotId={shot.id}
+                  label="查看镜头"
+                  onBeforeOpen={() =>
+                    retainCanvasEditing(controller, undefined, () => true)
+                  }
+                />
                 <Button
                   size="xs"
                   disabled={readOnly || shot.status !== "active"}
