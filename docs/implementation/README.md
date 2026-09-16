@@ -1,33 +1,36 @@
 # 幕序 · SceneDesk：实施设计包 v1.3
 
-2026-09-16 当前重构方向：用户已确认并授权实施[独立 Web 创作工作区](../design/creative-workspace-approved-2026-09-16.md)。主路径调整为外部剧本导入／阅读 → 项目画布连续创作 → 镜头整理与明确选用 → 导出；旧集场镜必经路径按[八个 PR 计划](70-creative-workspace-refactor.md)逐步替换。既有固定引用、授权、执行和恢复契约保持有效，以下早期流程保留为历史基线。
+2026-09-16 当前方向：用户已确认并授权实施[独立 Web 创作工作区](../design/creative-workspace-approved-2026-09-16.md)。主路径为外部剧本导入／阅读 → 画布连续创作 → 镜头整理与明确选用 → 原片交接；项目画布允许没有剧本或场次时开始。按[八个工作包](70-creative-workspace-refactor.md)交付，既有固定引用、授权、执行和恢复契约保持有效。
 
 2026-09-16 验收要求：核心页面和设计随各 PR 完成[端到端、故障恢复与正式构建视觉检查](73-creative-workspace-e2e.md)；项目画布、剧本导入和自动回归并行开发，数据库迁移按依赖顺序合入。
+
+最新推进顺序：先完成真实模型以外的工作区功能与验收，模型接入最后进行。[本轮收尾记录](77-non-provider-workspace-closure.md)区分已完成代码、实际测试和仍需团队提供的真实条件，不扩大首发范围。
 
 2026-09-11 当前首发范围：用户确认画布和 AI 整体按原方案推进，后期剪辑／渲染、完整团队管理、开放注册和运营移出 MVP；商业计费与费用运营后置。以[38 当前 MVP 范围](38-first-release-scope-review.md)覆盖本包旧的全平台首发门槛，保留已有能力契约与历史证据。
 
 产品命名已由用户确认：中文 **幕序**，英文 **SceneDesk**，组合 **幕序 · SceneDesk**。前端品牌展示、页面标题与后续交付文档采用此名称；本次命名不改变产品范围或技术契约。
 
-技术方向更新（2026-09-10）：用户已确认[技术评审方向与收尾清单](../design/technical-direction-confirmation-2026-09-10.md)。任务调度、未完成剪辑恢复、画布异步协作及有限历史已完成协议同步，见[21 技术定案](21-technical-baseline-closure.md)。OpenAPI升为1.3.0；候选队列、数据库事务、媒体与用户效果仍待真实验证。
+历史技术定案（2026-09-10）：[技术评审方向与收尾清单](../design/technical-direction-confirmation-2026-09-10.md)及[21 技术定案](21-technical-baseline-closure.md)记录任务调度、恢复、异步协作和有限历史的协议依据。后续队列、数据库、媒体与用户效果的实际实现和验证见 22，不沿用当时的“尚待实施”状态。
 
-当前推进状态（2026-09-11）：用户已授权正式工程实施及 GitHub 合入。身份、项目、手工内容、CSV 提案及创作依据已分阶段验收并合入；场次主责、内部队列及素材导入服务也已合入；素材工作台已完成本地验证。逐项成果、合入证据及未完成范围以[22 实施进度](22-implementation-progress.md)为准。页面沿用已确认的核心工作区 v0.3 与[专项设计 v0.4](../design/production-detail-design-v0.4.md)，确认范围见[记录](../design/approved-baseline-2026-09-10.md)。历史交付 manifest 保留为当时快照。
+当前推进状态见[22 实施进度](22-implementation-progress.md)和[77 非模型收尾](77-non-provider-workspace-closure.md)：项目导航、项目画布、Word／飞书导入、同稿连续创作、镜头列表及原片 ZIP 已分批合入，自动回归与部署／恢复按实际结果记账。真实模型与团队授权条件仍单列。历史交付 manifest 保留为当时快照。
 
 契约基线日期：2026-09-10；保留2026-09-09独立评审与验证快照。原独立评审与后续场次主场景共识已合并；当前逐步实现已收口的业务契约。S0 骨架与本地演示是早期交付记录，不能代表完整 MVP、模型样片、工作室试点或生产验收。
 
-当前页面依据：[核心体验 v0.3](../design/scene-walkthrough-review-v0.3.md)与[专项 v0.4](../design/production-detail-design-v0.4.md)。旧 Mantine 样板及布局探索见[历史索引](../history/README.md)，不再作为当前视觉入口。所有演示均独立于完整业务验收。
+当前页面依据：[创作工作区确认](../design/creative-workspace-approved-2026-09-16.md)及[主画布确认](../design/primary-canvas-approved-2026-09-14.md)；前者覆盖主导航和页面分工，未变更的画布行为继续遵循后者。早期核心体验、制作专项和 Mantine 样板见[历史索引](../history/README.md)。所有演示均独立于完整业务验收。
 
 ## 当前结论
 
-长期在同一平台内支持短剧与广告工作台；当前为中小工作室交付 AI 写实短剧闭环，不设 10 人上限。本期每场次提供分镜／自由画布两模式，画布覆盖整场并与制作事实分离；UX-01验证实际收益及具体呈现。复杂 AI 重拆、广告入口、外包权限、专业 NLE 后置。
+当前为短剧创作者提供私有工作台，以画布为主要创作界面，镜头列表按需整理制作事实。项目级画布支持先探索再组织内容；已有场次画布与旧深链继续有效，画布位置不代表播放顺序。
 
-当前首发服务一位制作人员完成一场戏的创作准备，保留集场镜、分镜/自由画布、AI辅助与媒体生成、候选及明确采用。整集审阅交付、跨集制作复用、内部后期交接属于完整平台后续路线，按[38](38-first-release-scope-review.md)移出首发。
+首发保留剧本导入、资产参考、AI 辅助与媒体生成、固定结果、比较、明确选用和恢复能力。Word／飞书以导入后阅读为主，日常操作不要求复杂版本控制。后期剪辑与渲染、完整团队管理、公开注册、公共 API 和商业计费按[38](38-first-release-scope-review.md)及最新重构决定后置；长期广告路线不改变本期范围。
 
-首发主流程：已有剧本／分镜 CSV → 集场镜与确切创作依据 → 分镜/自由画布及AI辅助 → 固定生成计划 → 查看、比较、形成候选并明确采用 → 下载素材，在外部工具完成后期。原素材包属于后续交付契约，当前逐个下载的实现见[31](31-media-workspace.md)。只启用实际服务、地区与账号验证过的模型能力。
+主流程：导入剧本或直接进入画布 → 固定选文与参考 → 编辑草稿和生成输入 → 查看、比较并明确选用 → 按需整理镜头 → 下载原片，在外部工具完成后期。当前支持单个固定原件和本场选用原片 ZIP，详见[76](76-shot-list-workspace.md)；它不是剪辑渲染。真实模型接入安排在其余收尾之后，未具备服务、凭据与消费授权时不执行付费调用。
 
 ## 文档地图
 
 | 阅读对象 | 文档 | 交付内容 |
 |---|---|---|
+| 全团队 | [70–77 当前工作区重构](70-creative-workspace-refactor.md) | 最新工作包、页面分工、导入、连续创作、镜头列表和验收证据 |
 | 全团队 | [完整产品方案 v1.3](../ai-drama-workbench-product-design-v1.1.md) | 统一定位、边界、业务流程、MVP、长期广告与组织演进 |
 | 产品／全团队 | [01 产品需求](01-product-requirements.md) | PR-01–17、权限、流程、MVP深度、三层验收 |
 | 产品／前端 | [02 交互规格](02-interaction-spec.md) | 工作区、首次起步、状态、替换、声音和返工行为 |
@@ -46,23 +49,23 @@
 | 工程团队 | [15 工程就绪记录](15-engineering-readiness.md) | 实际代码、版本、运行命令与验证范围 |
 | 工程团队 | [16 下一批实施任务](16-implementation-backlog.md) | 可直接开工的业务切片、依赖、AT 和证据 |
 | 前端／架构 | [17 免费组件选型](17-frontend-component-selection.md) | Mantine及专业组件已选型；许可证据、隔离验证与分阶段接入 |
-| 全团队 | [18 场次画布](18-canvas-workspace-contract.md) | 双模式、文档版本、来源、结果恢复、API与并发 |
+| 全团队 | [18 画布契约](18-canvas-workspace-contract.md) | 文档版本、来源、结果恢复、API与并发；当前项目归属扩展见 71 |
 | 全团队 | [19 最新收口与开工](19-design-closure-and-implementation-entry.md) | 本轮完成项、实际证据、直接实施顺序 |
 | 实施负责人 | [20 外部执行准备](20-external-validation-and-launch-plan.md) | 模型账号、默认部署、人员、试点与广告验证 |
 | 架构／研发 | [21 技术定案](21-technical-baseline-closure.md) | 调度责任、工作稿恢复、有限历史、presence、前端状态及真实验证门槛 |
 | 实施团队 | [22 实施进度](22-implementation-progress.md) | 当前实现、验收与 GitHub 合入状态 |
 | 实施团队 | [27 场次主责与任务](27-scene-tasks.md) | 有效受派资格、唯一主责、处理历史与冲突恢复 |
 | 架构／研发 | [28 内部队列](28-durable-queue.md) | 受限角色、同事务入队与进程中断验证，付费门槛仍待验证 |
-| 架构／研发 | [29 媒体运行基础](29-media-runtime.md) | 固定对象版本、受限解码与真实存储／信号测试，E03 业务继续接入 |
-| 架构／研发 | [30 素材导入服务](30-media-import-service.md) | 上传事务、受限 Worker、权限、原文件验收和派生恢复；素材页面与资产继续实施 |
+| 架构／研发 | [29 媒体运行基础](29-media-runtime.md) | 固定对象版本、受限解码与真实存储／信号测试 |
+| 架构／研发 | [30 素材导入服务](30-media-import-service.md) | 上传事务、受限 Worker、权限、原文件验收和派生恢复 |
 | 实施团队 | [31 素材工作台](31-media-workspace.md) | 浏览器导入续办、私有播放下载、来源冲突与复制标签页草稿隔离 |
 | 实施团队 | [35 候选与明确采用](35-candidates-and-adoption.md) | 连续视频区间、固定要求沿用、采用历史与场次制作恢复 |
 | 实施团队 | [工作模板](templates/README.md) | CSV录入、连续性、声音、交接、质量返工、人工与费用记录 |
 | 全团队 | [独立评审与裁决](../reviews/2026-09-07/README.md) | 原始基线、三份首评、29项处理、二次复核 |
 
-机器附件：[OpenAPI 3.1](openapi.json)、[API 操作目录](api-operations.md)、[正反结构样例](sample-payloads.json)、[09-09 历史静态校验报告](validation-report.md)、[09-09 历史交付校验值](implementation-handoff-manifest.json)。接口目录覆盖整个 MVP 终态，不表示 S1 要同时实现所有操作；执行顺序以 08 为准。
+机器附件：[OpenAPI 3.1](openapi.json)、[API 操作目录](api-operations.md)、[正反结构样例](sample-payloads.json)、[09-09 历史静态校验报告](validation-report.md)、[09-09 历史交付校验值](implementation-handoff-manifest.json)。契约目录包含长期和后置能力，不表示当前首版必须实现或启用所有操作；执行顺序以 70 和当前进度为准。
 
-首次阅读：[设计确认记录](../design/approved-baseline-2026-09-10.md) → [核心体验 v0.3](../design/scene-walkthrough-review-v0.3.md)／[专项 v0.4](../design/production-detail-design-v0.4.md) → 19 → 14 → 完整产品方案 → 01／02；工程开工先读21，再读15／16／18，再读 03–08／11。研发进入实现时按 03–08 和 11 拆解；13中的模板用于记录实际试验，不替代服务端清单或访问控制。
+首次阅读：[当前设计确认](../design/creative-workspace-approved-2026-09-16.md) → 70 工作包 → 77 收尾／22 进度。工程修改再读 03／06／11 和适用的画布、提供商或媒体契约；早期 14–21 保留决策依据。13 中的模板用于记录实际试验，不替代服务端清单或访问控制。
 
 ## 关键不可破坏规则
 
@@ -75,7 +78,7 @@
 
 ## 明确开工后的阶段安排
 
-当前首发按[38 范围调整](38-first-release-scope-review.md)推进私有创作工作台：身份、内容、导入素材、固定资产、双模式画布、AI辅助与三类媒体生成业务已分阶段交付，具体合并与验收事实见[22 实施进度](22-implementation-progress.md)。继续补齐保留范围的使用与恢复验收，并落实真实登录、模型服务和部署条件。完整后期交付、团队与公开运营、商业计费按用户决定后置，不作为本轮上线的前置工作。
+当前首发按[38 范围调整](38-first-release-scope-review.md)与[70 重构计划](70-creative-workspace-refactor.md)推进私有创作工作台。身份、内容、素材、固定资产、画布、助手及媒体生成的站内业务已分阶段交付，具体合并与验收事实见[22](22-implementation-progress.md)。按[77](77-non-provider-workspace-closure.md)关闭非模型收尾，再落实真实模型服务；真实登录、团队文档及外部部署仍需相应条件。完整后期、团队与公开运营、商业计费继续后置。
 
 实际服务账号／测试预算对应G-02／03，在事实落实前可以继续工程和导入素材验证；不执行未授权付费调用。阶段门须用真实证据关闭，不能以接口结构校验代替。
 
@@ -104,7 +107,7 @@ python docs/implementation/check_design.py
 
 ## 当前设计与后续实施入口
 
-优先阅读[21 技术定案](21-technical-baseline-closure.md)和[19 收口清单](19-design-closure-and-implementation-entry.md)，再按[18 画布工程设计](18-canvas-workspace-contract.md)和[16 工作包](16-implementation-backlog.md)实施。模型／基础设施／试点／广告与商业验证见[20](20-external-validation-and-launch-plan.md)。当前主稿v1.3、实施包v1.3、OpenAPI1.3.0；技术收尾新增7个API及AT-64–75。画布业务与生成流程已经分阶段实施；设计目录包含后续能力，实际交付状态以[22](22-implementation-progress.md)为准。
+当前工作入口为[70 重构计划](70-creative-workspace-refactor.md)及[77 收尾记录](77-non-provider-workspace-closure.md)；[21 技术定案](21-technical-baseline-closure.md)、[18 画布契约](18-canvas-workspace-contract.md)和各专题继续约束业务行为。模型／基础设施／试点的历史准备清单见[20](20-external-validation-and-launch-plan.md)，不据此恢复已后置的广告与商业范围。设计包和 OpenAPI 版本号不代表产品发布或实际验收，状态以[22](22-implementation-progress.md)为准。
 
 当前实际资产引用与失败恢复的实现证据见[场镜资产引用](33-creative-asset-bindings.md)；工程执行与合入要求见仓库[工程约定](../../AGENTS.md)。
 
@@ -112,9 +115,9 @@ python docs/implementation/check_design.py
 
 编辑器明确提交后的清理与恢复、提案草稿转移以及失效定位行为见[编辑器提交后恢复](34-editor-completion-recovery.md)。
 
-当前正在实现[共享剪辑工作稿](36-cut-work-drafts.md)：后端持久化、独立 CAS、有限历史及片段／对白／声音／字幕页面已通过阶段测试；完整恢复、后台维护及精确归一仍在接入。
+[共享剪辑工作稿](36-cut-work-drafts.md)保留后端持久化、独立 CAS、有限历史及片段／对白／声音／字幕的阶段实现和证据。后期剪辑已后置，不是本轮进行中的交付任务。
 
-[精确制作副本](37-production-copies.md)记录正在实施的视频源映射、无损内部工件和流式隔离验证；音频、持久化归一、确认与固定渲染继续接入。
+[精确制作副本](37-production-copies.md)保留视频源映射、无损内部工件和流式隔离的契约与阶段证据；归一、确认与固定渲染按首版范围后置。
 
 最新助手体验及验证见[68 对话侧栏](68-assistant-conversation-sidebar.md)：连续对话、统一输入、固定引用、任务往返与按需结果操作。
 

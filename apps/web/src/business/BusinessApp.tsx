@@ -321,7 +321,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
           <Stack gap="xl">
             <SectionHeading
               title="进入创作工作台"
-              description="整理剧本与参考，在分镜台和画布中完成每一场创作。"
+              description="整理剧本与参考，在画布中创作，再将选用的镜头交付后期。"
             />
             {session.error instanceof ApiError &&
             session.error.status === 401 ? (
@@ -810,7 +810,7 @@ function TenantArea({
       <Stack gap="lg">
         <SectionHeading
           title="此入口暂未开放"
-          description="当前版本提供剧本、分镜、自由画布与素材创作。"
+          description="导入剧本，在画布中创作，整理镜头与项目资产。"
         />
         <Button
           component="a"
