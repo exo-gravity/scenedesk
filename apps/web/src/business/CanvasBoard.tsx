@@ -1353,7 +1353,7 @@ export function CanvasBoard({
               <Text className={classes.startEyebrow}>自由画布</Text>
               <Text className={classes.startTitle}>一个想法，从这里展开</Text>
               <Text size="sm" c="dimmed">
-                放入参考，写下灵感，再逐步创作这一场的画面与声音。
+                放入参考，写下灵感，再逐步创作故事的画面与声音。
               </Text>
               <Group justify="center" gap="sm">
                 <Button
@@ -1533,7 +1533,7 @@ export function CanvasBoard({
           <div className={classes.empty}>
             <Text fw={600}>从一个想法、一张参考开始</Text>
             <Text c="dimmed">
-              添加文字、素材或创作草稿，自由组织这一场的内容。
+              添加文字、素材或创作草稿，自由组织故事的内容。
             </Text>
           </div>
         )}
