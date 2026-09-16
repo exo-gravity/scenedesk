@@ -71,6 +71,8 @@ export function CanvasContextualEditor({
   const showLocator =
     !focused &&
     (offscreen ||
+      screenX < safe.x ||
+      screenX + nodeWidth * viewport.zoom > safe.x + safe.width ||
       screenY < safe.y ||
       screenY + 160 * viewport.zoom > safe.y + safe.height ||
       viewport.zoom < 0.6 ||
@@ -236,7 +238,11 @@ export function CanvasContextualEditor({
             title={title}
           >
             正在编辑 · {title}
-            {offscreen ? " · 位于视图外" : " · 当前缩放较小"}
+            {offscreen
+              ? " · 位于视图外"
+              : viewport.zoom < 0.6
+                ? " · 当前缩放较小"
+                : " · 展开可完整编辑"}
           </Text>
           <Button
             size="compact-xs"
