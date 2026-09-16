@@ -11,7 +11,7 @@ export async function canvasDraftInput(
 ) {
   const row = (
     await tx.sql.query(
-      `SELECT c.id,c.revision,b.document FROM canvas_node_index n JOIN canvases c ON c.id=n.canvas_id JOIN canvas_revisions r ON r.canvas_id=c.id AND r.revision=c.revision JOIN canvas_history_bodies b ON b.canvas_id=c.id AND b.hash=r.body_hash JOIN scene_canvas_links l ON l.canvas_id=c.id JOIN scenes s ON s.id=l.scene_id JOIN episodes e ON e.id=s.episode_id WHERE n.tenant_id=$1 AND n.project_id=$2 AND n.node_id=$3 AND s.status='active' AND e.status='active'`,
+      `SELECT c.id,c.revision,b.document FROM canvas_node_index n JOIN canvases c ON c.id=n.canvas_id JOIN canvas_revisions r ON r.canvas_id=c.id AND r.revision=c.revision JOIN canvas_history_bodies b ON b.canvas_id=c.id AND b.hash=r.body_hash WHERE n.tenant_id=$1 AND n.project_id=$2 AND n.node_id=$3 AND discussion_canvas_scope(c.tenant_id,c.project_id,c.id,true) IS NOT NULL`,
       [tx.tenantId, tx.projectId, source.objectId],
     )
   ).rows[0];

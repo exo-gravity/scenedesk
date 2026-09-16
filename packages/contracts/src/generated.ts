@@ -2220,6 +2220,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取项目画布
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getProjectCanvas"];
+        put?: never;
+        /**
+         * 明确创建或取得项目唯一画布，不创建场次
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["ensureProjectCanvas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询画布来源的计划与任务身份
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["listCanvasPlans"];
+        put?: never;
+        /**
+         * 固定项目或场次画布草稿，只准备不执行
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["prepareProjectCanvasGeneration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/workspace-preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取本人项目画布偏好
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getProjectWorkspacePreference"];
+        /**
+         * 保存本人项目画布视口，不改共同画布
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        put: operations["saveProjectWorkspacePreference"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas": {
         parameters: {
             query?: never;
@@ -2422,26 +2494,6 @@ export interface paths {
          * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
          */
         post: operations["prepareCanvasGeneration"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-plans": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 查询画布来源的计划与任务身份
-         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
-         */
-        get: operations["listCanvasPlans"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4113,6 +4165,11 @@ export interface components {
                 canvasId: string;
                 /** Format: uuid */
                 sceneId: string;
+            } | {
+                /** Format: uuid */
+                canvasId: string;
+                /** Format: uuid */
+                projectId: string;
             };
             targetCapabilitySnapshot?: components["schemas"]["Capability"];
             /** Format: uuid */
@@ -4813,6 +4870,32 @@ export interface components {
             /** @enum {string} */
             mode: "storyboard" | "canvas";
             selectedShotId: string | null;
+            selectedNodeIds: string[];
+            viewport: components["schemas"]["CanvasViewport"];
+            assetPanelOpen: boolean;
+            assistantOpen: boolean;
+        };
+        ProjectCanvas: {
+            /** Format: uuid */
+            projectId: string;
+            canvas: components["schemas"]["Canvas"];
+        };
+        SaveProjectWorkspacePreference: {
+            /** @enum {string} */
+            mode: "canvas";
+            selectedShotId: null;
+            selectedNodeIds: string[];
+            viewport: components["schemas"]["CanvasViewport"];
+            assetPanelOpen: boolean;
+            assistantOpen: boolean;
+        };
+        ProjectWorkspacePreference: {
+            /** Format: uuid */
+            projectId: string;
+            revision: number;
+            /** @enum {string} */
+            mode: "canvas";
+            selectedShotId: null;
             selectedNodeIds: string[];
             viewport: components["schemas"]["CanvasViewport"];
             assetPanelOpen: boolean;
@@ -10189,6 +10272,231 @@ export interface operations {
             503: components["responses"]["Problem"];
         };
     };
+    getProjectCanvas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectCanvas"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    ensureProjectCanvas: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectCanvas"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    listCanvasPlans: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                q?: string;
+                nodeId?: string;
+            };
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                canvasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasPlanEntryPage"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    prepareProjectCanvasGeneration: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                canvasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrepareCanvasGeneration"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasPlanEntry"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getProjectWorkspacePreference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectWorkspacePreference"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    saveProjectWorkspacePreference: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                /** @description 用户场次偏好版本，首次创建使用0；不使用canvas版本。 */
+                "If-Match": string;
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveProjectWorkspacePreference"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectWorkspacePreference"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
     getSceneCanvas: {
         parameters: {
             query?: never;
@@ -10633,45 +10941,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CanvasPlanEntry"];
-                };
-            };
-            400: components["responses"]["Problem"];
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            412: components["responses"]["Problem"];
-            413: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            429: components["responses"]["Problem"];
-            503: components["responses"]["Problem"];
-        };
-    };
-    listCanvasPlans: {
-        parameters: {
-            query?: {
-                cursor?: string;
-                limit?: number;
-                q?: string;
-                nodeId?: string;
-            };
-            header?: never;
-            path: {
-                tenantId: string;
-                projectId: string;
-                canvasId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 成功 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CanvasPlanEntryPage"];
                 };
             };
             400: components["responses"]["Problem"];

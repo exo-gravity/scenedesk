@@ -19,51 +19,87 @@ export function canvasGenerationRoutes(
   app: FastifyInstance,
   context: MediaContext,
 ) {
-  registerAction(app, context, "prepareCanvasGeneration", async (tx, input) => {
-    services(context);
-    await activeParent(tx, "scenes", input.params.sceneId!);
-    const canvasId = await sceneCanvasId(tx, input.params.sceneId!);
-    await canvasRoot(tx, canvasId, true);
-    const canvas = await readCanvas(tx, canvasId);
-    versionMatches(canvas.revision, input.version);
-    const node = canvas.document.nodes.find(
-      (n) => n.id === input.body.nodeId.toLowerCase(),
+  for (const operation of [
+    "prepareCanvasGeneration",
+    "prepareProjectCanvasGeneration",
+  ] as const)
+    registerAction(
+      app,
+      context,
+      operation,
+      async (tx, input) => {
+        services(context);
+        const canvasId =
+          input.params.canvasId ??
+          (await sceneCanvasId(tx, input.params.sceneId!));
+        await canvasRoot(tx, canvasId, true);
+        const canvas = await readCanvas(tx, canvasId);
+        versionMatches(canvas.revision, input.version);
+        const node = canvas.document.nodes.find(
+          (n) => n.id === input.body.nodeId.toLowerCase(),
+        );
+        requireThat(
+          (node?.kind === "image" ||
+            node?.kind === "video" ||
+            node?.kind === "audio") &&
+            node.content.type === "draft" &&
+            node.content.connectionId &&
+            node.content.capabilityId,
+          422,
+          "IMAGE_DRAFT_REQUIRED",
+          "请保存一个已选模型能力的图片、视频或音频草稿。",
+        );
+        const plan = await createPlan(tx, {
+          scope: "project",
+          projectId: tx.projectId!,
+          purpose: node.kind,
+          connectionId: node.content.connectionId,
+          capabilityId: node.content.capabilityId,
+          prompt: node.content.prompt,
+          output: node.content.output,
+          shotSources: input.body.shotSources,
+          referenceOverrides: input.body.referenceOverrides,
+          additionalReferences: [],
+          promptPolicy: input.body.promptPolicy,
+          contextSources: [
+            {
+              kind: "canvas_draft",
+              objectId: node.id,
+              revision: canvas.revision,
+            },
+          ],
+        });
+        const origin = (
+          await tx.sql.query(
+            `SELECT ${originSql} AS origin FROM generation_canvas_origins o WHERE plan_id=$1`,
+            [plan.id],
+          )
+        ).rows[0].origin;
+        return { body: { plan, origin } };
+      },
+      {
+        authorizeScope: async (tx, input) => {
+          // Recheck current ownership/active parents before cached plan replay.
+          // A retained fixed plan is history, not authority to prepare again.
+          const canvasId =
+            input.params.canvasId ??
+            (await sceneCanvasId(tx, input.params.sceneId!));
+          if (input.params.sceneId)
+            await activeParent(tx, "scenes", input.params.sceneId);
+          requireThat(
+            (
+              await tx.sql.query(
+                "SELECT discussion_canvas_scope($1,$2,$3,true) AS scope",
+                [tx.tenantId, tx.projectId, canvasId],
+              )
+            ).rows[0]?.scope,
+            404,
+            "CANVAS_CONTEXT_UNAVAILABLE",
+            "画布不存在、已归档或无访问权限。",
+          );
+        },
+      },
     );
-    requireThat(
-      (node?.kind === "image" ||
-        node?.kind === "video" ||
-        node?.kind === "audio") &&
-        node.content.type === "draft" &&
-        node.content.connectionId &&
-        node.content.capabilityId,
-      422,
-      "IMAGE_DRAFT_REQUIRED",
-      "请保存一个已选模型能力的图片、视频或音频草稿。",
-    );
-    const plan = await createPlan(tx, {
-      scope: "project",
-      projectId: tx.projectId!,
-      purpose: node.kind,
-      connectionId: node.content.connectionId,
-      capabilityId: node.content.capabilityId,
-      prompt: node.content.prompt,
-      output: node.content.output,
-      shotSources: input.body.shotSources,
-      referenceOverrides: input.body.referenceOverrides,
-      additionalReferences: [],
-      promptPolicy: input.body.promptPolicy,
-      contextSources: [
-        { kind: "canvas_draft", objectId: node.id, revision: canvas.revision },
-      ],
-    });
-    const origin = (
-      await tx.sql.query(
-        `SELECT ${originSql} AS origin FROM generation_canvas_origins o WHERE plan_id=$1`,
-        [plan.id],
-      )
-    ).rows[0].origin;
-    return { body: { plan, origin } };
-  });
   registerAction(app, context, "listCanvasPlans", async (tx, input) => {
     await canvasRoot(tx, input.params.canvasId!);
     return {

@@ -199,3 +199,9 @@ normalize旧版直接传timeline的请求在1.3.0被拒绝；replacement预览�
 `previewScriptDocument` 在当前项目权限下解析有界 `.docx` 原件，返回规范正文、结构阅读表示、原件摘要与显示警告，不写正式修订。`importScriptDocument` 重新解析原件并核对预览摘要，以 `ContentTree.revision` CAS 和稳定 `importRequestId` 原子创建固定修订、原件和当前指针；客户端提供的富文本或 HTML 不是可信输入。
 
 同一导入身份只恢复原文件、创建人、文件名及原基线的既有保存结果。`getScriptImportReceipt` 只读核对本人请求并返回原 `baseVersion`；丢回包时先据此清理恢复状态，没有回执才允许用户核对新基线并建立新请求身份。`getScriptRevision` 按固定 ID 返回正文和阅读表示，`getScriptOriginal` 每次当前鉴权后返回原件；归档仍可读、撤权不可读。更新不能漂移旧版和引用，具体范围见 [Word 导入说明](72-script-docx-import.md)。
+
+## 项目画布协议扩展（2026-09-16）
+
+`GET/POST /projects/{projectId}/canvas` 读取／明确确保唯一项目画布；GET 不创建，首次未创建返回 `PROJECT_CANVAS_NOT_CREATED`。`POST /canvases/{canvasId}/generation-plans` 按 Canvas 修订固定草稿，支持项目画布及旧场次画布，执行仍走既有生成作业协议。项目画布不要求存在 Episode/Scene/Shot。
+
+`GET/PUT /projects/{projectId}/workspace-preference` 使用本用户自己的 revision（首次 0），支持画布视口、选中节点和辅助面板，`mode=canvas`、`selectedShotId=null`。私人视图修改不改业务内容，因此有当前项目读取权限的用户可在已归档项目保存浏览位置；创建／保存画布和新生成仍要求活动项目。所有写入继续校验 Origin、CSRF、当前租户/项目权限。来源、旧链接和迁移规则见 [项目画布实施](71-project-canvas-workspace.md)。
