@@ -26,6 +26,7 @@
     "build": "npm run typecheck && npm run build --workspace @drama/web",
     "contracts:generate": "openapi-typescript docs/implementation/openapi.json -o packages/contracts/src/generated.ts",
     "test": "node --import tsx --test tests/*.test.ts",
+    "test:e2e": "npm run build && playwright test --config tests/e2e/playwright.config.ts",
     "test:db": "node --env-file-if-exists=.env --import tsx --test tests/integration/*.test.ts",
     "db:up": "docker compose up -d --wait postgres",
     "db:stop": "docker compose stop postgres",
@@ -42,6 +43,7 @@
     "dev:media-worker": "node --env-file=.env.media-worker --env-file=.env.queue --import tsx apps/worker/src/main.ts"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@types/node": "22.20.1",
     "@types/pg": "8.23.1",
     "concurrently": "10.0.5",
