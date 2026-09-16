@@ -7613,6 +7613,102 @@
         "x-requirement": "PR-09"
       }
     },
+    "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selection/download": {
+      "post": {
+        "operationId": "downloadSelectedTake",
+        "tags": [
+          "PR-09"
+        ],
+        "summary": "核对当前固定采用后下载完整原视频，候选区间随结果返回",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "shotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectedTakeDownload"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-09",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectedTakeDownloadInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selections": {
       "get": {
         "operationId": "listSelections",
@@ -26447,6 +26543,44 @@
         },
         "required": [
           "items"
+        ],
+        "additionalProperties": false
+      },
+      "SelectedTakeDownloadInput": {
+        "type": "object",
+        "properties": {
+          "selectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "selectionId"
+        ],
+        "additionalProperties": false
+      },
+      "SelectedTakeDownload": {
+        "type": "object",
+        "properties": {
+          "selectionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "take": {
+            "$ref": "#/components/schemas/Take"
+          },
+          "media": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "access": {
+            "$ref": "#/components/schemas/AccessGrant"
+          }
+        },
+        "required": [
+          "selectionId",
+          "take",
+          "media",
+          "access"
         ],
         "additionalProperties": false
       },

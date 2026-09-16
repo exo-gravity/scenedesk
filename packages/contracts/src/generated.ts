@@ -1460,6 +1460,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selection/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 核对当前固定采用后下载完整原视频，候选区间随结果返回
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["downloadSelectedTake"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selections": {
         parameters: {
             query?: never;
@@ -5190,6 +5210,17 @@ export interface components {
             items: components["schemas"]["Take"][];
             nextCursor?: string;
         };
+        SelectedTakeDownloadInput: {
+            /** Format: uuid */
+            selectionId: string;
+        };
+        SelectedTakeDownload: {
+            /** Format: uuid */
+            selectionId: string;
+            take: components["schemas"]["Take"];
+            media: components["schemas"]["Media"];
+            access: components["schemas"]["AccessGrant"];
+        };
         SelectionPage: {
             items: components["schemas"]["Selection"][];
             nextCursor?: string;
@@ -8523,6 +8554,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Selection"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    downloadSelectedTake: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                shotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelectedTakeDownloadInput"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelectedTakeDownload"];
                 };
             };
             400: components["responses"]["Problem"];

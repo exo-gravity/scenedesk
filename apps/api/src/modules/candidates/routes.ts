@@ -41,12 +41,31 @@ export function candidateRoutes(app: FastifyInstance, context: ApiContext) {
     body: await getTake(tx, input.params.takeId!),
     etag: 1,
   }));
-  registerAction(app, context, "createTake", async (tx, input) => {
-    return {
+  registerAction(
+    app,
+    context,
+    "createTake",
+    async (tx, input) => ({
       body: await archiveTake(tx, input.body as Schema<"TakeInput">),
       etag: 1,
-    };
-  });
+    }),
+    {
+      authorizeScope: async (tx, input) => {
+        await findContent(tx, "shots", input.body.shotId);
+        requireThat(
+          (
+            await tx.sql.query(
+              "SELECT candidate_shot_active($1,$2,$3) AS active",
+              [tx.tenantId, tx.projectId, input.body.shotId],
+            )
+          ).rows[0]?.active,
+          422,
+          "INVALID_CANDIDATE",
+          "镜头或上级内容已归档，不能建立候选。",
+        );
+      },
+    },
+  );
   registerAction(app, context, "getSelection", async (tx, input) => {
     const shot = await findContent(tx, "shots", input.params.shotId!);
     const selection = shot.current_selection_id

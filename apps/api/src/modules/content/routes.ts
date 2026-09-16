@@ -230,47 +230,75 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       etag: 1,
     };
   });
-  registerAction(app, context, "reorderContent", async (tx, input) => {
-    await contentVersion(tx, input.version);
-    const body = input.body as Schema<"Reorder">;
-    const kinds = {
-      episode: ["episodes", "project_id"],
-      scene: ["scenes", "episode_id"],
-      shot: ["shots", "scene_id"],
-    } as const;
-    const [table, parent] = kinds[body.kind];
-    if (body.kind === "episode")
+  registerAction(
+    app,
+    context,
+    "reorderContent",
+    async (tx, input) => {
+      await contentVersion(tx, input.version);
+      const body = input.body as Schema<"Reorder">;
+      const kinds = {
+        episode: ["episodes", "project_id"],
+        scene: ["scenes", "episode_id"],
+        shot: ["shots", "scene_id"],
+      } as const;
+      const [table, parent] = kinds[body.kind];
+      if (body.kind === "episode")
+        requireThat(
+          body.parentId.toLowerCase() === tx.projectId,
+          422,
+          "INVALID_PARENT",
+          "单集重排必须属于当前项目。",
+        );
+      else
+        await activeParent(
+          tx,
+          body.kind === "scene" ? "episodes" : "scenes",
+          body.parentId,
+        );
+      const children = await tx.sql.query(
+        `SELECT id FROM ${table} WHERE tenant_id=$1 AND project_id=$2 AND ${parent}=$3`,
+        [tx.tenantId, tx.projectId, body.parentId],
+      );
+      const ids = body.orderedIds.map((id) => id.toLowerCase());
       requireThat(
-        body.parentId.toLowerCase() === tx.projectId,
+        new Set(ids).size === ids.length &&
+          ids.length === children.rowCount &&
+          children.rows.every((row) => ids.includes(row.id)),
         422,
-        "INVALID_PARENT",
-        "单集重排必须属于当前项目。",
+        "INCOMPLETE_CHILDREN",
+        "排序必须包含该位置的全部内容（含归档项），且每项仅出现一次。",
       );
-    else
-      await activeParent(
-        tx,
-        body.kind === "scene" ? "episodes" : "scenes",
-        body.parentId,
+      await tx.sql.query(
+        `UPDATE ${table} t SET position=ordering.ordinality-1,revision=revision+1,updated_at=now() FROM unnest($3::uuid[]) WITH ORDINALITY AS ordering(id,ordinality) WHERE t.tenant_id=$1 AND t.project_id=$2 AND t.id=ordering.id AND t.position<>ordering.ordinality-1`,
+        [tx.tenantId, tx.projectId, ids],
       );
-    const children = await tx.sql.query(
-      `SELECT id FROM ${table} WHERE tenant_id=$1 AND project_id=$2 AND ${parent}=$3`,
-      [tx.tenantId, tx.projectId, body.parentId],
-    );
-    const ids = body.orderedIds.map((id) => id.toLowerCase());
-    requireThat(
-      new Set(ids).size === ids.length &&
-        ids.length === children.rowCount &&
-        children.rows.every((row) => ids.includes(row.id)),
-      422,
-      "INCOMPLETE_CHILDREN",
-      "排序必须包含该位置的全部内容（含归档项），且每项仅出现一次。",
-    );
-    await tx.sql.query(
-      `UPDATE ${table} t SET position=ordering.ordinality-1,revision=revision+1,updated_at=now() FROM unnest($3::uuid[]) WITH ORDINALITY AS ordering(id,ordinality) WHERE t.tenant_id=$1 AND t.project_id=$2 AND t.id=ordering.id AND t.position<>ordering.ordinality-1`,
-      [tx.tenantId, tx.projectId, ids],
-    );
-    await bumpContent(tx);
-    const saved = await contentTree(tx);
-    return { body: saved, etag: saved.revision };
-  });
+      await bumpContent(tx);
+      const saved = await contentTree(tx);
+      return { body: saved, etag: saved.revision };
+    },
+    {
+      authorizeScope: async (tx, input) => {
+        // The original POST may be replayed after its parent was archived.
+        requireThat(
+          (
+            await tx.sql.query(
+              "SELECT status FROM projects WHERE tenant_id=$1 AND id=$2",
+              [tx.tenantId, tx.projectId],
+            )
+          ).rows[0]?.status === "active",
+          409,
+          "PROJECT_ARCHIVED",
+          "项目已归档，请先恢复。",
+        );
+        const body = input.body as Schema<"Reorder">;
+        if (body.kind !== "episode")
+          await activeParent(
+            tx,
+            body.kind === "scene" ? "episodes" : "scenes",
+            body.parentId,
+          );
+      },
+    },
+  );
 }

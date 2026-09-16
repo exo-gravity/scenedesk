@@ -34,3 +34,10 @@ Screenshots are attached for desktop script (light/dark), the saved scene canvas
 ## Word import coverage
 
 `docx.spec.ts` adds real local-file upload, pre-import preview, exact original download bytes/SHA-256, immutable updated/history reading, invalid-file draft recovery, concurrent-content CAS recovery and explicitly labelled transport-fault tests. That fault sends the real authenticated import request and drops its response only after the actual server committed; refresh must recover with a read-only domain receipt and exactly one import POST. A second test holds a real receipt response while the user leaves, returns and replaces the import: the old response must never remove the replacement draft, including after refresh. No success response body is fabricated. Synthetic Word fixtures are in `tests/fixtures/scripts/`; actual team Word templates remain a separate acceptance gate.
+
+
+## Shot organization coverage
+
+`shot-list.spec.ts` adds canvas video → fixed candidate → actual two-video comparison → explicit selection → exact original download SHA-256, full shot ordering including archived children, failed-request local recovery through refresh, concurrent selection CAS and revoked cached-list access. It uses real production business routes with synthetic four-second MP4 originals from `tests/fixtures/video/`. Only immutable accepted media metadata and the byte-serving store are fixtures; upload/probe and real-provider acceptance remain separate. The reorder failure aborts one transport request rather than replacing a business response.
+
+`startWorkspaceRuntime` accepts optional `media` services for this isolated store. `preview-shot-list.ts` starts the same synthetic setup for coordinated manual inspection after building Web; it requires the same disposable `drama_e2e*` loopback database and `PROVIDER_MODE=mock`. It defaults to `127.0.0.2:4464` so its test-only HttpOnly identity does not overwrite a developer's `127.0.0.1` or `localhost` cookie. The printed loopback bootstrap is only in this harness; no auth bypass is added to the product. Ctrl-C tears down the isolated schema, roles and servers.
