@@ -114,9 +114,16 @@ async function seed(source: Source, closes: (() => Promise<unknown>)[], stops: (
   const completed = await f.request("POST", `${base}/uploads/${intent.id}/complete`, { bytes: bytes.length, sha256: sha(bytes) }); assert.equal(completed.statusCode, 202);
   const mediaId = completed.json().mediaId;
   await processMedia({ taskKind: "media_probe", businessId: intent.id, stepRevision: 1, epoch: 1 }, { signal: AbortSignal.timeout(90_000), queueJobId: randomUUID() });
-  let media = await f.ok("GET", `${base}/media/${mediaId}`); assert.equal(media.status, "ready");
+  const ready = (value: { status: string; issue?: { code?: string } }, stage: "probe" | "poster") => {
+    // Preserve a useful failure signal after the private fixture is cleaned up.
+    // Never emit the record, user text, storage identity, or decoder diagnostics.
+    const code = value.issue?.code;
+    const safeCode = typeof code === "string" && /^[A-Z][A-Z0-9_]{1,100}$/.test(code) ? code : "NO_SAFE_ISSUE_CODE";
+    assert.equal(value.status, "ready", `Synthetic PNG ${stage} is not ready: ${safeCode}`);
+  };
+  let media = await f.ok("GET", `${base}/media/${mediaId}`); ready(media, "probe");
   for (const derivative of media.derivatives) await processMedia({ taskKind: "media_derivative", businessId: derivative.id, stepRevision: 1, epoch: 1 }, { signal: AbortSignal.timeout(90_000), queueJobId: randomUUID() });
-  media = await f.ok("GET", `${base}/media/${mediaId}`); assert.equal(media.derivatives[0].status, "ready");
+  media = await f.ok("GET", `${base}/media/${mediaId}`); ready(media.derivatives[0], "poster");
   const reference = (await f.admin.query(`SELECT immutable_key,storage_version_id,bytes,sha256 FROM ${scope}.media WHERE id=$1`, [mediaId])).rows[0];
   assert.equal(reference.sha256, sha(bytes));
   // A later version intentionally differs. Restoring latest-by-key is observably wrong.
