@@ -6,7 +6,7 @@ const navigation = (page: Page) => page.getByRole("navigation", { name: "项目�
 const scriptURL = (w: WorkspaceFixture) => `${w.runtime.origin}${w.basePath}/script`;
 async function captureEvidence(page: Page, info: TestInfo, name: string) {
   const path = info.outputPath(`${name}.png`);
-  await page.screenshot({ path });
+  await page.screenshot({ path, animations: "disabled" });
   await info.attach(name, { path, contentType: "image/png" });
 }
 
@@ -68,6 +68,8 @@ test("CW-01: compact rail and narrow drawer support keyboard navigation and rest
     await expect(drawer).toBeHidden();
     await expect(trigger).toBeFocused();
     await trigger.press("Enter");
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole("button", { name: "关闭项目导航", exact: true })).toBeFocused();
     await captureEvidence(page, info, `navigation-drawer-${width}`);
     await drawer.getByRole("link", { name: "剧本", exact: true }).click();
     await expect(drawer).toBeHidden();

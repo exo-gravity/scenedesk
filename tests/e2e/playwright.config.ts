@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const runId = process.env.SCENEDESK_E2E_RUN_ID ??
+const runId = process.env.SCENEDESK_E2E_RUN_ID ??=
   `${new Date().toISOString().replace(/[^0-9T]/g, "")}-${process.pid}`;
 if (!/^[a-zA-Z0-9_-]+$/.test(runId)) throw new Error("Invalid E2E evidence run ID");
 
