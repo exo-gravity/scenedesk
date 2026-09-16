@@ -71,7 +71,10 @@ for path, methods in spec["paths"].items():
         if method in {"post", "put", "patch", "delete"} and operation.get("security") != []:
             check("X-CSRF-Token" in headers, f"Missing CSRF: {op_id}")
             if method == "post":
-                check("Idempotency-Key" in headers, f"Missing key: {op_id}")
+                if operation.get("x-read-only-download"):
+                    check(op_id == "downloadSelectedDelivery" and "application/zip" in operation["responses"].get("200", {}).get("content", {}), f"Unexpected read-only download exception: {op_id}")
+                else:
+                    check("Idempotency-Key" in headers, f"Missing key: {op_id}")
         if "If-Match" in headers:
             cas_count += 1
         check(any(c.startswith("2") or c == "302" for c in operation["responses"]), f"No success response: {op_id}")

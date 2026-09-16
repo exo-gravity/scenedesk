@@ -16,6 +16,7 @@ import { ContentDraftRetention } from "./content-drafts";
 import { StructureEditor } from "./ContentEditors";
 import { SceneShotOrder } from "./SceneShotOrder";
 import { ShotResultFocus } from "./ShotResultFocus";
+import { SelectedDelivery } from "./SelectedDelivery";
 import classes from "./shot-list.module.css";
 
 /** Optional organization surface; the canvas and its drafts remain mounted. */
@@ -215,6 +216,15 @@ function ShotListWorkspace({
           </Button>
         </Group>
       </Group>
+      {scene && (
+        <SelectedDelivery
+          key={scene.id}
+          path={path}
+          sceneId={scene.id}
+          active={!!active}
+          transition={transition}
+        />
+      )}
       {!scene ? (
         <Alert title="先确定镜头所属场次">
           画布可以独立创作。整理镜头时，请在项目场次管理中建立所属场次，然后回到这里。

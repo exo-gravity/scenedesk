@@ -8216,6 +8216,195 @@
         }
       }
     },
+    "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/selected-delivery": {
+      "get": {
+        "operationId": "previewSelectedDelivery",
+        "tags": [
+          "PR-09"
+        ],
+        "summary": "预览本场未归档镜头的固定选用原片交接清单",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sceneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectedDeliveryPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-09"
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/selected-delivery/download": {
+      "post": {
+        "operationId": "downloadSelectedDelivery",
+        "tags": [
+          "PR-09"
+        ],
+        "summary": "重核权限与预览清单后下载完整原片及顺序区间清单 ZIP",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。 这是读取原片的下载操作，不创建业务资源，不使用业务创建幂等回执。每次请求重新验证票据、权限与固定清单；票据不代替权限。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sceneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-09",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectedDeliveryDownload"
+              }
+            }
+          }
+        },
+        "x-read-only-download": true
+      }
+    },
     "/v1/tenants/{tenantId}/projects/{projectId}/shots/{shotId}/selections": {
       "get": {
         "operationId": "listSelections",
@@ -27529,6 +27718,200 @@
           "take",
           "media",
           "access"
+        ],
+        "additionalProperties": false
+      },
+      "SelectedDeliveryEntry": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "shotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shotLabel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "shotRevisionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "intent": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "selectionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "selectionReason": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "takeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "takeNote": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "mediaId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "originalFileName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "range": {
+            "$ref": "#/components/schemas/Range"
+          }
+        },
+        "required": [
+          "order",
+          "shotId",
+          "shotLabel",
+          "shotRevisionId",
+          "intent",
+          "selectionId",
+          "selectionReason",
+          "takeId",
+          "takeNote",
+          "mediaId",
+          "fileName",
+          "originalFileName",
+          "bytes",
+          "sha256",
+          "range"
+        ],
+        "additionalProperties": false
+      },
+      "SelectedDeliveryManifest": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "scenedesk_selected_originals_v1"
+            ]
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "sceneId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sceneTitle": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "episodeTitle": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectedDeliveryEntry"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "unselectedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "archivedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "totalBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "format",
+          "projectId",
+          "projectName",
+          "sceneId",
+          "sceneTitle",
+          "episodeTitle",
+          "entries",
+          "unselectedCount",
+          "archivedCount",
+          "totalBytes"
+        ],
+        "additionalProperties": false
+      },
+      "SelectedDeliveryPreview": {
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/SelectedDeliveryManifest"
+          },
+          "ticket": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "manifest",
+          "ticket",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "SelectedDeliveryDownload": {
+        "type": "object",
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "ticket"
         ],
         "additionalProperties": false
       },
