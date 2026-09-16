@@ -32,9 +32,6 @@ import {
   FolderSimple,
   Archive,
   CheckSquare,
-  FilmSlate,
-  FileText,
-  GearSix,
   CaretRight,
   Moon,
   Sun,
@@ -59,6 +56,8 @@ import {
   projectPath,
 } from "./common";
 import { Projects } from "./Projects";
+import { ProjectNavigation, projectSections } from "./ProjectNavigation";
+const ProjectCanvasEntry = lazy(() => import("./ProjectCanvasEntry"));
 import {
   clearUserEditing,
   suspendEditingAccess,
@@ -251,6 +250,13 @@ function AuthenticatedApp({ hash }: { hash: string }) {
     <div
       className={classes.shell}
       ref={shell}
+      data-project-workspace={
+        (!!session.data &&
+          !session.isError &&
+          /^#\/app\/t\/[^/]+\/p\/[^/?]+(?:[/?]|$)/.test(hash) &&
+          !hash.split("?")[0]?.endsWith("/production")) ||
+        undefined
+      }
       data-scene-production={
         (session.data &&
           !session.isError &&
@@ -339,13 +345,30 @@ function AuthenticatedApp({ hash }: { hash: string }) {
         </div>
       ) : (
         <SessionContext.Provider value={session.data}>
-          <Workspace key={session.data.id} hash={hash} />
+          <Workspace
+            key={session.data.id}
+            hash={hash}
+            environment={[
+              health.data?.providerMode === "mock" ? "未连接真实模型" : "",
+              health.data?.identityMode === "local_test" ? "本地测试身份" : "",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          />
         </SessionContext.Provider>
       )}
     </div>
   );
 }
-function Workspace({ hash }: { hash: string }) {
+function Workspace({
+  hash,
+  environment,
+}: {
+  hash: string;
+  environment: string;
+}) {
+  const { setColorScheme } = useMantineColorScheme();
+  const colorScheme = useComputedColorScheme("light");
   const session = useSession(),
     cache = useQueryClient(),
     logout = useCommand<void>();
@@ -365,8 +388,7 @@ function Workspace({ hash }: { hash: string }) {
       (projectSection === "content" &&
         params.has("revision") &&
         !params.has("shot")));
-  const projectDirectory =
-    !!projectId && !production && !assetDetail && !scriptEditing;
+  const projectDirectory = !!projectId && !production;
   const section = projectId ? "projects" : (segments[4] ?? "projects");
   const studio = tenants.data?.find((tenant) => tenant.id === tenantId);
   const detailObject = params.get("asset") ?? params.get("media");
@@ -413,6 +435,59 @@ function Workspace({ hash }: { hash: string }) {
       );
     }
   };
+  const accountMenu = (
+    <Menu position="right-end" width={260}>
+      <Menu.Target>
+        <ActionIcon variant="subtle" aria-label="账号与退出登录">
+          <UserCircle size={24} />
+        </ActionIcon>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>{session.email}</Menu.Label>
+        {environment && <Menu.Label>{environment}</Menu.Label>}
+        {tenantId && (
+          <>
+            <Menu.Item
+              component="a"
+              href={`#/app/t/${tenantId}/work`}
+              leftSection={<CheckSquare size={16} />}
+            >
+              我的工作
+            </Menu.Item>
+            <Menu.Item
+              component="a"
+              href={`#/app/t/${tenantId}/assets`}
+              leftSection={<Archive size={16} />}
+            >
+              工作室资产库
+            </Menu.Item>
+          </>
+        )}
+        <Menu.Item
+          leftSection={
+            colorScheme === "light" ? <Moon size={16} /> : <Sun size={16} />
+          }
+          onClick={() =>
+            setColorScheme(colorScheme === "light" ? "dark" : "light")
+          }
+        >
+          {colorScheme === "light" ? "切换深色" : "切换浅色"}
+        </Menu.Item>
+        <Menu.Item
+          leftSection={<SignOut size={16} />}
+          disabled={logout.isPending}
+          onClick={() =>
+            logout.mutate(
+              { path: "/v1/session/logout" },
+              { onCommitted: () => void finishLogout() },
+            )
+          }
+        >
+          退出登录
+        </Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
+  );
   if (logoutCommitted)
     return (
       <Stack>
@@ -495,30 +570,7 @@ function Workspace({ hash }: { hash: string }) {
               </UnstyledButton>
             </>
           )}
-          <div className={classes.railFooter}>
-            <Menu position="right-end" width={260}>
-              <Menu.Target>
-                <ActionIcon variant="subtle" aria-label="账号与退出登录">
-                  <UserCircle size={24} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>{session.email}</Menu.Label>
-                <Menu.Item
-                  leftSection={<SignOut size={16} />}
-                  disabled={logout.isPending}
-                  onClick={() =>
-                    logout.mutate(
-                      { path: "/v1/session/logout" },
-                      { onCommitted: () => void finishLogout() },
-                    )
-                  }
-                >
-                  退出登录
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </div>
+          <div className={classes.railFooter}>{accountMenu}</div>
         </nav>
         {!production && (
           <WorkspaceContext
@@ -530,10 +582,13 @@ function Workspace({ hash }: { hash: string }) {
           />
         )}
         {tenantId && projectId && projectDirectory && (
-          <ProjectDirectory
+          <ProjectNavigation
             tenantId={tenantId}
             projectId={projectId}
             section={projectSection}
+            scriptView={scriptEditing}
+            footer={accountMenu}
+            environment={environment}
           />
         )}
         <section className={classes.content}>
@@ -609,65 +664,6 @@ function Workspace({ hash }: { hash: string }) {
     </>
   );
 }
-const projectSections = [
-  { id: "script", label: "剧本", Icon: FileText },
-  { id: "content", label: "场次", Icon: FilmSlate },
-  { id: "assets", label: "资产", Icon: Archive },
-] as const;
-function ProjectDirectory({
-  tenantId,
-  projectId,
-  section,
-}: {
-  tenantId: string;
-  projectId: string;
-  section: string | undefined;
-}) {
-  const project = useResource<Schema<"Project">>(
-    projectPath(tenantId, projectId),
-  );
-  const base = `#/app/t/${tenantId}/p/${projectId}`;
-  return (
-    <nav className={classes.projectNav} aria-label="项目目录">
-      <Text fw={600} className={classes.projectName}>
-        {project.data?.name ?? "项目"}
-      </Text>
-      {projectSections.map(({ id, label, Icon }) => (
-        <UnstyledButton
-          key={id}
-          component="a"
-          href={`${base}/${id}`}
-          className={classes.projectLink}
-          data-active={
-            section === id ||
-            (id === "assets" && section === "media") ||
-            undefined
-          }
-          aria-current={
-            section === id || (id === "assets" && section === "media")
-              ? "page"
-              : undefined
-          }
-        >
-          <Icon size={17} />
-          <span>{label}</span>
-        </UnstyledButton>
-      ))}
-      <UnstyledButton
-        component="a"
-        href={base}
-        className={`${classes.projectLink} ${classes.projectSettings}`}
-        aria-label="项目设置"
-        title="项目设置"
-        aria-current={!section ? "page" : undefined}
-        data-active={!section || undefined}
-      >
-        <GearSix size={17} />
-        <span>项目设置</span>
-      </UnstyledButton>
-    </nav>
-  );
-}
 function WorkspaceContext({
   tenantId,
   projectId,
@@ -687,7 +683,11 @@ function WorkspaceContext({
   );
   const title = projectId
     ? (projectSections.find((item) => item.id === section)?.label ??
-      (section === "media" ? "资产" : "项目设置"))
+      (section === "media"
+        ? "项目资产"
+        : section === "content"
+          ? "场次管理"
+          : "项目设置"))
     : ({
         projects: "项目",
         work: "我的工作",
@@ -703,8 +703,8 @@ function WorkspaceContext({
         <CaretRight size={14} />
         {projectId && (
           <>
-            <Anchor href={`#/app/t/${tenantId}/p/${projectId}/content`}>
-              {project.data?.name ?? "项目"}
+            <Anchor href={`#/app/t/${tenantId}/p/${projectId}/script`}>
+              {project.isError ? "项目不可访问" : project.data?.name ?? "项目"}
             </Anchor>
             <CaretRight size={14} />
           </>
@@ -747,6 +747,12 @@ function TenantArea({
     );
   if (!own || own.status !== "active")
     return <Empty>你已没有这个工作室的访问权限。</Empty>;
+  if (projectId && projectSection === "canvas")
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载画布入口" />}>
+        <ProjectCanvasEntry tenantId={tenantId} projectId={projectId} />
+      </Suspense>
+    );
   if (projectId && productionView)
     return (
       <Suspense fallback={<Loader aria-label="正在加载镜头制作" />}>
@@ -756,9 +762,14 @@ function TenantArea({
   if (
     (projectId &&
       projectSection &&
-      !["content", "script", "media", "assets", "production"].includes(
-        projectSection,
-      )) ||
+      ![
+        "content",
+        "script",
+        "canvas",
+        "media",
+        "assets",
+        "production",
+      ].includes(projectSection)) ||
     (!projectId && section && !["media", "assets", "work"].includes(section))
   )
     return (
