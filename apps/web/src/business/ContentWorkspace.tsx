@@ -341,7 +341,7 @@ export function ContentWorkspace({
           title={scriptView ? "剧本与设定" : "场次"}
           description={
             scriptView
-              ? "导入已确定的初稿，阅读固定版本，再带着原文进入视觉创作。"
+              ? "导入已确定的初稿，与项目成员一起阅读，再带着原文进入画布。"
               : "按单集组织场次，从这里进入每一场的制作。"
           }
           action={
@@ -674,7 +674,7 @@ export function ContentWorkspace({
               title={scriptView ? "剧本与设定" : "场次"}
               description={
                 scriptView
-                  ? "导入已确定的初稿，阅读固定版本，再带着原文进入视觉创作。"
+                  ? "导入已确定的初稿，与项目成员一起阅读，再带着原文进入画布。"
                   : "按单集组织场次，从这里进入每一场的制作。"
               }
               action={
