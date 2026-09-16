@@ -1,0 +1,48 @@
+.paper {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--mantine-spacing-xl);
+  background: var(--mantine-color-body);
+  border: 1px solid var(--mantine-color-default-border);
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+.paper p,
+.plain {
+  white-space: pre-wrap;
+}
+.paper figure {
+  margin: var(--mantine-spacing-lg) 0;
+}
+.paper figcaption {
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-sm);
+}
+.paper td {
+  white-space: pre-wrap;
+  vertical-align: top;
+}
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-xl);
+  color: var(--mantine-color-dimmed);
+}
+.import {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-lg);
+  border: 1px solid var(--mantine-color-default-border);
+}
+.import .paper {
+  max-height: 500px;
+  overflow: auto;
+}
+@media (max-width: 600px) {
+  .paper,
+  .import {
+    padding: var(--mantine-spacing-md);
+  }
+}

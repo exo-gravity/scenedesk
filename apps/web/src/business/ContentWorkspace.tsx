@@ -1,3 +1,4 @@
+import { ScriptDocumentReader } from "./ScriptDocumentReader";
 import { ProposalDetail, ProposalWorkspace } from "./ProposalWorkspace";
 import { SceneAssistant } from "./SceneAssistant";
 import { CreativeWorkspace } from "./CreativeWorkspace";
@@ -340,7 +341,7 @@ export function ContentWorkspace({
           title={scriptView ? "剧本与设定" : "场次"}
           description={
             scriptView
-              ? "写下故事，再将选定原文整理为场次中的镜头要求。"
+              ? "导入已确定的初稿，阅读固定版本，再带着原文进入视觉创作。"
               : "按单集组织场次，从这里进入每一场的制作。"
           }
           action={
@@ -673,7 +674,7 @@ export function ContentWorkspace({
               title={scriptView ? "剧本与设定" : "场次"}
               description={
                 scriptView
-                  ? "写下故事，再将选定原文整理为场次中的镜头要求。"
+                  ? "导入已确定的初稿，阅读固定版本，再带着原文进入视觉创作。"
                   : "按单集组织场次，从这里进入每一场的制作。"
               }
               action={
@@ -738,30 +739,25 @@ export function ContentWorkspace({
                 {(scriptOpening || scripts.isPending) && (
                   <Loader aria-label="正在读取已保存的剧本版本" />
                 )}
-                {scripts.data &&
-                  (active ? (
-                    <ScriptEditor
-                      key={scriptEpoch}
-                      presentation="document"
-                      tree={tree}
-                      scripts={scripts.data}
-                      path={path}
-                      initialHistoryId={!linkedShot ? linkedRevision : null}
-                      done={() => {
-                        setScriptOpening(true);
-                        // A successful write can precede query invalidation. Only reopen
-                        // the document after both saved roots have been read back.
-                        void Promise.all([content.refetch(), scripts.refetch()])
-                          .then(([nextContent, nextScripts]) => {
-                            if (!nextContent.isError && !nextScripts.isError)
-                              setScriptEpoch((epoch) => epoch + 1);
-                          })
-                          .finally(() => setScriptOpening(false));
-                      }}
-                    />
-                  ) : (
-                    <ScriptArchive scripts={scripts.data} />
-                  ))}
+                {scripts.data && (
+                  <ScriptDocumentReader
+                    key={scriptEpoch}
+                    tree={tree}
+                    scripts={scripts.data}
+                    path={path}
+                    active={active}
+                    initialHistoryId={!linkedShot ? linkedRevision : null}
+                    done={() => {
+                      setScriptOpening(true);
+                      void Promise.all([content.refetch(), scripts.refetch()])
+                        .then(([nextContent, nextScripts]) => {
+                          if (!nextContent.isError && !nextScripts.isError)
+                            setScriptEpoch((epoch) => epoch + 1);
+                        })
+                        .finally(() => setScriptOpening(false));
+                    }}
+                  />
+                )}
               </Tabs.Panel>
             </Tabs>
             <div className={layout.basis}>

@@ -8,7 +8,13 @@ import { requireThat, versionMatches } from "../../kernel/errors.js";
 export type Schema<T extends keyof components["schemas"]> =
   components["schemas"][T];
 export function contentRecord<T>(row: Record<string, unknown>): T {
-  const { tenant_id: _tenant, source_format: _format, ...values } = row;
+  const {
+    tenant_id: _tenant,
+    import_request_id: _request,
+    imported_by: _actor,
+    import_base_version: _base,
+    ...values
+  } = row;
   for (const [key, value] of Object.entries(values)) {
     if (value === null) delete values[key];
     else if (key === "position" || key === "number")
