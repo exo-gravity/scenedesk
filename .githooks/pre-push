@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# scenedesk 推送门禁:拦住"一个分支多轮推送"的常见来源。
+# 由 DSH 会话写入;要临时绕过用 SKIP_PREPUSH=1 git push ...;要卸载直接删除本文件。
+set -uo pipefail
+
+[ "${SKIP_PREPUSH:-0}" = 1 ] && exit 0
+
+remote="${1:-origin}"
+zero=0000000000000000000000000000000000000000
+blocked=0; warned=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue          # 删除分支的推送,不拦
+  branch="${remote_ref#refs/heads/}"
+  base="origin/main"
+  git rev-parse --verify -q "$base" >/dev/null || base="main"
+
+  # 只在本分支相对 main 领先时检查;已并入 main 的推送不产生新 CI 轮次
+  ahead=$(git rev-list --count "$base..$local_sha" 2>/dev/null || echo 0)
+  [ "$ahead" = 0 ] && continue
+
+  msgs=$(git log --format=%s "$base..$local_sha")
+
+  n_merge=$(printf '%s\n' "$msgs" | grep -cE "^Merge (remote-tracking )?branch 'origin/main'" || true)
+  n_docs=$(printf '%s\n' "$msgs" | grep -ciE '^(docs|chore)(\([^)]*\))?!?:.*(record|verif|preserv|refresh|track|accept|note)' || true)
+  n_plain=$(printf '%s\n' "$msgs" | grep -ciE '^(Record|Verify|Preserve|Refresh) ' || true)
+  n_rec=$((n_docs + n_plain))
+
+  if [ "$n_merge" -gt 0 ]; then
+    printf '\n\033[31m✗ 阻止推送 %s:%s\033[0m\n' "$remote" "$branch"
+    printf '  该分支含 %s 个 "Merge ... origin/main" 提交。\n' "$n_merge"
+    printf '  这类同步不需要:GitHub 的 PR 检查会自动用最新 base 重跑。\n'
+    printf '  改用 rebase,或直接删掉这些 merge 提交:\n'
+    printf '      git rebase origin/main\n\n'
+    blocked=$((blocked+1))
+  fi
+
+  if [ "$n_rec" -gt 0 ]; then
+    printf '\n\033[31m✗ 阻止推送 %s:%s\033[0m\n' "$remote" "$branch"
+    printf '  该分支含 %s 个只记录验证证据的提交(docs: record/verify ...)。\n' "$n_rec"
+    printf '  每个都会独立触发一整轮 CI(3 workflow + 3 次 docker build + 9 容器 smoke)。\n'
+    printf '  先折进所属的功能提交:\n'
+    printf '      git rebase -i origin/main      # 把这些提交标成 fixup\n\n'
+    blocked=$((blocked+1))
+  fi
+
+  if [ "$blocked" -eq 0 ] && [ "${ahead:-0}" -gt 1 ]; then
+    printf '\033[33m! 提示\033[0m %s 相对 %s 有 %s 个提交,推送后会各跑一轮 CI;确认本地已跑过 scenedesk-preflight.sh\n' \
+      "$branch" "$base" "$ahead"
+    warned=$((warned+1))
+  fi
+done
+
+if [ "$blocked" -gt 0 ]; then
+  printf '\033[31m共 %s 个分支被拦下。\033[0m临时绕过:SKIP_PREPUSH=1 git push ...\n' "$blocked"
+  exit 1
+fi
+[ "$warned" -gt 0 ] && printf '\033[33m提示: %s 个分支通过检查。\033[0m\n' "$warned"
+exit 0

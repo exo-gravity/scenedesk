@@ -1,43 +1,109 @@
-# Frontend implementation rules
+# 前端实施规则
 
-Shot viewer refinement (2026-09-17): the shot-list modal has a stable viewport-bounded size with no outer vertical scrolling. The left shot list scrolls independently; media fits the available right-side space and primary actions remain reachable. Loading or switching shots must not change the modal/list/focus geometry. Long descriptions, history, delivery manifests and editing forms use local expansion or scrolling; preserve per-shot identities, authorization failures, explicit adoption and draft retention.
+React + Vite + Mantine。业务页面在 `src/business/`;`src/pages/` 是设计原型,不是生产实现。
 
-Workspace shell follow-up (2026-09-16): authenticated workspace pages have no separate thin global brand/status header; keep the contextual breadcrumb or canvas toolbar. Account menus contain identity/environment labels, theme switching and sign-out only. Studio work/library navigation lives in the left rail; project pages return through 所有项目. Preserve the unauthenticated sign-in header.
+本文件不重复 `docs/design/` 里已确认的设计决策,只保留代码级规则和少量不可协商的底线。改界面之前先按「改动前先读」找到对应的设计文档。
 
-Latest refinement (2026-09-16): follow [approved canvas navigation and scene directory](../../docs/design/canvas-navigation-approved-2026-09-16.md). Script primary action is explicit selected-text-to-canvas; 分镜建议 is secondary. Both project and scene canvas retain the project sidebar; a shared canvas switcher owns scene creation and 场次目录. Remove the separate bottom 场次管理 entry. Preserve old links, fixed excerpts, guarded navigation and recovery. This supersedes older intermediate navigation placement, not business semantics.
+## 命令
 
-Latest direction and implementation authorization (2026-09-16): follow [creative workspace](../../docs/design/creative-workspace-approved-2026-09-16.md) and [eight-PR delivery plan](../../docs/implementation/70-creative-workspace-refactor.md). Project navigation is now `剧本`, `画布`, `项目资产` in a collapsible left sidebar; scene management is secondary. Build on real APIs and retain guarded navigation, drafts and fixed history. Replace the full storyboard workflow only after list/focus/compare/adoption are usable. During PR-1 the existing production workspace keeps its retention-aware shell; PR-2 integrates project canvas and guarded workspace navigation. This supersedes conflicting navigation/layout rules below, not their reliability or media semantics.
+**所有命令都在仓库根目录执行。** `apps/web` 下只有 `dev` / `build` / `preview` 三个脚本,在子目录里跑根脚本会直接报缺失;而且那里同名的 `npm run build` 只是 `vite build`,**不含类型检查**。
 
-Project navigation (user correction, 2026-09-15): show `剧本`, `场次`, `资产` in that exact order. The studio entry remains `资产库`.
+```sh
+npm run dev:business   # 完整本地工作台(需先 setup:business)
+npm run dev:web        # 只起 Web;业务接口不可用,只适合看设计原型
+npm run ui:check       # UI 规则检查,规则见「约定」
+npm run build          # 类型检查 + 生产构建
+npm run test:e2e       # 自己会先跑生产构建;另需回环的一次性 drama_e2e* 库与 Chromium
+```
 
-Unified library (user approval, 2026-09-15): use one visible `资产库` entry and direct content categories, with project/shared scope separate from category. Project-local assets and imported shared fixed revisions share the gallery; never derive an imported card from the current shared revision. Preserve legacy media links and upload recovery keys. See [accepted design](../../docs/design/unified-asset-library-2026-09-15.md) and [69](../../docs/implementation/69-unified-asset-library.md).
+## 代码地图
 
-Model selector refinement (user confirmation, 2026-09-15): preserve official English model names and versions. The assistant composer uses a compact content-width pill with a capability icon and caret, a subtle border, and a visible keyboard focus state. Menu rows separate model names from Chinese capability/status descriptions and use an accessible selected check. Local fixtures use English names such as `Local Demo`, with an explicit local-demo/no-real-model description; never rename a real provider model or change backend capability identities as a cosmetic fix.
+| 位置 | 职责 |
+|---|---|
+| `src/business/` | 业务页面、控制器、本机草稿恢复 |
+| `src/components/workspace/` | 共享工作区组件(`WorkspaceShell`、`MediaPlayer` …) |
+| `src/theme/tokens.ts` | 原始值,并导出 `--ws-*` 语义变量 |
+| `src/theme/theme.ts` | Mantine 主题与 CSS 变量解析 |
+| `src/pages/` | 设计原型,不是生产实现 |
+| `src/style.css` | legacy 层叠层,只用于迁移 |
 
-Latest assistant refinement (2026-09-15): use a light header, continuous conversation flow and one bottom composer. References and explicit quotes belong inside the input frame; model and necessary target options stay in its bottom row with attachment/task controls and send. Ordinary continuation has no permanent quote banner. Completed execution and applied differences expand on demand. Keep history, explicit tasks, fixed inputs and durable recovery; see [68](../../docs/implementation/68-assistant-conversation-sidebar.md).
+## 改动前先读
 
-Latest approved structure (2026-09-14): the user confirmed [the primary canvas design](../../docs/design/primary-canvas-approved-2026-09-14.md) and its full-screen mockup. Default scene entry is canvas; preserve the full storyboard mode. Center `画布 / 分镜` in the whole desktop header; place a compact episode/scene navigator at the left. Use one scene header, a narrow canvas tool rail, truly node-local creation, and the flush right conversation sidebar. Preserve mode/scene editing state and all durable execution/recovery semantics. This supersedes the v0.5 screen-overlay placement rule for node editing; the approved image is a layout reference, never permission to fabricate media or model results.
+| 要改 | 先读 |
+|---|---|
+| 导航、壳层、账户菜单 | `docs/design/canvas-navigation-approved-2026-09-16.md`、`docs/design/creative-workspace-approved-2026-09-16.md` |
+| 画布、场次工作区、模式切换 | `docs/design/creative-workspace-approved-2026-09-16.md`、`docs/design/primary-canvas-approved-2026-09-14.md` |
+| 助手侧栏、模型选择器 | `docs/implementation/68-assistant-conversation-sidebar.md` |
+| 镜头列表 | `docs/implementation/76-shot-list-workspace.md`、`80-shot-list-stable-viewer.md` |
+| 资产库 | `docs/design/unified-asset-library-2026-09-15.md`、`docs/implementation/69-unified-asset-library.md` |
+| 组件与视觉规范 | `docs/design/mantine-ui-agent-spec-v0.1.md`、`docs/design/shared-visual-language-v0.1.md` |
 
-Product naming (user correction, 2026-09-14): display the English brand `SceneDesk` (exact capitalization) by default, without a Chinese brand name. Apply this to navigation, entry pages and browser titles; business interface text remains Chinese.
+用户决定和场次 MVP 契约优先于任何设计文档。
 
-Latest correction (2026-09-14, during end-to-end review): the AI assistant must use a conversation-driven interface in a full-height, flush right sidebar, not a floating overlay or a capability-selection form. Opening this sidebar gives it layout space while preserving the canvas viewport and selection; this explicitly supersedes the v0.5 overlay rule for the assistant. Keep node editing contextual. User messages, actual suggestions and action confirmations must remain grounded in durable requests/results; do not simulate a conversation or silently execute model work.
+## 约定
 
-On 2026-09-14 the user accepted `docs/design/canvas-redesign-v0.5-2026-09-14.md` and authorized implementation. This supersedes the older common bottom editor and layout-consuming canvas dock: explicit contextual editing, a separate editing target, one overlay auxiliary panel, and same-session focus editing. Fixed attempts and editable drafts stay independent. Include real fixed canvas-node assistant context and guarded suggestion application; the design prototype is not production implementation.
+- **只用 Mantine** 作为通用 UI 库,不用 Tailwind 或第二套组件系统;图标用 Phosphor;允许 CSS Modules 与原生语义布局。
+- **原始值存 `src/theme/`**,组件里引用语义变量或 Mantine token:
 
-On 2026-09-13 the user explicitly requested further visual, information-architecture and interaction improvements on the existing foundation, with parallel design review and end-to-end implementation. This reopens the older phase-specific layout freeze below. Follow `docs/design/creative-experience-refinement-2026-09-13.md` for this refinement; retain the media-first workspace, fixed inputs, explicit execution and recovery semantics.
+```css
+/* 对:语义变量 + Mantine token */
+.panel {
+  gap: var(--mantine-spacing-md);
+  border: 1px solid var(--ws-border);
+  color: var(--ws-text);
+}
+```
 
-Latest user direction (2026-09-11): prioritize a usable private creative workspace. Post-production editing/rendering, full team management, public signup and operations are outside this MVP. Canvas and AI capabilities explicitly remain according to the original plan, including generation and result recovery; do not downgrade them to a lightweight board or text-only assistant. See `docs/implementation/38-first-release-scope-review.md`. Keep the approved visual language and core canvas/assistant experience; remove deferred post-production and operations navigation from the release flow. The user authorized implementation and merging verified features into GitHub. Follow `docs/implementation/22-implementation-progress.md` for actual delivery status; historical prototypes are not production persistence, and mock replies are not working AI.
+```css
+/* 错:写死原始值 —— ui:check 会判失败 */
+.panel {
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #1f2937;
+}
+```
 
-Reuse the accepted shared visual language and current core workspace samples. The older root Mantine theme and the newer isolated study palette coexist; do not treat the older warm-accent sample as the current brand requirement or claim full migration is complete.
+- **`npm run ui:check` 的硬规则**(不通过就失败,范围是 `src/business/`、`src/components/workspace/` 与 8 个指定页面文件):
+  - 出现原始颜色字面量(`#hex`、`rgb()`、`hsl()`)或原始 `font-size:` / `border-radius:` 数值
+  - 使用原生 `<button>` / `<input>` / `<select>` / `<textarea>` 而不走 Mantine
+  - 引入未批准的依赖或导入
+  - 文本对比度低于 4.5:1,或字段边框／焦点低于 3:1
+  - `index.html` 没有在抽取的第三方 CSS 之前声明 `@layer legacy, mantine;`
+- **先复用** `src/theme/` 与 `src/components/workspace/`;共享变体加到它归属的定义和样例页,再在页面里组合。新页面直接用 Mantine;`components/ui.tsx` 适配器供较旧页面使用。
+- **不要把旧的暖色调样例当作当前品牌要求。**
+- 业务界面文案用中文;品牌显示英文 `SceneDesk`。
+- `WorkspaceShell` 拥有的是布局偏好,**不是生产事实**。
+- 设计样例页只在显式开关下可达:`VITE_ENABLE_DESIGN_PREVIEWS=true npm run dev:web`,否则任何路由都渲染业务应用。
 
-The shared visual language in `docs/design/shared-visual-language-v0.1.md` is user-approved: media first, light framing, compact global tools with comfortable local editing, contextual tools, differentiated surfaces/shapes, and restrained color. The v0.3 core workspace, navigation relationships and continuous scene workflow were explicitly accepted on 2026-09-10; see `docs/design/approved-baseline-2026-09-10.md`. Reuse the current visual samples; do not reopen the accepted layout or assume unseen branding decisions are approved. The user also reported no issues for now with the v0.4 specialty studies; treat them as a provisional design baseline, open to later revision. Those historical design approvals are separate from the later implementation authorization stated above.
+## 已知坑
 
-- Before changing UI, read `docs/design/approved-baseline-2026-09-10.md`, `docs/design/mantine-ui-agent-spec-v0.1.md` and the relevant current v0.3/v0.4 design. `mantine-visual-sample-v0.2.md` is a historical component implementation record. User decisions and the scene MVP contract take precedence.
-- Use Mantine as the sole general UI library. No Tailwind or second general component system. Keep Phosphor icons; native semantic layout/media and CSS Modules are allowed.
-- Reuse `src/theme/` and `src/components/workspace/` first. Add shared variants to their owning definition and the `#/design/` sample, then compose them in pages. New migrated pages use Mantine directly; `components/ui.tsx` adapters exist for older pages.
-- Store raw colors/type/radius/shadow in the theme, reference semantic CSS variables or Mantine tokens in components. Dynamic media geometry and layout calculations are allowed. Do not remove focus rings, change media colors to indicate selection, or patch library sources.
-- Selection, adoption, actual cut use and fixed-version approval are separate facts. A generation result does not auto-adopt or replace a cut. Unknown submission never becomes an automatic paid retry.
-- `WorkspaceShell` owns layout preferences, not production facts. Do not introduce React Flow/NodeShell or pick a new player library as part of styling work; consult component-selection status.
-- Run `npm run ui:check`, the appropriate build/behavior checks, and inspect changed pages in a browser. A screenshot baseline update needs inspection, not blind regeneration. Report prototype limitations honestly.
-- Keep the early CSS layer declaration in `index.html`; production extraction can otherwise let legacy styles override Mantine. Check actual paint in the built app after stylesheet changes.
-- Migration is incremental: `style.css` is isolated in the `legacy` cascade layer. Do not add new page-specific rules there; new work belongs in scoped styles and the shared theme.
+- 保留 `index.html` 里提前声明的 CSS layer,否则生产构建的样式抽取会让 legacy 样式盖住 Mantine。
+- 样式改动后要看**生产构建**的实际绘制结果,不要只看开发服务器。
+- 截图基线更新必须人工检查,不能盲目重新生成。
+- `style.css` 在 `legacy` 层,新规则不要加进去。
+- 不要改库源码来绕过样式问题。
+
+## 边界
+
+### ✅ 总是
+
+- 跑 `npm run ui:check`、相应构建与行为检查,并在浏览器里看被改动的页面。
+- 保留逐镜头身份、授权失败、明确采用和草稿保留。
+- 让用户消息、建议和操作确认来自持久的请求／结果。
+- 如实报告原型局限,不要把原型当成生产实现。
+
+### ⚠️ 先问
+
+- 改已确认的布局或导航。
+- 更换画布引擎(现用 React Flow / `@xyflow/react`)或更换播放器库。
+- 改共享组件的对外样式契约。
+
+### 🚫 绝不
+
+- 移除焦点环,或用媒体颜色表示选中状态(两者都被 `ui:check` 拦截)。
+- 为外观修正而重命名真实供应商模型,或改动后端能力标识。
+- 让生成结果自动采用或替换某个成片 —— 领域事实的区分以根 `AGENTS.md` 为准。
+- 模拟对话,或静默执行模型工作。
+- 从当前共享修订推导已引入的卡片。
+- 让加载或切换镜头改变弹窗、列表或焦点的几何尺寸。
