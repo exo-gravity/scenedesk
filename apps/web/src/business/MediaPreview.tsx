@@ -38,11 +38,13 @@ export function MediaPreview({
   path,
   thumbnail = false,
   range,
+  fit = false,
 }: {
   media: Schema<"Media">;
   path: string;
   thumbnail?: boolean;
   range?: Schema<"Range"> | undefined;
+  fit?: boolean;
 }) {
   const session = useSession(),
     [playbackError, setPlaybackError] = useState(false),
@@ -64,7 +66,7 @@ export function MediaPreview({
       : preferredVariant;
   const previewClass = thumbnail
     ? classes.thumbnail
-    : `${classes.viewport}${media.kind === "audio" ? ` ${classes.audioViewport}` : ""}`;
+    : `${classes.viewport}${media.kind === "audio" ? ` ${classes.audioViewport}` : ""}${fit ? ` ${classes.fittedViewport}` : ""}`;
   const enabled =
     ["ready", "archived"].includes(media.status) &&
     (variant === "original" || derivative?.status === "ready") &&
@@ -176,6 +178,7 @@ export function MediaPreview({
             src={access.data.url}
             title={`${media.displayName} · ${variant === "original" ? (media.kind === "audio" ? "原音频预览" : "原片预览") : "代理预览"}`}
             audio={media.kind === "audio"}
+            fit={fit}
             range={range}
             onError={failed}
             resumeAt={time.current}

@@ -1,5 +1,7 @@
 # Frontend implementation rules
 
+Shot viewer refinement (2026-09-17): the shot-list modal has a stable viewport-bounded size with no outer vertical scrolling. The left shot list scrolls independently; media fits the available right-side space and primary actions remain reachable. Loading or switching shots must not change the modal/list/focus geometry. Long descriptions, history, delivery manifests and editing forms use local expansion or scrolling; preserve per-shot identities, authorization failures, explicit adoption and draft retention.
+
 Workspace shell follow-up (2026-09-16): authenticated workspace pages have no separate thin global brand/status header; keep the contextual breadcrumb or canvas toolbar. Account menus contain identity/environment labels, theme switching and sign-out only. Studio work/library navigation lives in the left rail; project pages return through 所有项目. Preserve the unauthenticated sign-in header.
 
 Latest refinement (2026-09-16): follow [approved canvas navigation and scene directory](../../docs/design/canvas-navigation-approved-2026-09-16.md). Script primary action is explicit selected-text-to-canvas; 分镜建议 is secondary. Both project and scene canvas retain the project sidebar; a shared canvas switcher owns scene creation and 场次目录. Remove the separate bottom 场次管理 entry. Preserve old links, fixed excerpts, guarded navigation and recovery. This supersedes older intermediate navigation placement, not business semantics.

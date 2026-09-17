@@ -1,0 +1,61 @@
+
+Running 1 test using 1 worker
+
+(node:95123) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/e2e/shot-list.spec.ts:28:1 › CW-13: switching shots keeps the viewer still through loading and confines scrolling to its panels (3.2s)
+
+
+  1) tests/e2e/shot-list.spec.ts:28:1 › CW-13: switching shots keeps the viewer still through loading and confines scrolling to its panels
+
+    Error: dialog, list and focus bounds must not collapse while the next shot loads
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 6
+    + Received  + 6
+
+      Array [
+        Array [
+          68,
+    -     38,
+    +     53,
+          1229,
+    -     691,
+    +     662,
+        ],
+        Array [
+          93,
+    -     227,
+    +     242,
+          260,
+    -     696,
+    +     440,
+        ],
+        Array [
+          377,
+    -     227,
+    +     242,
+          895,
+    -     696,
+    +     440,
+        ],
+      ]
+
+      61 |       body: JSON.stringify({ before, during }), contentType: "application/json",
+      62 |     });
+    > 63 |     expect(during, "dialog, list and focus bounds must not collapse while the next shot loads").toEqual(before);
+         |                                                                                                 ^
+      64 |     await expect(focus.locator("video")).toHaveCount(0);
+      65 |   } finally { release(); }
+      66 |   await expect(focus.getByRole("heading", { name: "02 阅读", exact: true })).toBeVisible();
+        at /Users/gandy/beyondgravity/scenedesk/tests/e2e/shot-list.spec.ts:63:97
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    output/playwright/2026-09-17-shot-layout-94304/results/shot-list-CW-13-switching--7f6c0-nes-scrolling-to-its-panels/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: output/playwright/2026-09-17-shot-layout-94304/results/shot-list-CW-13-switching--7f6c0-nes-scrolling-to-its-panels/error-context.md
+
+  1 failed
+    tests/e2e/shot-list.spec.ts:28:1 › CW-13: switching shots keeps the viewer still through loading and confines scrolling to its panels

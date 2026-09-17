@@ -29,6 +29,7 @@ export default function MediaPlayer({
   resumeAt = 0,
   onTime,
   range,
+  fit = false,
 }: {
   src: string;
   title: string;
@@ -37,6 +38,7 @@ export default function MediaPlayer({
   resumeAt?: number;
   onTime: (time: number) => void;
   range?: { inUs: number; outUs: number } | undefined;
+  fit?: boolean;
 }) {
   const media = useRef<HTMLVideoElement | null>(null);
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function MediaPlayer({
   }, [src]);
   return (
     <MediaController
-      className={classes.player}
+      className={`${classes.player}${fit ? ` ${classes.fitted}` : ""}`}
       audio={audio}
       lang="zh-CN"
       aria-label={title}
