@@ -42,6 +42,21 @@
   border-bottom: 1px solid var(--ws-border);
   flex-wrap: wrap;
 }
+/* 九个分类在窄屏不再折成多行：保持单行横向滚动，视图行的高度稳定。
+   overflow 会把焦点环裁掉（outline-offset 让环落在滚动容器之外），
+   所以在同一断点内把环改画在控件内。 */
+@media (max-width: 900px) {
+  .categories {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--mantine-spacing-md);
+    scrollbar-width: thin;
+  }
+  .category[data-divider] {
+    margin-left: var(--mantine-spacing-md);
+    padding-left: var(--mantine-spacing-md);
+  }
+}
 .category {
   display: flex;
   align-items: center;
@@ -68,14 +83,12 @@
   outline: 2px solid var(--ws-focus);
   outline-offset: 3px;
 }
-.more {
-  align-self: center;
-  color: var(--ws-secondary);
-  margin-bottom: var(--mantine-spacing-xs);
-}
-.more[data-active] {
-  color: var(--ws-text);
-  font-weight: 600;
+/* 与上一条同样特异性，必须放在其后才能覆盖。
+   窄屏分类行是横向滚动容器，向外偏移的焦点环会被裁掉，改为画在控件内。 */
+@media (max-width: 900px) {
+  .category:focus-visible {
+    outline-offset: -2px;
+  }
 }
 .searchTools {
   display: flex;

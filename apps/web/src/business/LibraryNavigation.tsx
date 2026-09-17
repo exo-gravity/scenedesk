@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import {
   Button,
   Group,
@@ -23,16 +23,23 @@ import {
 } from "@phosphor-icons/react";
 import classes from "./asset-library.module.css";
 
+/**
+ * 顺序即分组，两组对应契约里的两个 kind 枚举：
+ *   设定资产 { character, location, prop, voice, style }
+ *   媒体素材 { image, video, audio, document }
+ * 「声音设定」是资产类别，不是媒体格式，必须与角色／场景／道具／风格同组。
+ * 组内顺序沿用改动前的相对次序，未逐一照搬枚举的书写顺序。
+ */
 export const libraryCategories = [
   { value: "character", label: "角色", Icon: User },
   { value: "location", label: "场景", Icon: Mountains },
   { value: "prop", label: "道具", Icon: Cube },
   { value: "style", label: "风格", Icon: Palette },
+  { value: "voice", label: "声音设定", Icon: UserSound },
   { value: "image", label: "图片", Icon: ImageSquare },
   { value: "video", label: "视频", Icon: FilmStrip },
   { value: "audio", label: "音频", Icon: Waveform },
   { value: "document", label: "文本", Icon: FileText },
-  { value: "voice", label: "声音设定", Icon: UserSound },
 ] as const;
 export type LibraryCategory = (typeof libraryCategories)[number]["value"];
 export type LibraryLocation = {
@@ -65,6 +72,19 @@ export function LibraryNavigation({
   const selected = libraryCategories.find(
     (item) => item.value === library.category,
   )!;
+  const categories = useRef<HTMLElement | null>(null);
+  // 窄屏的分类行是横向滚动容器：选中的分类可能在视野外。
+  // 只调整该容器自身的 scrollLeft，不触发页面滚动。
+  useEffect(() => {
+    const nav = categories.current,
+      active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !active) return;
+    const left = active.offsetLeft,
+      right = left + active.offsetWidth;
+    if (left < nav.scrollLeft) nav.scrollLeft = Math.max(0, left - 8);
+    else if (right > nav.scrollLeft + nav.clientWidth)
+      nav.scrollLeft = right - nav.clientWidth + 8;
+  }, [library.category]);
   return (
     <header className={classes.header}>
       <div className={classes.heading}>
@@ -116,8 +136,12 @@ export function LibraryNavigation({
           : "在工作室的不同项目中复用"}
       </Text>
       <div className={classes.tools}>
-        <nav className={classes.categories} aria-label="资产库分类">
-          {libraryCategories.slice(0, 7).map(({ value, label, Icon }) => (
+        <nav
+          ref={categories}
+          className={classes.categories}
+          aria-label="资产库分类"
+        >
+          {libraryCategories.map(({ value, label, Icon }) => (
             <UnstyledButton
               component="a"
               key={value}
@@ -130,37 +154,6 @@ export function LibraryNavigation({
               <span>{label}</span>
             </UnstyledButton>
           ))}
-          <Menu position="bottom-end">
-            <Menu.Target>
-              <Button
-                variant="subtle"
-                className={classes.more}
-                data-active={
-                  ["document", "voice"].includes(library.category) || undefined
-                }
-                rightSection={<CaretDown size={13} />}
-              >
-                {["document", "voice"].includes(library.category)
-                  ? selected.label
-                  : "更多"}
-              </Button>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {libraryCategories.slice(7).map(({ value, label, Icon }) => (
-                <Menu.Item
-                  key={value}
-                  component="a"
-                  href={library.href({ type: value })}
-                  leftSection={<Icon size={16} />}
-                  rightSection={
-                    library.category === value ? <Check size={15} /> : undefined
-                  }
-                >
-                  {label}
-                </Menu.Item>
-              ))}
-            </Menu.Dropdown>
-          </Menu>
         </nav>
         <div className={classes.searchTools}>
           <TextInput
