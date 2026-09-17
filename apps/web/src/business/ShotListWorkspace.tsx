@@ -6,7 +6,6 @@ import {
   Loader,
   Modal,
   Select,
-  Stack,
   Text,
 } from "@mantine/core";
 import { ListNumbers, Plus } from "@phosphor-icons/react";
@@ -101,8 +100,13 @@ export function ShotListLauncher({
         opened={opened}
         onClose={() => void transition(() => setOpened(false))}
         title="镜头列表"
-        size="calc(100vw - 48px)"
-        classNames={{ body: classes.modalBody }}
+        size="min(1320px, calc(100vw - 48px))"
+        centered
+        classNames={{
+          content: classes.modalContent,
+          header: classes.modalHeader,
+          body: classes.modalBody,
+        }}
       >
         {error && <Text role="alert">{error.message}</Text>}
         <ContentDraftRetention.Provider value={register}>
@@ -175,8 +179,8 @@ function ShotListWorkspace({
     scene?.status === "active" &&
     episode?.status === "active";
   return (
-    <Stack gap="md">
-      <Group justify="space-between" align="end">
+    <div className={classes.panel}>
+      <Group justify="space-between" align="end" className={classes.toolbar}>
         <Select
           label="查看场次"
           value={scene?.id ?? null}
@@ -216,15 +220,6 @@ function ShotListWorkspace({
           </Button>
         </Group>
       </Group>
-      {scene && (
-        <SelectedDelivery
-          key={scene.id}
-          path={path}
-          sceneId={scene.id}
-          active={!!active}
-          transition={transition}
-        />
-      )}
       {!scene ? (
         <Alert title="先确定镜头所属场次">
           画布可以独立创作。整理镜头时，可关闭列表，在左上角的画布切换菜单中新增场次，再回到这里。
@@ -236,22 +231,8 @@ function ShotListWorkspace({
               此项目或场次已归档，可查看固定候选及下载已选用原片；恢复后再整理。
             </Alert>
           )}
-          {creating && active ? (
-            <StructureEditor
-              key={scene.id}
-              editing={{ kind: "shot", parentId: scene.id }}
-              tree={tree}
-              path={path}
-              scripts={[]}
-              done={() =>
-                void transition(() => {
-                  setCreating(false);
-                  void content.refetch();
-                })
-              }
-            />
-          ) : (
-            <div className={classes.workspace}>
+          <div className={classes.workspace}>
+            <aside className={classes.sidebar} aria-label="本场镜头">
               <SceneShotOrder
                 key={scene.id}
                 path={path}
@@ -260,29 +241,59 @@ function ShotListWorkspace({
                 shots={shots}
                 selectedId={shot?.id}
                 active={!!active}
-                onSelect={(id) => void transition(() => setShotId(id))}
+                onSelect={(id) =>
+                  void transition(() => {
+                    setShotId(id);
+                    setCreating(false);
+                  })
+                }
               />
-              <section className={classes.focus} aria-label="镜头专注预览">
-                {shot ? (
-                  <ShotResultFocus
-                    key={shot.id}
-                    shot={shot}
+              <div className={classes.delivery}>
+                <SelectedDelivery
+                  key={scene.id}
+                  path={path}
+                  sceneId={scene.id}
+                  active={!!active}
+                  transition={transition}
+                />
+              </div>
+            </aside>
+            <section className={classes.focus} aria-label="镜头专注预览">
+              {creating && active ? (
+                <div className={classes.editorScroll}>
+                  <StructureEditor
+                    key={scene.id}
+                    editing={{ kind: "shot", parentId: scene.id }}
+                    tree={tree}
                     path={path}
-                    mediaPath={mediaPath}
-                    active={!!active && shot.status === "active"}
-                    sourceMediaId={sourceMediaId}
-                    transition={transition}
+                    scripts={[]}
+                    done={() =>
+                      void transition(() => {
+                        setCreating(false);
+                        void content.refetch();
+                      })
+                    }
                   />
-                ) : (
-                  <Text c="dimmed">
-                    本场暂无镜头。可以先创建镜头，再把画布中的视频登记为候选。
-                  </Text>
-                )}
-              </section>
-            </div>
-          )}
+                </div>
+              ) : shot ? (
+                <ShotResultFocus
+                  key={shot.id}
+                  shot={shot}
+                  path={path}
+                  mediaPath={mediaPath}
+                  active={!!active && shot.status === "active"}
+                  sourceMediaId={sourceMediaId}
+                  transition={transition}
+                />
+              ) : (
+                <Text c="dimmed">
+                  本场暂无镜头。可以先创建镜头，再把画布中的视频登记为候选。
+                </Text>
+              )}
+            </section>
+          </div>
         </>
       )}
-    </Stack>
+    </div>
   );
 }

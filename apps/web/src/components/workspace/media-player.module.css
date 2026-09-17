@@ -18,3 +18,10 @@
 .controls {
   width: 100%;
 }
+.fitted {
+  height: 100%;
+}
+.fitted .video {
+  height: 100%;
+  max-height: 100%;
+}

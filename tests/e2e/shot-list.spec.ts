@@ -25,6 +25,162 @@ const test = base.extend({
   ],
 });
 
+test("CW-13: switching shots keeps the viewer still through loading and confines scrolling to its panels", async ({
+  page,
+  workspace: w,
+}, info) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  const seeded = await seedShotList(w);
+  await page.goto(`${w.runtime.origin}${w.basePath}/canvas`);
+  await page.getByRole("button", { name: "镜头列表", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "镜头列表", exact: true });
+  const focus = dialog.getByRole("region", { name: "镜头专注预览" });
+  const order = dialog.getByRole("navigation", { name: "镜头顺序" });
+  await expect
+    .poll(() =>
+      dialog
+        .locator("video")
+        .evaluateAll(
+          (nodes) =>
+            nodes.length === 1 &&
+            (nodes[0] as HTMLVideoElement).readyState >= 2,
+        ),
+    )
+    .toBe(true);
+  const geometry = async () =>
+    Promise.all(
+      [dialog, order, focus].map((area) =>
+        area.evaluate((node) => {
+          const { x, y, width, height } = node.getBoundingClientRect();
+          return [x, y, width, height].map(Math.round);
+        }),
+      ),
+    );
+  const before = await geometry();
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(
+    `**${w.path}/takes?shotId=${seeded.second.id}*`,
+    async (route) => {
+      const response = await route.fetch();
+      await held;
+      await route.fulfill({ response });
+    },
+    { times: 1 },
+  );
+  try {
+    await order.getByRole("button", { name: /^2\. 02 阅读/ }).click();
+    await expect(
+      dialog.getByLabel("正在读取镜头候选", { exact: true }),
+    ).toBeVisible();
+    const during = await geometry();
+    await info.attach("shot-switch-geometry", {
+      body: JSON.stringify({ before, during }),
+      contentType: "application/json",
+    });
+    expect(
+      during,
+      "dialog, list and focus bounds must not collapse while the next shot loads",
+    ).toEqual(before);
+    await expect(focus.locator("video")).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(
+    focus.getByRole("heading", { name: "02 阅读", exact: true }),
+  ).toBeVisible();
+  expect(await geometry()).toEqual(before);
+  await order.getByRole("button", { name: /^1\. 01 推门/ }).click();
+  await expect(focus.locator("video")).toHaveCount(1);
+  expect(await geometry()).toEqual(before);
+  // A long real shot list scrolls independently; neither the preview nor the
+  // enclosing modal moves as a consequence of reaching the last row.
+  for (let index = 4; index <= 12; index++) {
+    await w.command(
+      "POST",
+      `${w.path}/shots`,
+      {
+        sceneId: w.scene.id,
+        label: `${index} 延续镜头`,
+        position: index - 1,
+        status: "active",
+        spec: { intent: "可滚动列表中的完整镜头说明。", references: [] },
+      },
+      (await w.content()).revision,
+    );
+  }
+  await dialog.getByRole("button", { name: "刷新列表", exact: true }).click();
+  await expect(
+    order.getByRole("button", { name: /^12\. 12 延续镜头/ }),
+  ).toHaveCount(1);
+  expect(
+    await order.evaluate((node) => node.scrollHeight > node.clientHeight),
+  ).toBe(true);
+  await order.hover();
+  await page.mouse.wheel(0, 1200);
+  await expect
+    .poll(() => order.evaluate((node) => node.scrollTop))
+    .toBeGreaterThan(0);
+  expect(await geometry()).toEqual(before);
+  expect(await dialog.evaluate((node) => node.scrollTop)).toBe(0);
+  for (const viewport of [
+    { width: 1366, height: 768 },
+    { width: 820, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect
+      .poll(() =>
+        dialog.evaluate((node) => {
+          const box = node.getBoundingClientRect();
+          return (
+            box.top >= 0 &&
+            box.bottom <= innerHeight &&
+            box.left >= 0 &&
+            box.right <= innerWidth &&
+            node.scrollHeight <= node.clientHeight + 1 &&
+            node.scrollWidth <= node.clientWidth + 1
+          );
+        }),
+      )
+      .toBe(true);
+    await expect(
+      dialog.getByRole("button", { name: "选用当前预览…", exact: true }),
+    ).toBeInViewport();
+    await expect(
+      dialog.getByRole("button", { name: "关闭弹窗", exact: true }),
+    ).toBeInViewport();
+    await dialog
+      .getByRole("button", { name: "选用当前预览…", exact: true })
+      .click();
+    const restore = dialog.getByRole("button", {
+      name: "恢复未提交内容",
+      exact: true,
+    });
+    if (viewport.width !== 1366) {
+      await expect(restore).toBeVisible();
+      await restore.click();
+      await expect(
+        dialog.getByRole("textbox", { name: "采用理由（可选）", exact: true }),
+      ).toHaveValue(`保留草稿 ${viewport.width === 820 ? 1366 : 820}`);
+    }
+    await dialog
+      .getByRole("textbox", { name: "采用理由（可选）", exact: true })
+      .fill(`保留草稿 ${viewport.width}`);
+    await expect(
+      dialog.getByRole("button", { name: "确认采用", exact: true }),
+    ).toBeInViewport();
+    await dialog.getByRole("button", { name: "暂不操作", exact: true }).click();
+    await expect(focus.locator("video")).toHaveCount(1);
+    await page.screenshot({
+      path: info.outputPath(`shot-viewer-${viewport.width}.png`),
+      animations: "disabled",
+    });
+  }
+});
+
 test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly select, reorder and download the exact original", async ({
   page,
   workspace: w,

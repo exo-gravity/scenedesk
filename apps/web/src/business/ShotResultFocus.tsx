@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  Badge,
-  Button,
-  Group,
-  Loader,
-  Select,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Badge, Button, Group, Loader, Select, Text } from "@mantine/core";
 import { DownloadSimple } from "@phosphor-icons/react";
 import { api, useList, useResource, useSession, type Schema } from "./api";
 import { ErrorNotice } from "./common";
@@ -58,7 +50,17 @@ export function ShotResultFocus({
       />
     );
   if (!takes.data || !selection.data || !history.data)
-    return <Loader aria-label="正在读取镜头候选" />;
+    return (
+      <div className={classes.focusContent}>
+        <ShotHeading shot={shot} />
+        <div className={classes.previewLoading}>
+          <Loader size="sm" aria-label="正在读取镜头候选" />
+          <Text size="sm" c="dimmed">
+            正在读取镜头候选
+          </Text>
+        </div>
+      </div>
+    );
   const current = selection.data.currentSelection;
   const take =
     takes.data.find((t) => t.id === focused) ??
@@ -67,20 +69,8 @@ export function ShotResultFocus({
   const other = takes.data.find((t) => t.id === compared && t.id !== take?.id);
   const fixedShot = { ...shot, revision: selection.data.revision };
   return (
-    <Stack gap="md">
-      <Group justify="space-between">
-        <div>
-          <Text component="h2" className={classes.heading}>
-            {shot.label}
-          </Text>
-          <Text size="sm" c="dimmed">
-            {shot.spec.intent}
-          </Text>
-        </div>
-        <Badge variant="light">
-          {current?.takeId ? "已有明确选用" : "尚未选用"}
-        </Badge>
-      </Group>
+    <div className={classes.focusContent}>
+      <ShotHeading shot={shot} selected={!!current?.takeId} />
       {sourceMediaId && (
         <>
           <ErrorNotice error={source.error} />
@@ -106,30 +96,46 @@ export function ShotResultFocus({
           )}
         </>
       )}
-      {adding && source.data?.kind === "video" && !source.error ? (
-        <CandidateEditor
-          presentation="list"
-          path={path}
-          mediaPath={mediaPath}
-          shot={shot}
-          media={source.data}
-          active={active}
-          onClose={() => void transition(() => setAdding(false))}
-          onCreated={(value) => {
-            setFocused(value.id);
-            setAdding(false);
-            void takes.refetch();
-          }}
-        />
+      {decision ? (
+        <section className={classes.localEditor} aria-label="确认镜头选用">
+          <SelectionEditor
+            presentation="list"
+            key={decision.take?.id ?? "clear"}
+            path={path}
+            shot={fixedShot}
+            take={decision.take}
+            active={active}
+            onClose={() => void transition(() => setDecision(undefined))}
+          />
+        </section>
+      ) : adding && source.data?.kind === "video" && !source.error ? (
+        <div className={classes.localEditor}>
+          <CandidateEditor
+            presentation="list"
+            path={path}
+            mediaPath={mediaPath}
+            shot={shot}
+            media={source.data}
+            active={active}
+            onClose={() => void transition(() => setAdding(false))}
+            onCreated={(value) => {
+              setFocused(value.id);
+              setAdding(false);
+              void takes.refetch();
+            }}
+          />
+        </div>
       ) : (
         <>
           {!take ? (
-            <Text c="dimmed">
-              暂无视频候选。在画布选中原文件可用的视频后打开镜头列表，可登记为候选。
-            </Text>
+            <div className={classes.previewLoading}>
+              <Text c="dimmed">
+                暂无视频候选。在画布选中原文件可用的视频后打开镜头列表，可登记为候选。
+              </Text>
+            </div>
           ) : (
             <>
-              <Group grow align="start">
+              <Group grow align="start" className={classes.candidateControls}>
                 <Select
                   label="预览候选"
                   value={take.id}
@@ -177,72 +183,105 @@ export function ShotResultFocus({
                   />
                 )}
               </div>
-              <Group>
-                <Button
-                  disabled={
-                    !active ||
-                    take.id === current?.takeId ||
-                    take.shotRevisionId !== shot.specRevisionId
-                  }
-                  onClick={() =>
-                    void transition(() =>
-                      setDecision({ take: structuredClone(take) }),
-                    )
-                  }
-                >
-                  选用当前预览…
-                </Button>
-                {current?.takeId && (
-                  <Button
-                    variant="subtle"
-                    disabled={!active}
-                    onClick={() => void transition(() => setDecision({}))}
-                  >
-                    清除选用…
-                  </Button>
-                )}
-              </Group>
-              {take.shotRevisionId !== shot.specRevisionId && (
-                <Text size="xs" c="dimmed">
-                  候选保留原镜头要求。请在原候选工作区核对沿用后再选用。
-                </Text>
-              )}
             </>
           )}
-          {decision && (
-            <section className={classes.confirmation} aria-label="确认镜头选用">
-              <SelectionEditor
-                presentation="list"
-                key={decision.take?.id ?? "clear"}
-                path={path}
-                shot={fixedShot}
-                take={decision.take}
-                active={active}
-                onClose={() => void transition(() => setDecision(undefined))}
-              />
-            </section>
-          )}
-          {current?.takeId && (
-            <SelectedDownload
-              key={current.id}
-              path={path}
-              shot={shot}
-              selectionId={current.id}
-            />
-          )}
-          <details>
-            <summary>选用历史（{history.data.length}）</summary>
-            {history.data.map((item) => (
-              <Text size="xs" key={item.id}>
-                第 {item.number} 次 ·{" "}
-                {item.takeId ? `候选 ${item.takeId.slice(0, 8)}` : "清除选用"}
-                {item.reason ? ` · ${item.reason}` : ""}
+          <div className={classes.focusFooter}>
+            <Group gap="xs">
+              {take && (
+                <>
+                  <Button
+                    disabled={
+                      !active ||
+                      take.id === current?.takeId ||
+                      take.shotRevisionId !== shot.specRevisionId
+                    }
+                    onClick={() =>
+                      void transition(() =>
+                        setDecision({ take: structuredClone(take) }),
+                      )
+                    }
+                  >
+                    选用当前预览…
+                  </Button>
+                  {current?.takeId && (
+                    <Button
+                      variant="subtle"
+                      disabled={!active}
+                      onClick={() => void transition(() => setDecision({}))}
+                    >
+                      清除选用…
+                    </Button>
+                  )}
+                </>
+              )}
+              {current?.takeId && (
+                <SelectedDownload
+                  key={current.id}
+                  path={path}
+                  shot={shot}
+                  selectionId={current.id}
+                />
+              )}
+            </Group>
+            {take && take.shotRevisionId !== shot.specRevisionId && (
+              <Text size="xs" c="dimmed">
+                候选保留原镜头要求。请在原候选工作区核对沿用后再选用。
               </Text>
-            ))}
-          </details>
+            )}
+            <details className={classes.history}>
+              <summary>选用历史（{history.data.length}）</summary>
+              <div className={classes.historyPanel}>
+                {history.data.length === 0 && (
+                  <Text size="xs" c="dimmed">
+                    尚无选用记录
+                  </Text>
+                )}
+                {history.data.map((item) => (
+                  <Text size="xs" key={item.id}>
+                    第 {item.number} 次 ·{" "}
+                    {item.takeId
+                      ? `候选 ${item.takeId.slice(0, 8)}`
+                      : "清除选用"}
+                    {item.reason ? ` · ${item.reason}` : ""}
+                  </Text>
+                ))}
+              </div>
+            </details>
+          </div>
         </>
       )}
-    </Stack>
+    </div>
+  );
+}
+
+function ShotHeading({
+  shot,
+  selected,
+}: {
+  shot: Schema<"Shot">;
+  selected?: boolean;
+}) {
+  return (
+    <Group
+      justify="space-between"
+      wrap="nowrap"
+      className={classes.shotHeading}
+    >
+      <div className={classes.shotTitle}>
+        <Text component="h2" className={classes.heading}>
+          {shot.label}
+        </Text>
+        <details className={classes.intent}>
+          <summary>{shot.spec.intent || "暂无镜头说明"}</summary>
+          <div className={classes.intentPanel}>
+            {shot.spec.intent || "暂无镜头说明"}
+          </div>
+        </details>
+      </div>
+      {selected !== undefined && (
+        <Badge variant="light">{selected ? "已有明确选用" : "尚未选用"}</Badge>
+      )}
+    </Group>
   );
 }
 
@@ -263,19 +302,31 @@ function FixedTakePreview({
   );
   if (media.isError || revision.isError)
     return <ErrorNotice error={media.error ?? revision.error} />;
-  if (!media.data || !revision.data)
-    return <Loader aria-label="正在读取固定候选" />;
   return (
-    <Stack gap="xs">
-      <MediaPreview media={media.data} path={mediaPath} range={take.range} />
-      <Text size="xs">
+    <div className={classes.fixedPreview}>
+      <div className={classes.mediaFrame}>
+        {!media.data || !revision.data ? (
+          <Loader size="sm" aria-label="正在读取固定候选" />
+        ) : (
+          <MediaPreview
+            media={media.data}
+            path={mediaPath}
+            range={take.range}
+            fit
+          />
+        )}
+      </div>
+      <Text size="xs" className={classes.range}>
         片段 {sourceSeconds(take.range.inUs)}–{sourceSeconds(take.range.outUs)}{" "}
         秒
       </Text>
-      <Text size="xs" c="dimmed">
-        {take.note || revision.data.spec.intent}
-      </Text>
-    </Stack>
+      <details className={classes.takeNote}>
+        <summary>候选说明</summary>
+        <div className={classes.notePanel}>
+          {take.note || revision.data?.spec.intent || "暂无说明"}
+        </div>
+      </details>
+    </div>
   );
 }
 
@@ -293,9 +344,11 @@ function SelectedDownload({
     [error, setError] = useState<Error | null>(null),
     [result, setResult] = useState<Schema<"SelectedTakeDownload">>();
   return (
-    <Stack gap="xs">
+    <div className={classes.download}>
       <Button
+        size="sm"
         variant="default"
+        title="下载完整原视频；候选入出点另行显示，文件未裁剪。预览其他候选不会改变下载对象。"
         leftSection={<DownloadSimple size={16} />}
         loading={busy}
         onClick={async () => {
@@ -334,9 +387,6 @@ function SelectedDownload({
       >
         下载已选用原片
       </Button>
-      <Text size="xs" c="dimmed">
-        下载完整原视频；候选入出点另行显示，文件未裁剪。预览其他候选不会改变下载对象。
-      </Text>
       <ErrorNotice error={error} />
       {result && (
         <Text size="xs" role="status">
@@ -346,6 +396,6 @@ function SelectedDownload({
           秒。请在浏览器下载记录核对文件。
         </Text>
       )}
-    </Stack>
+    </div>
   );
 }
