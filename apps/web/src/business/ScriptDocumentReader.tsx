@@ -188,11 +188,6 @@ export function ScriptDocumentReader({
         </Group>
         <div className={classes.excerptAction}>
           <div ref={setExcerptAction} />
-          {fixed.data && !fixed.isError && (
-            <Text size="xs" c="dimmed">
-              选中正文，可带入画布作为参考
-            </Text>
-          )}
         </div>
       </div>
       {showHistory && (

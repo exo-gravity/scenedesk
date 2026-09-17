@@ -263,6 +263,9 @@ test("CW-12: canvas menu opens a light scene directory, details stay local, and 
     page.getByRole("button", { name: "选文带入画布", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "剧本操作", exact: true }).click();
+  // 剧本页的溢出菜单只放本页动作；场次目录归画布菜单，旧深链另行可达。
+  await expect(page.getByRole("menuitem", { name: "场次目录", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("menuitem")).toHaveCount(3);
   await page.getByRole("menuitem", { name: "分镜建议", exact: true }).click();
   await expect(
     page.getByRole("complementary", { name: "剧本提案助手", exact: true }),

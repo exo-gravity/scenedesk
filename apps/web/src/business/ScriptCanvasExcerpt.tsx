@@ -9,6 +9,7 @@ import {
   Stack,
   Text,
   Textarea,
+  Tooltip,
 } from "@mantine/core";
 import { ArrowRight } from "@phosphor-icons/react";
 import { api, ApiError, useSession, type Schema } from "./api";
@@ -186,24 +187,26 @@ export function ScriptCanvasExcerpt({
     }
   }
   const trigger = (
-    <Button
-      variant="filled"
-      rightSection={<ArrowRight size={16} />}
-      disabled={!active}
-      onClick={() => {
-        if (
-          selectedExcerpt?.scriptRevisionId === script.id &&
-          draft.ready &&
-          !draft.recovered &&
-          !draft.committed &&
-          !pending
-        )
-          draft.setValue({ excerpt: selectedExcerpt });
-        setOpened(true);
-      }}
-    >
-      选文带入画布
-    </Button>
+    <Tooltip label="可在正文中选中，或打开后从原文中选择">
+      <Button
+        variant="filled"
+        rightSection={<ArrowRight size={16} />}
+        disabled={!active}
+        onClick={() => {
+          if (
+            selectedExcerpt?.scriptRevisionId === script.id &&
+            draft.ready &&
+            !draft.recovered &&
+            !draft.committed &&
+            !pending
+          )
+            draft.setValue({ excerpt: selectedExcerpt });
+          setOpened(true);
+        }}
+      >
+        选文带入画布
+      </Button>
+    </Tooltip>
   );
   return (
     <Stack gap="xs">
