@@ -1,8 +1,33 @@
 name: SceneDesk creative workspace E2E
+# Path-filtered: the browser suite needs a production build, Chromium and a live API, so it must
+# not run for documentation-only or evidence-only changes. The universal cheap gate stays
+# unfiltered in ci.yml.
 on:
   push:
     branches: [main]
+    paths:
+      - '.github/workflows/workspace-e2e.yml'
+      - 'apps/**'
+      - 'packages/**'
+      - 'tests/e2e/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'tsconfig.base.json'
+      - '.nvmrc'
   pull_request:
+    paths:
+      - '.github/workflows/workspace-e2e.yml'
+      - 'apps/**'
+      - 'packages/**'
+      - 'tests/e2e/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'tsconfig.base.json'
+      - '.nvmrc'
 permissions:
   contents: read
 jobs:

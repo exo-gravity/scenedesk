@@ -1,4 +1,8 @@
 name: SceneDesk checks
+# The universal gate: intentionally NOT path-filtered. It validates the OpenAPI/TypeScript
+# contracts, the UI rules, the type check, the production build and the documentation, so it must
+# run for every change including documentation-only ones. The expensive image build, smoke stack
+# and browser suite are path-filtered in deployment.yml and workspace-e2e.yml.
 on:
   push:
     branches: [main]

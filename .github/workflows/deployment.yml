@@ -1,8 +1,33 @@
 name: SceneDesk deployment package
+# Path-filtered: this workflow builds three images and a nine-container smoke stack, so it must
+# not run for documentation-only or evidence-only changes. `docs/**`, `output/**` and `*.md` are
+# intentionally absent. The universal cheap gate stays unfiltered in ci.yml.
 on:
   push:
     branches: [main]
+    paths:
+      - '.github/workflows/deployment.yml'
+      - 'deploy/**'
+      - 'apps/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'tsconfig.base.json'
+      - '.nvmrc'
   pull_request:
+    paths:
+      - '.github/workflows/deployment.yml'
+      - 'deploy/**'
+      - 'apps/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'tsconfig.base.json'
+      - '.nvmrc'
 permissions:
   contents: read
 jobs:
