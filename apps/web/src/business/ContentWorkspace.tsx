@@ -796,12 +796,6 @@ export function ContentWorkspace({
                       <Menu.Item onClick={() => setCreativeOpen(true)}>
                         核对创作依据
                       </Menu.Item>
-                      <Menu.Item
-                        component="a"
-                        href={`#/app/t/${tenantId}/p/${projectId}/content`}
-                      >
-                        场次目录
-                      </Menu.Item>
                     </Menu.Dropdown>
                   </Menu>
                 </Group>
