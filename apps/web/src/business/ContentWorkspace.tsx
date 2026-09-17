@@ -189,7 +189,7 @@ export function ContentWorkspace({
   useEffect(() => {
     if (blockedAccess) document.title = "内容不可访问 · SceneDesk";
     else if (project.data)
-      document.title = `${project.data.name} · ${scriptView ? "剧本与设定" : "场次目录"} · SceneDesk`;
+      document.title = `${project.data.name} · ${scriptView ? "剧本" : "场次目录"} · SceneDesk`;
   }, [project.data?.name, blockedAccess, scriptView]);
   if (
     blockedAccess ||
@@ -766,7 +766,7 @@ export function ContentWorkspace({
           <section className={layout.scriptMain} aria-label="剧本正文与版本">
             {" "}
             <SectionHeading
-              title={scriptView ? "剧本与设定" : "场次"}
+              title={scriptView ? "剧本" : "场次目录"}
               description={
                 scriptView
                   ? "导入已确定的初稿，与项目成员一起阅读，再带着原文进入画布。"
@@ -810,7 +810,7 @@ export function ContentWorkspace({
             <Tabs value={scriptTab} onChange={setScriptTab} keepMounted mb="xl">
               <Tabs.List>
                 <Tabs.Tab value="text">剧本正文</Tabs.Tab>
-                <Tabs.Tab value="settings">故事设定</Tabs.Tab>
+                <Tabs.Tab value="settings">剧目设定</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="settings" pt="xl">
                 <StorySettings path={path} active={active} />
@@ -1063,7 +1063,7 @@ function StorySettings({ path, active }: { path: string; active: boolean }) {
         retry={() => void production.refetch()}
       />
     );
-  if (!production.data) return <Loader aria-label="正在读取故事设定" />;
+  if (!production.data) return <Loader aria-label="正在读取剧目设定" />;
   return (
     <ProductionSettings
       key={production.data.id}

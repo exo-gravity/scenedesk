@@ -96,7 +96,7 @@ function ProductionEditor({
         <DraftNotice draft={draft} />
         <Group justify="space-between">
           <Text size="xs" c="dimmed">
-            故事设定 · r{production.revision}
+            剧目设定 · r{production.revision}
             {draft.dirty ? " · 本机有修改" : ""}
           </Text>
           {presentation === "summary" && (
@@ -172,7 +172,7 @@ function ProductionEditor({
               onChange={(e) => setText("title", e.currentTarget.value)}
             />
             <Textarea
-              label="故事与创作设定"
+              label="剧目设定"
               minRows={5}
               autosize
               maxLength={20000}

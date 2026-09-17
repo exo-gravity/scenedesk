@@ -319,14 +319,14 @@ function ProjectDetails({
       <hr className={classes.divider} />
       <Group justify="space-between">
         <div>
-          <h2 className={classes.subheading}>故事设定</h2>
+          <h2 className={classes.subheading}>剧目设定</h2>
           <Text c="dimmed">故事、风格与默认参考集中在创作页。</Text>
         </div>
         <Button
           component="a"
           href={`#/app/t/${tenantId}/p/${projectId}/script?tab=settings`}
         >
-          查看故事设定
+          查看剧目设定
         </Button>
       </Group>
       <Modal
