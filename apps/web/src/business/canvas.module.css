@@ -249,8 +249,7 @@
   box-shadow: var(--mantine-shadow-sm);
   font-size: var(--mantine-font-size-xs);
 }
-.utilities details,
-.groupMenu {
+.utilities details {
   background: var(--ws-panel);
   border: 1px solid var(--ws-border);
   border-radius: var(--ws-tool-radius, var(--ws-card-radius));
@@ -259,16 +258,6 @@
 .utilities details[open] {
   padding: 10px;
   box-shadow: var(--mantine-shadow-sm);
-}
-.groupMenu {
-  position: absolute;
-  z-index: 4;
-  top: 48px;
-  right: 180px;
-  max-width: 320px;
-  max-height: 320px;
-  overflow: auto;
-  font-size: var(--mantine-font-size-xs);
 }
 .nodeList {
   max-height: 400px;
@@ -353,8 +342,7 @@
   .contextHeader > a {
     display: none;
   }
-  .utilities,
-  .groupMenu {
+  .utilities {
     position: static;
     max-width: none;
     margin: 4px 8px;
@@ -714,8 +702,7 @@
   height: 28px;
   padding-inline: 8px;
 }
-.utilities,
-.groupMenu {
+.utilities {
   top: 12px;
 }
 @media (max-width: 760px) {

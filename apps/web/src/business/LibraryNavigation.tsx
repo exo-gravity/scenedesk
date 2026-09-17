@@ -15,6 +15,7 @@ import {
   ImageSquare,
   FilmStrip,
   Waveform,
+  UserSound,
   FileText,
   CaretDown,
   MagnifyingGlass,
@@ -31,7 +32,7 @@ export const libraryCategories = [
   { value: "video", label: "视频", Icon: FilmStrip },
   { value: "audio", label: "音频", Icon: Waveform },
   { value: "document", label: "文本", Icon: FileText },
-  { value: "voice", label: "声音设定", Icon: Waveform },
+  { value: "voice", label: "声音设定", Icon: UserSound },
 ] as const;
 export type LibraryCategory = (typeof libraryCategories)[number]["value"];
 export type LibraryLocation = {

@@ -9,12 +9,12 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import {
   ArrowLeft,
-  ArrowRight,
   Archive,
   FileText,
   FilmSlate,
   GearSix,
   Info,
+  SidebarSimple,
   Stack,
 } from "@phosphor-icons/react";
 import { useResource, type Schema } from "./api";
@@ -70,21 +70,26 @@ export function ProjectNavigation({
       <div className={styles.brand}>
         {!compact && <strong>SceneDesk</strong>}
         {!drawer && (
-          <ActionIcon
-            variant="subtle"
-            aria-label={compact ? "展开项目导航" : "收起项目导航"}
-            aria-expanded={narrow ? drawerOpen : !compact}
-            aria-haspopup={narrow ? "dialog" : undefined}
-            onClick={() => {
-              // Activation can precede the media-query hook's resize render.
-              // Use the live viewport so Enter cannot expand a hidden desktop rail.
-              if (window.matchMedia(narrowNavigationQuery).matches)
-                setDrawerOpen(true);
-              else setCollapsed((value) => !value);
-            }}
+          <Tooltip
+            label={compact ? "展开项目导航" : "收起项目导航"}
+            position="right"
           >
-            {compact ? <ArrowRight size={17} /> : <ArrowLeft size={17} />}
-          </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              aria-label={compact ? "展开项目导航" : "收起项目导航"}
+              aria-expanded={narrow ? drawerOpen : !compact}
+              aria-haspopup={narrow ? "dialog" : undefined}
+              onClick={() => {
+                // Activation can precede the media-query hook's resize render.
+                // Use the live viewport so Enter cannot expand a hidden desktop rail.
+                if (window.matchMedia(narrowNavigationQuery).matches)
+                  setDrawerOpen(true);
+                else setCollapsed((value) => !value);
+              }}
+            >
+              <SidebarSimple size={18} />
+            </ActionIcon>
+          </Tooltip>
         )}
       </div>
       <UnstyledButton
@@ -94,7 +99,7 @@ export function ProjectNavigation({
         aria-label="所有项目"
         title="所有项目"
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={18} />
         {!compact && <span>所有项目</span>}
       </UnstyledButton>
       <div className={styles.identity} title={name}>

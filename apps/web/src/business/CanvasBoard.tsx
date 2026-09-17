@@ -43,6 +43,7 @@ import {
   Menu,
   Modal,
   NumberInput,
+  Popover,
   Select,
   Stack,
   Text,
@@ -56,6 +57,7 @@ import {
   ArrowClockwise,
   CornersOut,
   Crosshair,
+  FolderSimple,
   Hand,
   Cursor,
   TextT,
@@ -402,7 +404,8 @@ export function CanvasBoard({
     [error, setError] = useState<Error | null>(null),
     [query, setQuery] = useState(""),
     [listExpanded, setListExpanded] = useState(false),
-    [groupsExpanded, setGroupsExpanded] = useState(false);
+    [groupsExpanded, setGroupsExpanded] = useState(false),
+    [groupsDismissed, setGroupsDismissed] = useState(false);
   const spacePressed = useKeyPress("Space", { preventDefault: false });
   const [addPoint, setAddPoint] = useState<{
     screen: { x: number; y: number };
@@ -466,11 +469,16 @@ export function CanvasBoard({
   useEffect(() => {
     if (listExpanded) queryInput.current?.focus({ preventScroll: true });
   }, [listExpanded]);
-  const showGroups =
-    groupsExpanded ||
-    Object.keys(controller.getSnapshot().local?.buffers ?? {}).some((key) =>
-      key.startsWith("group:"),
-    );
+  const hasGroupDraft = Object.keys(
+    controller.getSnapshot().local?.buffers ?? {},
+  ).some((key) => key.startsWith("group:"));
+  // 未保存的分组名草稿自动打开面板；用户手动关闭后不再强制打开。
+  // 受控 Popover 每次渲染都读 opened，缺了这个标记就会关不掉。
+  const showGroups = groupsExpanded || (hasGroupDraft && !groupsDismissed);
+  const setGroupsOpen = (open: boolean) => {
+    setGroupsExpanded(open);
+    setGroupsDismissed(!open);
+  };
   const play = useCallback(
     (id: string) => setPlaying((old) => (old === id ? null : id)),
     [],
@@ -901,6 +909,96 @@ export function CanvasBoard({
           <MagnifyingGlass size={19} />
         </ActionIcon>
       </Tooltip>
+      <Popover
+        position="right-start"
+        opened={showGroups}
+        onChange={setGroupsOpen}
+        trapFocus
+        returnFocus
+      >
+        <Popover.Target>
+          <ActionIcon
+            variant={showGroups ? "light" : "subtle"}
+            aria-label="分组"
+            title="分组"
+            onClick={() => setGroupsOpen(!showGroups)}
+          >
+            <FolderSimple size={19} />
+          </ActionIcon>
+        </Popover.Target>
+        <Popover.Dropdown>
+          {document.groups.length ? (
+            <Stack gap="xs">
+              {document.groups.map((group) => (
+                <Group key={group.id} align="end">
+                  <TextInput
+                    data-autofocus={
+                      document.groups[0]?.id === group.id || undefined
+                    }
+                    label="分组名称"
+                    value={
+                      controller.getSnapshot().local?.buffers[
+                        `group:${group.id}:title`
+                      ]?.value ?? group.title
+                    }
+                    error={
+                      controller.getSnapshot().local?.buffers[
+                        `group:${group.id}:title`
+                      ]
+                        ? "请填写分组名称；原输入已保留"
+                        : undefined
+                    }
+                    disabled={readOnly}
+                    maxLength={160}
+                    onChange={(e) => {
+                      const title = e.currentTarget.value,
+                        key = `group:${group.id}:title`;
+                      const buffers = {
+                        ...controller.getSnapshot().local?.buffers,
+                      };
+                      if (!title)
+                        buffers[key] = { value: title, valid: false };
+                      else delete buffers[key];
+                      controller.change(
+                        {
+                          ...document,
+                          groups: document.groups.map((g) =>
+                            g.id === group.id && title ? { ...g, title } : g,
+                          ),
+                        },
+                        `group:${group.id}`,
+                        buffers,
+                      );
+                    }}
+                  />
+                  <Button
+                    disabled={readOnly}
+                    onClick={() =>
+                      change({
+                        ...document,
+                        groups: document.groups.filter(
+                          (g) => g.id !== group.id,
+                        ),
+                        nodes: document.nodes.map((n) => {
+                          if (n.groupId !== group.id) return n;
+                          const { groupId: _group, ...node } = n;
+                          return node;
+                        }),
+                      })
+                    }
+                  >
+                    解散分组
+                  </Button>
+                </Group>
+              ))}
+            </Stack>
+          ) : (
+            <Text size="xs" c="dimmed" maw={240}>
+              还没有分组。选中两个以上节点后，用「更多所选内容操作 → 新建分组」创建。
+            </Text>
+          )}
+        </Popover.Dropdown>
+      </Popover>
     </div>
   );
   const editHistoryTools = (
@@ -1456,78 +1554,6 @@ export function CanvasBoard({
                 ))}
             </div>
           </section>
-        )}
-        {!!document.groups.length && (
-          <details
-            className={classes.groupMenu}
-            open={showGroups}
-            onToggle={(event) => setGroupsExpanded(event.currentTarget.open)}
-          >
-            <summary>管理分组</summary>
-            {showGroups && (
-              <Stack gap="xs">
-                {document.groups.map((group) => (
-                  <Group key={group.id} align="end">
-                    <TextInput
-                      label="分组名称"
-                      value={
-                        controller.getSnapshot().local?.buffers[
-                          `group:${group.id}:title`
-                        ]?.value ?? group.title
-                      }
-                      error={
-                        controller.getSnapshot().local?.buffers[
-                          `group:${group.id}:title`
-                        ]
-                          ? "请填写分组名称；原输入已保留"
-                          : undefined
-                      }
-                      disabled={readOnly}
-                      maxLength={160}
-                      onChange={(e) => {
-                        const title = e.currentTarget.value,
-                          key = `group:${group.id}:title`;
-                        const buffers = {
-                          ...controller.getSnapshot().local?.buffers,
-                        };
-                        if (!title)
-                          buffers[key] = { value: title, valid: false };
-                        else delete buffers[key];
-                        controller.change(
-                          {
-                            ...document,
-                            groups: document.groups.map((g) =>
-                              g.id === group.id && title ? { ...g, title } : g,
-                            ),
-                          },
-                          `group:${group.id}`,
-                          buffers,
-                        );
-                      }}
-                    />
-                    <Button
-                      disabled={readOnly}
-                      onClick={() =>
-                        change({
-                          ...document,
-                          groups: document.groups.filter(
-                            (g) => g.id !== group.id,
-                          ),
-                          nodes: document.nodes.map((n) => {
-                            if (n.groupId !== group.id) return n;
-                            const { groupId: _group, ...node } = n;
-                            return node;
-                          }),
-                        })
-                      }
-                    >
-                      解散分组
-                    </Button>
-                  </Group>
-                ))}
-              </Stack>
-            )}
-          </details>
         )}
         {narrow && !document.nodes.length && (
           <div className={classes.empty}>
