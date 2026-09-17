@@ -1101,7 +1101,7 @@ export function CanvasBoard({
                 });
               }}
             >
-              组合
+              新建分组
             </Menu.Item>
           )}
         </Menu.Dropdown>
