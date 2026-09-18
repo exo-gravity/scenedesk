@@ -1,6 +1,7 @@
 import { feishuScriptRoutes } from "./modules/content/feishu/routes.js";
 import type { FeishuServices } from "./modules/content/feishu/client.js";
 import { canvasGenerationRoutes } from "./modules/generation/canvas-generation.js";
+import { canvasGenerationBatchRoutes } from "./modules/generation/canvas-batches.js";
 import { canvasApplicationRoutes } from "./modules/generation/canvas-applications.js";
 import { assistanceArtifactRoutes } from "./modules/generation/artifacts.js";
 import { generationRoutes } from "./modules/generation/routes.js";
@@ -82,6 +83,7 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     generationRoutes(app, generationContext);
     assistanceArtifactRoutes(app, context);
     canvasGenerationRoutes(app, generationContext);
+    canvasGenerationBatchRoutes(app, context);
     canvasApplicationRoutes(app, context);
     proposalRoutes(app, context);
     creativeRoutes(app, context);

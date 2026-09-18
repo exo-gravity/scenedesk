@@ -167,6 +167,10 @@
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/nodes/{nodeId}/shot-bindings` | `bindSceneCanvasNode` | `project_member` |
 | PR-16 | DELETE | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/nodes/{nodeId}/shot-bindings/{bindingId}` | `unbindSceneCanvasNode` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/generation-plans` | `prepareCanvasGeneration` | `project_member` |
+| PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-batches` | `prepareProjectCanvasGenerationBatch` | `project_member` |
+| PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/generation-batches` | `prepareCanvasGenerationBatch` | `project_member` |
+| PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvas-generation-batches/{batchId}` | `getCanvasGenerationBatch` | `project_member` |
+| PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvas-generation-batches/{batchId}/execute` | `executeCanvasGenerationBatch` | `project_member` |
 | PR-16 | GET | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-plans` | `listCanvasPlans` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/results` | `materializeCanvasResults` | `project_member` |
 | PR-16 | POST | `/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/assistance-applications` | `applyCanvasAssistance` | `project_member` |

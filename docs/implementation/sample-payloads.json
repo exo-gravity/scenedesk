@@ -6096,6 +6096,328 @@
           "commentId": "00000000-0000-4000-8000-000000000006"
         }
       }
+    },
+    {
+      "name": "画布契约：按所选节点一次固定多份计划",
+      "schema": "PrepareCanvasGenerationBatch",
+      "valid": true,
+      "value": {
+        "nodeIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003"
+        ],
+        "shotSources": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      },
+      "requestOperationId": "prepareCanvasGenerationBatch"
+    },
+    {
+      "name": "画布契约：同一次批量不能重复同一节点",
+      "schema": "PrepareCanvasGenerationBatch",
+      "valid": false,
+      "value": {
+        "nodeIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "shotSources": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append"
+      },
+      "requestOperationId": "prepareCanvasGenerationBatch"
+    },
+    {
+      "name": "画布契约：批量准备不能顺带执行",
+      "schema": "PrepareCanvasGenerationBatch",
+      "valid": false,
+      "value": {
+        "nodeIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "shotSources": [],
+        "referenceOverrides": [],
+        "promptPolicy": "append",
+        "execute": true
+      },
+      "requestOperationId": "prepareCanvasGenerationBatch"
+    },
+    {
+      "name": "画布契约：批次项摘要不含整份计划正文",
+      "schema": "CanvasGenerationBatchItem",
+      "valid": true,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000001",
+        "status": "ready",
+        "blockingReasons": [],
+        "plan": {
+          "id": "00000000-0000-4000-8000-000000000950",
+          "status": "ready",
+          "expiresAt": "2026-09-18T12:00:00.000Z",
+          "blockingReasons": [],
+          "capabilityId": "00000000-0000-4000-8000-000000000930",
+          "connectionId": "00000000-0000-4000-8000-000000000920",
+          "resolvedInput": {
+            "resolverVersion": "media/1",
+            "prompt": "雨夜便利店门口",
+            "references": [],
+            "shots": [],
+            "dependencies": []
+          },
+          "costEstimate": {
+            "pricingRevision": "explicit-test-fixture/1",
+            "lines": [],
+            "baseCost": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "holdMargin": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "totalReservation": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "basisNote": "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。"
+          }
+        },
+        "origin": {
+          "canvasId": "00000000-0000-4000-8000-000000000900",
+          "nodeId": "00000000-0000-4000-8000-000000000001",
+          "canvasRevision": 7,
+          "inputFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sourceNodeIds": [
+            "00000000-0000-4000-8000-000000000001"
+          ]
+        },
+        "estimatedCost": {
+          "currency": "CNY",
+          "amountMicros": "0"
+        }
+      }
+    },
+    {
+      "name": "画布契约：批次项必须能定位来源节点",
+      "schema": "CanvasGenerationBatchItem",
+      "valid": false,
+      "value": {
+        "status": "ready",
+        "blockingReasons": [],
+        "plan": {
+          "id": "00000000-0000-4000-8000-000000000950",
+          "status": "ready",
+          "expiresAt": "2026-09-18T12:00:00.000Z",
+          "blockingReasons": [],
+          "capabilityId": "00000000-0000-4000-8000-000000000930",
+          "connectionId": "00000000-0000-4000-8000-000000000920",
+          "resolvedInput": {
+            "resolverVersion": "media/1",
+            "prompt": "雨夜便利店门口",
+            "references": [],
+            "shots": [],
+            "dependencies": []
+          },
+          "costEstimate": {
+            "pricingRevision": "explicit-test-fixture/1",
+            "lines": [],
+            "baseCost": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "holdMargin": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "totalReservation": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "basisNote": "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。"
+          }
+        },
+        "origin": {
+          "canvasId": "00000000-0000-4000-8000-000000000900",
+          "nodeId": "00000000-0000-4000-8000-000000000001",
+          "canvasRevision": 7,
+          "inputFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sourceNodeIds": [
+            "00000000-0000-4000-8000-000000000001"
+          ]
+        }
+      }
+    },
+    {
+      "name": "画布契约：已完成项带任务身份",
+      "schema": "CanvasGenerationBatchItem",
+      "valid": true,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000002",
+        "status": "executed",
+        "blockingReasons": [],
+        "plan": {
+          "id": "00000000-0000-4000-8000-000000000951",
+          "status": "ready",
+          "expiresAt": "2026-09-18T12:00:00.000Z",
+          "blockingReasons": [],
+          "capabilityId": "00000000-0000-4000-8000-000000000930",
+          "connectionId": "00000000-0000-4000-8000-000000000920",
+          "resolvedInput": {
+            "resolverVersion": "media/1",
+            "prompt": "女主推门",
+            "references": [],
+            "shots": [],
+            "dependencies": []
+          },
+          "costEstimate": {
+            "pricingRevision": "explicit-test-fixture/1",
+            "lines": [],
+            "baseCost": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "holdMargin": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "totalReservation": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "basisNote": "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。"
+          }
+        },
+        "origin": {
+          "canvasId": "00000000-0000-4000-8000-000000000900",
+          "nodeId": "00000000-0000-4000-8000-000000000002",
+          "canvasRevision": 7,
+          "inputFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sourceNodeIds": [
+            "00000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "jobId": "00000000-0000-4000-8000-000000000960",
+        "jobStatus": "succeeded"
+      }
+    },
+    {
+      "name": "画布契约：批次按同一画布修订分组",
+      "schema": "CanvasGenerationBatch",
+      "valid": true,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000940",
+        "revision": 1,
+        "canvasId": "00000000-0000-4000-8000-000000000900",
+        "sceneId": "00000000-0000-4000-8000-000000000910",
+        "canvasRevision": 7,
+        "currentCanvasRevision": 7,
+        "createdAt": "2026-09-18T11:50:00.000Z",
+        "updatedAt": "2026-09-18T11:50:00.000Z",
+        "items": [
+          {
+            "nodeId": "00000000-0000-4000-8000-000000000001",
+            "status": "ready",
+            "blockingReasons": [],
+            "plan": {
+              "id": "00000000-0000-4000-8000-000000000950",
+              "status": "ready",
+              "expiresAt": "2026-09-18T12:00:00.000Z",
+              "blockingReasons": [],
+              "capabilityId": "00000000-0000-4000-8000-000000000930",
+              "connectionId": "00000000-0000-4000-8000-000000000920",
+              "resolvedInput": {
+                "resolverVersion": "media/1",
+                "prompt": "雨夜便利店门口",
+                "references": [],
+                "shots": [],
+                "dependencies": []
+              },
+              "costEstimate": {
+                "pricingRevision": "explicit-test-fixture/1",
+                "lines": [],
+                "baseCost": {
+                  "currency": "CNY",
+                  "amountMicros": "0"
+                },
+                "holdMargin": {
+                  "currency": "CNY",
+                  "amountMicros": "0"
+                },
+                "totalReservation": {
+                  "currency": "CNY",
+                  "amountMicros": "0"
+                },
+                "basisNote": "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。"
+              }
+            },
+            "origin": {
+              "canvasId": "00000000-0000-4000-8000-000000000900",
+              "nodeId": "00000000-0000-4000-8000-000000000001",
+              "canvasRevision": 7,
+              "inputFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "sourceNodeIds": [
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            },
+            "estimatedCost": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "画布契约：空批次不成立",
+      "schema": "CanvasGenerationBatch",
+      "valid": false,
+      "value": {
+        "id": "00000000-0000-4000-8000-000000000940",
+        "revision": 1,
+        "canvasId": "00000000-0000-4000-8000-000000000900",
+        "sceneId": "00000000-0000-4000-8000-000000000910",
+        "canvasRevision": 7,
+        "currentCanvasRevision": 7,
+        "createdAt": "2026-09-18T11:50:00.000Z",
+        "updatedAt": "2026-09-18T11:50:00.000Z",
+        "items": []
+      }
+    },
+    {
+      "name": "画布契约：只重试指定项",
+      "schema": "ExecuteCanvasGenerationBatch",
+      "valid": true,
+      "value": {
+        "nodeIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "requestOperationId": "executeCanvasGenerationBatch"
+    },
+    {
+      "name": "画布契约：执行请求不能重复项",
+      "schema": "ExecuteCanvasGenerationBatch",
+      "valid": false,
+      "value": {
+        "nodeIds": [
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "requestOperationId": "executeCanvasGenerationBatch"
+    },
+    {
+      "name": "画布契约：执行请求不能夹带画布写入",
+      "schema": "ExecuteCanvasGenerationBatch",
+      "valid": false,
+      "value": {
+        "nodeIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "canvasRevision": 9
+      },
+      "requestOperationId": "executeCanvasGenerationBatch"
     }
   ]
 }

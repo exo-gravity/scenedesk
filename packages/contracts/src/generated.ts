@@ -2724,6 +2724,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 一次固定所选节点的多份草稿计划，只准备不执行；批次按同一画布修订分组
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["prepareProjectCanvasGenerationBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/generation-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 一次固定本场所选节点的多份草稿计划，只准备不执行；批次按同一画布修订分组
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["prepareCanvasGenerationBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvas-generation-batches/{batchId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取批次分组身份与逐项结果，节点移除后仍可核对
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        get: operations["getCanvasGenerationBatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvas-generation-batches/{batchId}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 显式执行批次内指定项的固定计划；不自动采用或进入候选，逐项失败互相独立
+         * @description 权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。
+         */
+        post: operations["executeCanvasGenerationBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/results": {
         parameters: {
             query?: never;
@@ -5127,6 +5207,60 @@ export interface components {
         CanvasPlanEntryPage: {
             items: components["schemas"]["CanvasPlanEntry"][];
             nextCursor?: string;
+        };
+        PrepareCanvasGenerationBatch: {
+            nodeIds: string[];
+            shotSources: components["schemas"]["ShotSource"][];
+            referenceOverrides: components["schemas"]["ReferenceOverride"][];
+            /** @enum {string} */
+            promptPolicy: "append" | "replace";
+        };
+        CanvasBatchPlanSummary: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["GenerationPlan"]["status"];
+            /** Format: date-time */
+            expiresAt: string;
+            blockingReasons: string[];
+            costEstimate?: components["schemas"]["CostEstimate"];
+            /** Format: uuid */
+            capabilityId: string;
+            /** Format: uuid */
+            connectionId: string;
+            resolvedInput: components["schemas"]["ResolvedInput"];
+        };
+        CanvasGenerationBatchItem: {
+            /** Format: uuid */
+            nodeId: string;
+            /** @enum {string} */
+            status: "ready" | "blocked" | "invalid" | "executing" | "executed" | "reconciliation_required" | "stale";
+            blockingReasons: string[];
+            problemCode?: string;
+            /** Format: uuid */
+            jobId?: string;
+            jobStatus?: components["schemas"]["GenerationJob"]["status"];
+            estimatedCost?: components["schemas"]["Money"];
+            plan?: components["schemas"]["CanvasBatchPlanSummary"];
+            origin?: components["schemas"]["CanvasPlanOrigin"];
+        };
+        CanvasGenerationBatch: {
+            /** Format: uuid */
+            id: string;
+            revision: number;
+            /** Format: uuid */
+            canvasId: string;
+            sceneId?: string | null;
+            canvasRevision: number;
+            currentCanvasRevision: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            estimate?: components["schemas"]["CostEstimate"];
+            items: components["schemas"]["CanvasGenerationBatchItem"][];
+        };
+        ExecuteCanvasGenerationBatch: {
+            nodeIds?: string[];
         };
         MaterializeCanvasResults: {
             /** Format: uuid */
@@ -11740,6 +11874,167 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CanvasPlanEntry"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    prepareProjectCanvasGenerationBatch: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                canvasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrepareCanvasGenerationBatch"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasGenerationBatch"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    prepareCanvasGenerationBatch: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description 对象版本的带引号 ETag；内容集合操作使用 ContentTree.revision。 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                sceneId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrepareCanvasGenerationBatch"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasGenerationBatch"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    getCanvasGenerationBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenantId: string;
+                projectId: string;
+                batchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasGenerationBatch"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            412: components["responses"]["Problem"];
+            413: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+        };
+    };
+    executeCanvasGenerationBatch: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["Csrf"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                tenantId: string;
+                projectId: string;
+                batchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExecuteCanvasGenerationBatch"];
+            };
+        };
+        responses: {
+            /** @description 成功 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanvasGenerationBatch"];
                 };
             };
             400: components["responses"]["Problem"];

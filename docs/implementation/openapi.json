@@ -14758,6 +14758,392 @@
         }
       }
     },
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/generation-batches": {
+      "post": {
+        "operationId": "prepareProjectCanvasGenerationBatch",
+        "tags": [
+          "PR-16"
+        ],
+        "summary": "一次固定所选节点的多份草稿计划，只准备不执行；批次按同一画布修订分组",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "canvasId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasGenerationBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "413": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-16",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareCanvasGenerationBatch"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/scenes/{sceneId}/canvas/generation-batches": {
+      "post": {
+        "operationId": "prepareCanvasGenerationBatch",
+        "tags": [
+          "PR-16"
+        ],
+        "summary": "一次固定本场所选节点的多份草稿计划，只准备不执行；批次按同一画布修订分组",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sceneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasGenerationBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "413": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-16",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareCanvasGenerationBatch"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvas-generation-batches/{batchId}": {
+      "get": {
+        "operationId": "getCanvasGenerationBatch",
+        "tags": [
+          "PR-16"
+        ],
+        "summary": "读取批次分组身份与逐项结果，节点移除后仍可核对",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasGenerationBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "413": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-16"
+      }
+    },
+    "/v1/tenants/{tenantId}/projects/{projectId}/canvas-generation-batches/{batchId}/execute": {
+      "post": {
+        "operationId": "executeCanvasGenerationBatch",
+        "tags": [
+          "PR-16"
+        ],
+        "summary": "显式执行批次内指定项的固定计划；不自动采用或进入候选，逐项失败互相独立",
+        "description": "权限：project_member。遵守 06-api-contract.md 的授权、版本、幂等和恢复规则。",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Csrf"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasGenerationBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "413": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-permission": "project_member",
+        "x-requirement": "PR-16",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteCanvasGenerationBatch"
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/tenants/{tenantId}/projects/{projectId}/canvases/{canvasId}/results": {
       "post": {
         "operationId": "materializeCanvasResults",
@@ -26070,6 +26456,238 @@
         "required": [
           "items"
         ],
+        "additionalProperties": false
+      },
+      "PrepareCanvasGenerationBatch": {
+        "type": "object",
+        "properties": {
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "uniqueItems": true
+          },
+          "shotSources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShotSource"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "referenceOverrides": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceOverride"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "promptPolicy": {
+            "type": "string",
+            "enum": [
+              "append",
+              "replace"
+            ]
+          }
+        },
+        "required": [
+          "nodeIds",
+          "shotSources",
+          "referenceOverrides",
+          "promptPolicy"
+        ],
+        "additionalProperties": false
+      },
+      "CanvasBatchPlanSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GenerationPlan/properties/status"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "blockingReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100
+          },
+          "costEstimate": {
+            "$ref": "#/components/schemas/CostEstimate"
+          },
+          "capabilityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "resolvedInput": {
+            "$ref": "#/components/schemas/ResolvedInput"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "expiresAt",
+          "blockingReasons",
+          "capabilityId",
+          "connectionId",
+          "resolvedInput"
+        ],
+        "additionalProperties": false
+      },
+      "CanvasGenerationBatchItem": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "blocked",
+              "invalid",
+              "executing",
+              "executed",
+              "reconciliation_required",
+              "stale"
+            ]
+          },
+          "blockingReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100
+          },
+          "problemCode": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "jobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "jobStatus": {
+            "$ref": "#/components/schemas/GenerationJob/properties/status"
+          },
+          "estimatedCost": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/CanvasBatchPlanSummary"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/CanvasPlanOrigin"
+          }
+        },
+        "required": [
+          "nodeId",
+          "status",
+          "blockingReasons"
+        ],
+        "additionalProperties": false
+      },
+      "CanvasGenerationBatch": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "canvasId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sceneId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canvasRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "currentCanvasRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estimate": {
+            "$ref": "#/components/schemas/CostEstimate"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CanvasGenerationBatchItem"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "canvasId",
+          "canvasRevision",
+          "currentCanvasRevision",
+          "createdAt",
+          "updatedAt",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ExecuteCanvasGenerationBatch": {
+        "type": "object",
+        "properties": {
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 0,
+            "maxItems": 100,
+            "uniqueItems": true
+          }
+        },
+        "required": [],
         "additionalProperties": false
       },
       "MaterializeCanvasResults": {

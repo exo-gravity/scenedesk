@@ -55,6 +55,23 @@ def schemas():
     s["CanvasPlanOrigin"] = obj({"canvasId": ID, "nodeId": ID, "canvasRevision": POS, "inputFingerprint": HASH, "sourceNodeIds": array(ID, 2000)}, ["canvasId", "nodeId", "canvasRevision", "inputFingerprint", "sourceNodeIds"])
     s["CanvasPlanEntry"] = obj({"plan": ref("GenerationPlan"), "origin": ref("CanvasPlanOrigin"), "jobId": ID, "jobStatus": {"$ref":"#/components/schemas/GenerationJob/properties/status"}}, ["plan", "origin"])
     s["CanvasPlanEntryPage"] = obj({"items": array(ref("CanvasPlanEntry"), 100), "nextCursor": {"type": "string"}}, ["items"])
+    # One batch fixes N drafts of one canvas against a single revision. It is a
+    # grouping over the existing one-plan-per-job facts, never a second scheduler.
+    s["PrepareCanvasGenerationBatch"] = obj({"nodeIds": {**array(ID, 100, 1), "uniqueItems": True}, "shotSources": array(ref("ShotSource"), 100), "referenceOverrides": array(ref("ReferenceOverride"), 100), "promptPolicy": enum("append", "replace")}, ["nodeIds", "shotSources", "referenceOverrides", "promptPolicy"])
+    # A confirmation screen never needs the whole plan body for every item, so a
+    # batch item reports a narrow summary and keeps the full plan addressable by id
+    # through getGenerationPlan / listCanvasPlans.
+    summary = {"id": ID, "status": {"$ref": "#/components/schemas/GenerationPlan/properties/status"}, "expiresAt": {"type": "string", "format": "date-time"}, "blockingReasons": {"type": "array", "items": {"type": "string"}, "maxItems": 100}, "costEstimate": ref("CostEstimate"), "capabilityId": ID, "connectionId": ID, "resolvedInput": ref("ResolvedInput")}
+    s["CanvasBatchPlanSummary"] = obj(summary, ["id", "status", "expiresAt", "blockingReasons", "capabilityId", "connectionId", "resolvedInput"])
+    # Selection order is preserved by the entry's own origin.sourceNodeIds, so the
+    # grouping does not restate a position.
+    item = {"nodeId": ID, "status": enum("ready", "blocked", "invalid", "executing", "executed", "reconciliation_required", "stale"), "blockingReasons": {"type": "array", "items": {"type": "string"}, "maxItems": 100}, "problemCode": {"type": "string", "maxLength": 160}, "jobId": ID, "jobStatus": {"$ref": "#/components/schemas/GenerationJob/properties/status"}, "estimatedCost": ref("Money")}
+    # A selected node that never became a plan has no plan or origin to report; it
+    # still appears so the confirmation screen accounts for every selected node, and
+    # only the runnable statuses carry an entry.
+    s["CanvasGenerationBatchItem"] = obj({**item, "plan": ref("CanvasBatchPlanSummary"), "origin": ref("CanvasPlanOrigin")}, ["nodeId", "status", "blockingReasons"])
+    s["CanvasGenerationBatch"] = obj({"id": ID, "revision": POS, "canvasId": ID, "sceneId": {"anyOf": [ID, {"type": "null"}]}, "canvasRevision": POS, "currentCanvasRevision": POS, "createdAt": {"type": "string", "format": "date-time"}, "updatedAt": {"type": "string", "format": "date-time"}, "estimate": ref("CostEstimate"), "items": array(ref("CanvasGenerationBatchItem"), 100, 1)}, ["id", "revision", "canvasId", "canvasRevision", "currentCanvasRevision", "createdAt", "updatedAt", "items"])
+    s["ExecuteCanvasGenerationBatch"] = obj({"nodeIds": {**array(ID, 100), "uniqueItems": True}}, [])
     s["MaterializeCanvasResults"] = obj({"jobId": ID, "mediaIds": {**array(ID, 100, 1), "uniqueItems": True}, "position": ref("CanvasPoint")}, ["jobId", "mediaIds", "position"])
     s["CanvasResultPlacement"] = obj({"canvas": ref("Canvas"), "placements": array(obj({"mediaId": ID, "nodeId": ID}, ["mediaId", "nodeId"]), 100, 1)}, ["canvas", "placements"])
     s["CanvasViewport"] = obj({"x": VIEWPORT_COORD, "y": VIEWPORT_COORD, "zoom": {"type": "number", "minimum": 0.00001, "maximum": 4}}, ["x", "y", "zoom"])
@@ -72,6 +89,7 @@ def register_routes(route, paths):
     base = "/projects/{projectId}"
     scene = base + "/scenes/{sceneId}"
     canvas = base + "/canvases/{canvasId}"
+    batches = base + "/canvas-generation-batches"
     route("post", base + "/canvas", "ensureProjectCanvas", "PR-16", "明确创建或取得项目唯一画布，不创建场次", "ProjectCanvas", code=200)
     route("get", base + "/canvas", "getProjectCanvas", "PR-16", "读取项目画布", "ProjectCanvas")
     route("get", base + "/canvas-workspaces", "getCanvasWorkspaceIndex", "PR-16", "只读列出现有项目画布及活动场次画布身份，不返回文档或媒体", "CanvasWorkspaceIndex")
@@ -92,13 +110,17 @@ def register_routes(route, paths):
     route("post", scene + "/canvas/nodes/{nodeId}/shot-bindings", "bindSceneCanvasNode", "PR-16", "明确关联镜头参考或视频候选", "SceneCanvas", "BindCanvasNode", cas=True)
     route("delete", scene + "/canvas/nodes/{nodeId}/shot-bindings/{bindingId}", "unbindSceneCanvasNode", "PR-16", "移除关联，保留候选及采用", "SceneCanvas", cas=True)
     route("post", scene + "/canvas/generation-plans", "prepareCanvasGeneration", "PR-16", "固定画布草稿与明确镜头输入，只准备不执行", "CanvasPlanEntry", "PrepareCanvasGeneration", cas=True)
+    route("post", canvas + "/generation-batches", "prepareProjectCanvasGenerationBatch", "PR-16", "一次固定所选节点的多份草稿计划，只准备不执行；批次按同一画布修订分组", "CanvasGenerationBatch", "PrepareCanvasGenerationBatch", cas=True)
+    route("post", scene + "/canvas/generation-batches", "prepareCanvasGenerationBatch", "PR-16", "一次固定本场所选节点的多份草稿计划，只准备不执行；批次按同一画布修订分组", "CanvasGenerationBatch", "PrepareCanvasGenerationBatch", cas=True)
+    route("get", batches + "/{batchId}", "getCanvasGenerationBatch", "PR-16", "读取批次分组身份与逐项结果，节点移除后仍可核对", "CanvasGenerationBatch")
+    route("post", batches + "/{batchId}/execute", "executeCanvasGenerationBatch", "PR-16", "显式执行批次内指定项的固定计划；不自动采用或进入候选，逐项失败互相独立", "CanvasGenerationBatch", "ExecuteCanvasGenerationBatch")
     route("get", canvas + "/generation-plans", "listCanvasPlans", "PR-16", "查询画布来源的计划与任务身份", "CanvasPlanEntryPage", listing=True)
     route("post", canvas + "/results", "materializeCanvasResults", "PR-16", "将已归档结果添加或恢复到画布", "CanvasResultPlacement", "MaterializeCanvasResults", cas=True)
     route("post", canvas + "/assistance-applications", "applyCanvasAssistance", "PR-16", "明确将固定建议应用到指定草稿，保留原应用回执", "CanvasAssistanceApplicationResult", "ApplyCanvasAssistance", code=200, cas=True)
     route("get", canvas + "/assistance-applications/{applicationId}", "getCanvasAssistanceApplication", "PR-16", "读取原建议应用结果及当前画布，不重复修改", "CanvasAssistanceApplicationResult")
     route("get", scene + "/workspace-preference", "getSceneWorkspacePreference", "PR-17", "读取本人偏好，无记录返回revision0默认值", "SceneWorkspacePreference")
     route("put", scene + "/workspace-preference", "saveSceneWorkspacePreference", "PR-17", "保存本人模式与视口，不改共同画布", "SceneWorkspacePreference", "SaveSceneWorkspacePreference", cas=True)
-    names = {"ensureProjectCanvas", "getProjectCanvas", "prepareProjectCanvasGeneration", "getProjectWorkspacePreference", "saveProjectWorkspacePreference", "getCanvas", "getCanvasRevision", "saveCanvas", "materializeCanvasResults", "ensureSceneCanvas", "getSceneCanvas", "bindSceneCanvasNode", "unbindSceneCanvasNode", "prepareCanvasGeneration", "listCanvasPlans", "getSceneWorkspacePreference", "saveSceneWorkspacePreference", "listCanvasUploads", "getCanvasUpload", "getCanvasUploadRequest", "dismissCanvasUpload"}
+    names = {"ensureProjectCanvas", "getProjectCanvas", "prepareProjectCanvasGeneration", "getProjectWorkspacePreference", "saveProjectWorkspacePreference", "getCanvas", "getCanvasRevision", "saveCanvas", "materializeCanvasResults", "ensureSceneCanvas", "getSceneCanvas", "bindSceneCanvasNode", "unbindSceneCanvasNode", "prepareCanvasGeneration", "listCanvasPlans", "getSceneWorkspacePreference", "saveSceneWorkspacePreference", "listCanvasUploads", "getCanvasUpload", "getCanvasUploadRequest", "dismissCanvasUpload", "prepareCanvasGenerationBatch", "prepareProjectCanvasGenerationBatch", "getCanvasGenerationBatch", "executeCanvasGenerationBatch"}
     for methods in paths.values():
         for operation in methods.values():
             name = operation["operationId"]
