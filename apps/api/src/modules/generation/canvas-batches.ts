@@ -121,6 +121,7 @@ async function readBatch(tx: Transaction, batchId: string) {
         : {}),
     };
   });
+  const estimate = aggregate(items);
   return {
     body: {
       id: row.id,
@@ -131,7 +132,7 @@ async function readBatch(tx: Transaction, batchId: string) {
       currentCanvasRevision: Number(row.current_canvas_revision),
       createdAt: row.created_at.toISOString(),
       updatedAt: row.updated_at.toISOString(),
-      ...(aggregate(items) ? { estimate: aggregate(items)! } : {}),
+      ...(estimate ? { estimate } : {}),
       items,
     },
   };
@@ -269,6 +270,11 @@ export function canvasGenerationBatchRoutes(
       context,
       operation,
       async (tx, input) => {
+        // Shot sources are stated once for the whole selection and therefore apply to
+        // every item. A selection that needs different shot inputs per node is a
+        // single-node preparation, not a batch: the request shape deliberately does
+        // not carry a per-node mapping, so a node is never bound to another node's
+        // shot input by accident.
         const canvasId =
           input.params.canvasId ?? (await sceneCanvasId(tx, input.params.sceneId!));
         await canvasRoot(tx, canvasId, true);

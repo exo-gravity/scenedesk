@@ -41,7 +41,7 @@
 | 技术／运维 | [05 架构与运行](05-architecture-and-operations.md) | 技术栈、模块、隔离、媒体、容量目标及恢复 |
 | 前后端／测试 | [06 接口规则](06-api-contract.md) | 授权、CAS、幂等、实际输入、跨字段校验和交付 |
 | 模型接入 | [07 Adapter 与验证](07-provider-adapter.md) | 连接身份、能力配置、输入输出、MV-01–10 |
-| 项目／测试 | [08 验收与实施](08-verification-and-delivery-plan.md) | AT-01–75、需求追踪、S0–S4工作包与门槛 |
+| 项目／测试 | [08 验收与实施](08-verification-and-delivery-plan.md) | AT-01–76、需求追踪、S0–S4工作包与门槛 |
 | 决策者 | [09 决策与缺口](09-decisions-and-open-items.md) | 已裁决默认值、G-01–08、后续TODO与广告边界 |
 | 制作／测试 | [10 制作夹具](10-production-fixture.md) | F0/F1两集、F2三类返工、F3内部后期交接 |
 | 架构／研发 | [11 事务与实施蓝图](11-transaction-and-implementation-blueprint.md) | 迁移顺序、事务锁、费用、帧／采样算法、恢复隔离 |

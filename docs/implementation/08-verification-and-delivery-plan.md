@@ -139,29 +139,30 @@ V1 优先减少已观察到的返工：直接使用影响提示、候选比较�
 | AT-61 | 300／2000节点、共享素材、多个视频进入视口并拖动缩放 | 记录具体硬件与P95指标；仅活动播放器解码发声；容量错误保留草稿；大型列表和视频分别测 | UI＋性能 |
 | AT-62 | 媒体归档后移动别的节点；同nodeId换媒体／type；删除后复用历史ID | 仍授权旧引用可保留；新引用需ready；拒绝改媒体身份与ID复用，旧Take/来源不被伪装 | DB＋UI |
 | AT-63 | 团队从戏文到场次生成、双模式返工、剪辑、整集与后期交接 | 两种模式使用同一批成果、计划、费用及审阅身份；断点与质量真实记录，不以模拟替代客户结果 | Pilot＋Provider＋Media |
+| AT-64 | 一场多镜：多选节点一次准备，逐项核对后确认提交；画布随后被改动 | 一项一固定计划，全部基于同一画布修订；不可用节点保留阻断原因；已移动画布的项不被提交且可重新准备；部分失败只重跑失败项，不重跑整批；提交不自动采用或建立候选 | DB＋UI＋Provider |
 
 | 需求 | 模块／数据 | 关键操作 | 验收 |
 |---|---|---|---|
-| PR-16 | CanvasWorkspace＋DramaPlanning／canvas与scene关联 | ensureSceneCanvas、getSceneCanvas、getCanvas、bindSceneCanvasNode、unbindSceneCanvasNode、prepareCanvasGeneration、listCanvasPlans、materializeCanvasResults | AT-52、53、57–59、63 |
+| PR-16 | CanvasWorkspace＋DramaPlanning／canvas与scene关联 | ensureSceneCanvas、getSceneCanvas、getCanvas、bindSceneCanvasNode、unbindSceneCanvasNode、prepareCanvasGeneration、listCanvasPlans、materializeCanvasResults、prepareCanvasGenerationBatch、getCanvasGenerationBatch、executeCanvasGenerationBatch | AT-52、53、57–59、63、64 |
 | PR-17 | CanvasWorkspace／修订与个人偏好 | saveCanvas、getCanvasRevision、listCanvasHistory、getEditingPresence、updateEditingPresence、getSceneWorkspacePreference、saveSceneWorkspacePreference | AT-54–56、60–62 |
 
 CX01–05与E/G/C工作包对应见[16](16-implementation-backlog.md)，结构与行为边界见[18](18-canvas-workspace-contract.md)。S1可先完成CX01–03；S2/CX04贯通生成；S3退出须全部完成，S4实际工作室任务不得跳过双模式。
 
-## 9. 技术收尾新增验收（AT-64–75，均待实际执行）
+## 9. 技术收尾新增验收（AT-64–76，均待实际执行）
 
 | ID | Given／When | Then：验收事实 | 层次 |
 |---|---|---|---|
-| AT-64 | 重排六镜，留下越界字幕、空主轨或未决定音轨，保存后关闭重开 | 工作稿恢复完整且有问题提示；Cut保持原编排；未完成稿不能直接应用或渲染；修复后按固定来源归一 | DB＋UI＋Media |
-| AT-65 | 归一r5后同伴写r6；或应用与冻结相交错 | 旧归一不能应用；Cut与工作稿原子更新；冻结双版本匹配，有未应用工作时默认阻断，显式排除才渲染旧编排并留版本证据 | DB＋UI |
-| AT-66 | 首次两个If-Match0并发；Cut基线改变；external_file请求工作稿 | 仅一个共享工作稿；旧基线编辑仍能保存但不能直接归一；人工重新比较才更新基线；外部稿拒绝 | DB |
-| AT-67 | 工作稿PUT响应丢失、保存期间继续输入、断网或撤权后重开 | 对照hash和基线识别结果；新输入不丢；本机隔离与清除有效；不重放生成、不把本机副本说成服务端备份 | DB＋UI |
-| AT-68 | 连续保存跨24小时、7天、30天且达到历史预算；大量同内容修订 | 当前／前一版保留；桶内取最后修订、同对象正文去重、实际列表准确、过期410；按未压缩字节预算清理可淘汰历史 | DB＋容量 |
-| AT-69 | 历史清理与新增pin／规范化请求／归档媒体恢复交错并中断 | 被引用正文／精确基线不丢；加pin与清理互斥；生成确切源快照仍可读；旧历史不绕过新增引用或撤权；重跑清理无孤立依赖 | DB |
-| AT-70 | 两人同画布改不同节点；多标签心跳、90秒过期、失权或提示服务失败 | 提示不构成锁；CAS冲突可恢复；提示不改内容revision；本人身份不可伪造，失权与跨目标越权拒绝；记录真实协作阻力 | DB＋UI＋Pilot |
-| AT-71 | 受限角色业务事务中入队，任意一步失败回滚，再模拟提交成功响应丢失 | 业务／队列同连接原子提交；无孤立作业；运行身份无迁移／越权能力；重试返回原业务；不建自研worker_tasks | DB＋Queue |
-| AT-72 | submit记录attempt前后、供应商接受后未存ID、后续入队后未ack分别杀进程 | 无第二次未知购买；迟到回执可恢复；重投和回调／轮询竞争按业务版本收敛；队列ack丢失不使后续工作消失 | DB＋故障供应商 |
-| AT-73 | 同账号多个连接并发提交，配额1；供应商仍running／unknown，Worker已释放 | 最多一份有效在途占用；未知和仅请求取消不释放；请求速率单独限制；不得靠groupConcurrency宣称严格额度成立 | DB＋故障供应商 |
-| AT-74 | 恢复库含旧queued／dispatching信封，外部已有任务或费用；普通扫描重新入队 | epoch与quarantine仍阻断重POST；扫描不赋新资格；费用、已知原任务查询和归档按原协议恢复 | DB＋恢复演练 |
-| AT-75 | 一个真实工作稿端点接通Ajv2020、授权、事务与响应；Query聚焦重取、两模式切换 | 正反输入与输出一致，无隐式剥字段／类型转换；快照刷新不覆盖dirty，浏览器不以仅工作稿ETag缓存动态诊断 | API＋DB＋UI |
+| AT-65 | 重排六镜，留下越界字幕、空主轨或未决定音轨，保存后关闭重开 | 工作稿恢复完整且有问题提示；Cut保持原编排；未完成稿不能直接应用或渲染；修复后按固定来源归一 | DB＋UI＋Media |
+| AT-66 | 归一r5后同伴写r6；或应用与冻结相交错 | 旧归一不能应用；Cut与工作稿原子更新；冻结双版本匹配，有未应用工作时默认阻断，显式排除才渲染旧编排并留版本证据 | DB＋UI |
+| AT-67 | 首次两个If-Match0并发；Cut基线改变；external_file请求工作稿 | 仅一个共享工作稿；旧基线编辑仍能保存但不能直接归一；人工重新比较才更新基线；外部稿拒绝 | DB |
+| AT-68 | 工作稿PUT响应丢失、保存期间继续输入、断网或撤权后重开 | 对照hash和基线识别结果；新输入不丢；本机隔离与清除有效；不重放生成、不把本机副本说成服务端备份 | DB＋UI |
+| AT-69 | 连续保存跨24小时、7天、30天且达到历史预算；大量同内容修订 | 当前／前一版保留；桶内取最后修订、同对象正文去重、实际列表准确、过期410；按未压缩字节预算清理可淘汰历史 | DB＋容量 |
+| AT-70 | 历史清理与新增pin／规范化请求／归档媒体恢复交错并中断 | 被引用正文／精确基线不丢；加pin与清理互斥；生成确切源快照仍可读；旧历史不绕过新增引用或撤权；重跑清理无孤立依赖 | DB |
+| AT-71 | 两人同画布改不同节点；多标签心跳、90秒过期、失权或提示服务失败 | 提示不构成锁；CAS冲突可恢复；提示不改内容revision；本人身份不可伪造，失权与跨目标越权拒绝；记录真实协作阻力 | DB＋UI＋Pilot |
+| AT-72 | 受限角色业务事务中入队，任意一步失败回滚，再模拟提交成功响应丢失 | 业务／队列同连接原子提交；无孤立作业；运行身份无迁移／越权能力；重试返回原业务；不建自研worker_tasks | DB＋Queue |
+| AT-73 | submit记录attempt前后、供应商接受后未存ID、后续入队后未ack分别杀进程 | 无第二次未知购买；迟到回执可恢复；重投和回调／轮询竞争按业务版本收敛；队列ack丢失不使后续工作消失 | DB＋故障供应商 |
+| AT-74 | 同账号多个连接并发提交，配额1；供应商仍running／unknown，Worker已释放 | 最多一份有效在途占用；未知和仅请求取消不释放；请求速率单独限制；不得靠groupConcurrency宣称严格额度成立 | DB＋故障供应商 |
+| AT-75 | 恢复库含旧queued／dispatching信封，外部已有任务或费用；普通扫描重新入队 | epoch与quarantine仍阻断重POST；扫描不赋新资格；费用、已知原任务查询和归档按原协议恢复 | DB＋恢复演练 |
+| AT-76 | 一个真实工作稿端点接通Ajv2020、授权、事务与响应；Query聚焦重取、两模式切换 | 正反输入与输出一致，无隐式剥字段／类型转换；快照刷新不覆盖dirty，浏览器不以仅工作稿ETag缓存动态诊断 | API＋DB＋UI |
 
-追踪补充：PR-08／15 → AT-71–74；PR-10／12 → AT-64–69、75；PR-16／17 → AT-68–70、75。队列候选门槛QV-01由AT-71／72／73／74对应部分关闭。原AT-01–63保留，实际媒体边界和工作室效果仍分别执行。
+追踪补充：PR-08／15 → AT-71–74；PR-10／12 → AT-64–70、75；PR-16／17 → AT-68–70、75。队列候选门槛QV-01由AT-71／72／73／74对应部分关闭。原AT-01–63保留，实际媒体边界和工作室效果仍分别执行。
