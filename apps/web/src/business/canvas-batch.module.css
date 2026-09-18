@@ -1,0 +1,12 @@
+.selection {
+  border: 1px solid var(--ws-border-subtle);
+  border-radius: var(--ws-card-radius);
+  padding: var(--mantine-spacing-sm);
+  max-height: 240px;
+  overflow: auto;
+}
+
+.table td,
+.table th {
+  vertical-align: top;
+}
