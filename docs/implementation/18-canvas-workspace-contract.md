@@ -23,6 +23,7 @@ CanvasWorkspace 不依赖 Episode／Scene／Shot。它拥有画布身份、文�
 | 分组 | 首版一层可选分组，只用于移动与收纳；使用画布绝对坐标，加入／退出组不修改镜头归属或播放顺序 |
 | 没有选中对象 | 隐藏节点工具与输入区，保留添加／手形／选择／缩放；助手上下文显示场次，不猜测最后镜头 |
 | 多选 | 移动、删除呈现、分组、共同作为参考；不批量展开输入框、不一键执行多个付费任务 |
+| 多选后的批量生成 | 多选只提供“查看本次所选节点的生成计划”这一**导航**动作，不直接提交任何付费任务。批次确认屏逐项列出模型能力、解析后的输入（含提示词）、阻断原因、计划身份与有效期及合计预留（当前适配器恒为零并注明）；**只有用户在屏内显式确认后**才提交，且不自动采用、不自动进候选。提交必须逐项列出节点：空选择或未列出的节点一律拒绝，不得退化为整批。已经提交的项不被重跑；提交被守卫拒绝的项保留其固定计划，可在同一批次重试；作业已结束为失败的项不能重试，须重新准备。批次只是既有固定计划／作业的分组，不是第二套调度 |
 | 参考与历史 | 提供列表检索、缩略图懒加载和定位；历史可以取回同一媒体，不产生新作业 |
 | 助手 | 默认收起，展开后非模态停靠并占布局空间；明示固定目标和引用，只使用已有有限 AI 入口。浏览其他镜头不静默改变建议接收目标；自由节点无适用动作时只提供直接编辑 |
 
@@ -44,6 +45,8 @@ CanvasWorkspace 不依赖 Episode／Scene／Shot。它拥有画布身份、文�
 | node_shot_bindings | canvas_id、node_id、shot_id、shot_revision_id、role、take_id 可空；unique(canvas_id,node_id,shot_id,role)；候选必须对应相同媒体与合法视频区间；允许一个节点关联多个本场镜头 |
 | canvas_plan_origins | plan_id唯一、canvas_id、node_id、canvas_revision、input_fingerprint、source_snapshot；确切输入独立保留，canvas_revision不强引用可清理的完整历史正文；创建计划同事务写入；job 仍通过原 plan_id 唯一约束关联 |
 | canvas_result_nodes | tenant_id、project_id、canvas_id、job_id、media_id、node_id；unique(canvas_id,job_id,media_id)、unique(node_id)；固定结果与呈现身份，移除节点不删除此映射，恢复与文档／索引同事务 |
+| generation_batches | id、tenant_id、project_id、canvas_id、scene_id 可空、canvas_revision、created_by、timestamps；批次是一次多节点准备的**分组身份**，与画布同修订，不持有调度、费用或采用事实 |
+| generation_batch_items | batch_id、node_id、plan_id 唯一、status、problem_code 可空、blocking_reasons、timestamps；一项一条固定计划，逐项失败可见可重试；plan／job／origin 仍各自一对一，批次只做分组 |
 | scene_workspace_preferences | user_id、scene_id、revision、mode、viewport、selected_node_ids、selected_shot_id 可空、panel preferences；由短剧接入层维护个人偏好，不让通用画布依赖场次视图名称 |
 
 画布封套 schemaVersion=1，document 中 nodes、edges、groups 使用稳定 UUID。文本正文是纯文本，不执行 HTML／脚本。节点分四种 kind；文字只能含 text 内容；图片／视频／音频节点可以引用 ready 媒体，或保存 draft。draft 只含提示、可空模型选择及输出草稿；没有 job 状态、采用、审批或金额字段。

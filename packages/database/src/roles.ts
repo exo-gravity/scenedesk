@@ -106,6 +106,19 @@ export async function grantRuntimeAccess(
     `GRANT SELECT,INSERT ON ${scope}.generation_canvas_origins,${scope}.generation_canvas_results TO ${target}`,
   );
   await client.query(
+    `GRANT SELECT,INSERT ON ${scope}.generation_batches,${scope}.generation_batch_items TO ${target}`,
+  );
+  // A batch item's plan verdict is written once. Only the outcome of a later
+  // execution attempt moves, and the database trigger rejects any other column, so
+  // the grant cannot widen what the grouping owns.
+  await client.query(
+    `GRANT UPDATE(problem_code,blocking_reasons,updated_at) ON ${scope}.generation_batch_items TO ${target}`,
+  );
+  // Only the batch's change token moves, so a client can tell item state advanced.
+  await client.query(
+    `GRANT UPDATE(revision,updated_at) ON ${scope}.generation_batches TO ${target}`,
+  );
+  await client.query(
     `GRANT SELECT ON ${scope}.generation_media_outputs TO ${target}`,
   );
   await client.query(

@@ -107,6 +107,77 @@ export async function getJob(tx: Transaction, id: string) {
   requireThat(result.rows[0], 404, "NOT_FOUND", "生成任务不存在或无访问权限。");
   return result.rows[0]!;
 }
+/**
+ * The single durable path from a fixed plan to exactly one job. A batch executes
+ * each of its items through this function so per-item guards, the plan-to-job
+ * uniqueness and the queue hint cannot drift between the two entry points.
+ */
+export async function executePlanOnce(tx: Transaction, planId: string) {
+  const plan = await getPlan(tx, planId);
+  const existing = (
+    await tx.sql.query(`${jobSelect} WHERE j.tenant_id=$1 AND j.plan_id=$2`, [
+      tx.tenantId,
+      plan.id,
+    ])
+  ).rows[0];
+  if (existing) return await serializeJob(tx, existing);
+  requireThat(
+    plan.status === "ready",
+    409,
+    "PLAN_NOT_READY",
+    "计划不可执行，请核对阻断原因或重新准备。",
+  );
+  requireThat(
+    plan.expires_at.getTime() > Date.now(),
+    409,
+    "PLAN_EXPIRED",
+    "计划已过期，请重新核对输入并准备。",
+  );
+  const cap = (
+    await tx.sql.query(
+      "SELECT * FROM generation_capabilities WHERE tenant_id=$1 AND id=$2",
+      [tx.tenantId, plan.capability_id],
+    )
+  ).rows[0];
+  requireThat(
+    cap?.enabled &&
+      cap.revision === plan.capability_revision &&
+      cap.connection_version_id === plan.connection_version_id,
+    409,
+    "CAPABILITY_CHANGED",
+    "能力版本或启用状态已变化，请重新准备计划。",
+  );
+  requireThat(
+    plan.execution_mode === "test_fixture",
+    503,
+    "REAL_PROVIDER_ACCEPTANCE_REQUIRED",
+    "真实服务尚未完成接入验证，不能提交生成。",
+  );
+  await assertAnalysisCurrent(tx, plan);
+  const allowed = (
+    await tx.sql.query("SELECT generation_submission_allowed($1) AS allowed", [
+      cap.id,
+    ])
+  ).rows[0]?.allowed;
+  requireThat(
+    allowed,
+    429,
+    "GENERATION_USAGE_LIMIT",
+    "已达到模型任务上限，请等待现有任务完成或核对未决提交。",
+  );
+  const id = randomUUID();
+  await tx.sql.query(
+    "INSERT INTO generation_jobs(id,tenant_id,project_id,plan_id,created_by) VALUES($1,$2,$3,$4,$5)",
+    [id, tx.tenantId, tx.projectId, plan.id, tx.session.userId],
+  );
+  await tx.sql.query(
+    "UPDATE generation_plans SET status='consumed',revision=revision+1,updated_at=now() WHERE tenant_id=$1 AND id=$2",
+    [tx.tenantId, plan.id],
+  );
+  // Durable queue hint and business consumption commit with the API's encrypted replay record.
+  await tx.sql.query("INSERT INTO generation_work(job_id) VALUES($1)", [id]);
+  return await serializeJob(tx, await getJob(tx, id));
+}
 export function generationScope(
   kind: "input" | "plan" | "job" | "list",
   write: boolean,

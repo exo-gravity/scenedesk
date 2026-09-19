@@ -97,14 +97,14 @@ valid = sum(s["valid"] for s in samples)
 checks.append(f"{valid} 个有效样例被接受、{len(samples)-valid} 个故意无效样例被拒绝；样例对应操作的请求类型一致")
 
 acceptance = (ROOT / "08-verification-and-delivery-plan.md").read_text()
-check(set(re.findall(r"^\| (AT-\d{2}) \|", acceptance, re.M)) == {f"AT-{n:02d}" for n in range(1, 76)}, "Acceptance case inventory incomplete")
+check(set(re.findall(r"^\| (AT-\d{2}) \|", acceptance, re.M)) == {f"AT-{n:02d}" for n in range(1, 77)}, "Acceptance case inventory incomplete")
 check(expected_requirements <= set(re.findall(r"^\| (PR-\d{2}) \|", acceptance, re.M)), "Traceability PR missing")
 for line in acceptance.splitlines():
     if re.match(r"\| PR-\d{2} \|", line):
         names = line.split("|")[3].strip().split("、")
         for name in names:
             check(name in operations, f"Unknown traced operation: {name}")
-checks.append("PR-01–17 均有接口与验收追踪；AT-01–75 清单完整，追踪表中的 operationId 均存在")
+checks.append("PR-01–17 均有接口与验收追踪；AT-01–76 清单完整，追踪表中的 operationId 均存在")
 
 job_schema = spec["components"]["schemas"]["GenerationJob"]["properties"]["status"]["enum"]
 state_doc = (ROOT / "04-state-execution-and-budget.md").read_text()
@@ -207,7 +207,7 @@ versions = {p: importlib.metadata.version(p) for p in ["openapi-spec-validator",
 generated_at = datetime.now(timezone.utc).isoformat()
 report = ["# 设计包静态校验报告", "", f"执行时间（UTC）：{generated_at}。结果：PASS。此报告由 check_design.py 在所有检查通过后生成，旧交付快照不回写。", "", "## 已实际执行", ""]
 report += [f"- {item}。" for item in checks]
-report += ["", "## 验证环境与产物", "", f"- Python：{sys.version.split()[0]}。", *[f"- {p}：{v}。" for p,v in versions.items()], f"- openapi.json SHA-256：`{after[0]}`。", f"- api-operations.md SHA-256：`{after[1]}`。", "", "## 没有由本报告证明的事项", "", "本脚本不验证数据库迁移、RLS／权限实际隔离、预算并发、SDK 实际重试、供应商效果与计费、媒体解码／渲染、浏览器交互、压测、备份恢复和用户试点。S0 有限运行检查另见 15；其通过不代表这些业务验收完成。AT-01–75 与 MV-01–10 是待执行清单；本报告不把结构检查作为业务或生产验收。", "", "本地链接检查不验证章节锚点或所有外链在线状态；需求追踪检查确保编号与操作存在，不替代人工评审其语义。", ""]
+report += ["", "## 验证环境与产物", "", f"- Python：{sys.version.split()[0]}。", *[f"- {p}：{v}。" for p,v in versions.items()], f"- openapi.json SHA-256：`{after[0]}`。", f"- api-operations.md SHA-256：`{after[1]}`。", "", "## 没有由本报告证明的事项", "", "本脚本不验证数据库迁移、RLS／权限实际隔离、预算并发、SDK 实际重试、供应商效果与计费、媒体解码／渲染、浏览器交互、压测、备份恢复和用户试点。S0 有限运行检查另见 15；其通过不代表这些业务验收完成。AT-01–76 与 MV-01–10 是待执行清单；本报告不把结构检查作为业务或生产验收。", "", "本地链接检查不验证章节锚点或所有外链在线状态；需求追踪检查确保编号与操作存在，不替代人工评审其语义。", ""]
 output_dir.mkdir(parents=True, exist_ok=False)
 report_path = output_dir / "validation-report.md"
 report_path.write_text("\n".join(report))

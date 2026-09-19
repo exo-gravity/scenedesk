@@ -50,6 +50,7 @@ import { useCanvas } from "./use-canvas";
 import { useCanvasNodePreview } from "./use-canvas-node-preview";
 import { EditingPresence } from "./EditingPresence";
 import { CanvasBoard } from "./CanvasBoard";
+import { CanvasGenerationBatch } from "./CanvasGenerationBatch";
 import { CanvasUploads } from "./CanvasUploads";
 import {
   SceneTaskPanel,
@@ -483,6 +484,8 @@ export function SceneCanvasSession({
     );
   const [assistantProposalId, setAssistantProposalId] = useState<string>();
   const [editingNodeId, setEditingNodeId] = useState<string>();
+  /** Nodes the user asked to review as one batch; nothing is submitted by this. */
+  const [batchReview, setBatchReview] = useState<string[] | undefined>();
   const [focusMode, setFocusMode] = useState(false);
   const canvasSessionAlive = useRef(true);
   useEffect(() => {
@@ -971,6 +974,7 @@ export function SceneCanvasSession({
                       auxiliaryDocked={dock === "assistant"}
                       onFocusModeChange={setFocusMode}
                       onOpenResults={() => selectDock("results")}
+                      onReviewBatch={setBatchReview}
                       onAddAssistantContext={(nodeIds) => {
                         setAssistantContext({ nodeIds, nonce: Date.now() });
                         setAssistantView("canvas");
@@ -1034,6 +1038,19 @@ export function SceneCanvasSession({
                         if (dock !== "media") selectDock("media");
                       }}
                     />
+                    {batchReview && state.local && (
+                      <CanvasGenerationBatch
+                        tenantId={tenantId}
+                        projectId={projectId}
+                        {...(sceneId ? { sceneId } : {})}
+                        canvasId={state.local.base.id}
+                        canvasRevision={state.local.base.revision}
+                        document={document}
+                        nodeIds={batchReview}
+                        readOnly={readOnly || bindingBusy}
+                        close={() => setBatchReview(undefined)}
+                      />
+                    )}
                   </SceneModePanel>
                   {sceneId && (
                     <SceneModePanel

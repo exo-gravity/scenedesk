@@ -14,7 +14,7 @@
 | 接口与异常 | 新增 12 个画布／偏好操作、22 个 Schema 和 36 个正反结构样例，纳入统一类型生成与静态检查 | [OpenAPI](openapi.json)、[生成源](canvas_contract.py)、[样例](sample-payloads.json) |
 | 专业组件 | React Flow、Media Chrome、dnd-kit、Query 已完成精确发布包核对和隔离集成；Virtual 选定、按需接入 | [17 组件裁决](17-frontend-component-selection.md)、[实测与许可证据](../research/2026-09-09-specialized-stack-closure.md) |
 | 当前页面与视觉表达 | v0.3 核心布局和连续流程已确认；v0.4 剧本、声音字幕、资产版本、保存恢复暂时收口 | [核心体验](../design/scene-walkthrough-review-v0.3.md)、[专项设计](../design/production-detail-design-v0.4.md)；旧 layouts 查看器保留为历史 |
-| 实施与验收 | 新增 CX01–05，完整 MVP 必须包含；PR-01–17、AT-01–75 贯通接口追踪，首个切片可用导入素材开工 | [16 工作包](16-implementation-backlog.md)、[08 验收](08-verification-and-delivery-plan.md) |
+| 实施与验收 | 新增 CX01–05，完整 MVP 必须包含；PR-01–17、AT-01–76 贯通接口追踪，首个切片可用导入素材开工 | [16 工作包](16-implementation-backlog.md)、[08 验收](08-verification-and-delivery-plan.md) |
 | 模型、部署、人员、试点、商业 | 给出账号能力卡、默认部署拓扑、岗位依赖、外部事实关口与可执行试点／广告研究方案 | [20 执行准备](20-external-validation-and-launch-plan.md) |
 | 独立复核 | 新增画布设计经独立技术视角审查；4 项 P1 已修正并复核，未发现新增 P0/P1 | [复核与处理记录](../reviews/2026-09-09/canvas-closure-review.md) |
 

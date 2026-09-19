@@ -74,6 +74,7 @@ import {
   MagnifyingGlass,
   Images,
   ClockCounterClockwise,
+  StackSimple,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -314,6 +315,7 @@ export function CanvasBoard({
   auxiliaryDocked = false,
   onOpenResults,
   onAddAssistantContext,
+  onReviewBatch,
   navigation,
   onFocusModeChange,
   beforeEditNodeChange,
@@ -337,6 +339,8 @@ export function CanvasBoard({
   auxiliaryDocked?: boolean;
   onOpenResults?: () => void;
   onAddAssistantContext?: (ids: string[]) => void;
+  /** Review a multi-node preparation. Never submits generation on its own. */
+  onReviewBatch?: (nodeIds: string[]) => void;
   navigation?: ReactNode;
   onFocusModeChange?: (focused: boolean) => void;
   beforeEditNodeChange?: () => Promise<boolean>;
@@ -487,6 +491,17 @@ export function CanvasBoard({
     document.nodes.some((n) => n.id === id),
   );
   const selectedSet = new Set(selected);
+  /** Drafts with a chosen model are the only nodes a generation plan can fix. */
+  const runnable = selected.filter((id) => {
+    const node = document.nodes.find((n) => n.id === id);
+    return (
+      !!node &&
+      (node.kind === "image" || node.kind === "video" || node.kind === "audio") &&
+      node.content.type === "draft" &&
+      !!node.content.connectionId &&
+      !!node.content.capabilityId
+    );
+  });
   const active =
     selected.length === 1
       ? document.nodes.find((n) => n.id === selected[0])
@@ -1144,6 +1159,19 @@ export function CanvasBoard({
       {active?.content.type === "draft" && onOpenResults && (
         <Button size="xs" variant="subtle" onClick={onOpenResults}>
           生成记录
+        </Button>
+      )}
+      {onReviewBatch && runnable.length > 1 && (
+        <Button
+          size="xs"
+          variant="subtle"
+          leftSection={<StackSimple size={14} />}
+          disabled={readOnly || switching}
+          // Review only: the batch panel is where anything is ever submitted, so a
+          // selection can never burn several paid tasks by itself.
+          onClick={() => onReviewBatch(runnable)}
+        >
+          查看 {runnable.length} 项的生成计划
         </Button>
       )}
       <Menu position="bottom-end">
