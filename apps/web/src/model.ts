@@ -10,7 +10,9 @@ export type Page =
   | "design"
   | "layouts"
   | "directions"
-  | "journey";
+  | "journey"
+  /** 剧本页重构 A 的效果对照稿（设计预览）。 */
+  | "script-layout";
 export type SceneView = "production" | "edit" | "review";
 export type Shot = {
   id: number;

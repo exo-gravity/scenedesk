@@ -112,84 +112,110 @@ export function ScriptDocumentReader({
   }
   return (
     <Stack gap="lg" className={classes.reader}>
-      <div className={classes.toolbar}>
-        <div className={classes.documentIdentity}>
-          <Text fw={600}>
-            {selected
-              ? `${history && history !== tree.currentScriptRevisionId ? "历史稿 · 只读" : "当前稿"} · ${selected.source ? "飞书导入" : selected.sourceFormat === "docx" ? "Word 导入" : "纯文本"}`
-              : "导入你的初稿剧本"}
+      {selected ? (
+        <>
+          <div className={classes.versionRow}>
+            <div className={classes.versionMeta}>
+              <Text fw={600} size="sm">
+                {history && history !== tree.currentScriptRevisionId
+                  ? "历史稿 · 只读"
+                  : "当前稿"}{" "}
+                ·{" "}
+                {selected.source
+                  ? "飞书导入"
+                  : selected.sourceFormat === "docx"
+                    ? "Word 导入"
+                    : "纯文本"}
+              </Text>
+              {selected.fileName && (
+                <Text size="sm" c="dimmed">
+                  {selected.fileName}
+                  {selected.createdAt
+                    ? ` · ${new Date(selected.createdAt).toLocaleDateString()}`
+                    : ""}
+                </Text>
+              )}
+            </div>
+            <Group gap="xs" className={classes.versionActions}>
+              {history && history !== tree.currentScriptRevisionId && (
+                <Button
+                  component="a"
+                  href={location.hash.split("?")[0]}
+                  variant="default"
+                  onClick={() => {
+                    setHistory(null);
+                    setShowHistory(false);
+                    setLegacy(false);
+                  }}
+                >
+                  返回当前稿
+                </Button>
+              )}
+              <div ref={setWordAction} />
+              <div ref={setFeishuAction} />
+              <Menu position="bottom-end" withinPortal>
+                <Menu.Target>
+                  <Button
+                    variant="subtle"
+                    leftSection={<DotsThree size={18} />}
+                    aria-label="文档更多操作"
+                  >
+                    更多
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<ClockCounterClockwise size={16} />}
+                    disabled={!scripts.length}
+                    onClick={() => setShowHistory(!showHistory)}
+                  >
+                    查看历史
+                  </Menu.Item>
+                  {selected?.sourceFormat === "docx" && (
+                    <Menu.Item
+                      leftSection={<DownloadSimple size={16} />}
+                      disabled={downloading}
+                      onClick={() => void downloadOriginal()}
+                    >
+                      {selected.source ? "下载本次导出文件" : "下载原件"}
+                    </Menu.Item>
+                  )}
+                  {!!fixed.data?.document?.warnings.length && (
+                    <Menu.Item onClick={() => setShowNotes(!showNotes)}>
+                      导入说明
+                    </Menu.Item>
+                  )}
+                  {active && !history && (
+                    <Menu.Item
+                      leftSection={<PencilSimple size={16} />}
+                      onClick={() => setLegacy(!legacy)}
+                    >
+                      {legacy ? "收起正文编辑" : "编辑纯文本"}
+                    </Menu.Item>
+                  )}
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+          <div className={classes.excerptRow}>
+            <div ref={setExcerptAction} />
+          </div>
+        </>
+      ) : (
+        <div className={classes.emptyState}>
+          <Text fw={600}>导入你的初稿剧本</Text>
+          <Text size="sm" c="dimmed">
+            把已确定的剧本带到这里，与项目成员一起阅读。
           </Text>
-          {(selected?.fileName || !selected) && (
-            <Text size="sm" c="dimmed">
-              {selected?.fileName ??
-                "把已确定的剧本带到这里，与项目成员一起阅读。"}
-            </Text>
-          )}
+          <Group gap="sm" justify="center">
+            <div ref={setWordAction} />
+            <div ref={setFeishuAction} />
+          </Group>
+          <Text size="xs" c="dimmed">
+            支持 .docx，最大 4 MB。
+          </Text>
         </div>
-        <Group gap="xs" className={classes.documentActions}>
-          <div ref={setWordAction} />
-          <div ref={setFeishuAction} />
-          {history && history !== tree.currentScriptRevisionId && (
-            <Button
-              component="a"
-              href={location.hash.split("?")[0]}
-              variant="subtle"
-              onClick={() => {
-                setHistory(null);
-                setShowHistory(false);
-                setLegacy(false);
-              }}
-            >
-              返回当前稿
-            </Button>
-          )}
-          <Menu position="bottom-end" withinPortal>
-            <Menu.Target>
-              <Button
-                variant="subtle"
-                leftSection={<DotsThree size={18} />}
-                aria-label="文档更多操作"
-              >
-                更多
-              </Button>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<ClockCounterClockwise size={16} />}
-                disabled={!scripts.length}
-                onClick={() => setShowHistory(!showHistory)}
-              >
-                查看历史
-              </Menu.Item>
-              {selected?.sourceFormat === "docx" && (
-                <Menu.Item
-                  leftSection={<DownloadSimple size={16} />}
-                  disabled={downloading}
-                  onClick={() => void downloadOriginal()}
-                >
-                  {selected.source ? "下载本次导出文件" : "下载原件"}
-                </Menu.Item>
-              )}
-              {!!fixed.data?.document?.warnings.length && (
-                <Menu.Item onClick={() => setShowNotes(!showNotes)}>
-                  导入说明
-                </Menu.Item>
-              )}
-              {active && !history && (
-                <Menu.Item
-                  leftSection={<PencilSimple size={16} />}
-                  onClick={() => setLegacy(!legacy)}
-                >
-                  {legacy ? "收起正文编辑" : "编辑纯文本"}
-                </Menu.Item>
-              )}
-            </Menu.Dropdown>
-          </Menu>
-        </Group>
-        <div className={classes.excerptAction}>
-          <div ref={setExcerptAction} />
-        </div>
-      </div>
+      )}
       {showHistory && (
         <Group align="end">
           <Select
@@ -282,15 +308,7 @@ export function ScriptDocumentReader({
             </>
           )}
         </>
-      ) : (
-        <div className={classes.empty}>
-          <FileDoc size={40} />
-          <Text>支持 .docx · 最大 4 MB</Text>
-          <Text size="sm" c="dimmed">
-            选择文件，预览正文后确认导入。
-          </Text>
-        </div>
-      )}
+      ) : null}
       {history && !selected && (
         <Alert title="所选版本不可用">
           没有找到此固定剧本版本，请重新选择历史版本。

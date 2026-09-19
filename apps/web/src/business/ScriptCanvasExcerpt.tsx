@@ -186,6 +186,8 @@ export function ScriptCanvasExcerpt({
       setError(cause as Error);
     }
   }
+  // The entry stays mounted: it opens the dialog where the source can also be
+  // selected, so hiding it before any selection would remove that path.
   const trigger = (
     <Tooltip label="可在正文中选中，或打开后从原文中选择">
       <Button

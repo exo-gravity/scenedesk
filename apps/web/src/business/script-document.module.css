@@ -1,48 +1,50 @@
 .paper {
-  max-width: 960px;
+  /* 正文直接铺在内容区上：页面已有整页留白，不再套第二层卡片 */
   width: 100%;
-  margin: 0 auto;
-  padding: clamp(28px, 4vw, 60px);
-  background: var(--ws-raised);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: var(--ws-media-radius);
   font-size: var(--ws-reading-size);
   line-height: 2.05;
   overflow-wrap: anywhere;
 }
 .reader {
   width: 100%;
-  max-width: 1120px;
-  margin-inline: auto;
 }
 .reader > :global(.mantine-Stack-root):empty {
   display: none;
 }
-.toolbar {
+.versionRow {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
   gap: var(--mantine-spacing-sm);
+  flex-wrap: wrap;
   padding-bottom: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--ws-border-subtle);
 }
-.documentIdentity {
-  flex: 1 1 180px;
+.versionMeta {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.documentActions {
+.versionActions {
   flex: 0 1 auto;
 }
-.documentActions > div:empty,
-.excerptAction:empty {
+.versionActions > div:empty {
   display: none;
 }
-.excerptAction {
-  margin-left: auto;
+.excerptRow:empty {
+  display: none;
+}
+.emptyState {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--mantine-spacing-xs);
+  max-width: 560px;
+  margin: var(--mantine-spacing-xl) auto;
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-lg);
+  text-align: center;
+  border: 1px dashed var(--ws-border);
+  border-radius: var(--ws-control-radius);
+  background: var(--ws-raised);
 }
 .paper p,
 .plain {
@@ -58,13 +60,6 @@
 .paper td {
   white-space: pre-wrap;
   vertical-align: top;
-}
-.empty {
-  display: grid;
-  justify-items: center;
-  gap: var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-xl);
-  color: var(--mantine-color-dimmed);
 }
 .import {
   display: grid;
