@@ -87,3 +87,46 @@ getCanvasGenerationBatch              executeCanvasGenerationBatch
 「多选 → 批量动作 → 衔接」是一次选中、多种去向，属**一个可独立审查的切片**，因此合为一个 PR。
 
 **唯一例外**：若 #3 的落地需要**新的领域对象或持久化**（例如记录"候选来源节点"），那已经超出「多选」的延伸范围，应拆成第二个 PR。此判断在实施中做出，不预设。
+
+## 8. 实施结果（2026-09-20）
+
+### 8.1 落地范围
+
+| # | 做了什么 | 位置 |
+|---|---|---|
+| 2 | 一套选中模型驱动三处列表 | `list-selection.ts`（纯逻辑）、`list-selection-store.ts`（跨挂载保存） |
+| 2 | 镜头多选 + 批量查看候选 | `SceneShotOrder.tsx`、`ShotListWorkspace.tsx`、`ShotCandidatesOverview.tsx` |
+| 2 | 候选多选 + 批量比较 | `CandidateWorkspace.tsx`、`TakeComparison.tsx` |
+| 3 | 画布结果一键进候选（预填用途与整段区间） | `CanvasBoard.tsx`、`SceneProductionWorkspace.tsx`、`CanvasShotConnections.tsx` |
+| 3 | 候选跳回来源画布节点 | `CandidateWorkspace.tsx`（`getSceneCanvas` 的绑定反查 → `?node=`） |
+
+**零契约变更、零迁移。** #3 的两个方向都由既有能力承担：正向是 `bindSceneCanvasNode(role:"candidate")`（内部 `archiveTake`），反向是 `node_shot_bindings.take_id`，而 `SceneProductionWorkspace` 本就支持 `?node=` 定位。
+
+### 8.2 选中语义（三处一致）
+
+- **普通点击只移动聚焦**，不改动批量选中。列表行会导航（候选行）或不导航（镜头行），若普通点击替换选中，用户"看一眼"就会丢掉刚选的一批。
+- **Shift / Command / Control 点击切换成员**，聚焦不变。
+- 批量动作按**列表顺序**执行，并丢弃列表已不存在的 id。
+- 选中状态存在 `list-selection-store` 而不是组件里：候选行过去会导航到自己的 URL，那会卸载并重建持有选中的界面。存储用 `useSyncExternalStore` 暴露，组件不再保存镜像状态。
+
+> 候选行现在不再导航：被查看的候选是组件状态，URL 用 `replaceState` 同步以保持链接可分享。这样浏览候选既不污染历史，也不会重建界面。
+
+### 8.3 明确不做（本次确认后移出）
+
+| 项 | 原因 | 去向 |
+|---|---|---|
+| 多选镜头 → 批量生成 | #1 的批量是**画布节点**粒度（`prepareCanvasGenerationBatch`），而合同里没有按镜头的批量操作；每个镜头的提示词／模型／输出来源也需一并确定 | 单独一个 PR（含契约） |
+| 多选候选 → 批量归档 | **领域里没有这个事实**：`Take` 无 `status`，`Selection` 只追加，采用是逐镜头的显式动作。界面上那句「已归档」指的是镜头 | 需先确认领域设计 |
+| 画布素材浏览器多选 | 与素材库（问题 02）共享同一块地，先由那一侧落地 | 见 §6 |
+
+### 8.4 不自动采用
+
+批量查看、批量比较、登记候选三者都不建立或变更采用，e2e 有三处负例断言：打开关联表单后候选数与采用不变；查看多镜头候选后采用不变；比较后采用不变且候选数不增。
+
+### 8.5 验证
+
+- `npm run check` —— **280/280**（含新增 9 项选中模型与 6 项存储单元测试）、UI 规则、类型、生产构建、契约生成物一致。
+- `npm run test:e2e` —— **40/40**（39 项既有 + 本片新增 `canvas-multi-select.spec.ts`）。
+- 本片未改服务端，故无新增数据库集成用例；既有 354 项未受影响。
+
+**本片证据全部来自受控夹具与本地测试身份，不构成真实模型验收。**
