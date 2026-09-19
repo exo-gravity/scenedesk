@@ -153,6 +153,48 @@ export function ScriptDocumentReader({
               )}
               <div ref={setWordAction} />
               <div ref={setFeishuAction} />
+              <Menu position="bottom-end" withinPortal>
+                <Menu.Target>
+                  <Button
+                    variant="subtle"
+                    leftSection={<DotsThree size={18} />}
+                    aria-label="文档更多操作"
+                  >
+                    更多
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<ClockCounterClockwise size={16} />}
+                    disabled={!scripts.length}
+                    onClick={() => setShowHistory(!showHistory)}
+                  >
+                    查看历史
+                  </Menu.Item>
+                  {selected?.sourceFormat === "docx" && (
+                    <Menu.Item
+                      leftSection={<DownloadSimple size={16} />}
+                      disabled={downloading}
+                      onClick={() => void downloadOriginal()}
+                    >
+                      {selected.source ? "下载本次导出文件" : "下载原件"}
+                    </Menu.Item>
+                  )}
+                  {!!fixed.data?.document?.warnings.length && (
+                    <Menu.Item onClick={() => setShowNotes(!showNotes)}>
+                      导入说明
+                    </Menu.Item>
+                  )}
+                  {active && !history && (
+                    <Menu.Item
+                      leftSection={<PencilSimple size={16} />}
+                      onClick={() => setLegacy(!legacy)}
+                    >
+                      {legacy ? "收起正文编辑" : "编辑纯文本"}
+                    </Menu.Item>
+                  )}
+                </Menu.Dropdown>
+              </Menu>
             </Group>
           </div>
           <div className={classes.excerptRow}>
