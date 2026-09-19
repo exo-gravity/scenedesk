@@ -1,5 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+// Ports are configurable so that a second checkout (for example a git
+// worktree used by a parallel task) can run beside this one; defaults keep
+// the documented local addresses unchanged.
+const apiPort = Number(process.env.SCENEDESK_API_PORT ?? 4310);
+const webPort = Number(process.env.SCENEDESK_WEB_PORT ?? 4311);
+const previewPort = Number(process.env.SCENEDESK_PREVIEW_PORT ?? 4312);
+
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
@@ -22,13 +29,13 @@ export default defineConfig({
   },
   server: {
     host: "127.0.0.1",
-    port: 4311,
+    port: webPort,
     strictPort: true,
     proxy: {
-      "/v1": "http://127.0.0.1:4310",
-      "/health": "http://127.0.0.1:4310",
-      "/design": "http://127.0.0.1:4310",
+      "/v1": `http://127.0.0.1:${apiPort}`,
+      "/health": `http://127.0.0.1:${apiPort}`,
+      "/design": `http://127.0.0.1:${apiPort}`,
     },
   },
-  preview: { host: "127.0.0.1", port: 4312, strictPort: true },
+  preview: { host: "127.0.0.1", port: previewPort, strictPort: true },
 });
