@@ -14,6 +14,15 @@ import { ErrorNotice, projectPath, tenantPath } from "./common";
 import { ContentDraftRetention } from "./content-drafts";
 import { StructureEditor } from "./ContentEditors";
 import { SceneShotOrder } from "./SceneShotOrder";
+import { ShotCandidatesOverview } from "./ShotCandidatesOverview";
+import {
+  applyClick,
+  batchTargets,
+  emptySelection,
+  hasBatch,
+  type ClickModifiers,
+  type ListSelection,
+} from "./list-selection";
 import { ShotResultFocus } from "./ShotResultFocus";
 import { SelectedDelivery } from "./SelectedDelivery";
 import classes from "./shot-list.module.css";
@@ -146,8 +155,11 @@ function ShotListWorkspace({
   const project = useResource<Schema<"Project">>(path),
     content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const [sceneId, setSceneId] = useState(initialSceneId ?? ""),
-    [shotId, setShotId] = useState(initialShotId ?? ""),
-    [creating, setCreating] = useState(false);
+    [selection, setSelection] = useState<ListSelection>(() =>
+      initialShotId ? { focused: initialShotId, selected: [initialShotId] } : emptySelection,
+    ),
+    [creating, setCreating] = useState(false),
+    [bulkOpen, setBulkOpen] = useState(false);
   const tree = content.data;
   const scenes = [...(tree?.scenes ?? [])].sort((a, b) => {
     const ea = tree?.episodes.find((e) => e.id === a.episodeId),
@@ -159,10 +171,15 @@ function ShotListWorkspace({
   const shots = (tree?.shots ?? [])
     .filter((s) => s.sceneId === scene?.id)
     .sort((a, b) => a.position - b.position);
-  const shot = shots.find((s) => s.id === shotId) ?? shots[0];
+  const shot = shots.find((s) => s.id === selection.focused) ?? shots[0];
+  // Keep focus pointing at something the list still contains, without touching the
+  // batch set: the pane needs a subject, the batch set is the user's own choice.
   useEffect(() => {
-    if (shot && shotId !== shot.id) setShotId(shot.id);
-  }, [shot?.id, shotId]);
+    if (shot && selection.focused !== shot.id)
+      setSelection((old) => ({ ...old, focused: shot.id }));
+  }, [shot?.id, selection.focused]);
+  const orderedShots = shots.map((s) => s.id);
+  const batch = batchTargets(selection, orderedShots);
   if (project.isError || content.isError)
     return (
       <ErrorNotice
@@ -193,7 +210,7 @@ function ShotListWorkspace({
           onChange={(id) =>
             void transition(() => {
               setSceneId(id ?? "");
-              setShotId("");
+              setSelection(emptySelection);
               setCreating(false);
             })
           }
@@ -218,6 +235,16 @@ function ShotListWorkspace({
           >
             新增镜头
           </Button>
+          {hasBatch(selection, orderedShots) && (
+            <Button
+              size="xs"
+              variant="default"
+              // Navigation only: reviewing several shots' candidates adopts nothing.
+              onClick={() => setBulkOpen(true)}
+            >
+              查看 {batch.length} 个镜头的候选
+            </Button>
+          )}
         </Group>
       </Group>
       {!scene ? (
@@ -239,14 +266,22 @@ function ShotListWorkspace({
                 tree={tree}
                 sceneId={scene.id}
                 shots={shots}
-                selectedId={shot?.id}
+                selection={selection}
                 active={!!active}
-                onSelect={(id) =>
-                  void transition(() => {
-                    setShotId(id);
+                onSelect={(id: string, modifiers: ClickModifiers) => {
+                  const next = applyClick(selection, id, modifiers);
+                  // Only a focus change swaps the pane, so only that has to retain
+                  // in-progress editors first.
+                  if (next.focused === selection.focused) {
+                    setSelection(next);
                     setCreating(false);
-                  })
-                }
+                    return;
+                  }
+                  void transition(() => {
+                    setSelection(next);
+                    setCreating(false);
+                  });
+                }}
               />
               <div className={classes.delivery}>
                 <SelectedDelivery
@@ -292,6 +327,20 @@ function ShotListWorkspace({
               )}
             </section>
           </div>
+          <ShotCandidatesOverview
+            opened={bulkOpen}
+            close={() => setBulkOpen(false)}
+            path={path}
+            mediaPath={mediaPath}
+            shots={shots.filter((s) => batch.includes(s.id))}
+            focusedShotId={shot?.id}
+            focusShot={(id) => {
+              setBulkOpen(false);
+              void transition(() =>
+                setSelection((old) => applyClick(old, id)),
+              );
+            }}
+          />
         </>
       )}
     </div>

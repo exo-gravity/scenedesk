@@ -11,6 +11,12 @@ import { ArrowDown, ArrowUp } from "@phosphor-icons/react";
 import { useCommand, type Schema } from "./api";
 import { ErrorNotice } from "./common";
 import { DraftNotice, useContentDraft } from "./content-drafts";
+import {
+  isFocused,
+  isSelected,
+  type ClickModifiers,
+  type ListSelection,
+} from "./list-selection";
 import classes from "./shot-list.module.css";
 
 export function SceneShotOrder({
@@ -18,7 +24,7 @@ export function SceneShotOrder({
   tree,
   sceneId,
   shots,
-  selectedId,
+  selection,
   active,
   onSelect,
 }: {
@@ -26,9 +32,9 @@ export function SceneShotOrder({
   tree: Schema<"ContentTree">;
   sceneId: string;
   shots: Schema<"Shot">[];
-  selectedId?: string | undefined;
+  selection: ListSelection;
   active: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, modifiers: ClickModifiers) => void;
 }) {
   const [initial] = useState(() => ({ ids: shots.map((s) => s.id), key: "" }));
   const draft = useContentDraft(
@@ -63,6 +69,9 @@ export function SceneShotOrder({
         <DraftNotice draft={draft} />
       ) : null}
       <ErrorNotice error={command.error ?? stageError} />
+      <Text size="xs" c="dimmed">
+        按住 Shift 或 Command 点击可多选。
+      </Text>
       {changed && (
         <Alert title="列表已更新">
           <Text size="xs">核对当前场次与镜头后再保存，本机顺序仍保留。</Text>
@@ -106,12 +115,20 @@ export function SceneShotOrder({
           <div
             className={classes.row}
             key={id}
-            data-selected={selectedId === id || undefined}
+            data-batch={isSelected(selection, id) ? "true" : undefined}
+            data-focused={isFocused(selection, id) || undefined}
           >
             <UnstyledButton
               className={classes.rowTarget}
-              aria-current={selectedId === id ? "true" : undefined}
-              onClick={() => onSelect(id)}
+              aria-current={isFocused(selection, id) ? "true" : undefined}
+              aria-pressed={isSelected(selection, id)}
+              // A tooltip, not an aria-label: the row's own text is its name.
+              title="按住 Shift 或 Command 点击可多选"
+              onClick={(event) =>
+                onSelect(id, {
+                  extend: event.shiftKey || event.metaKey || event.ctrlKey,
+                })
+              }
             >
               <Text size="sm" fw={600}>
                 {index + 1}. {shot.label}
