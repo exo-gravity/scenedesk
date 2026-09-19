@@ -488,3 +488,13 @@
     flex-basis: 180px;
   }
 }
+
+/* The batch set of a shot's candidates, kept distinct from the take being viewed. */
+.candidate[data-batch] {
+  background: var(--ws-hover);
+}
+.candidateSelection {
+  border: 1px solid var(--ws-border-subtle);
+  border-radius: var(--ws-card-radius);
+  padding: var(--ws-control-compact) var(--mantine-spacing-xs);
+}

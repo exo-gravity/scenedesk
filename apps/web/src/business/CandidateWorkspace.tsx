@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
 import {
   Alert,
   ActionIcon,
@@ -33,6 +39,20 @@ import { useList, useResource, useSession, type Schema } from "./api";
 import { Empty, ErrorNotice, projectPath, tenantPath } from "./common";
 import { MediaPreview } from "./MediaPreview";
 import { CandidateEditor, SelectionEditor } from "./CandidateEditor";
+import { TakeComparison } from "./TakeComparison";
+import {
+  applyClick,
+  batchTargets,
+  clearSelection,
+  hasBatch,
+  isSelected,
+  type ListSelection,
+} from "./list-selection";
+import {
+  readSelection,
+  subscribeSelections,
+  writeSelection,
+} from "./list-selection-store";
 import { sourceSeconds } from "./candidate-time";
 import { useAssetPages } from "./asset-queries";
 import classes from "./candidates.module.css";
@@ -252,6 +272,7 @@ export default function CandidateWorkspace({
             closeExternalDock={closeExternalDock}
             href={`${base}/production?scene=${scene.id}&mode=storyboard&shot=${shot.id}`}
             contentHref={`${base}/content?shot=${shot.id}`}
+            canvasHref={`${base}/production?scene=${scene.id}&mode=canvas`}
           />
         )}
         {shot && (
@@ -447,6 +468,7 @@ function ShotProduction({
   browseRevision,
   href,
   contentHref,
+  canvasHref,
   externalDockOpen,
   closeExternalDock,
 }: {
@@ -460,20 +482,39 @@ function ShotProduction({
   browseRevision: number;
   href: string;
   contentHref: string;
+  /** The scene canvas, so a candidate can point back at the node it came from. */
+  canvasHref: string;
   externalDockOpen: boolean;
   closeExternalDock?: (() => void) | undefined;
 }) {
+  const session = useSession();
   const takes = useList<Take>(`${path}/takes?shotId=${shot.id}`),
     history = useList<Schema<"Selection">>(
       `${path}/shots/${shot.id}/selections`,
     );
   const members = useList<Schema<"Membership">>(`${mediaPath}/members`);
+  // The store is the state: opening a candidate navigates to its own URL and
+  // replaces this surface, so a selection held here would not survive it.
+  const selectionKey = `${session.userId}:${path}:${shot.id}:candidates`;
+  const candidateSelection = useSyncExternalStore(
+    subscribeSelections,
+    () => readSelection(selectionKey),
+  );
+  const [comparingTakes, setComparingTakes] = useState(false);
+  const changeSelection = (
+    update: (old: ListSelection) => ListSelection,
+  ): void => writeSelection(selectionKey, update(readSelection(selectionKey)));
   const [dock, setDock] = useState<
       "candidates" | "media" | "feedback" | "references" | null
     >(null),
     [editor, setEditor] = useState<{ mediaId: string; source?: Take }>(),
     [decision, setDecision] = useState<{ take?: Take }>();
-  useEffect(() => setEditor(undefined), [takeId, browseRevision]);
+  // Which candidate is on screen. It follows the URL when the URL says so, but a
+  // plain click sets it here instead of navigating: navigating replaces this
+  // surface, which would drop the batch selection being built beside it.
+  const [viewedTakeId, setViewedTakeId] = useState<string | null>(takeId);
+  useEffect(() => setViewedTakeId(takeId), [takeId]);
+  useEffect(() => setEditor(undefined), [viewedTakeId, browseRevision]);
   useEffect(() => {
     if (externalDockOpen) setDock(null);
   }, [externalDockOpen]);
@@ -491,8 +532,8 @@ function ShotProduction({
       next ? dockClose.current?.focus() : dockOpener.current?.focus(),
     );
   };
-  const take = takeId
-    ? takes.data?.find((t) => t.id === takeId)
+  const take = viewedTakeId
+    ? takes.data?.find((t) => t.id === viewedTakeId)
     : (takes.data?.find((t) => t.id === shot.currentTakeId) ?? takes.data?.[0]);
   const mediaId = editor?.mediaId ?? take?.mediaId;
   const media = useResource<Schema<"Media">>(
@@ -507,6 +548,22 @@ function ShotProduction({
   const adopted = !!take && take.id === shot.currentTakeId;
   const candidateNumber = (id: string) =>
     (takes.data?.findIndex((item) => item.id === id) ?? -1) + 1;
+  const takeIds = (takes.data ?? []).map((item) => item.id);
+  // Optional cross-reference: a scene without a canvas simply has no source node,
+  // and the canvas surface reports its own access problems.
+  const sceneCanvas = useResource<Schema<"SceneCanvas">>(
+    `${path}/scenes/${shot.sceneId}/canvas`,
+  );
+  const sourceNode = (takeId: string) =>
+    sceneCanvas.data?.bindings.find(
+      (binding) => binding.role === "candidate" && binding.takeId === takeId,
+    )?.nodeId;
+  const selectedTakes = batchTargets(candidateSelection, takeIds).flatMap(
+    (id) => {
+      const found = takes.data?.find((item) => item.id === id);
+      return found ? [found] : [];
+    },
+  );
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -632,7 +689,7 @@ function ShotProduction({
             />
           ) : editor ? (
             <Loader aria-label="正在读取候选视频" />
-          ) : takeId && !take && takes.data ? (
+          ) : viewedTakeId && !take && takes.data ? (
             <Empty>
               指定候选不存在或不属于当前镜头。请从候选列表重新选择。
             </Empty>
@@ -917,15 +974,61 @@ function ShotProduction({
               <Text size="sm" c="dimmed">
                 查看候选不会改变采用。
               </Text>
+              <Text size="xs" c="dimmed">
+                按住 Shift 或 Command 点击可多选，用于并列比较。
+              </Text>
+              {hasBatch(candidateSelection, takeIds) && (
+                <Group
+                  justify="space-between"
+                  className={classes.candidateSelection}
+                >
+                  <Text size="xs">
+                    已选 {batchTargets(candidateSelection, takeIds).length} 份候选
+                  </Text>
+                  <Group gap="xs">
+                    <Button size="xs" onClick={() => setComparingTakes(true)}>
+                      比较所选候选
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      onClick={() => changeSelection(clearSelection)}
+                    >
+                      清除选择
+                    </Button>
+                  </Group>
+                </Group>
+              )}
               {takes.data?.map((item, index) => (
                 <UnstyledButton
                   key={item.id}
                   component="a"
                   href={`${href}&take=${item.id}`}
-                  onClick={() => setEditor(undefined)}
+                  onClick={(event) => {
+                    const extend =
+                      event.shiftKey || event.metaKey || event.ctrlKey;
+                    // Neither click navigates: the viewed candidate is component
+                    // state, and the URL is kept in step without a navigation so a
+                    // browsed link stays shareable.
+                    event.preventDefault();
+                    setEditor(undefined);
+                    if (!extend) {
+                      setViewedTakeId(item.id);
+                      window.history.replaceState(
+                        null,
+                        "",
+                        `${href}&take=${item.id}`,
+                      );
+                    }
+                    changeSelection((old) =>
+                      applyClick(old, item.id, { extend }),
+                    );
+                  }}
                   className={classes.candidate}
                   data-selected={(take?.id === item.id && !editor) || undefined}
+                  data-batch={isSelected(candidateSelection, item.id) ? "true" : undefined}
                   aria-label={`查看候选 ${index + 1}`}
+                  title="按住 Shift 或 Command 点击可多选"
                   aria-pressed={take?.id === item.id && !editor}
                 >
                   <CandidateSummary
@@ -944,6 +1047,16 @@ function ShotProduction({
                   {item.note && (
                     <Text size="sm" lineClamp={2}>
                       {item.note}
+                    </Text>
+                  )}
+                  {sourceNode(item.id) && (
+                    <Text
+                      size="xs"
+                      component="a"
+                      href={`${canvasHref}&node=${sourceNode(item.id)}`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      在画布上查看来源节点
                     </Text>
                   )}
                 </UnstyledButton>
@@ -999,6 +1112,15 @@ function ShotProduction({
           )}
         </aside>
       </div>
+      {comparingTakes && selectedTakes.length > 1 && (
+        <TakeComparison
+          path={path}
+          mediaPath={mediaPath}
+          shotLabel={shot.label}
+          takes={selectedTakes}
+          close={() => setComparingTakes(false)}
+        />
+      )}
       <Modal
         opened={!!decision}
         onClose={() => setDecision(undefined)}

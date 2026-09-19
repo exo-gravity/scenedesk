@@ -316,6 +316,7 @@ export function CanvasBoard({
   onOpenResults,
   onAddAssistantContext,
   onReviewBatch,
+  onRegisterCandidate,
   navigation,
   onFocusModeChange,
   beforeEditNodeChange,
@@ -341,6 +342,8 @@ export function CanvasBoard({
   onAddAssistantContext?: (ids: string[]) => void;
   /** Review a multi-node preparation. Never submits generation on its own. */
   onReviewBatch?: (nodeIds: string[]) => void;
+  /** Open the candidate registration form for a generated result node. */
+  onRegisterCandidate?: (nodeId: string) => void;
   navigation?: ReactNode;
   onFocusModeChange?: (focused: boolean) => void;
   beforeEditNodeChange?: () => Promise<boolean>;
@@ -1161,6 +1164,21 @@ export function CanvasBoard({
           生成记录
         </Button>
       )}
+      {onRegisterCandidate &&
+        active?.content.type === "media" &&
+        // Candidates are video intervals; an image node cannot become one.
+        active.kind === "video" && (
+          <Button
+            size="xs"
+            variant="subtle"
+            disabled={readOnly || switching}
+            // Opens the linkage form with the target pre-filled; registering a
+            // candidate never adopts it.
+            onClick={() => onRegisterCandidate(active.id)}
+          >
+            登记为镜头候选
+          </Button>
+        )}
       {onReviewBatch && runnable.length > 1 && (
         <Button
           size="xs"

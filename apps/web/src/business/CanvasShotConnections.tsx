@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Button,
@@ -22,7 +22,17 @@ import { ShotListLauncher } from "./ShotListWorkspace";
 import { retainCanvasEditing } from "./canvas-edit-handoff";
 
 type Binding = Schema<"CanvasShotBinding">;
-type Seed = { shotId: string; shotRevisionId: string; take?: Schema<"Take"> };
+type Seed = {
+  shotId: string;
+  shotRevisionId: string;
+  take?: Schema<"Take">;
+  /**
+   * Register this node's whole fixed media as a candidate of the seeded shot.
+   * The interval is the full media duration, which is only known once the media
+   * has loaded, so the out point is filled in after that rather than seeded.
+   */
+  fullCandidate?: boolean;
+};
 type Placement = (
   media: Schema<"Media">,
   shot: Schema<"Shot">,
@@ -276,7 +286,10 @@ function CanvasBindingEditor({
           ...initial,
           shotId: seed.shotId,
           shotRevisionId: seed.shotRevisionId,
-          role: seed.take ? ("candidate" as const) : ("reference" as const),
+          role:
+            seed.take || seed.fullCandidate
+              ? ("candidate" as const)
+              : ("reference" as const),
           inSeconds: sourceSeconds(seed.take?.range.inUs ?? 0),
           outSeconds: seed.take ? sourceSeconds(seed.take.range.outUs) : "",
           sourceTakeId: seed.take?.sourceTakeId ?? "",
@@ -292,6 +305,19 @@ function CanvasBindingEditor({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<Error | null>(null),
     [success, setSuccess] = useState<string | null>(null);
+  useEffect(() => {
+    // Only the seeded "whole clip" case fills itself, and only while the user has
+    // not typed an out point of their own.
+    if (!seed?.fullCandidate || !media.data?.durationUs) return;
+    if (!draft.ready || draft.recovered || draft.committed) return;
+    if (draft.value.outSeconds !== "") return;
+    draft.setValue({
+      ...draft.value,
+      inSeconds: sourceSeconds(0),
+      outSeconds: sourceSeconds(media.data.durationUs),
+      requestId: crypto.randomUUID(),
+    });
+  }, [seed?.fullCandidate, media.data?.durationUs, draft]);
   const shot = shots.find((s) => s.id === draft.value.shotId);
   const fixed = useResource<Schema<"ShotRevision">>(
     `${path}/shots/${draft.value.shotId}/revisions/${draft.value.shotRevisionId}`,
