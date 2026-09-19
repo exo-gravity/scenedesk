@@ -5233,7 +5233,7 @@ export interface components {
             /** Format: uuid */
             nodeId: string;
             /** @enum {string} */
-            status: "ready" | "blocked" | "invalid" | "executing" | "executed" | "reconciliation_required" | "stale";
+            status: "ready" | "blocked" | "invalid" | "refused" | "executed" | "failed" | "reconciliation_required" | "stale";
             blockingReasons: string[];
             problemCode?: string;
             /** Format: uuid */
@@ -5260,7 +5260,7 @@ export interface components {
             items: components["schemas"]["CanvasGenerationBatchItem"][];
         };
         ExecuteCanvasGenerationBatch: {
-            nodeIds?: string[];
+            nodeIds: string[];
         };
         MaterializeCanvasResults: {
             /** Format: uuid */

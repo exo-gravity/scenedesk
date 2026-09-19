@@ -22,10 +22,10 @@ test("CW-BATCH: multi-select reviews one plan per node and submits only on confi
 
   // The two drafts are persisted through the API so this spec exercises the batch
   // path itself: selection, review and confirmation in the browser, nothing else.
-  const draftNode = (prompt: string) => ({
+  const draftNode = (title: string, prompt: string) => ({
     id: crypto.randomUUID(),
     kind: "image" as const,
-    title: prompt,
+    title,
     width: 320,
     position: { x: 100, y: 100 },
     content: {
@@ -36,7 +36,10 @@ test("CW-BATCH: multi-select reviews one plan per node and submits only on confi
       output: f.input.output,
     },
   });
-  const drafts = [draftNode("第一镜：雨夜门口"), draftNode("第二镜：推门而入")];
+  const drafts = [
+    draftNode("第一镜", "雨夜便利店门口，女主回头"),
+    draftNode("第二镜", "推门而入，暖光落在肩上"),
+  ];
   const saved = await f.ok(
     "PUT",
     `${path}/canvases/${canvasId}`,
@@ -45,10 +48,18 @@ test("CW-BATCH: multi-select reviews one plan per node and submits only on confi
   );
   expect(saved.document.nodes).toHaveLength(2);
 
-  const submitted: string[] = [];
+  // Watch every write this flow could use. The batch submits jobs server-side, so
+  // watching only /generation-jobs would miss a submission triggered by opening the
+  // panel and make the "selecting is not submitting" assertions vacuous.
+  const writes: string[] = [];
   page.on("request", (request) => {
-    if (request.method() === "POST" && /\/generation-jobs/.test(request.url()))
-      submitted.push(request.url());
+    if (
+      request.method() === "POST" &&
+      /\/(generation-jobs|generation-batches|generation-plans|canvas-generation-batches)/.test(
+        request.url(),
+      )
+    )
+      writes.push(request.url().replace(f.origin, ""));
   });
 
   await page.getByRole("button", { name: "查找画布内容", exact: true }).click();
@@ -56,7 +67,7 @@ test("CW-BATCH: multi-select reviews one plan per node and submits only on confi
   // selection exactly like a user's Shift-click.
   const listed = page
     .getByRole("region", { name: "画布查找与定位" })
-    .getByRole("button", { name: /第一镜|第二镜/ });
+    .getByRole("button", { name: /^第一镜$|^第二镜$/ });
   await expect(listed).toHaveCount(2);
   const first = listed.nth(0);
   const second = listed.nth(1);
@@ -69,7 +80,7 @@ test("CW-BATCH: multi-select reviews one plan per node and submits only on confi
     exact: true,
   });
   await expect(review).toBeVisible();
-  expect(submitted).toHaveLength(0);
+  expect(writes).toHaveLength(0);
 
   await review.click();
   const panel = page.getByRole("dialog");
@@ -83,10 +94,19 @@ test("CW-BATCH: multi-select reviews one plan per node and submits only on confi
   // The confirmation lists one row per node with its own status and reservation.
   await expect(panel.getByText(/2 项可执行 · 2 项已列出/)).toBeVisible();
   await expect(panel.getByText(/合计本次预留：0 CNY/)).toBeVisible();
-  await expect(panel.getByText("第一镜：雨夜门口", { exact: true })).toBeVisible();
-  await expect(panel.getByText("第二镜：推门而入", { exact: true })).toBeVisible();
-  // Plans are fixed, but no generation job exists yet.
-  expect(submitted).toHaveLength(0);
+  await expect(panel.getByText("第一镜", { exact: true })).toBeVisible();
+  await expect(panel.getByText("第二镜", { exact: true })).toBeVisible();
+  // The resolved input the plan will send is on screen, not just the node's name.
+  await expect(
+    panel.getByText("雨夜便利店门口，女主回头", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    panel.getByText("推门而入，暖光落在肩上", { exact: true }),
+  ).toBeVisible();
+  // The panel has prepared plans, but submitted nothing: the only write so far is
+  // the prepare call itself.
+  expect(writes.some((url) => /generation-batches/.test(url))).toBe(true);
+  expect(writes.filter((url) => /execute|generation-jobs/.test(url))).toHaveLength(0);
 
   const submit = panel.getByRole("button", { name: "提交 2 项生成", exact: true });
   await expect(submit).toBeDisabled();

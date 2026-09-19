@@ -65,13 +65,15 @@ def schemas():
     s["CanvasBatchPlanSummary"] = obj(summary, ["id", "status", "expiresAt", "blockingReasons", "capabilityId", "connectionId", "resolvedInput"])
     # Selection order is preserved by the entry's own origin.sourceNodeIds, so the
     # grouping does not restate a position.
-    item = {"nodeId": ID, "status": enum("ready", "blocked", "invalid", "executing", "executed", "reconciliation_required", "stale"), "blockingReasons": {"type": "array", "items": {"type": "string"}, "maxItems": 100}, "problemCode": {"type": "string", "maxLength": 160}, "jobId": ID, "jobStatus": {"$ref": "#/components/schemas/GenerationJob/properties/status"}, "estimatedCost": ref("Money")}
+    item = {"nodeId": ID, "status": enum("ready", "blocked", "invalid", "refused", "executed", "failed", "reconciliation_required", "stale"), "blockingReasons": {"type": "array", "items": {"type": "string"}, "maxItems": 100}, "problemCode": {"type": "string", "maxLength": 160}, "jobId": ID, "jobStatus": {"$ref": "#/components/schemas/GenerationJob/properties/status"}, "estimatedCost": ref("Money")}
     # A selected node that never became a plan has no plan or origin to report; it
     # still appears so the confirmation screen accounts for every selected node, and
     # only the runnable statuses carry an entry.
     s["CanvasGenerationBatchItem"] = obj({**item, "plan": ref("CanvasBatchPlanSummary"), "origin": ref("CanvasPlanOrigin")}, ["nodeId", "status", "blockingReasons"])
     s["CanvasGenerationBatch"] = obj({"id": ID, "revision": POS, "canvasId": ID, "sceneId": {"anyOf": [ID, {"type": "null"}]}, "canvasRevision": POS, "currentCanvasRevision": POS, "createdAt": {"type": "string", "format": "date-time"}, "updatedAt": {"type": "string", "format": "date-time"}, "estimate": ref("CostEstimate"), "items": array(ref("CanvasGenerationBatchItem"), 100, 1)}, ["id", "revision", "canvasId", "canvasRevision", "currentCanvasRevision", "createdAt", "updatedAt", "items"])
-    s["ExecuteCanvasGenerationBatch"] = obj({"nodeIds": {**array(ID, 100), "uniqueItems": True}}, [])
+    # An empty selection must not mean "everything": requiring at least one node makes
+    # a bulk submission unexpressible by accident.
+    s["ExecuteCanvasGenerationBatch"] = obj({"nodeIds": {**array(ID, 100, 1), "uniqueItems": True}}, ["nodeIds"])
     s["MaterializeCanvasResults"] = obj({"jobId": ID, "mediaIds": {**array(ID, 100, 1), "uniqueItems": True}, "position": ref("CanvasPoint")}, ["jobId", "mediaIds", "position"])
     s["CanvasResultPlacement"] = obj({"canvas": ref("Canvas"), "placements": array(obj({"mediaId": ID, "nodeId": ID}, ["mediaId", "nodeId"]), 100, 1)}, ["canvas", "placements"])
     s["CanvasViewport"] = obj({"x": VIEWPORT_COORD, "y": VIEWPORT_COORD, "zoom": {"type": "number", "minimum": 0.00001, "maximum": 4}}, ["x", "y", "zoom"])

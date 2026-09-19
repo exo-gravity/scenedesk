@@ -41,11 +41,16 @@ type ItemRow = {
   origin_source_node_ids: string[] | null;
 };
 type BatchItem = Schema<"CanvasGenerationBatchItem">;
-/** A failure that is the caller's input rather than a defect. */
-function problemOf(error: unknown) {
-  return error instanceof Problem
-    ? { code: error.code, message: error.message }
-    : { code: "PLAN_PREPARE_FAILED", message: "本次输入尚未通过校验。" };
+/**
+ * A failure the caller can act on, with a phase-correct fallback: an unexpected
+ * error on the prepare path is not the same verdict as one on the run path, and a
+ * transient database failure must not be recorded as invalid input.
+ */
+function problemOf(error: unknown, phase: "prepare" | "run") {
+  if (error instanceof Problem) return { code: error.code, message: error.message };
+  return phase === "prepare"
+    ? { code: "PLAN_PREPARE_FAILED", message: "本次输入尚未通过校验。" }
+    : { code: "PLAN_EXECUTE_FAILED", message: "本次提交未完成，可再次确认重试。" };
 }
 async function batchRow(tx: Transaction, batchId: string) {
   const row = (
@@ -71,16 +76,26 @@ async function readBatch(tx: Transaction, batchId: string) {
   const stale = Number(row.canvas_revision) !== Number(row.current_canvas_revision);
   const items: BatchItem[] = rows.map((item) => {
     const expired = item.plan_status === "ready" && item.expires_at.getTime() <= Date.now();
+    // Precedence matters. A node that never became a plan keeps its own verdict
+    // instead of being relabelled "the canvas changed", and a job that ended in
+    // failure is not reported as a submission. Only an item that had a usable plan
+    // can be stale, and an execution refusal stays retryable.
     const status = (
       item.job_id
-        ? item.job_status === "reconciliation_required"
-          ? "reconciliation_required"
-          : "executed"
-        : stale
-          ? "stale"
-          : expired
-            ? "invalid"
-            : item.status
+        ? ["failed", "cancelled", "archive_failed"].includes(item.job_status ?? "")
+          ? "failed"
+          : item.job_status === "reconciliation_required"
+            ? "reconciliation_required"
+            : "executed"
+        : item.status !== "ready"
+          ? item.status
+          : stale
+            ? "stale"
+            : expired
+              ? "invalid"
+              : item.problem_code
+                ? "refused"
+                : "ready"
     ) as BatchItem["status"];
     const origin =
       item.origin_canvas_id && item.origin_node_id
@@ -96,7 +111,7 @@ async function readBatch(tx: Transaction, batchId: string) {
       nodeId: item.node_id,
       status,
       blockingReasons: expired
-        ? [...(item.blocking_reasons ?? []), "PLAN_EXPIRED"]
+        ? [...new Set([...(item.blocking_reasons ?? []), "PLAN_EXPIRED"])]
         : (item.blocking_reasons ?? []),
       ...(item.problem_code ? { problemCode: item.problem_code } : {}),
       ...(item.plan_id
@@ -147,45 +162,62 @@ function aggregate(items: BatchItem[]): Schema<"CostEstimate"> | undefined {
     item.plan?.costEstimate ? [item.plan.costEstimate] : [],
   );
   if (!quoted.length) return undefined;
-  const currency = quoted[0]!.totalReservation.currency;
-  const homogeneous = quoted.every(
-    (estimate) => estimate.totalReservation.currency === currency,
-  );
+  const currencies = [...new Set(quoted.map((e) => e.totalReservation.currency))];
+  const revisions = [...new Set(quoted.map((e) => e.pricingRevision))];
+  const note = [
+    `${quoted.length}/${items.length} 项已固定计划并给出估价`,
+    currencies.length > 1
+      ? `所选能力使用不同货币（${currencies.join("、")}），不做跨币种换算，因此不给出合计`
+      : undefined,
+  ]
+    .filter(Boolean)
+    .join("；");
+  const line = () => ({
+    pricingRevision: `canvas-batch-aggregate/1 of ${revisions.length} revision(s)`,
+    lines: quoted.flatMap((estimate) => estimate.lines),
+  });
+  // Summing across currencies would invent a number, so a mixed selection states no
+  // total at all rather than labelling one currency's units with another's.
+  if (currencies.length > 1)
+    return { ...line(), baseCost: zeroMoney, holdMargin: zeroMoney, totalReservation: zeroMoney, basisNote: note };
+  const currency = currencies[0]!;
   const sum = (pick: (estimate: Schema<"CostEstimate">) => string) =>
     quoted
       .reduce((total, estimate) => total + BigInt(pick(estimate)), 0n)
       .toString();
   return {
-    pricingRevision: [...new Set(quoted.map((e) => e.pricingRevision))].join("+"),
-    lines: quoted.flatMap((estimate) => estimate.lines),
+    ...line(),
     baseCost: { currency, amountMicros: sum((e) => e.baseCost.amountMicros) },
     holdMargin: { currency, amountMicros: sum((e) => e.holdMargin.amountMicros) },
     totalReservation: {
       currency,
       amountMicros: sum((e) => e.totalReservation.amountMicros),
     },
-    basisNote: [
-      `${quoted.length}/${items.length} 项已固定计划并给出估价`,
-      homogeneous
-        ? undefined
-        : "所选能力使用不同货币，合计未跨币种换算，仅列出主币种",
-    ]
-      .filter(Boolean)
-      .join("；"),
+    basisNote: note,
   };
 }
+const zeroMoney: Schema<"Money"> = { currency: "XXX", amountMicros: "0" };
 /**
  * A selected node that could not become a plan still gets a durable blocked plan row
  * carrying the reason, so the batch keeps exactly one item per selected node and the
  * confirmation screen can account for the whole selection after a reload. The row is
- * never executable: its status is blocked and its resolved input is a stated
- * placeholder rather than a fabricated resolution of the node's real inputs.
+ * never executable and never claims a resolution it does not have: the node's own
+ * requested capability is kept when it is known and still configured, so the screen
+ * cannot credit an unrelated model to a node that asked for another one.
  */
-async function recordUnusable(tx: Transaction, code: string) {
+async function recordUnusable(
+  tx: Transaction,
+  code: string,
+  requested?: { capabilityId: string; connectionId: string; kind: string },
+) {
   const capability = (
     await tx.sql.query(
-      "SELECT id,connection_id,connection_version_id,revision,execution_mode FROM generation_capabilities WHERE tenant_id=$1 AND enabled ORDER BY id LIMIT 1",
-      [tx.tenantId],
+      requested
+        ? "SELECT id,connection_id,connection_version_id,revision,execution_mode,definition FROM generation_capabilities WHERE tenant_id=$1 AND id=$2 AND connection_id=$3"
+        : "SELECT id,connection_id,connection_version_id,revision,execution_mode,definition FROM generation_capabilities WHERE tenant_id=$1 AND enabled ORDER BY id LIMIT 1",
+      requested
+        ? [tx.tenantId, requested.capabilityId, requested.connectionId]
+        : [tx.tenantId],
     )
   ).rows[0];
   requireThat(
@@ -194,9 +226,7 @@ async function recordUnusable(tx: Transaction, code: string) {
     "MODEL_NOT_CONFIGURED",
     "尚未配置并验证此模型能力。",
   );
-  // The summary reads the capability identity from the plan's own input, so this
-  // placeholder names the capability it describes instead of leaving it absent. A
-  // plan is immutable once written, so the input is composed before the one insert.
+  // A plan is immutable once written, so the input is composed before the one insert.
   const row = (
     await tx.sql.query(
       `INSERT INTO generation_plans(id,tenant_id,project_id,capability_id,connection_version_id,created_by,input,resolved_input,input_hash,capability_revision,base_content_snapshot,cost_estimate,blocking_reasons,execution_mode,status,expires_at)
@@ -211,7 +241,9 @@ async function recordUnusable(tx: Transaction, code: string) {
         {
           scope: "project",
           projectId: tx.projectId,
-          purpose: "image",
+          // The node's own kind when known; the capability's declared purpose
+          // otherwise, so an audio node is never recorded as an image request.
+          purpose: requested?.kind ?? capability.definition?.purpose ?? "image",
           capabilityId: capability.id,
           connectionId: capability.connection_id,
           prompt: "",
@@ -221,7 +253,8 @@ async function recordUnusable(tx: Transaction, code: string) {
           promptPolicy: "replace",
         },
         {
-          resolverVersion: "canvas-batch/unusable",
+          // States plainly that this plan resolved nothing.
+          resolverVersion: "canvas-batch/unresolved",
           prompt: "",
           references: [],
           shots: [],
@@ -302,8 +335,10 @@ export function canvasGenerationBatchRoutes(
             tx.session.userId,
           ],
         );
+        let sequence = 0;
         for (const nodeId of nodeIds) {
-          const savepoint = `item_${nodeId.replace(/-/g, "")}`;
+          // Never interpolate request input into SQL, even as an identifier.
+          const savepoint = `batch_prepare_${(sequence += 1)}`;
           await tx.sql.query(`SAVEPOINT ${savepoint}`);
           const node = canvas.document.nodes.find((n) => n.id === nodeId);
           if (
@@ -313,14 +348,34 @@ export function canvasGenerationBatchRoutes(
             !node.content.connectionId ||
             !node.content.capabilityId
           ) {
-            const planId = await recordUnusable(tx, "CANVAS_DRAFT_REQUIRED");
+            // There is no usable draft here, so the only honest identity to keep is
+            // what the node itself declares.
+            const declared =
+              node?.content.type === "draft" &&
+              node.content.capabilityId &&
+              node.content.connectionId &&
+              (node.kind === "image" ||
+                node.kind === "video" ||
+                node.kind === "audio")
+                ? {
+                    capabilityId: node.content.capabilityId,
+                    connectionId: node.content.connectionId,
+                    kind: node.kind,
+                  }
+                : undefined;
+            const planId = await recordUnusable(
+              tx,
+              "CANVAS_DRAFT_REQUIRED",
+              declared,
+            );
             await tx.sql.query(`RELEASE SAVEPOINT ${savepoint}`);
             await tx.sql.query(
-              "INSERT INTO generation_batch_items(tenant_id,project_id,batch_id,node_id,plan_id,status,problem_code,blocking_reasons) VALUES($1,$2,$3,$4,$5,'invalid',$6,$7)",
+              "INSERT INTO generation_batch_items(tenant_id,project_id,batch_id,canvas_id,node_id,plan_id,status,problem_code,blocking_reasons) VALUES($1,$2,$3,$4,$5,$6,'invalid',$7,$8)",
               [
                 tx.tenantId,
                 tx.projectId,
                 batchId,
+                canvasId,
                 nodeId,
                 planId,
                 "CANVAS_DRAFT_REQUIRED",
@@ -370,19 +425,24 @@ export function canvasGenerationBatchRoutes(
             // One unusable node must not discard the plans already fixed for the
             // rest of the selection, so only this item's work is rolled back.
             await tx.sql.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
-            const failure = problemOf(error);
-            planId = await recordUnusable(tx, failure.code);
+            const failure = problemOf(error, "prepare");
+            planId = await recordUnusable(tx, failure.code, {
+              capabilityId: draft.content.capabilityId,
+              connectionId: draft.content.connectionId,
+              kind: draft.kind,
+            });
             status = "invalid";
             code = failure.code;
             reasons = [failure.code];
           }
           await tx.sql.query(`RELEASE SAVEPOINT ${savepoint}`);
           await tx.sql.query(
-            "INSERT INTO generation_batch_items(tenant_id,project_id,batch_id,node_id,plan_id,status,problem_code,blocking_reasons) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
+            "INSERT INTO generation_batch_items(tenant_id,project_id,batch_id,canvas_id,node_id,plan_id,status,problem_code,blocking_reasons) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
             [
               tx.tenantId,
               tx.projectId,
               batchId,
+              canvasId,
               nodeId,
               planId,
               status,
@@ -418,55 +478,71 @@ export function canvasGenerationBatchRoutes(
       const batchId = input.params.batchId!;
       const row = await batchRow(tx, batchId);
       const canvas = await readCanvas(tx, row.canvas_id);
-      const wanted: string[] | undefined = input.body.nodeIds?.map((id: string) =>
+      // An empty selection must not silently mean "the whole batch": the caller has
+      // to name the items it is spending on.
+      const wanted: string[] = input.body.nodeIds.map((id: string) =>
         id.toLowerCase(),
       );
       requireThat(
-        !wanted?.length || wanted.length <= BATCH_LIMIT,
+        wanted.length >= 1,
+        422,
+        "CANVAS_BATCH_EMPTY",
+        "请明确本次要提交的节点。",
+      );
+      requireThat(
+        wanted.length <= BATCH_LIMIT,
         422,
         "CANVAS_BATCH_TOO_LARGE",
         `一次最多执行 ${BATCH_LIMIT} 个节点。`,
       );
+      requireThat(
+        new Set(wanted).size === wanted.length,
+        422,
+        "CANVAS_BATCH_DUPLICATE",
+        "同一次提交不能重复同一节点。",
+      );
       const rows = (
         await tx.sql.query(itemSql, [tx.tenantId, tx.projectId, batchId])
       ).rows as ItemRow[];
-      for (const item of rows) {
-        if (wanted?.length && !wanted.includes(item.node_id)) continue;
-        // An item that already ran is left untouched: a retry re-runs only the
-        // items that failed or expired, never the whole batch.
+      const selected = rows.filter((item) => wanted.includes(item.node_id));
+      requireThat(
+        selected.length === wanted.length,
+        422,
+        "CANVAS_BATCH_ITEM_UNKNOWN",
+        "所选节点不属于这一次准备，请重新读取批次。",
+      );
+      let sequence = 0,
+        changed = false;
+      for (const item of selected) {
+        // An item that already has a job is left untouched: a retry re-runs only the
+        // items whose submission was refused, never the whole batch and never one
+        // that already ran.
         if (item.job_id || item.status !== "ready") continue;
         // The batch fixed one canvas revision. An item the canvas has moved past is
         // reported stale and re-prepared, never executed against a new state.
         if (Number(row.canvas_revision) !== canvas.revision) continue;
-        const savepoint = `run_${item.node_id.replace(/-/g, "")}`;
+        // A plan past its own expiry cannot execute; it is reported expired and
+        // re-prepared rather than attempted.
+        if (item.expires_at.getTime() <= Date.now()) continue;
+        const savepoint = `batch_run_${(sequence += 1)}`;
         await tx.sql.query(`SAVEPOINT ${savepoint}`);
         try {
-          await tx.sql.query(
-            "UPDATE generation_batch_items SET status='executing',updated_at=now() WHERE tenant_id=$1 AND project_id=$2 AND batch_id=$3 AND node_id=$4",
-            [tx.tenantId, tx.projectId, batchId, item.node_id],
-          );
-          const job = await executePlanOnce(tx, item.plan_id);
+          await executePlanOnce(tx, item.plan_id);
           await tx.sql.query(`RELEASE SAVEPOINT ${savepoint}`);
+          // The plan verdict never changes; only the last attempt's outcome does.
           await tx.sql.query(
-            "UPDATE generation_batch_items SET status=$1,problem_code=NULL,updated_at=now() WHERE tenant_id=$2 AND project_id=$3 AND batch_id=$4 AND node_id=$5",
-            [
-              job.status === "reconciliation_required"
-                ? "reconciliation_required"
-                : "executed",
-              tx.tenantId,
-              tx.projectId,
-              batchId,
-              item.node_id,
-            ],
+            "UPDATE generation_batch_items SET problem_code=NULL,blocking_reasons='[]',updated_at=now() WHERE tenant_id=$1 AND project_id=$2 AND batch_id=$3 AND node_id=$4",
+            [tx.tenantId, tx.projectId, batchId, item.node_id],
           );
         } catch (error) {
           // Quota, capability change or expiry on one item leaves the batch's other
-          // already-submitted jobs alone.
+          // already-submitted jobs alone, and leaves this item retryable because its
+          // plan verdict is untouched.
           await tx.sql.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
           await tx.sql.query(`RELEASE SAVEPOINT ${savepoint}`);
-          const failure = problemOf(error);
+          const failure = problemOf(error, "run");
           await tx.sql.query(
-            "UPDATE generation_batch_items SET status='invalid',problem_code=$1,blocking_reasons=$2,updated_at=now() WHERE tenant_id=$3 AND project_id=$4 AND batch_id=$5 AND node_id=$6",
+            "UPDATE generation_batch_items SET problem_code=$1,blocking_reasons=$2,updated_at=now() WHERE tenant_id=$3 AND project_id=$4 AND batch_id=$5 AND node_id=$6",
             [
               failure.code,
               JSON.stringify([failure.code]),
@@ -477,7 +553,14 @@ export function canvasGenerationBatchRoutes(
             ],
           );
         }
+        changed = true;
       }
+      // Item state moved, so the batch's change token moves with it.
+      if (changed)
+        await tx.sql.query(
+          "UPDATE generation_batches SET revision=revision+1,updated_at=now() WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
+          [tx.tenantId, tx.projectId, batchId],
+        );
       return await readBatch(tx, batchId);
     },
     {

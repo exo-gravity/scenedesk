@@ -6144,7 +6144,7 @@
       "requestOperationId": "prepareCanvasGenerationBatch"
     },
     {
-      "name": "画布契约：批次项摘要不含整份计划正文",
+      "name": "画布契约：可执行项带固定计划与来源",
       "schema": "CanvasGenerationBatchItem",
       "valid": true,
       "value": {
@@ -6159,7 +6159,7 @@
           "capabilityId": "00000000-0000-4000-8000-000000000930",
           "connectionId": "00000000-0000-4000-8000-000000000920",
           "resolvedInput": {
-            "resolverVersion": "media/1",
+            "resolverVersion": "image-generation/1",
             "prompt": "雨夜便利店门口",
             "references": [],
             "shots": [],
@@ -6213,7 +6213,7 @@
           "capabilityId": "00000000-0000-4000-8000-000000000930",
           "connectionId": "00000000-0000-4000-8000-000000000920",
           "resolvedInput": {
-            "resolverVersion": "media/1",
+            "resolverVersion": "image-generation/1",
             "prompt": "雨夜便利店门口",
             "references": [],
             "shots": [],
@@ -6249,13 +6249,28 @@
       }
     },
     {
-      "name": "画布契约：已完成项带任务身份",
+      "name": "画布契约：无效项只报原因,不冒充已解析的计划",
+      "schema": "CanvasGenerationBatchItem",
+      "valid": true,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000003",
+        "status": "invalid",
+        "blockingReasons": [
+          "CANVAS_DRAFT_REQUIRED"
+        ],
+        "problemCode": "CANVAS_DRAFT_REQUIRED"
+      }
+    },
+    {
+      "name": "画布契约：被拒项保留计划以便重试",
       "schema": "CanvasGenerationBatchItem",
       "valid": true,
       "value": {
         "nodeId": "00000000-0000-4000-8000-000000000002",
-        "status": "executed",
-        "blockingReasons": [],
+        "status": "refused",
+        "blockingReasons": [
+          "GENERATION_USAGE_LIMIT"
+        ],
         "plan": {
           "id": "00000000-0000-4000-8000-000000000951",
           "status": "ready",
@@ -6264,7 +6279,63 @@
           "capabilityId": "00000000-0000-4000-8000-000000000930",
           "connectionId": "00000000-0000-4000-8000-000000000920",
           "resolvedInput": {
-            "resolverVersion": "media/1",
+            "resolverVersion": "image-generation/1",
+            "prompt": "雨夜便利店门口",
+            "references": [],
+            "shots": [],
+            "dependencies": []
+          },
+          "costEstimate": {
+            "pricingRevision": "explicit-test-fixture/1",
+            "lines": [],
+            "baseCost": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "holdMargin": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "totalReservation": {
+              "currency": "CNY",
+              "amountMicros": "0"
+            },
+            "basisNote": "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。"
+          }
+        },
+        "origin": {
+          "canvasId": "00000000-0000-4000-8000-000000000900",
+          "nodeId": "00000000-0000-4000-8000-000000000002",
+          "canvasRevision": 7,
+          "inputFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sourceNodeIds": [
+            "00000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "problemCode": "GENERATION_USAGE_LIMIT",
+        "estimatedCost": {
+          "currency": "CNY",
+          "amountMicros": "0"
+        }
+      }
+    },
+    {
+      "name": "画布契约：已执行项的固定计划已被消费",
+      "schema": "CanvasGenerationBatchItem",
+      "valid": true,
+      "value": {
+        "nodeId": "00000000-0000-4000-8000-000000000002",
+        "status": "executed",
+        "blockingReasons": [],
+        "plan": {
+          "id": "00000000-0000-4000-8000-000000000951",
+          "status": "consumed",
+          "expiresAt": "2026-09-18T12:00:00.000Z",
+          "blockingReasons": [],
+          "capabilityId": "00000000-0000-4000-8000-000000000930",
+          "connectionId": "00000000-0000-4000-8000-000000000920",
+          "resolvedInput": {
+            "resolverVersion": "image-generation/1",
             "prompt": "女主推门",
             "references": [],
             "shots": [],
@@ -6327,7 +6398,7 @@
               "capabilityId": "00000000-0000-4000-8000-000000000930",
               "connectionId": "00000000-0000-4000-8000-000000000920",
               "resolvedInput": {
-                "resolverVersion": "media/1",
+                "resolverVersion": "image-generation/1",
                 "prompt": "雨夜便利店门口",
                 "references": [],
                 "shots": [],
@@ -6385,14 +6456,31 @@
       }
     },
     {
-      "name": "画布契约：只重试指定项",
+      "name": "画布契约：只提交指定的项",
       "schema": "ExecuteCanvasGenerationBatch",
       "valid": true,
       "value": {
         "nodeIds": [
+          "00000000-0000-4000-8000-000000000001",
           "00000000-0000-4000-8000-000000000002"
         ]
       },
+      "requestOperationId": "executeCanvasGenerationBatch"
+    },
+    {
+      "name": "画布契约：不能提交空选择,否则等于整批",
+      "schema": "ExecuteCanvasGenerationBatch",
+      "valid": false,
+      "value": {
+        "nodeIds": []
+      },
+      "requestOperationId": "executeCanvasGenerationBatch"
+    },
+    {
+      "name": "画布契约：执行请求必须列出节点",
+      "schema": "ExecuteCanvasGenerationBatch",
+      "valid": false,
+      "value": {},
       "requestOperationId": "executeCanvasGenerationBatch"
     },
     {

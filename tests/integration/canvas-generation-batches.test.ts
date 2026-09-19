@@ -170,7 +170,12 @@ test("canvas generation batch groups per-node plans without a second scheduler",
       "stale",
       "a moved canvas must not execute old input",
     );
-    await f.ok("POST", routes.run(batch.id), { nodeIds: [] }, undefined);
+    await f.ok(
+      "POST",
+      routes.run(batch.id),
+      { nodeIds: [runnable[0]!.id] },
+      undefined,
+    );
     const after = (await f.ok("GET", routes.read(batch.id))) as Batch;
     assert.equal(
       itemOf(after, runnable[0]!.id).status,
@@ -205,7 +210,7 @@ test("canvas generation batch groups per-node plans without a second scheduler",
     const again = (await f.ok(
       "POST",
       routes.run(batch.id),
-      { nodeIds: [] },
+      { nodeIds: [runnable[0]!.id, runnable[2]!.id] },
       undefined,
     )) as Batch;
     assert.equal(
@@ -224,7 +229,7 @@ test("canvas generation batch groups per-node plans without a second scheduler",
     const first = (await f.ok(
       "POST",
       routes.run(batch.id),
-      { nodeIds: [] },
+      { nodeIds: [runnable[0]!.id] },
       undefined,
     )) as Batch;
     assert.ok(itemOf(first, runnable[0]!.id).jobId);
@@ -232,7 +237,12 @@ test("canvas generation batch groups per-node plans without a second scheduler",
       `SELECT count(*)::int AS total FROM ${f.scope}.generation_jobs`,
     );
     // Re-running must reuse the item's existing job, never submit a second one.
-    await f.ok("POST", routes.run(batch.id), { nodeIds: [] }, undefined);
+    await f.ok(
+      "POST",
+      routes.run(batch.id),
+      { nodeIds: [runnable[0]!.id] },
+      undefined,
+    );
     const after = await f.admin.query(
       `SELECT count(*)::int AS total FROM ${f.scope}.generation_jobs`,
     );
@@ -261,10 +271,148 @@ test("canvas generation batch groups per-node plans without a second scheduler",
     assert.equal(after.rows[0].total, before.rows[0].total);
   });
 
+  await t.test("an empty selection cannot mean the whole batch", async () => {
+    const batch = batchOf(await prepare(runnable.map((node) => node.id)));
+    const before = await f.admin.query(
+      `SELECT count(*)::int AS total FROM ${f.scope}.generation_jobs`,
+    );
+    for (const body of [{}, { nodeIds: [] }]) {
+      const response = await f.request(
+        "POST",
+        routes.run(batch.id),
+        body,
+        undefined,
+      );
+      assert.equal(response.statusCode, 422, response.body);
+      assert.equal(response.json().code, "INVALID_REQUEST");
+    }
+    const after = await f.admin.query(
+      `SELECT count(*)::int AS total FROM ${f.scope}.generation_jobs`,
+    );
+    assert.equal(
+      after.rows[0].total,
+      before.rows[0].total,
+      "nothing may be submitted without an explicit selection",
+    );
+    const items = (await f.ok("GET", routes.read(batch.id))) as Batch;
+    for (const item of items.items)
+      assert.equal(item.jobId, undefined, "no item of this batch may have run");
+  });
+
   await t.test("prepare refuses a canvas revision the caller did not observe", async () => {
     const response = await prepare([runnable[0]!.id], saved.revision + 5);
     assert.equal(response.statusCode, 412, response.body);
     assert.equal(response.json().code, "VERSION_CONFLICT");
+  });
+
+  await t.test("a refused item stays retryable and its neighbours survive", async () => {
+    // A capability whose single daily job is already spent refuses a second
+    // submission with the real server-side quota guard.
+    const limitedCapability = randomUUID(),
+      limitedConnection = randomUUID();
+    await f.admin.query(
+      `INSERT INTO ${f.scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'test_fixture',true,2,1)`,
+      [
+        limitedCapability,
+        f.tenant.id,
+        limitedConnection,
+        randomUUID(),
+        f.definition,
+      ],
+    );
+    const limited = draft("限额模型下的画面");
+    limited.content = {
+      type: "draft",
+      prompt: "限额模型下的画面",
+      connectionId: limitedConnection,
+      capabilityId: limitedCapability,
+      output: f.input.output,
+    };
+    document = { ...document, nodes: [...document.nodes, limited] };
+    saved = await f.ok(
+      "PUT",
+      `${f.path}/canvases/${canvas.id}`,
+      { schemaVersion: 1, document },
+      saved.revision,
+    );
+    const spentPlan = await f.ok("POST", `${f.base}/generation-plans`, {
+      ...f.input,
+      capabilityId: limitedCapability,
+      connectionId: limitedConnection,
+      // The plan's model, prompt and output must match the saved draft exactly.
+      prompt: "限额模型下的画面",
+      shotSources: [],
+      contextSources: [
+        { kind: "canvas_draft", objectId: limited.id, revision: saved.revision },
+      ],
+    });
+    assert.equal(spentPlan.status, "ready", spentPlan.blockingReasons);
+    const spentJob = (await f.execute(spentPlan.id)) as { id: string };
+
+    const batch = batchOf(await prepare([runnable[0]!.id, limited.id]));
+    const run = (await f.ok(
+      "POST",
+      routes.run(batch.id),
+      { nodeIds: [runnable[0]!.id, limited.id] },
+      undefined,
+    )) as Batch;
+    const neighbour = itemOf(run, runnable[0]!.id),
+      refused = itemOf(run, limited.id);
+    // The refusal hit exactly one item; its neighbour kept its job.
+    assert.ok(neighbour.jobId, "the neighbouring item must still be submitted");
+    assert.equal(neighbour.status, "executed");
+    assert.equal(refused.status, "refused", "a refusal must not park the item");
+    assert.equal(refused.problemCode, "GENERATION_USAGE_LIMIT");
+    assert.equal(refused.jobId, undefined);
+    // Its plan verdict is untouched, so the item stays executable.
+    const plan = await f.ok(
+      "GET",
+      `${f.base}/generation-plans/${refused.plan!.id}`,
+    );
+    assert.equal(plan.status, "ready");
+
+    // Free the cause, then retry the same batch: only the refused item is left to run.
+    await f.admin.query(
+      `DELETE FROM ${f.scope}.generation_work WHERE job_id=$1`,
+      [spentJob.id],
+    );
+    await f.admin.query(`DELETE FROM ${f.scope}.generation_jobs WHERE id=$1`, [
+      spentJob.id,
+    ]);
+    const retried = (await f.ok(
+      "POST",
+      routes.run(batch.id),
+      { nodeIds: [limited.id] },
+      undefined,
+    )) as Batch;
+    assert.equal(
+      itemOf(retried, limited.id).status,
+      "executed",
+      "a refused item must be retryable through the same batch",
+    );
+    assert.ok(itemOf(retried, limited.id).jobId);
+    assert.equal(itemOf(retried, limited.id).problemCode, undefined);
+    // The neighbour's job is not re-created by the retry.
+    assert.equal(
+      itemOf(retried, runnable[0]!.id).jobId,
+      neighbour.jobId,
+    );
+  });
+
+  await t.test("a batch of another project cannot be read or executed", async () => {
+    const batch = batchOf(await prepare([runnable[0]!.id]));
+    const other = await f.createProject("另一个项目");
+    const foreign = `${f.base}/projects/${other.id}/canvas-generation-batches/${batch.id}`;
+    const read = await f.request("GET", foreign, undefined);
+    assert.equal(read.statusCode, 404, read.body);
+    const run = await f.request("POST", foreign + "/execute", {
+      nodeIds: [runnable[0]!.id],
+    });
+    assert.equal(run.statusCode, 404, run.body);
+    // The batch's own project still resolves, so the 404 above is scoping, not a
+    // broken id.
+    const own = (await f.ok("GET", routes.read(batch.id))) as Batch;
+    assert.equal(own.id, batch.id);
   });
 
   await t.test("a batch item cannot be re-pointed at another plan", async () => {

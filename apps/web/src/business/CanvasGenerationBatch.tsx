@@ -28,13 +28,18 @@ const STATUS_LABEL: Record<BatchItem["status"], string> = {
   ready: "可执行",
   blocked: "当前不可执行",
   invalid: "本次输入不可用",
-  executing: "正在提交",
+  refused: "上次提交被拒 · 可重试",
   executed: "已提交",
+  failed: "任务已失败 · 需重新准备",
   reconciliation_required: "待核对",
   stale: "画布已改变",
 };
-/** Statuses that may be submitted by this confirmation. */
-const RUNNABLE: BatchItem["status"][] = ["ready"];
+/**
+ * Statuses this confirmation may submit: never attempted, or refused by a guard
+ * whose cause is gone (quota freed, capability re-enabled). An item that already
+ * ran, failed, or is stale is not resubmitted here.
+ */
+const RUNNABLE: BatchItem["status"][] = ["ready", "refused"];
 function money(value: Schema<"Money">) {
   return `${(Number(value.amountMicros) / 1000000).toLocaleString(undefined, {
     maximumFractionDigits: 6,
@@ -180,7 +185,19 @@ export function CanvasGenerationBatch({
           </>
         )}
         <ErrorNotice error={error} />
-        {busy && !batch && <Loader size="sm" aria-label="正在固定生成计划" />}
+        {busy && !batch && (
+          <Group justify="space-between" align="center">
+            <Group gap="xs">
+              <Loader size="sm" aria-label="正在固定生成计划" />
+              <Text size="sm" c="dimmed">
+                正在固定计划；关闭不会取消已固定的部分，它们 10 分钟后自行过期。
+              </Text>
+            </Group>
+            <Button variant="default" onClick={close}>
+              取消
+            </Button>
+          </Group>
+        )}
         {!batch && !busy && (
           <Group justify="flex-end">
             <Button variant="default" onClick={close}>
@@ -229,10 +246,31 @@ export function CanvasGenerationBatch({
                   <Table.Tr key={item.nodeId} data-status={item.status}>
                     <Table.Td>
                       <Text size="sm">{names.get(item.nodeId) ?? item.nodeId}</Text>
+                      {item.plan?.resolvedInput.prompt ? (
+                        <Text size="xs" c="dimmed">
+                          {item.plan.resolvedInput.prompt.length > 60
+                            ? `${item.plan.resolvedInput.prompt.slice(0, 60)}…`
+                            : item.plan.resolvedInput.prompt}
+                        </Text>
+                      ) : null}
+                      {item.plan && (
+                        <Text size="xs" c="dimmed">
+                          计划 {item.plan.id.slice(0, 8)} ·{" "}
+                          {new Date(item.plan.expiresAt).toLocaleTimeString(
+                            "zh-CN",
+                            { hour: "2-digit", minute: "2-digit" },
+                          )}{" "}
+                          过期
+                        </Text>
+                      )}
                     </Table.Td>
                     <Table.Td>
+                      {/* A node that never became a plan asked for no model, so the
+                          column must not credit one. */}
                       <Text size="xs" c="dimmed">
-                        {item.plan?.capabilityId.slice(0, 8) ?? "—"}
+                        {item.status === "invalid"
+                          ? "—"
+                          : (item.plan?.capabilityId.slice(0, 8) ?? "—")}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -259,6 +297,11 @@ export function CanvasGenerationBatch({
                       <Text size="sm">
                         {item.estimatedCost ? money(item.estimatedCost) : "—"}
                       </Text>
+                      {item.status === "failed" && (
+                        <Text size="xs" c="dimmed">
+                          已消耗，需重新准备
+                        </Text>
+                      )}
                     </Table.Td>
                   </Table.Tr>
                 ))}

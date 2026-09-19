@@ -26563,8 +26563,9 @@
               "ready",
               "blocked",
               "invalid",
-              "executing",
+              "refused",
               "executed",
+              "failed",
               "reconciliation_required",
               "stale"
             ]
@@ -26682,12 +26683,14 @@
               "type": "string",
               "format": "uuid"
             },
-            "minItems": 0,
+            "minItems": 1,
             "maxItems": 100,
             "uniqueItems": true
           }
         },
-        "required": [],
+        "required": [
+          "nodeIds"
+        ],
         "additionalProperties": false
       },
       "MaterializeCanvasResults": {
