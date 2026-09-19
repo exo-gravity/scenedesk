@@ -186,10 +186,8 @@ export function ScriptCanvasExcerpt({
       setError(cause as Error);
     }
   }
-  // 入口跟随选区：未选中正文、也没有未完成请求时不渲染，
-  // 避免一个此刻不可用的实心按钮占据页面最重的位置。
-  const canOffer =
-    Boolean(selectedExcerpt) || draft.recovered || pending || opened;
+  // The entry stays mounted: it opens the dialog where the source can also be
+  // selected, so hiding it before any selection would remove that path.
   const trigger = (
     <Tooltip label="可在正文中选中，或打开后从原文中选择">
       <Button
@@ -214,10 +212,9 @@ export function ScriptCanvasExcerpt({
   );
   return (
     <Stack gap="xs">
-      {canOffer &&
-        (actionTarget === undefined
-          ? trigger
-          : actionTarget && createPortal(trigger, actionTarget))}
+      {actionTarget === undefined
+        ? trigger
+        : actionTarget && createPortal(trigger, actionTarget)}
       {(draft.recovered || pending) && (
         <Text size="sm">有待核对的选文，原请求仍保留。</Text>
       )}

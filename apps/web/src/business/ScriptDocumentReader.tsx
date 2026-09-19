@@ -118,7 +118,7 @@ export function ScriptDocumentReader({
             <div className={classes.versionMeta}>
               <Text fw={600} size="sm">
                 {history && history !== tree.currentScriptRevisionId
-                  ? "历史稿"
+                  ? "历史稿 · 只读"
                   : "当前稿"}{" "}
                 ·{" "}
                 {selected.source
