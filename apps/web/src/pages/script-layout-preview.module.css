@@ -1,0 +1,252 @@
+/* 设计预览稿：显式浅色表面，与业务剧本页的实际配色一致。
+   预览页被设计预览壳强制深色主题，所以这里不使用主题的深色 token。 */
+.option {
+  border: 1px solid #e1e3dc;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+}
+.optionHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background: #f7f8f5;
+  border-bottom: 1px solid #e1e3dc;
+  color: #24241f;
+}
+.page {
+  position: relative;
+  background: #ffffff;
+  color: #24241f;
+  padding-bottom: var(--mantine-spacing-xl);
+}
+.topbar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding-left: var(--mantine-spacing-md);
+  border-bottom: 1px solid #eceee8;
+  color: #6a6d64;
+}
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xl);
+  padding-top: var(--mantine-spacing-lg);
+}
+.h1 {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #24241f;
+}
+.dots {
+  line-height: 1;
+  color: #8a8d84;
+}
+.reader {
+  margin-top: var(--mantine-spacing-lg);
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  padding-bottom: var(--mantine-spacing-sm);
+  border-bottom: 1px solid #eceee8;
+}
+.paper {
+  margin-top: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-lg);
+  border: 1px solid #eceee8;
+  border-radius: 8px;
+  background: #fbfcfa;
+  min-height: 64px;
+}
+.emptyCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--mantine-spacing-lg);
+  border: 1px dashed #cfd3c9;
+  border-radius: 8px;
+  background: #fbfcfa;
+}
+.basis {
+  margin-top: var(--mantine-spacing-xl);
+  padding: var(--mantine-spacing-lg) 0;
+  border-top: 1px solid #eceee8;
+  border-bottom: 1px solid #eceee8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+}
+.basisMoved {
+  margin-top: var(--mantine-spacing-xl);
+  padding-top: var(--mantine-spacing-md);
+}
+.marker {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #6a6d64;
+  border: 1px solid #e1e3dc;
+  border-radius: 4px;
+  background: #ffffff;
+}
+.ruler {
+  position: relative;
+  margin-top: var(--mantine-spacing-lg);
+  height: 18px;
+  border-top: 1px dashed #cfd3c9;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #8a8d84;
+}
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--mantine-spacing-md);
+  border-left: 3px solid #cfd3c9;
+  color: #24241f;
+}
+
+/* 兜底：设计壳不滚动，这里自行处理溢出 */
+.wrap {
+  height: 100dvh;
+  overflow: auto;
+}
+
+/* ---- 结构视图（信息架构骨架） ---- */
+.skeleton {
+  border: 1px solid #e1e3dc;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: var(--mantine-spacing-md);
+  color: #24241f;
+}
+.skZone {
+  margin: var(--mantine-spacing-md) 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e1e3dc;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #6a6d64;
+}
+.skRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--mantine-spacing-sm);
+  padding: 5px 0;
+}
+.skLabel {
+  min-width: 132px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #24241f;
+}
+.skSub {
+  font-size: 12px;
+  color: #6a6d64;
+}
+.skRemoved .skLabel,
+.skRemoved.skSub {
+  color: #a8aca1;
+  text-decoration: line-through;
+}
+
+/* ---- 有剧本 / 空态 对照所需 ---- */
+.tabRow {
+  display: flex;
+  gap: var(--mantine-spacing-lg);
+  border-bottom: 1px solid #e1e3dc;
+  padding-bottom: 8px;
+  font-size: 13px;
+}
+.tabActive {
+  font-weight: 600;
+  color: #24241f;
+  border-bottom: 2px solid #24241f;
+  padding-bottom: 6px;
+  margin-bottom: -9px;
+}
+.tab {
+  color: #6a6d64;
+}
+.opsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  margin-top: var(--mantine-spacing-md);
+  padding-bottom: var(--mantine-spacing-sm);
+}
+.paperBox {
+  margin-top: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-xl);
+  background: #ffffff;
+  border: 1px solid #e6e8e2;
+  border-radius: 8px;
+}
+.gapNote {
+  margin-top: var(--mantine-spacing-sm);
+  font-size: 11px;
+  color: #a8aca1;
+  text-align: right;
+}
+.proposedCol {
+  margin-top: var(--mantine-spacing-md);
+  width: 1120px;
+}
+.versionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eceee8;
+}
+.selectionHint {
+  font-size: 11px;
+  color: #a8aca1;
+}
+.proposedDoc {
+  margin-top: var(--mantine-spacing-lg);
+  max-width: 760px;
+}
+.selectedLine {
+  background: #eef2fb;
+  box-shadow: -6px 0 0 #eef2fb;
+}
+.bubbleRow {
+  margin-top: -6px;
+  margin-bottom: var(--mantine-spacing-lg);
+}
+.bubble {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: #24241f;
+  color: #ffffff;
+}
+.centerNote {
+  margin-top: var(--mantine-spacing-xl);
+  text-align: center;
+}
+.centerCta {
+  margin-top: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}

@@ -50,8 +50,17 @@ printf '    共 %s 个文件; 纯文档改动=%s\n' "$(printf '%s\n' "$CHANGED" 
 # ---- 便宜层:等价 ci.yml 的 verify job ----
 step "1/3 静态与单测(npm ci -> check -> db -> worker -> media)"
 npm ci
-pip install -r docs/implementation/validation-requirements.txt
-python docs/implementation/check_design.py
+# 校验依赖装在仓库的 .venv 里(见 AGENTS.md「契约与文档检查」)。
+# 不往系统 Python 装:Homebrew 的 PEP 668 会直接拒绝,而 `pip`/`python` 在只装了
+# python3 的机器上并不存在。缺失时给出补救命令并停下，而不是静默失败。
+PYTHON="${PYTHON:-.venv/bin/python}"
+if [ ! -x "$PYTHON" ]; then
+  echo "缺少校验用 Python 环境。先执行:" >&2
+  echo "  python3 -m venv .venv && .venv/bin/pip install -r docs/implementation/validation-requirements.txt" >&2
+  exit 2
+fi
+"$PYTHON" -m pip install -q -r docs/implementation/validation-requirements.txt
+"$PYTHON" docs/implementation/check_design.py
 npm run check
 npm run db:migrate
 npm run test:db
@@ -84,8 +93,10 @@ fi
 if [ "$E2E" = 1 ]; then
   step "3/3 创意工作台 E2E(npm run test:e2e)"
   npm run test:e2e
+  step "3/3 设计预览规则检查(npm run check:design-preview)"
+  npm run check:design-preview
 else
-  step "3/3 创意工作台 E2E(已跳过:加 --e2e 运行)"
+  step "3/3 创意工作台 E2E 与设计预览规则检查(已跳过:加 --e2e 运行)"
 fi
 
 # ---- 推送前提醒:该压掉的轮次 ----

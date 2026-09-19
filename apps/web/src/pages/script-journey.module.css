@@ -1,0 +1,148 @@
+/* 设计预览稿：显式浅色表面。
+   预览壳（设计预览 App）不注入主题变量，因此这里**声明本稿用到的变量值**，
+   而不是引用 --ws-*（未定义时会静默回落，属于静默失败）。
+   真实实现里这些应当来自 src/theme/tokens.ts。 */
+.wrap, .page {
+  --ws-border: #e1e3dc;
+  --ws-text: #24241f;
+  --ws-panel: #f6f7f4;
+  --col-left: 250px;
+  --col-width: 1120px;
+}
+/* 设计预览稿：显式浅色表面，匹配业务剧本页实际配色 */
+.wrap { height: 100dvh; overflow: auto; }
+.sheet { border: 1px solid #e1e3dc; border-radius: 8px; background: #fff; overflow: hidden; }
+.note {
+  padding: 6px 12px; font-size: 11px; color: #4a4d45;
+  background: #f3f6ef; border-bottom: 1px solid #e1e3dc;
+}
+.page { padding: 0 0 20px; background: #fff; color: #24241f; }
+.crumb {
+  height: 44px; display: flex; align-items: center; padding-left: 16px;
+  font-size: 12px; color: #6a6d64; border-bottom: 1px solid #eceee8;
+}
+.head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin: var(--mantine-spacing-lg) 0 0 var(--col-left);
+  width: var(--col-width);
+}
+.h1 { font-size: 26px; font-weight: 600; line-height: 1.2; }
+.dots { font-size: 20px; color: #8a8d84; line-height: 1; }
+
+.cta { margin: 88px auto 0; width: 560px; text-align: center; }
+.versionRow {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin: var(--mantine-spacing-md) 0 0 var(--col-left); width: var(--col-width); padding-bottom: var(--mantine-spacing-sm);
+  border-bottom: 1px solid #eceee8;
+}
+.miniAction { font-size: 14px; color: #4a4d45; text-decoration: underline; }
+.warn { margin-left: var(--col-left); width: var(--col-width); }
+.draftLine {
+  margin: var(--mantine-spacing-sm) 0 0 var(--col-left); width: var(--col-width); padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  font-size: 12px; color: #6b5a20; background: #fdf6e3;
+  border: 1px solid #f0e2b8; border-radius: 6px;
+}
+.doc { margin: var(--mantine-spacing-lg) 0 0 var(--col-left); width: var(--col-width); }
+.doc > p { margin: 0 0 10px; font-size: 14px; line-height: 1.9; }
+.h { font-weight: 600; }
+.h2 { color: #4a4d45; }
+.cue { color: #4a4d45; }
+.p { }
+.sel { background: #eef2fb; }
+.bubbleWrap { display: flex; align-items: center; gap: 10px; margin: -4px 0 14px; }
+.bubble {
+  display: inline-block; padding: 4px 12px; border-radius: 999px;
+  background: #24241f; color: #fff; font-size: 12px;
+}
+.bubbleHint { font-size: 11px; color: #8a8d84; }
+
+.importPanel {
+  margin: var(--mantine-spacing-md) 0 0 var(--col-left); width: var(--col-width); padding: var(--mantine-spacing-lg);
+  border: 1px solid #e1e3dc; border-radius: 8px; background: #fbfcfa;
+}
+.previewDoc {
+  margin: var(--mantine-spacing-md) 0 0 var(--col-left);
+  width: var(--col-width);
+  padding: var(--mantine-spacing-lg);
+  max-height: 150px; overflow: hidden;
+  border: 1px dashed #cfd3c9; border-radius: 6px;
+  background: #fff;
+}
+.errorBox {
+  margin: var(--mantine-spacing-md) 0 0 var(--col-left); width: var(--col-width); padding: var(--mantine-spacing-lg);
+  border: 1px solid #f0c9c4; border-radius: 8px; background: #fdf2f1;
+}
+.skeletonLine {
+  margin: var(--mantine-spacing-sm) 0 0 var(--col-left); height: 12px; border-radius: 6px; background: #eceee8;
+}
+.menuDemo { position: relative; min-height: 320px; }
+.menuPanel {
+  position: absolute; right: 40px; top: 60px; width: 260px; padding: 6px 0;
+  border: 1px solid #e1e3dc; border-radius: 8px; background: #fff;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 10%);
+}
+.menuGroup {
+  padding: 8px 14px 2px; font-size: 11px; letter-spacing: .04em; color: #a8aca1;
+}
+.menuItem { padding: 7px 14px; font-size: 14px; color: #24241f; }
+
+/* ---- 统一的 Notice 组件（唯一的状态信息载体） ---- */
+/* 几何全部可推导：一条内容列 + spacing token；高度由内容与统一间距决定 */
+.notice {
+  /* 一条纵向序列：标题 → 说明 → 动作，全部与左边界对齐 */
+  margin: var(--mantine-spacing-md) 0 0 var(--col-left);
+  width: var(--col-width);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border-left: 2px solid var(--ws-border);
+  /* 与 --ws-control-radius（6px）一致；预览壳未注入主题变量，故用字面值 */
+  border-radius: 6px 0 0 6px;
+  background: var(--ws-panel);
+}
+.noticeBody { min-width: 0; }
+/* 说明与动作同一行：动作紧跟在文字后面 */
+.noticeLine {
+  display: flex; align-items: baseline; gap: var(--mantine-spacing-md);
+}
+/* 说明优先占宽：一行放不下时说明换行，动作留在同一行右侧不换位 */
+.noticeLine .noticeText { flex: 0 1 auto; min-width: 0; }
+.noticeTitleRow { display: flex; align-items: center; gap: 2px; }
+.noticeTitle { font-size: 14px; font-weight: 600; color: var(--ws-text); }
+.noticeText { font-size: 14px; line-height: 1.5; color: var(--mantine-color-dimmed); }
+.noticeActions { flex: 0 0 auto; }
+.noticeBadge {
+  display: inline-block; padding: 1px 6px; border-radius: 4px;
+  font-size: 11px; color: var(--mantine-color-dimmed);
+  background: transparent; border: 1px solid var(--ws-border);
+}
+/* 四种语义：只改左色条与底色，几何完全一致
+   注意：主题的 --ws-* 语义色是**暗色主题**值，且只有前景色、没有底色/文字变体，
+   所以此处显式声明浅色表面所需的四组值。主题补上语义表面/文字 token 后应改为引用。
+   —— 见 docs/design/state-and-notice-spec-v0.1.md 的"待补 token"一节 */
+.notice.info     { border-left-color: #c9cec3; background: #f6f7f4; }
+.notice.warn     { border-left-color: #c99a2e; background: #fdf7e8; }
+.notice.danger   { border-left-color: #b8453a; background: #fdf2f1; }
+.notice.readonly { border-left-color: #b9bfb2; background: #f2f4ef; }
+.notice.info     .noticeText { color: #4a4d45; }
+.notice.warn     .noticeText { color: #6b5312; }
+.notice.danger   .noticeText { color: #7a3029; }
+.notice.readonly .noticeText { color: #4a4d45; }
+.notice.info     .noticeTitle, .notice.readonly .noticeTitle { color: #24241f; }
+.notice.warn     .noticeTitle { color: #57430d; }
+.notice.danger   .noticeTitle { color: #6d2a23; }
+
+/* 页级横幅（第二个合法位置）：项目级状态 */
+.pageBanner { padding: var(--mantine-spacing-lg) 0 0 0; margin-left: calc(-1 * var(--col-left)); }
+.readonlyBadge {
+  display: inline-block; padding: 1px 6px; border-radius: 4px;
+  font-size: 11px; color: var(--mantine-color-dimmed);
+  background: transparent; border: 1px solid var(--ws-border);
+}
+.tailNote { margin: var(--mantine-spacing-md) 0 0 var(--col-left); font-size: 14px; }
+
+/* ---- 对照视图 ---- */
+.cmpItem { margin-bottom: 10px; }
+.cmpItem .notice { margin-top: 0; }
+.cmpItem .noticeBody { width: 100%; }
+.noticeLinks { display: flex; gap: 16px; flex: 0 0 auto; align-items: center; }
+.link { font-size: 14px; color: var(--mantine-color-dimmed); text-decoration: underline; text-underline-offset: 3px; }
+.linkStrong { font-size: 14px; font-weight: 600; color: #24241f; text-decoration: underline; text-underline-offset: 3px; }

@@ -794,22 +794,23 @@ export function ContentWorkspace({
                         提案历史与导入
                       </Menu.Item>
                       <Menu.Item onClick={() => setCreativeOpen(true)}>
-                        核对创作依据
+                        创作依据
+                      </Menu.Item>
+                      <Menu.Item
+                        component="a"
+                        href={`${location.hash.split("?")[0]}?tab=settings`}
+                      >
+                        剧目设定
                       </Menu.Item>
                     </Menu.Dropdown>
                   </Menu>
                 </Group>
               }
             />
-            <Tabs value={scriptTab} onChange={setScriptTab} keepMounted mb="xl">
-              <Tabs.List>
-                <Tabs.Tab value="text">剧本正文</Tabs.Tab>
-                <Tabs.Tab value="settings">剧目设定</Tabs.Tab>
-              </Tabs.List>
-              <Tabs.Panel value="settings" pt="xl">
-                <StorySettings path={path} active={active} />
-              </Tabs.Panel>
-              <Tabs.Panel value="text" pt="xl">
+            {scriptTab === "settings" ? (
+              <StorySettings path={path} active={active} />
+            ) : (
+              <>
                 {(scriptOpening || scripts.isPending) && (
                   <Loader aria-label="正在读取已保存的剧本版本" />
                 )}
@@ -832,19 +833,8 @@ export function ContentWorkspace({
                     }}
                   />
                 )}
-              </Tabs.Panel>
-            </Tabs>
-            <div className={layout.basis}>
-              <div>
-                <Text fw={600}>创作依据</Text>
-                <Text size="sm" c="dimmed">
-                  查看项目设定、角色关系和固定版本的创作依据。
-                </Text>
-              </div>
-              <Button variant="default" onClick={() => setCreativeOpen(true)}>
-                查看与编辑
-              </Button>
-            </div>
+              </>
+            )}
           </section>
           <aside
             hidden={!assistantOpen || scriptTab !== "text"}

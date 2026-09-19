@@ -23,6 +23,7 @@
     "dev:business": "concurrently --kill-others --names identity,api,web \"npm run dev:identity\" \"npm run dev:business-api\" \"npm run dev:web\"",
     "typecheck": "tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json",
     "ui:check": "node --import tsx scripts/check-ui.ts",
+    "check:design-preview": "node --import tsx scripts/check-script-preview.ts --serve",
     "build": "npm run typecheck && npm run build --workspace @drama/web",
     "contracts:generate": "openapi-typescript docs/implementation/openapi.json -o packages/contracts/src/generated.ts",
     "test": "node --import tsx --test tests/*.test.ts",

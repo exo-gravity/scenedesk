@@ -31,6 +31,11 @@ const DesignPage = lazy(() =>
     default: module.DesignPage,
   })),
 );
+const ScriptLayoutPreview = lazy(() =>
+  import("./pages/ScriptLayoutPreview").then((module) => ({
+    default: module.ScriptLayoutPreview,
+  })),
+);
 const LayoutOptionsPage = lazy(() =>
   import("./pages/LayoutOptionsPage").then((module) => ({
     default: module.LayoutOptionsPage,
@@ -66,6 +71,7 @@ const pageNames: Record<Page, string> = {
   layouts: "场次双模式效果图",
   directions: "视觉方向评审",
   journey: "导航与核心流程",
+  "script-layout": "剧本页重构对照",
 };
 const navItems = [
   { page: "overview", label: "项目概览", Icon: I.House },
@@ -228,6 +234,12 @@ export default function App() {
     navigate("scene");
     setToast("新镜头已追加到当前场次，原有镜头与剪辑保持原样。");
   }
+  if (route.page === "script-layout")
+    return (
+      <Suspense fallback={<div className="content-page">正在载入对照稿…</div>}>
+        <ScriptLayoutPreview />
+      </Suspense>
+    );
   if (route.page === "journey") {
     if (new URLSearchParams(location.hash.split("?")[1]).get("variant") === "finishing") return <Suspense fallback={<div className="content-page">正在载入专项设计…</div>}><ProductionDetailPrototype /></Suspense>;
     if (new URLSearchParams(location.hash.split("?")[1]).get("variant") === "recommendation") return <Suspense fallback={<div className="content-page">正在载入新方案效果图…</div>}><WorkspaceRecommendationPrototype /></Suspense>;
