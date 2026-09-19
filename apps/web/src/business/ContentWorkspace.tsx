@@ -796,12 +796,6 @@ export function ContentWorkspace({
                       <Menu.Item onClick={() => setCreativeOpen(true)}>
                         创作依据
                       </Menu.Item>
-                      <Menu.Item
-                        component="a"
-                        href={`${location.hash.split("?")[0]}?tab=settings`}
-                      >
-                        剧目设定
-                      </Menu.Item>
                     </Menu.Dropdown>
                   </Menu>
                 </Group>
