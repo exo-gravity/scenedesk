@@ -21,11 +21,6 @@
   grid-row: 1;
   min-width: 0;
 }
-.brand {
-  flex: 0 0 auto;
-  font-size: var(--mantine-font-size-lg);
-  letter-spacing: -0.04em;
-}
 .projectName {
   min-width: 0;
   max-width: 160px;
@@ -194,9 +189,6 @@
   .header {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 4px;
-  }
-  .brand {
-    font-size: var(--mantine-font-size-sm);
   }
   .headerActions {
     gap: 2px;

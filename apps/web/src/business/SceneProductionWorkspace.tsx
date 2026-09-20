@@ -622,30 +622,10 @@ export function SceneCanvasSession({
           }[entry.plan.status];
   }
   const [bindingTarget, setBindingTarget] = useState<CanvasNode | null>(null);
-  /**
-   * Open the linkage form for a generated result, with the candidate purpose and
-   * the whole fixed interval already filled in. The shot is left for the user: a
-   * result node's identity is not the draft the plan was prepared from, so nothing
-   * here says which shot the clip belongs to, and guessing it is the mistake this
-   * flow exists to avoid. This only opens the form — the candidate is created when
-   * that form is submitted.
-   */
-  const registerCandidate = (nodeId: string) => {
-    const node = state?.local?.document.nodes.find((n) => n.id === nodeId);
-    if (!node || node.content.type !== "media") return;
-    // The shot is deliberately left unset. A result node's id is not the draft the
-    // plan was prepared from, so there is nothing here to derive it from, and
-    // guessing which shot a clip belongs to is exactly the mistake this flow is
-    // meant to avoid. The role and the interval are pre-filled instead.
-    setBindingSeed({ shotId: "", shotRevisionId: "", fullCandidate: true });
-    setBindingTarget(node);
-    if (dock !== "shots") selectDock("shots");
-  };
   const [bindingSeed, setBindingSeed] = useState<{
     shotId: string;
     shotRevisionId: string;
     take?: Schema<"Take">;
-    fullCandidate?: boolean;
   }>();
   const [bindingBusy, setBindingBusy] = useState(false);
   const [focusRequest, setFocusRequest] = useState<{
@@ -995,7 +975,6 @@ export function SceneCanvasSession({
                       onFocusModeChange={setFocusMode}
                       onOpenResults={() => selectDock("results")}
                       onReviewBatch={setBatchReview}
-                      onRegisterCandidate={registerCandidate}
                       onAddAssistantContext={(nodeIds) => {
                         setAssistantContext({ nodeIds, nonce: Date.now() });
                         setAssistantView("canvas");

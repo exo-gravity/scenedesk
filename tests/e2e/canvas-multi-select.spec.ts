@@ -29,7 +29,7 @@ const test = base.extend({
  * Step 1's #2 and #3. Batch here means reviewing and comparing side by side —
  * never adopting, and never submitting paid work.
  */
-test("CW-BATCH-2/3: multi-select reviews and compares, and never adopts", async ({
+test("CW-BATCH-2/3: the canvas never registers or adopts, and shot candidates stay shot-scoped", async ({
   page,
   workspace: w,
 }) => {
@@ -110,92 +110,26 @@ test("CW-BATCH-2/3: multi-select reviews and compares, and never adopts", async 
     page.getByRole("button", { name: "画布保存状态：已保存", exact: true }),
   ).toBeVisible();
 
-  // --- #3 forward: a result node opens the candidate form, pre-filled --------
+  // --- #3 forward: the canvas never registers a candidate ---------------------
+  // Creating one is a shot-scoped decision, and nothing on a result node says which
+  // shot a clip belongs to, so the canvas offers no registration control at all.
   await page.getByRole("button", { name: "查找画布内容", exact: true }).click();
   await page
     .getByRole("region", { name: "画布查找与定位" })
     .getByRole("button", { name: "合成蓝片", exact: true })
     .click();
-  const register = page.getByRole("button", {
-    name: "登记为镜头候选",
-    exact: true,
-  });
-  await expect(register).toBeVisible();
-  // Offering the form must not have created anything yet.
-  expect((await seeded.takes()).items).toHaveLength(takesBefore);
-  await register.click();
-  // The role and the interval are pre-filled: only the shot is the user's call,
-  // because nothing in the canvas says which shot this clip belongs to.
   await expect(
-    page.getByRole("combobox", { name: "关联到本场镜头", exact: true }),
-  ).toHaveValue("");
-  await expect(
-    page.getByRole("textbox", { name: "候选入点（秒）", exact: true }),
-  ).toHaveValue("0");
-  await expect(
-    page.getByRole("textbox", { name: "候选出点（秒）", exact: true }),
-  ).not.toHaveValue("");
-  // Still nothing registered: the form is a form, not an adoption.
+    page.getByRole("button", { name: "登记为镜头候选", exact: true }),
+  ).toHaveCount(0);
+  // Selecting a result node is not a decision: nothing is registered or adopted.
   expect((await seeded.takes()).items).toHaveLength(takesBefore);
   expect((await seeded.selection()).currentSelection?.takeId).toBe(
     adoptedBefore,
   );
 
-  // --- #2: select two shots and review their candidates side by side ---------
-  await page.getByRole("button", { name: "镜头列表", exact: true }).click();
-  const list = page.getByRole("dialog", { name: "镜头列表", exact: true });
-  await expect(list).toBeVisible();
-  await page.keyboard.down("Shift");
-  await list.getByRole("button", { name: /^1\. 01 推门/ }).click();
-  await list.getByRole("button", { name: /^2\. 02 阅读/ }).click();
-  await page.keyboard.up("Shift");
-  // Focus and the batch set are independent here too: looking at one shot must not
-  // drop the other from the set being built.
-  await list.getByRole("button", { name: /^1\. 01 推门/ }).click();
-  await expect(
-    list.getByRole("button", { name: /已选入批量/ }),
-  ).toHaveCount(2);
-  const review = list.getByRole("button", {
-    name: "查看 2 个镜头的候选",
-    exact: true,
-  });
-  await expect(review).toBeVisible();
-  // One shot's read fails while the other succeeds, so the review has to keep the
-  // two independent: the broken column reports itself and the healthy one still
-  // reads.
-  await page.route("**/takes?shotId=*", async (route) => {
-    const shotId = new URL(route.request().url()).searchParams.get("shotId");
-    if (shotId === seeded.second.id)
-      return route.fulfill({ status: 500, body: "{}" });
-    return route.continue();
-  });
-  await review.click();
-  const overview = page.getByRole("dialog", { name: "2 个镜头的候选" });
-  await expect(overview).toBeVisible();
-  await expect(
-    overview.getByText(/只读取候选，不改变任何镜头的采用/),
-  ).toBeVisible();
-  const firstColumn = overview.getByRole("region", { name: "01 推门 的候选" });
-  const secondColumn = overview.getByRole("region", { name: "02 阅读 的候选" });
-  await expect(firstColumn.getByText("候选 1", { exact: true })).toBeVisible();
-  await expect(secondColumn.getByRole("alert")).toBeVisible();
-
-  // The failed column recovers in place once the read works again.
-  await page.unroute("**/takes?shotId=*");
-  await secondColumn
-    .getByRole("button", { name: "重新读取", exact: true })
-    .click();
-  await expect(
-    secondColumn.getByText("还没有候选。", { exact: true }),
-  ).toBeVisible();
-  // Reviewing decided nothing, before or after the failure.
-  expect((await seeded.selection()).currentSelection?.takeId).toBe(
-    adoptedBefore,
-  );
-  await page.keyboard.press("Escape");
-
-  // --- #2: select two candidates and compare them ----------------------------
-  // Candidates live in the shot's own production workspace, not in the list.
+  // --- #3: a shot's candidates are reachable from its own workspace -----------
+  // The legacy deep link still reads that workspace, and looking at a candidate
+  // adopts nothing.
   await page.goto(
     `${w.runtime.origin}${w.basePath}/production?scene=${w.scene.id}&mode=storyboard&shot=${seeded.shot.id}`,
   );
@@ -203,28 +137,11 @@ test("CW-BATCH-2/3: multi-select reviews and compares, and never adopts", async 
   const dock = page.getByRole("complementary", { name: "制作辅助面板" });
   const candidates = dock.getByRole("link", { name: /^查看候选 \d+/ });
   await expect(candidates.first()).toBeVisible();
-  // Probe: a plain click focuses one candidate, and that focus must not wipe the set.
-  await candidates.nth(0).click({ modifiers: ["Shift"] });
-  await candidates.nth(1).click({ modifiers: ["Shift"] });
-  await expect(dock.getByRole("link", { name: /已选入比较/ })).toHaveCount(2);
-  // Looking at a third candidate must not disturb the pair already picked, and
-  // looking is not selecting.
-  await candidates.nth(2).click();
-  await expect(dock.getByRole("link", { name: /已选入比较/ })).toHaveCount(2);
-  const compare = dock.getByRole("button", {
-    name: "比较所选候选",
-    exact: true,
-  });
-  await expect(compare).toBeVisible();
-  await compare.click();
-  const comparison = page.getByRole("dialog", { name: /比较 2 份候选/ });
-  await expect(comparison).toBeVisible();
-  await expect(comparison.getByText(/不改变镜头采用/).first()).toBeVisible();
-  // Comparing is a read: it selected nothing for the shot.
+  await candidates.nth(1).click();
+  expect((await seeded.takes()).items).toHaveLength(takesBefore);
   expect((await seeded.selection()).currentSelection?.takeId).toBe(
     adoptedBefore,
   );
-  await page.keyboard.press("Escape");
 
   // --- #3 reverse: the candidate that came from the canvas links back --------
   const link = dock.getByRole("link", { name: "在画布上查看来源节点" });

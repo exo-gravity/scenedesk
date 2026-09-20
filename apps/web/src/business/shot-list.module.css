@@ -76,9 +76,6 @@
 }
 /* In the batch set. A separate attribute from `data-selected`, which already
    means "the object being viewed" in the candidate and cut lists. */
-.row[data-batch] {
-  background: var(--ws-hover);
-}
 /* The row whose detail is on screen; independent of the batch set. */
 .row[data-focused] {
   border-left-color: var(--ws-focus);
@@ -283,13 +280,6 @@
     border-top: 0;
     padding-top: 0;
   }
-  .candidateControls {
-    flex-wrap: nowrap;
-    gap: var(--mantine-spacing-xs);
-  }
-  .candidateControls > * {
-    min-width: 0;
-  }
   .previews[data-comparing] {
     gap: var(--mantine-spacing-xs);
   }
@@ -372,4 +362,69 @@
   .takeComparisonPreview {
     height: 45dvh;
   }
+}
+
+/* A shot's candidates as one row of pickable thumbnails. A dropdown could only
+   offer "候选 1 / 候选 2" as text, which made looking at a candidate the same
+   action as choosing it. */
+.takeStrip {
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  overflow-x: auto;
+  padding-bottom: var(--mantine-spacing-xs);
+  flex: 0 0 auto;
+}
+.takeChip {
+  flex: 0 0 auto;
+  width: 84px;
+  display: grid;
+  gap: 2px;
+  padding: var(--mantine-spacing-xs);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-tool-radius, var(--ws-card-radius));
+  background: var(--ws-panel);
+  color: var(--ws-text);
+  cursor: pointer;
+  text-align: start;
+}
+.takeChip[data-previewed] {
+  border-color: var(--ws-accent);
+  outline: 1px solid var(--ws-accent);
+}
+.takeChip[data-adopted] {
+  border-color: var(--ws-focus);
+}
+.takeChipTarget {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.takeChipThumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  overflow: hidden;
+  background: var(--ws-raised);
+  border-radius: var(--ws-media-radius, var(--ws-card-radius));
+}
+.takeChipThumb > div {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.takeChipLabel {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: var(--mantine-font-size-xs);
+}
+.takeChipUse {
+  align-self: start;
 }

@@ -39,20 +39,6 @@ import { useList, useResource, useSession, type Schema } from "./api";
 import { Empty, ErrorNotice, projectPath, tenantPath } from "./common";
 import { MediaPreview } from "./MediaPreview";
 import { CandidateEditor, SelectionEditor } from "./CandidateEditor";
-import { TakeComparison } from "./TakeComparison";
-import {
-  applyClick,
-  batchTargets,
-  clearSelection,
-  hasBatch,
-  isSelected,
-  type ListSelection,
-} from "./list-selection";
-import {
-  readSelection,
-  subscribeSelections,
-  writeSelection,
-} from "./list-selection-store";
 import { sourceSeconds } from "./candidate-time";
 import { useAssetPages } from "./asset-queries";
 import classes from "./candidates.module.css";
@@ -493,17 +479,6 @@ function ShotProduction({
       `${path}/shots/${shot.id}/selections`,
     );
   const members = useList<Schema<"Membership">>(`${mediaPath}/members`);
-  // The store is the state: opening a candidate navigates to its own URL and
-  // replaces this surface, so a selection held here would not survive it.
-  const selectionKey = `${session.userId}:${path}:${shot.id}:candidates`;
-  const candidateSelection = useSyncExternalStore(
-    subscribeSelections,
-    () => readSelection(selectionKey),
-  );
-  const [comparingTakes, setComparingTakes] = useState(false);
-  const changeSelection = (
-    update: (old: ListSelection) => ListSelection,
-  ): void => writeSelection(selectionKey, update(readSelection(selectionKey)));
   const [dock, setDock] = useState<
       "candidates" | "media" | "feedback" | "references" | null
     >(null),
@@ -558,12 +533,6 @@ function ShotProduction({
         binding.takeId === takeId &&
         binding.nodeActive,
     )?.nodeId;
-  const selectedTakes = batchTargets(candidateSelection, takeIds).flatMap(
-    (id) => {
-      const found = takes.data?.find((item) => item.id === id);
-      return found ? [found] : [];
-    },
-  );
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -974,57 +943,15 @@ function ShotProduction({
               <Text size="sm" c="dimmed">
                 查看候选不会改变采用。
               </Text>
-              <Text size="xs" c="dimmed">
-                按住 Shift 或 Command 点击可多选，用于并列比较。
-              </Text>
-              {hasBatch(candidateSelection, takeIds) && (
-                <Group
-                  justify="space-between"
-                  className={classes.candidateSelection}
-                >
-                  <Text size="xs">
-                    已选 {batchTargets(candidateSelection, takeIds).length} 份候选
-                  </Text>
-                  <Group gap="xs">
-                    <Button size="xs" onClick={() => setComparingTakes(true)}>
-                      比较所选候选
-                    </Button>
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={() => changeSelection(clearSelection)}
-                    >
-                      清除选择
-                    </Button>
-                  </Group>
-                </Group>
-              )}
               {takes.data?.map((item, index) => (
                 <UnstyledButton
                   key={item.id}
                   component="a"
                   href={`${href}&take=${item.id}`}
-                  onClick={(event) => {
-                    const extend =
-                      event.shiftKey || event.metaKey || event.ctrlKey;
-                    // A plain click opens the candidate, which the anchor already
-                    // does. Selecting another one for comparison is not a reason to
-                    // close an editor the user has open, so the editor is only
-                    // cleared when the view is actually about to change.
-                    if (!extend) setEditor(undefined);
-                    changeSelection((old) =>
-                      applyClick(old, item.id, { extend }),
-                    );
-                  }}
+                  onClick={() => setEditor(undefined)}
                   className={classes.candidate}
                   data-selected={(take?.id === item.id && !editor) || undefined}
-                  data-batch={isSelected(candidateSelection, item.id) ? "true" : undefined}
-                  // The name states the membership too: a background colour is not
-                  // a state assistive technology can read.
-                  aria-label={`查看候选 ${index + 1}${
-                    isSelected(candidateSelection, item.id) ? "，已选入比较" : ""
-                  }`}
-                  title="按住 Shift 或 Command 点击可多选"
+                  aria-label={`查看候选 ${index + 1}`}
                   aria-current={take?.id === item.id && !editor ? "true" : undefined}
                 >
                   <CandidateSummary
@@ -1108,15 +1035,6 @@ function ShotProduction({
           )}
         </aside>
       </div>
-      {comparingTakes && selectedTakes.length > 1 && (
-        <TakeComparison
-          path={path}
-          mediaPath={mediaPath}
-          shotLabel={shot.label}
-          takes={selectedTakes}
-          close={() => setComparingTakes(false)}
-        />
-      )}
       <Modal
         opened={!!decision}
         onClose={() => setDecision(undefined)}

@@ -26,12 +26,6 @@ type Seed = {
   shotId: string;
   shotRevisionId: string;
   take?: Schema<"Take">;
-  /**
-   * Register this node's whole fixed media as a candidate of the seeded shot.
-   * The interval is the full media duration, which is only known once the media
-   * has loaded, so the out point is filled in after that rather than seeded.
-   */
-  fullCandidate?: boolean;
 };
 type Placement = (
   media: Schema<"Media">,
@@ -90,7 +84,7 @@ export function CanvasShotConnections({
   // The seeded intent is part of the editor's identity: asking for a candidate on a
   // node whose form is already open must not leave the form on its previous role.
   const seedSignature = seed
-    ? `${seed.shotId}:${seed.take?.id ?? (seed.fullCandidate ? "whole-clip" : "plain")}`
+    ? `${seed.shotId}:${seed.take?.id ?? "plain"}`
     : "none";
   const local = controller.getSnapshot().local!;
   const linked = new Set(sceneCanvas.bindings.map((b) => b.nodeId));
@@ -291,10 +285,7 @@ function CanvasBindingEditor({
           ...initial,
           shotId: seed.shotId,
           shotRevisionId: seed.shotRevisionId,
-          role:
-            seed.take || seed.fullCandidate
-              ? ("candidate" as const)
-              : ("reference" as const),
+          role: seed.take ? ("candidate" as const) : ("reference" as const),
           inSeconds: sourceSeconds(seed.take?.range.inUs ?? 0),
           outSeconds: seed.take ? sourceSeconds(seed.take.range.outUs) : "",
           sourceTakeId: seed.take?.sourceTakeId ?? "",
@@ -310,33 +301,6 @@ function CanvasBindingEditor({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<Error | null>(null),
     [success, setSuccess] = useState<string | null>(null);
-  const prefilled = useRef(false);
-  useEffect(() => {
-    // The seeded "whole clip" case fills its own interval exactly once. It must not
-    // re-arm: this is an append-only domain, so silently rewriting the interval the
-    // user is editing would create a candidate nobody asked for. `draft` is
-    // deliberately not a dependency — it is a fresh object every render, which
-    // would re-run this on every keystroke.
-    if (prefilled.current || !seed?.fullCandidate || !media.data?.durationUs)
-      return;
-    if (!draft.ready || draft.recovered || draft.committed) return;
-    if (draft.value.outSeconds !== "") return;
-    prefilled.current = true;
-    draft.setValue({
-      ...draft.value,
-      outSeconds: sourceSeconds(media.data.durationUs),
-      requestId: crypto.randomUUID(),
-    });
-    // The gate is the scalar state that must become true first — the draft is a
-    // fresh object every render and depending on it would re-run on every keystroke.
-  }, [
-    seed?.fullCandidate,
-    media.data?.durationUs,
-    draft.ready,
-    draft.recovered,
-    draft.committed,
-    draft.value.outSeconds,
-  ]);
   const shot = shots.find((s) => s.id === draft.value.shotId);
   const fixed = useResource<Schema<"ShotRevision">>(
     `${path}/shots/${draft.value.shotId}/revisions/${draft.value.shotRevisionId}`,

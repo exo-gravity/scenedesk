@@ -147,13 +147,16 @@ test("CW-13: switching shots keeps the viewer still through loading and confines
       )
       .toBe(true);
     await expect(
-      dialog.getByRole("button", { name: "选用当前预览…", exact: true }),
+      dialog
+        .getByRole("button", { name: /^采用候选 \d+$/, exact: false })
+        .first(),
     ).toBeInViewport();
     await expect(
       dialog.getByRole("button", { name: "关闭弹窗", exact: true }),
     ).toBeInViewport();
     await dialog
-      .getByRole("button", { name: "选用当前预览…", exact: true })
+      .getByRole("button", { name: /^采用候选 \d+$/ })
+      .first()
       .click();
     const restore = dialog.getByRole("button", {
       name: "恢复未提交内容",
@@ -210,14 +213,16 @@ test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly sele
     .fill("受控蓝片，半秒到两秒半。未执行真实模型。");
   await dialog.getByRole("button", { name: "归档为候选", exact: true }).click();
   await expect(
-    dialog.getByRole("button", { name: "选用当前预览…", exact: true }),
+    dialog.getByRole("button", { name: /^采用候选 \d+$/ }).first(),
   ).toBeEnabled();
   const takes = (await seeded.takes()).items,
-    blueTake = takes.find((t) => t.mediaId === seeded.blue.id)!;
+    blueTake = takes.find((t) => t.mediaId === seeded.blue.id)!,
+    blueIndex = takes.findIndex((t) => t.id === blueTake.id) + 1;
   expect(blueTake.range).toEqual({ inUs: 500000, outUs: 2500000 });
   expect((await seeded.selection()).currentSelection).toBeUndefined();
+  // Adopt the candidate under test, named by its position in the strip.
   await dialog
-    .getByRole("button", { name: "选用当前预览…", exact: true })
+    .getByRole("button", { name: `采用候选 ${blueIndex}`, exact: true })
     .click();
   await expect(dialog.getByText(/修改版本 [0-9]|不表示审阅通过/)).toHaveCount(
     0,
@@ -232,12 +237,8 @@ test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly sele
   const selected = (await seeded.selection()).currentSelection!;
   expect(selected.takeId).toBe(blueTake.id);
   const orangeIndex = takes.findIndex((t) => t.id === seeded.orangeTake.id) + 1;
-  await dialog.getByRole("combobox", { name: "比较候选", exact: true }).click();
-  await page
-    .getByRole("option", {
-      name: `候选 ${orangeIndex} · ${seeded.orangeTake.id.slice(0, 8)}`,
-      exact: true,
-    })
+  await dialog
+    .getByRole("button", { name: `对比候选 ${orangeIndex}`, exact: true })
     .click();
   await expect(dialog.locator("video")).toHaveCount(2);
   await expect
@@ -286,9 +287,8 @@ test("CW-13/15: canvas video becomes a fixed candidate; compare, explicitly sele
     contentType: "image/png",
   });
   // Preview a different candidate; explicit selection and original download must remain blue.
-  await dialog.getByRole("combobox", { name: "预览候选", exact: true }).click();
-  await page
-    .getByRole("option", { name: `候选 ${orangeIndex}`, exact: true })
+  await dialog
+    .getByRole("button", { name: `预览候选 ${orangeIndex}`, exact: true })
     .click();
   const downloadEvent = page.waitForEvent("download");
   await dialog
@@ -391,7 +391,7 @@ test("CW-13: failed reorder retains local order through close and refresh, inclu
     dialog.getByRole("button", { name: "新增镜头", exact: true }),
   ).toBeDisabled();
   await expect(
-    dialog.getByRole("button", { name: "选用当前预览…", exact: true }),
+    dialog.getByRole("button", { name: /^采用候选 \d+$/ }).first(),
   ).toBeDisabled();
 });
 
@@ -432,9 +432,10 @@ test("CW-13: concurrent selection retains reason for explicit recheck; revoked c
   await page.getByRole("button", { name: "镜头列表", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "镜头列表", exact: true });
   const takes = (await seeded.takes()).items;
-  const previewed = takes[0]!;
+  const previewed = takes[0]!,
+    previewedIndex = takes.findIndex((t) => t.id === previewed.id) + 1;
   await dialog
-    .getByRole("button", { name: "选用当前预览…", exact: true })
+    .getByRole("button", { name: `采用候选 ${previewedIndex}`, exact: true })
     .click();
   const reason = dialog.getByRole("textbox", {
     name: "采用理由（可选）",

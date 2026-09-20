@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Badge, Button, Group, Loader, Select, Text } from "@mantine/core";
+import {
+  Badge,
+  Button,
+  Group,
+  Loader,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
 import { DownloadSimple } from "@phosphor-icons/react";
 import { api, useList, useResource, useSession, type Schema } from "./api";
 import { ErrorNotice } from "./common";
@@ -135,35 +142,6 @@ export function ShotResultFocus({
             </div>
           ) : (
             <>
-              <Group grow align="start" className={classes.candidateControls}>
-                <Select
-                  label="预览候选"
-                  value={take.id}
-                  data={takes.data.map((t, i) => ({
-                    value: t.id,
-                    label: `候选 ${i + 1}${t.id === current?.takeId ? " · 已选用" : ""}${t.shotRevisionId !== shot.specRevisionId ? " · 旧要求" : ""}`,
-                  }))}
-                  onChange={(id) =>
-                    void transition(() => {
-                      setFocused(id ?? "");
-                      setDecision(undefined);
-                    })
-                  }
-                />
-                <Select
-                  label="比较候选"
-                  placeholder="选择另一份结果"
-                  clearable
-                  value={other?.id ?? null}
-                  data={takes.data
-                    .filter((t) => t.id !== take.id)
-                    .map((t) => ({
-                      value: t.id,
-                      label: `候选 ${takes.data!.indexOf(t) + 1} · ${t.id.slice(0, 8)}`,
-                    }))}
-                  onChange={setCompared}
-                />
-              </Group>
               <div
                 className={classes.previews}
                 data-comparing={!!other || undefined}
@@ -186,33 +164,86 @@ export function ShotResultFocus({
             </>
           )}
           <div className={classes.focusFooter}>
-            <Group gap="xs">
-              {take && (
-                <>
-                  <Button
-                    disabled={
-                      !active ||
-                      take.id === current?.takeId ||
-                      take.shotRevisionId !== shot.specRevisionId
-                    }
-                    onClick={() =>
-                      void transition(() =>
-                        setDecision({ take: structuredClone(take) }),
-                      )
-                    }
-                  >
-                    选用当前预览…
-                  </Button>
-                  {current?.takeId && (
-                    <Button
-                      variant="subtle"
-                      disabled={!active}
-                      onClick={() => void transition(() => setDecision({}))}
+            {take && (
+              <div className={classes.takeStrip} aria-label="镜头候选">
+                {takes.data.map((item, index) => {
+                  const adopted = item.id === current?.takeId;
+                  const outdated = item.shotRevisionId !== shot.specRevisionId;
+                  return (
+                    <div
+                      key={item.id}
+                      className={classes.takeChip}
+                      data-previewed={item.id === take.id || undefined}
+                      data-adopted={adopted || undefined}
                     >
-                      清除选用…
-                    </Button>
-                  )}
-                </>
+                      <UnstyledButton
+                        className={classes.takeChipTarget}
+                        aria-label={`预览候选 ${index + 1}${adopted ? "，已选用" : ""}${outdated ? "，旧要求" : ""}`}
+                        aria-current={item.id === take.id ? "true" : undefined}
+                        onClick={() =>
+                          void transition(() => {
+                            setFocused(item.id);
+                            setDecision(undefined);
+                          })
+                        }
+                      >
+                        <span className={classes.takeChipThumb}>
+                          <TakeChipThumb mediaPath={mediaPath} take={item} />
+                        </span>
+                        <span className={classes.takeChipLabel}>
+                          <Text component="span" size="xs" fw={600}>
+                            {index + 1}
+                          </Text>
+                          {adopted && (
+                            <Text component="span" size="xs" c="dimmed">
+                              已选用
+                            </Text>
+                          )}
+                        </span>
+                      </UnstyledButton>
+                      <Button
+                        className={classes.takeChipUse}
+                        size="compact-xs"
+                        variant="subtle"
+                        aria-label={`${item.id === other?.id ? "取消对比" : "对比"}候选 ${index + 1}`}
+                        aria-pressed={item.id === other?.id}
+                        disabled={item.id === take.id}
+                        onClick={() =>
+                          void transition(() =>
+                            setCompared(item.id === other?.id ? null : item.id),
+                          )
+                        }
+                      >
+                        {item.id === other?.id ? "取消对比" : "对比"}
+                      </Button>
+                      <Button
+                        className={classes.takeChipUse}
+                        size="compact-xs"
+                        variant="subtle"
+                        aria-label={`采用候选 ${index + 1}`}
+                        disabled={!active || adopted || outdated}
+                        onClick={() =>
+                          void transition(() =>
+                            setDecision({ take: structuredClone(item) }),
+                          )
+                        }
+                      >
+                        采用
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <Group gap="xs">
+              {take && current?.takeId && (
+                <Button
+                  variant="subtle"
+                  disabled={!active}
+                  onClick={() => void transition(() => setDecision({}))}
+                >
+                  清除选用…
+                </Button>
               )}
               {current?.takeId && (
                 <SelectedDownload
@@ -251,6 +282,28 @@ export function ShotResultFocus({
         </>
       )}
     </div>
+  );
+}
+
+/** A candidate's own poster frame: each take is a different media plus range. */
+function TakeChipThumb({
+  mediaPath,
+  take,
+}: {
+  mediaPath: string;
+  take: Schema<"Take">;
+}) {
+  const media = useResource<Schema<"Media">>(
+    `${mediaPath}/media/${take.mediaId}`,
+  );
+  if (!media.data) return <Loader size={12} aria-label="正在读取候选缩略图" />;
+  return (
+    <MediaPreview
+      media={media.data}
+      path={mediaPath}
+      thumbnail
+      range={take.range}
+    />
   );
 }
 
