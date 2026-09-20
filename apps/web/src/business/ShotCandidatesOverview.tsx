@@ -15,6 +15,8 @@ import { sourceSeconds } from "./candidate-time";
 import classes from "./shot-list.module.css";
 
 type Take = Schema<"Take">;
+/** Reading is per shot and per media, so a review reads a bounded slice at a time. */
+const COLUMN_LIMIT = 8;
 
 /**
  * The candidates of several shots side by side. This is the horizontal view the
@@ -41,6 +43,7 @@ export function ShotCandidatesOverview({
   focusedShotId?: string | undefined;
   focusShot?: ((id: string) => void) | undefined;
 }) {
+  const shown = shots.slice(0, COLUMN_LIMIT);
   return (
     <Modal
       opened={opened}
@@ -58,8 +61,13 @@ export function ShotCandidatesOverview({
         <Text size="sm" c="dimmed">
           只读取候选，不改变任何镜头的采用。采用仍在单镜头流程里逐条进行。
         </Text>
+        {shown.length < shots.length && (
+          <Text size="xs" c="dimmed">
+            一次最多并列 {COLUMN_LIMIT} 个镜头，本次只读出前 {COLUMN_LIMIT} 个。
+          </Text>
+        )}
         <div className={classes.overviewGrid}>
-          {shots.map((shot) => (
+          {shown.map((shot) => (
             <ShotCandidatesColumn
               key={shot.id}
               path={path}

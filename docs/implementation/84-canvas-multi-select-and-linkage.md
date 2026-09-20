@@ -94,7 +94,7 @@ getCanvasGenerationBatch              executeCanvasGenerationBatch
 
 | # | 做了什么 | 位置 |
 |---|---|---|
-| 2 | 一套选中模型驱动三处列表 | `list-selection.ts`（纯逻辑）、`list-selection-store.ts`（跨挂载保存） |
+| 2 | 一套选中模型驱动**镜头列表与候选列表**（画布节点列表保留自己的模型：节点要拖动与分组，选中即默认状态） | `list-selection.ts`（纯逻辑）、`list-selection-store.ts`（跨渲染树保存） |
 | 2 | 镜头多选 + 批量查看候选 | `SceneShotOrder.tsx`、`ShotListWorkspace.tsx`、`ShotCandidatesOverview.tsx` |
 | 2 | 候选多选 + 批量比较 | `CandidateWorkspace.tsx`、`TakeComparison.tsx` |
 | 3 | 画布结果一键进候选（预填用途与整段区间） | `CanvasBoard.tsx`、`SceneProductionWorkspace.tsx`、`CanvasShotConnections.tsx` |
@@ -107,7 +107,9 @@ getCanvasGenerationBatch              executeCanvasGenerationBatch
 - **普通点击只移动聚焦**，不改动批量选中。列表行会导航（候选行）或不导航（镜头行），若普通点击替换选中，用户"看一眼"就会丢掉刚选的一批。
 - **Shift / Command / Control 点击切换成员**，聚焦不变。
 - 批量动作按**列表顺序**执行，并丢弃列表已不存在的 id。
-- 选中状态存在 `list-selection-store` 而不是组件里：候选行过去会导航到自己的 URL，那会卸载并重建持有选中的界面。存储用 `useSyncExternalStore` 暴露，组件不再保存镜像状态。
+- 选中状态存在 `list-selection-store` 而不是组件里：打开候选会导航到它自己的 URL，于是界面重渲染、也可能被替换，组件内的选中就会绑死在一棵渲染树上。存储用 `useSyncExternalStore` 暴露，组件不再保存第二份状态。
+
+> 候选行**保留原有导航**（锚点默认行为），因此应用外壳的「先保留草稿再切换」管线照常生效；`preventDefault` + `replaceState` 的做法已撤掉，那会让外壳按导航处理、而界面又已经自己换了目标。
 
 > 候选行现在不再导航：被查看的候选是组件状态，URL 用 `replaceState` 同步以保持链接可分享。这样浏览候选既不污染历史，也不会重建界面。
 
@@ -130,3 +132,24 @@ getCanvasGenerationBatch              executeCanvasGenerationBatch
 - 本片未改服务端，故无新增数据库集成用例；既有 354 项未受影响。
 
 **本片证据全部来自受控夹具与本地测试身份，不构成真实模型验收。**
+
+## 9. 独立审查与随之的修改（2026-09-20）
+
+合并前对真实 diff 做了一轮独立对抗性审查。它证实了选中模型、存储与两个只读比较界面（含三处"不自动采用"）是对的，并找出以下问题；**全部已修**。
+
+| 问题 | 事实 | 修法 |
+|---|---|---|
+| 区间预填会反复触发 | 预填 effect 把 `draft` 整个放进依赖，而它是每次渲染的新对象；唯一守卫只是"出点为空"，所以用户**清空出点就会被重新填满，且入点被重置为 0**。候选一经创建不可变，于是会永久留下一个没人要的区间 | 依赖改为标量门控值（`draft.ready`／`recovered`／`committed`／`outSeconds`），加"只填一次"的 ref，且**不再重写入点** |
+| 同一节点重新种子不生效 | 编辑器只按 `target.id` 建键，先打开普通关联表单、再对同一节点点「登记为镜头候选」，用途仍停在「待选参考」，提交会创建**参考**而不是候选 | 把种子的意图并入编辑器 key，重新种子即重建 |
+| 反向链接指向已移除节点 | 反查忽略 `binding.nodeActive`，节点已移出画布时仍给出链接，跟过去什么也不会发生 | 反查要求 `nodeActive`，与仓库其他处的处理一致 |
+| 比较界面拒绝已归档媒体 | 门控只接受 `ready`，而 `MediaPreview` 与生成结果比较都接受 `ready`+`archived` | 对齐为 `ready`+`archived` |
+| 批量选中只有背景色 | 没有 AT 可见状态；候选行的 `aria-pressed` 被用在"正在查看"上，而它是 `role=link`，该属性在此未定义；镜头行的 `aria-pressed` 所在按钮普通点击并不切换 | 两处都加**可见文字标记**（镜头「已选入批量」、候选「已选入比较」），"正在查看"改用 `aria-current`；e2e 断言改读**可访问名**而不是实现属性 |
+| 行点击被外壳当作导航 | 候选行保留 `href` 却 `preventDefault` + `replaceState`，于是应用外壳的"先保留草稿再切换"管线照常运行，界面又已自行换了目标；保留失败会弹出与实际不符的提示 | 撤掉 `preventDefault`/`replaceState`，**恢复锚点导航**，由存储承担选中跨渲染树的存活 |
+| 修饰键点击会关掉编辑器 | `setEditor(undefined)` 对扩展选中也执行 | 仅在视图真的要切换时清除 |
+| 概览列数无上限 | 每个镜头一次取候选、每份候选一次媒体与授权请求 | 一次最多并列 8 个镜头，并在超出时说明 |
+| 新建镜头时多选会丢草稿 | 跳过 `transition` 的分支里仍然 `setCreating(false)`，编辑器被卸载却没走保留 | 该分支不再关闭编辑器 |
+| `forgetSelections` 是死代码 | 只有它自己的测试在调用 | 删除该导出与其测试 |
+
+审查同时指出**文档与注释里有四处与实际不符**（「驱动三处列表」、`list-selection.ts` 的模块头、存储的存在理由、`registerCandidate` 的注释），已按实际改写。
+
+审查未覆盖、本片也仍未覆盖的：比较界面**逐列区间播放**与"同时只挂一个播放器"的交互、反向链接**实际落点**是否聚焦到该节点、以及键盘触发修饰键选中的可用性。

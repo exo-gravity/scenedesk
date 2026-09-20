@@ -91,7 +91,11 @@ function TakeColumn({
   // The take fixes a media identity and an interval; a substitute would be a
   // different candidate, so anything else is reported rather than displayed.
   const valid =
-    !media.error && media.data?.id === take.mediaId && media.data.status === "ready";
+    !media.error &&
+    media.data?.id === take.mediaId &&
+    // Archived fixed media is still displayable, which is how MediaPreview and the
+    // generated-result comparison treat it; only unavailable states are refused.
+    ["ready", "archived"].includes(media.data.status);
   return (
     <Stack gap="sm" className={classes.takeColumn}>
       <Text fw={600}>

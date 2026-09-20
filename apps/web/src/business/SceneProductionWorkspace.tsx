@@ -623,10 +623,12 @@ export function SceneCanvasSession({
   }
   const [bindingTarget, setBindingTarget] = useState<CanvasNode | null>(null);
   /**
-   * Register a generated result as a candidate of the shot it was generated for.
-   * The shot comes from the attempt's own fixed sources, so it is derived rather
-   * than guessed; with nothing to derive, the form opens for the user to choose.
-   * This only opens the form — the candidate is created when that form is submitted.
+   * Open the linkage form for a generated result, with the candidate purpose and
+   * the whole fixed interval already filled in. The shot is left for the user: a
+   * result node's identity is not the draft the plan was prepared from, so nothing
+   * here says which shot the clip belongs to, and guessing it is the mistake this
+   * flow exists to avoid. This only opens the form — the candidate is created when
+   * that form is submitted.
    */
   const registerCandidate = (nodeId: string) => {
     const node = state?.local?.document.nodes.find((n) => n.id === nodeId);

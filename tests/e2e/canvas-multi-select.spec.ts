@@ -52,7 +52,8 @@ test("CW-BATCH-2/3: multi-select reviews and compares, and never adopts", async 
   );
   expect(ensuredScene.status).toBe(200);
   const sceneCanvas = ensuredScene.value;
-  const nodeId = randomUUID();
+  const nodeId = randomUUID(),
+    looseNodeId = randomUUID();
   const saved = await w.command<Schema<"Canvas">>(
     "PUT",
     `${w.path}/canvases/${sceneCanvas.canvas.id}`,
@@ -65,6 +66,14 @@ test("CW-BATCH-2/3: multi-select reviews and compares, and never adopts", async 
             kind: "video",
             title: "合成蓝片",
             position: { x: 80, y: 80 },
+            width: 320,
+            content: { type: "media", mediaId: seeded.blue.id },
+          },
+          {
+            id: looseNodeId,
+            kind: "video",
+            title: "未关联蓝片",
+            position: { x: 480, y: 80 },
             width: 320,
             content: { type: "media", mediaId: seeded.blue.id },
           },
@@ -136,12 +145,16 @@ test("CW-BATCH-2/3: multi-select reviews and compares, and never adopts", async 
   await page.getByRole("button", { name: "镜头列表", exact: true }).click();
   const list = page.getByRole("dialog", { name: "镜头列表", exact: true });
   await expect(list).toBeVisible();
-  await list
-    .getByRole("button", { name: /^1\. 01 推门/ })
-    .click({ modifiers: ["Shift"] });
-  await list
-    .getByRole("button", { name: /^2\. 02 阅读/ })
-    .click({ modifiers: ["Shift"] });
+  await page.keyboard.down("Shift");
+  await list.getByRole("button", { name: /^1\. 01 推门/ }).click();
+  await list.getByRole("button", { name: /^2\. 02 阅读/ }).click();
+  await page.keyboard.up("Shift");
+  // Focus and the batch set are independent here too: looking at one shot must not
+  // drop the other from the set being built.
+  await list.getByRole("button", { name: /^1\. 01 推门/ }).click();
+  await expect(
+    list.getByRole("button", { name: /已选入批量/ }),
+  ).toHaveCount(2);
   const review = list.getByRole("button", {
     name: "查看 2 个镜头的候选",
     exact: true,
@@ -188,19 +201,16 @@ test("CW-BATCH-2/3: multi-select reviews and compares, and never adopts", async 
   );
   await page.getByRole("button", { name: "候选与历史", exact: true }).click();
   const dock = page.getByRole("complementary", { name: "制作辅助面板" });
-  const candidates = dock.getByRole("link", { name: /^查看候选 \d+$/ });
+  const candidates = dock.getByRole("link", { name: /^查看候选 \d+/ });
   await expect(candidates.first()).toBeVisible();
   // Probe: a plain click focuses one candidate, and that focus must not wipe the set.
   await candidates.nth(0).click({ modifiers: ["Shift"] });
   await candidates.nth(1).click({ modifiers: ["Shift"] });
-  await expect(candidates.nth(0)).toHaveAttribute("data-batch", "true");
-  await expect(candidates.nth(1)).toHaveAttribute("data-batch", "true");
+  await expect(dock.getByRole("link", { name: /已选入比较/ })).toHaveCount(2);
   // Looking at a third candidate must not disturb the pair already picked, and
   // looking is not selecting.
   await candidates.nth(2).click();
-  await expect(candidates.nth(0)).toHaveAttribute("data-batch", "true");
-  await expect(candidates.nth(1)).toHaveAttribute("data-batch", "true");
-  await expect(candidates.nth(2)).not.toHaveAttribute("data-batch", "true");
+  await expect(dock.getByRole("link", { name: /已选入比较/ })).toHaveCount(2);
   const compare = dock.getByRole("button", {
     name: "比较所选候选",
     exact: true,

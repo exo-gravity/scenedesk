@@ -270,11 +270,11 @@ function ShotListWorkspace({
                 active={!!active}
                 onSelect={(id: string, modifiers: ClickModifiers) => {
                   const next = applyClick(selection, id, modifiers);
-                  // Only a focus change swaps the pane, so only that has to retain
-                  // in-progress editors first.
+                  // A click that does not move focus leaves the pane exactly as it
+                  // is, editor included: nothing is unmounted, so nothing has to be
+                  // retained and nothing may be closed.
                   if (next.focused === selection.focused) {
                     setSelection(next);
-                    setCreating(false);
                     return;
                   }
                   void transition(() => {

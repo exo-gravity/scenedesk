@@ -509,12 +509,7 @@ function ShotProduction({
     >(null),
     [editor, setEditor] = useState<{ mediaId: string; source?: Take }>(),
     [decision, setDecision] = useState<{ take?: Take }>();
-  // Which candidate is on screen. It follows the URL when the URL says so, but a
-  // plain click sets it here instead of navigating: navigating replaces this
-  // surface, which would drop the batch selection being built beside it.
-  const [viewedTakeId, setViewedTakeId] = useState<string | null>(takeId);
-  useEffect(() => setViewedTakeId(takeId), [takeId]);
-  useEffect(() => setEditor(undefined), [viewedTakeId, browseRevision]);
+  useEffect(() => setEditor(undefined), [takeId, browseRevision]);
   useEffect(() => {
     if (externalDockOpen) setDock(null);
   }, [externalDockOpen]);
@@ -532,8 +527,8 @@ function ShotProduction({
       next ? dockClose.current?.focus() : dockOpener.current?.focus(),
     );
   };
-  const take = viewedTakeId
-    ? takes.data?.find((t) => t.id === viewedTakeId)
+  const take = takeId
+    ? takes.data?.find((t) => t.id === takeId)
     : (takes.data?.find((t) => t.id === shot.currentTakeId) ?? takes.data?.[0]);
   const mediaId = editor?.mediaId ?? take?.mediaId;
   const media = useResource<Schema<"Media">>(
@@ -554,9 +549,14 @@ function ShotProduction({
   const sceneCanvas = useResource<Schema<"SceneCanvas">>(
     `${path}/scenes/${shot.sceneId}/canvas`,
   );
+  // A removed node keeps its tombstone identity but is no longer on the canvas, so
+  // pointing at it would lead nowhere; the rest of the app labels that case instead.
   const sourceNode = (takeId: string) =>
     sceneCanvas.data?.bindings.find(
-      (binding) => binding.role === "candidate" && binding.takeId === takeId,
+      (binding) =>
+        binding.role === "candidate" &&
+        binding.takeId === takeId &&
+        binding.nodeActive,
     )?.nodeId;
   const selectedTakes = batchTargets(candidateSelection, takeIds).flatMap(
     (id) => {
@@ -689,7 +689,7 @@ function ShotProduction({
             />
           ) : editor ? (
             <Loader aria-label="正在读取候选视频" />
-          ) : viewedTakeId && !take && takes.data ? (
+          ) : takeId && !take && takes.data ? (
             <Empty>
               指定候选不存在或不属于当前镜头。请从候选列表重新选择。
             </Empty>
@@ -1007,19 +1007,11 @@ function ShotProduction({
                   onClick={(event) => {
                     const extend =
                       event.shiftKey || event.metaKey || event.ctrlKey;
-                    // Neither click navigates: the viewed candidate is component
-                    // state, and the URL is kept in step without a navigation so a
-                    // browsed link stays shareable.
-                    event.preventDefault();
-                    setEditor(undefined);
-                    if (!extend) {
-                      setViewedTakeId(item.id);
-                      window.history.replaceState(
-                        null,
-                        "",
-                        `${href}&take=${item.id}`,
-                      );
-                    }
+                    // A plain click opens the candidate, which the anchor already
+                    // does. Selecting another one for comparison is not a reason to
+                    // close an editor the user has open, so the editor is only
+                    // cleared when the view is actually about to change.
+                    if (!extend) setEditor(undefined);
                     changeSelection((old) =>
                       applyClick(old, item.id, { extend }),
                     );
@@ -1027,9 +1019,13 @@ function ShotProduction({
                   className={classes.candidate}
                   data-selected={(take?.id === item.id && !editor) || undefined}
                   data-batch={isSelected(candidateSelection, item.id) ? "true" : undefined}
-                  aria-label={`查看候选 ${index + 1}`}
+                  // The name states the membership too: a background colour is not
+                  // a state assistive technology can read.
+                  aria-label={`查看候选 ${index + 1}${
+                    isSelected(candidateSelection, item.id) ? "，已选入比较" : ""
+                  }`}
                   title="按住 Shift 或 Command 点击可多选"
-                  aria-pressed={take?.id === item.id && !editor}
+                  aria-current={take?.id === item.id && !editor ? "true" : undefined}
                 >
                   <CandidateSummary
                     mediaPath={mediaPath}

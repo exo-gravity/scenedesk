@@ -1,7 +1,8 @@
 /**
- * One selection model for the lists that offer batch actions — the canvas node
- * list, the shot list and a shot's candidate list. It exists so "what does a
- * click do" is answered once instead of three times.
+ * One selection model for the lists that offer batch actions: the shot list and a
+ * shot's candidate list. It exists so "what does a click do" is answered once for
+ * both instead of once each. The canvas node list keeps its own model, which is
+ * also selection-by-default because its nodes are dragged and grouped.
  *
  * Focus and selection are deliberately separate. Focus is the single object a
  * detail pane is showing; selection is the set a batch action would apply to.

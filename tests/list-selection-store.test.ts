@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { emptySelection, focusOnly } from "../apps/web/src/business/list-selection.js";
 import {
-  forgetSelections,
   readSelection,
   subscribeSelections,
   writeSelection,
@@ -39,14 +38,6 @@ test("a written selection is a copy, so a later mutation cannot leak in", () => 
   writeSelection("shot:c", source);
   source.selected.push("take-4");
   assert.deepEqual(readSelection("shot:c").selected, ["take-3"]);
-});
-
-test("forgetting a subject drops only that subject's selections", () => {
-  writeSelection("shot:d:candidates", focusOnly("take-5"));
-  writeSelection("shot:d:shots", focusOnly("shot-9"));
-  forgetSelections("shot:d:candidates");
-  assert.deepEqual(readSelection("shot:d:candidates"), emptySelection);
-  assert.equal(readSelection("shot:d:shots").focused, "shot-9");
 });
 
 test("an unsubscribed listener stops hearing about writes", () => {

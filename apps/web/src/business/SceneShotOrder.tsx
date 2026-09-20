@@ -121,8 +121,8 @@ export function SceneShotOrder({
             <UnstyledButton
               className={classes.rowTarget}
               aria-current={isFocused(selection, id) ? "true" : undefined}
-              aria-pressed={isSelected(selection, id)}
-              // A tooltip, not an aria-label: the row's own text is its name.
+              // A tooltip, not an aria-label: the row's own text is its name, which
+              // then carries the membership mark below as well.
               title="按住 Shift 或 Command 点击可多选"
               onClick={(event) =>
                 onSelect(id, {
@@ -139,6 +139,12 @@ export function SceneShotOrder({
               <Text size="xs">
                 {shot.status === "archived" ? "已归档 · " : ""}
                 {shot.currentTakeId ? "已选用" : "待选用"}
+                {isSelected(selection, id) && (
+                  <Text component="span" size="xs" fw={600}>
+                    {" "}
+                    · 已选入批量
+                  </Text>
+                )}
               </Text>
             </UnstyledButton>
             <Stack gap={0}>
