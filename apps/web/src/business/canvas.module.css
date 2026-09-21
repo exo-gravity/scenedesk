@@ -14,24 +14,6 @@
 .workspace[data-scene-workspace] > .session {
   overflow: hidden;
 }
-.contextHeader {
-  height: 56px;
-  min-height: 56px;
-  padding: 0 20px 0 12px;
-  border-bottom: 1px solid var(--ws-border);
-  background: var(--ws-panel);
-}
-.contextHeader > div {
-  min-width: 0;
-}
-.contextHeader p {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.contextHeader p + p {
-  display: none;
-}
 .session {
   display: flex;
   flex: 1;
@@ -40,33 +22,9 @@
   min-width: 0;
   overflow: hidden;
 }
-.modeToolbar {
-  min-height: 44px;
-  flex: 0 0 auto;
-  padding: 4px 20px;
-  border-bottom: 1px solid var(--ws-border);
-  background: var(--ws-panel);
-  gap: 8px;
-}
-.modeTools {
-  flex: 0 0 auto;
-}
-.modeTools > p {
-  padding-right: 12px;
-  border-right: 1px solid var(--ws-border);
-}
-.modeTools button[aria-pressed="true"] {
-  background: var(--ws-raised);
-  color: var(--ws-text);
-}
 .saveStatus {
   margin-left: auto;
   white-space: nowrap;
-}
-.presence {
-  min-height: 20px;
-  padding: 2px 20px;
-  background: var(--ws-canvas);
 }
 .body {
   display: flex;
@@ -93,14 +51,6 @@
   background: var(--ws-canvas);
   position: relative;
   isolation: isolate;
-}
-.toolbar {
-  padding: 6px 16px;
-  flex: 0 0 auto;
-  background: var(--ws-canvas);
-}
-.toolbar button {
-  height: 28px;
 }
 .flow {
   flex: 1;
@@ -300,13 +250,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .modeToolbar {
-    padding-inline: 12px;
-    flex-wrap: wrap;
-  }
-  .toolbar {
-    padding-inline: 12px;
-  }
 }
 @media (max-width: 760px) {
   .workspace,
@@ -335,12 +278,6 @@
   }
   .fields {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .contextHeader {
-    padding-inline: 8px;
-  }
-  .contextHeader > a {
-    display: none;
   }
   .utilities {
     position: static;
@@ -394,9 +331,6 @@
 .nodeMedia button {
   height: 24px;
   font-size: var(--mantine-font-size-xs);
-}
-.modeToolbar [hidden] {
-  display: none;
 }
 .flow :global(.react-flow__edge-textbg) {
   fill: var(--ws-panel);
@@ -797,12 +731,6 @@
   letter-spacing: -0.04em;
   color: var(--ws-text);
 }
-.canvasCount {
-  font-variant-numeric: tabular-nums;
-  color: var(--ws-secondary);
-  white-space: nowrap;
-  padding-inline: 6px;
-}
 .composer {
   padding: 14px 18px 8px;
 }
@@ -866,13 +794,6 @@
 }
 .referenceSettings[open] > :not(summary) {
   margin-block: 10px;
-}
-.modeToolbar > :global(.mantine-Group-root) button {
-  border-color: transparent;
-  background: transparent;
-}
-.modeToolbar > :global(.mantine-Group-root) button:hover {
-  background: var(--ws-raised);
 }
 @media (max-width: 760px) {
   .composer {

@@ -14,6 +14,11 @@ import { ErrorNotice, projectPath, tenantPath } from "./common";
 import { ContentDraftRetention } from "./content-drafts";
 import { StructureEditor } from "./ContentEditors";
 import { SceneShotOrder } from "./SceneShotOrder";
+import {
+  applyClick,
+  emptySelection,
+  type ListSelection,
+} from "./list-selection";
 import { ShotResultFocus } from "./ShotResultFocus";
 import { SelectedDelivery } from "./SelectedDelivery";
 import classes from "./shot-list.module.css";
@@ -146,7 +151,9 @@ function ShotListWorkspace({
   const project = useResource<Schema<"Project">>(path),
     content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const [sceneId, setSceneId] = useState(initialSceneId ?? ""),
-    [shotId, setShotId] = useState(initialShotId ?? ""),
+    [selection, setSelection] = useState<ListSelection>(() =>
+      initialShotId ? { focused: initialShotId } : emptySelection,
+    ),
     [creating, setCreating] = useState(false);
   const tree = content.data;
   const scenes = [...(tree?.scenes ?? [])].sort((a, b) => {
@@ -159,10 +166,14 @@ function ShotListWorkspace({
   const shots = (tree?.shots ?? [])
     .filter((s) => s.sceneId === scene?.id)
     .sort((a, b) => a.position - b.position);
-  const shot = shots.find((s) => s.id === shotId) ?? shots[0];
+  const shot = shots.find((s) => s.id === selection.focused) ?? shots[0];
+  // Keep focus pointing at something the list still contains: the pane needs a
+  // subject, so a shot removed from the list must not leave the pane empty.
   useEffect(() => {
-    if (shot && shotId !== shot.id) setShotId(shot.id);
-  }, [shot?.id, shotId]);
+    if (shot && selection.focused !== shot.id)
+      setSelection((old) => ({ ...old, focused: shot.id }));
+  }, [shot?.id, selection.focused]);
+  const orderedShots = shots.map((s) => s.id);
   if (project.isError || content.isError)
     return (
       <ErrorNotice
@@ -193,7 +204,7 @@ function ShotListWorkspace({
           onChange={(id) =>
             void transition(() => {
               setSceneId(id ?? "");
-              setShotId("");
+              setSelection(emptySelection);
               setCreating(false);
             })
           }
@@ -239,14 +250,22 @@ function ShotListWorkspace({
                 tree={tree}
                 sceneId={scene.id}
                 shots={shots}
-                selectedId={shot?.id}
+                selection={selection}
                 active={!!active}
-                onSelect={(id) =>
+                onSelect={(id: string) => {
+                  const next = applyClick(selection, id);
+                  // A click that does not move focus leaves the pane exactly as it
+                  // is, editor included: nothing is unmounted, so nothing has to be
+                  // retained and nothing may be closed.
+                  if (next.focused === selection.focused) {
+                    setSelection(next);
+                    return;
+                  }
                   void transition(() => {
-                    setShotId(id);
+                    setSelection(next);
                     setCreating(false);
-                  })
-                }
+                  });
+                }}
               />
               <div className={classes.delivery}>
                 <SelectedDelivery

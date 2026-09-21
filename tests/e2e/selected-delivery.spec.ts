@@ -35,10 +35,9 @@ test("CW-15: batch handoff downloads selected originals and exact ordered ranges
   await page.getByRole("button", { name: "镜头列表", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "镜头列表", exact: true });
   const takes = (await seed.takes()).items;
-  await dialog.getByRole("combobox", { name: "预览候选", exact: true }).click();
-  await page
-    .getByRole("option", {
-      name: `候选 ${takes.findIndex((item) => item.id === seed.alternative.id) + 1}`,
+  await dialog
+    .getByRole("button", {
+      name: `预览候选 ${takes.findIndex((item) => item.id === seed.alternative.id) + 1}`,
       exact: true,
     })
     .click();

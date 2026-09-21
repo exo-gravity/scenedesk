@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -22,7 +22,11 @@ import { ShotListLauncher } from "./ShotListWorkspace";
 import { retainCanvasEditing } from "./canvas-edit-handoff";
 
 type Binding = Schema<"CanvasShotBinding">;
-type Seed = { shotId: string; shotRevisionId: string; take?: Schema<"Take"> };
+type Seed = {
+  shotId: string;
+  shotRevisionId: string;
+  take?: Schema<"Take">;
+};
 type Placement = (
   media: Schema<"Media">,
   shot: Schema<"Shot">,
@@ -77,6 +81,11 @@ export function CanvasShotConnections({
 }) {
   const [query, setQuery] = useState(""),
     [placement, setPlacement] = useState<Schema<"Shot"> | null>(null);
+  // The seeded intent is part of the editor's identity: asking for a candidate on a
+  // node whose form is already open must not leave the form on its previous role.
+  const seedSignature = seed
+    ? `${seed.shotId}:${seed.take?.id ?? "plain"}`
+    : "none";
   const local = controller.getSnapshot().local!;
   const linked = new Set(sceneCanvas.bindings.map((b) => b.nodeId));
   const canvas = controller.getSnapshot().local!.base;
@@ -84,7 +93,7 @@ export function CanvasShotConnections({
     <Stack>
       {target && (
         <CanvasBindingEditor
-          key={target.id}
+          key={`${target.id}:${seedSignature}`}
           path={path}
           sceneId={sceneId}
           node={target}

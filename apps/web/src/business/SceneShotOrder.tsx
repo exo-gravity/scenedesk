@@ -11,6 +11,10 @@ import { ArrowDown, ArrowUp } from "@phosphor-icons/react";
 import { useCommand, type Schema } from "./api";
 import { ErrorNotice } from "./common";
 import { DraftNotice, useContentDraft } from "./content-drafts";
+import {
+  isFocused,
+  type ListSelection,
+} from "./list-selection";
 import classes from "./shot-list.module.css";
 
 export function SceneShotOrder({
@@ -18,7 +22,7 @@ export function SceneShotOrder({
   tree,
   sceneId,
   shots,
-  selectedId,
+  selection,
   active,
   onSelect,
 }: {
@@ -26,7 +30,7 @@ export function SceneShotOrder({
   tree: Schema<"ContentTree">;
   sceneId: string;
   shots: Schema<"Shot">[];
-  selectedId?: string | undefined;
+  selection: ListSelection;
   active: boolean;
   onSelect: (id: string) => void;
 }) {
@@ -106,11 +110,11 @@ export function SceneShotOrder({
           <div
             className={classes.row}
             key={id}
-            data-selected={selectedId === id || undefined}
+            data-focused={isFocused(selection, id) || undefined}
           >
             <UnstyledButton
               className={classes.rowTarget}
-              aria-current={selectedId === id ? "true" : undefined}
+              aria-current={isFocused(selection, id) ? "true" : undefined}
               onClick={() => onSelect(id)}
             >
               <Text size="sm" fw={600}>

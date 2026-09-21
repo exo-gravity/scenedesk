@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
 import {
   Alert,
   ActionIcon,
@@ -252,6 +258,7 @@ export default function CandidateWorkspace({
             closeExternalDock={closeExternalDock}
             href={`${base}/production?scene=${scene.id}&mode=storyboard&shot=${shot.id}`}
             contentHref={`${base}/content?shot=${shot.id}`}
+            canvasHref={`${base}/production?scene=${scene.id}&mode=canvas`}
           />
         )}
         {shot && (
@@ -447,6 +454,7 @@ function ShotProduction({
   browseRevision,
   href,
   contentHref,
+  canvasHref,
   externalDockOpen,
   closeExternalDock,
 }: {
@@ -460,9 +468,12 @@ function ShotProduction({
   browseRevision: number;
   href: string;
   contentHref: string;
+  /** The scene canvas, so a candidate can point back at the node it came from. */
+  canvasHref: string;
   externalDockOpen: boolean;
   closeExternalDock?: (() => void) | undefined;
 }) {
+  const session = useSession();
   const takes = useList<Take>(`${path}/takes?shotId=${shot.id}`),
     history = useList<Schema<"Selection">>(
       `${path}/shots/${shot.id}/selections`,
@@ -507,6 +518,21 @@ function ShotProduction({
   const adopted = !!take && take.id === shot.currentTakeId;
   const candidateNumber = (id: string) =>
     (takes.data?.findIndex((item) => item.id === id) ?? -1) + 1;
+  const takeIds = (takes.data ?? []).map((item) => item.id);
+  // Optional cross-reference: a scene without a canvas simply has no source node,
+  // and the canvas surface reports its own access problems.
+  const sceneCanvas = useResource<Schema<"SceneCanvas">>(
+    `${path}/scenes/${shot.sceneId}/canvas`,
+  );
+  // A removed node keeps its tombstone identity but is no longer on the canvas, so
+  // pointing at it would lead nowhere; the rest of the app labels that case instead.
+  const sourceNode = (takeId: string) =>
+    sceneCanvas.data?.bindings.find(
+      (binding) =>
+        binding.role === "candidate" &&
+        binding.takeId === takeId &&
+        binding.nodeActive,
+    )?.nodeId;
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -926,7 +952,7 @@ function ShotProduction({
                   className={classes.candidate}
                   data-selected={(take?.id === item.id && !editor) || undefined}
                   aria-label={`查看候选 ${index + 1}`}
-                  aria-pressed={take?.id === item.id && !editor}
+                  aria-current={take?.id === item.id && !editor ? "true" : undefined}
                 >
                   <CandidateSummary
                     mediaPath={mediaPath}
@@ -944,6 +970,16 @@ function ShotProduction({
                   {item.note && (
                     <Text size="sm" lineClamp={2}>
                       {item.note}
+                    </Text>
+                  )}
+                  {sourceNode(item.id) && (
+                    <Text
+                      size="xs"
+                      component="a"
+                      href={`${canvasHref}&node=${sourceNode(item.id)}`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      在画布上查看来源节点
                     </Text>
                   )}
                 </UnstyledButton>
