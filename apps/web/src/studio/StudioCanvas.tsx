@@ -36,6 +36,8 @@ export function StudioCanvas({
   active,
   projectName,
   environment,
+  base,
+  focusNodeId,
 }: {
   tenantId: string;
   projectId: string;
@@ -43,6 +45,9 @@ export function StudioCanvas({
   active: boolean;
   projectName: string;
   environment?: string | undefined;
+  base: string;
+  /** A card named in the address (`?node=`): selected and brought into view once. */
+  focusNodeId?: string | undefined;
 }) {
   const path = projectPath(tenantId, projectId);
   const { controller, state, error, retry } = useCanvas(
@@ -196,6 +201,14 @@ export function StudioCanvas({
     (open: boolean) => change({ assetPanelOpen: open }),
     [change],
   );
+  // The address can name a card (from the script view's "进入画布"): select it once it exists.
+  const focused = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!focusNodeId || focused.current === focusNodeId || !document?.nodes.some((node) => node.id === focusNodeId) || !preference.view)
+      return;
+    focused.current = focusNodeId;
+    change({ selectedNodeIds: [focusNodeId] });
+  }, [focusNodeId, document?.nodes, preference.view, change]);
   const attention =
     !!state &&
     (state.accessChecking ||
@@ -207,6 +220,8 @@ export function StudioCanvas({
     <StudioFrame
       projectName={projectName}
       environment={environment}
+      view="canvas"
+      base={base}
       status={
         controller && state ? (
           <SaveStatus controller={controller} state={state} readOnly={readOnly} />
@@ -276,6 +291,8 @@ export function StudioCanvas({
                   tasks={tasks}
                   assetPanelOpen={preference.view.assetPanelOpen}
                   onAssetPanel={setAssetPanel}
+                  focusNodeId={focusNodeId}
+                  scriptHref={(revisionId) => `${base}/script?revision=${revisionId}`}
                   generation={{
                     tenantId,
                     projectId,

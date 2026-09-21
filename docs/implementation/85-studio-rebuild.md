@@ -2,7 +2,7 @@
 
 日期：2026-09-21。依据：[核心创作区重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)（已确认）。分支 `feat/studio-rebuild`，独立 worktree；每片先交「LibTV 截图 vs 新页面」并排图再提交，不推送。
 
-状态：**阶段 0 与阶段 1（①②③④）已交付，构成第一个 PR；阶段 2 在叠加分支 `feat/studio-rebuild-views` 上进行，第 ⑤ 片已交付（§6）。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
+状态：**阶段 0 与阶段 1（①②③④）已交付，构成第一个 PR；阶段 2 在叠加分支 `feat/studio-rebuild-views` 上进行，第 ⑤⑥ 片已交付（§6）。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
 
 ## 1. 阶段 0（准备）
 
@@ -95,6 +95,20 @@
 
 并排图：[slice-5-assets.png](../design/assets/2026-09-21-studio-rebuild/slice-5-assets.png)（LibTV 侧只有 `libtv-text-edit` 里左下拉出的空面板可作对照，调研没有留下打开后有内容的画面）。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-05 通过。
 
+## 1f. 第 ⑥ 片：剧本视图
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 路由与切换 | `…/studio/script`；顶栏视图切换改为链接（剧本 ⇄ 创作台，镜头整理待 ⑦），`aria-current` 标当前视图；标题「项目 · 剧本」 | ST-06 |
+| 阅读 | `script/ScriptView.tsx`：稿件在居中的纸面上（`DocumentBody` 复用），素底不带点阵；顶部一行：当前稿／历史稿·只读 + 来源类型徽记、历史稿选择（`?revision=` 进地址，刷新仍在）、返回当前稿、导入 Word、从飞书导入、选文带入画布、更多（下载原件、导入说明） | ST-06：当前稿、第 1 稿只读并可刷新、返回当前稿 |
+| 导入 | Word 导入逻辑从退役的 `ScriptDocumentReader` 原样搬到 `business/ScriptWordImport.tsx`（旧阅读器改为引用，行为不变，单独提交）；飞书导入整体接入 `FeishuScriptImport` | ST-06：真实 .docx 上传→预览→确认导入→当前稿为 Word 导入，下载原件字节一致 |
+| 选文入创作台 | `ScriptCanvasExcerpt` 整体接入，只加一个可选的 `canvasHref`，让「进入画布」落到 `…/studio?node=`；创作台按地址里的 `node` 选中并把该卡带入视野 | ST-06：选文→添加→进入画布→卡被选中 |
+| 固定摘录卡 | 卡上引号图标与「固定摘录」名，正文只读（双击不进编辑）；可作参考继续创作；右键「回看剧本来源」回到该固定版本的剧本视图 | ST-06 |
+
+按用户要求保持克制，本片不做并记录：剧本纯文本编辑（旧「编辑纯文本」）、分镜建议与提案助手、创作依据；飞书导入只整体接入未搬 e2e（其两例依赖飞书夹具与长流程，留到阶段 3 整体迁移时再定）。
+
+并排图：[slice-6-script.png](../design/assets/2026-09-21-studio-rebuild/slice-6-script.png)——LibTV 的「脚本」是镜头表生成器，决定文档明确不照做（剧本是稿件不是生成器），并排只为对照密度与顶部工具行。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-06 通过。
+
 ## 2. 新目录的模块规划
 
 按决定文档 §6 分片，目录随片建立，不预先建空目录：
@@ -107,7 +121,7 @@
 | `studio/composer/` | 输入面板（`Composer.tsx`）、模型与规格（`ComposerControls.tsx`）、参考行（`ComposerReferences.tsx`）、放置（`placement.ts`）；接 `use-generation-session` 与三种生成的请求构造 | ③ |
 | `studio/results/` | `useNodeResults.ts`（结果与状态标签）、`History.tsx`（历史与只读检视）；放置评审与归档恢复在 `composer/Composer.tsx` 的任务行 | ④ |
 | `studio/assets/` | `AssetsPanel.tsx`：项目资产与素材的列表、搜索、拖到创作台 | ⑤ |
-| `studio/script/` | 剧本视图与固定摘录卡 | ⑥ |
+| `studio/script/` | `ScriptView.tsx`：稿件阅读、历史、Word／飞书导入入口、选文带入创作台 | ⑥ |
 | `studio/shots/` | 镜头整理视图 | ⑦ |
 | `studio/dock/` | 助手与任务的浮窗／停靠容器（`CanvasAssistant`、`SceneTaskPanel` 原样接入） | ⑧ |
 
@@ -168,7 +182,7 @@
 | ③ 输入面板 | 已交付（本文 §1c） | [输入面板](../design/assets/2026-09-21-studio-rebuild/slice-3-composer.png)、[模型列表](../design/assets/2026-09-21-studio-rebuild/slice-3-model-picker.png)、[规格浮层](../design/assets/2026-09-21-studio-rebuild/slice-3-spec-picker.png) |
 | ④ 卡内结果 | 已交付（本文 §1d） | [卡内结果](../design/assets/2026-09-21-studio-rebuild/slice-4-result.png) |
 | ⑤ 资产侧面板 | 已交付（本文 §1e） | [资产侧面板](../design/assets/2026-09-21-studio-rebuild/slice-5-assets.png) |
-| ⑥ 剧本视图 | 未开始 | — |
+| ⑥ 剧本视图 | 已交付（本文 §1f） | [剧本视图](../design/assets/2026-09-21-studio-rebuild/slice-6-script.png) |
 | ⑦ 镜头整理视图 | 未开始 | — |
 | ⑧ 助手、任务、创作台切换、项目菜单 | 未开始 | — |
 | ⑨ 切换与清理 | 未开始 | — |

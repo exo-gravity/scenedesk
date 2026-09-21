@@ -1,0 +1,122 @@
+/* The script view: a reading column under the top bar, tools in one row above the paper. */
+.view {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  background: var(--ws-studio-canvas);
+  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-lg)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+}
+.column {
+  width: min(880px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+}
+.center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  flex-wrap: wrap;
+}
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  min-width: 0;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-radius);
+  background: var(--ws-hover);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-text);
+  white-space: nowrap;
+}
+.badge[data-historical] {
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  color: var(--ws-studio-card-label);
+}
+.file {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  flex-wrap: wrap;
+}
+.slot:empty {
+  display: none;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-hover);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-text);
+  white-space: nowrap;
+}
+.pill:hover {
+  background: var(--ws-studio-chrome-border);
+}
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ws-tool-radius);
+  color: var(--ws-studio-card-label);
+}
+.icon:hover {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+}
+.historyRoot {
+  width: 300px;
+}
+.history,
+.history:focus,
+.history:focus-within {
+  height: 32px;
+  min-height: 32px;
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-hover);
+  border: none;
+  box-shadow: none;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-text);
+}
+.paper {
+  background: var(--ws-studio-card);
+  border: 1px solid var(--ws-studio-card-border);
+  border-radius: var(--ws-card-radius);
+  padding: var(--mantine-spacing-xl);
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-xl) 0;
+  text-align: center;
+}

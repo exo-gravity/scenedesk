@@ -7,8 +7,9 @@ import {
   type Schema,
 } from "../business/api";
 import { ErrorNotice, projectPath } from "../business/common";
-import { StudioFrame } from "./StudioFrame";
+import { StudioFrame, type StudioView } from "./StudioFrame";
 import { StudioCanvas } from "./StudioCanvas";
+import { ScriptView } from "./script/ScriptView";
 import classes from "./studio.module.css";
 
 /**
@@ -21,12 +22,18 @@ export default function StudioEntry({
   tenantId,
   projectId,
   environment,
+  view: requested,
 }: {
   tenantId: string;
   projectId: string;
   environment?: string | undefined;
+  /** The path segment after `studio`: absent for the canvas, `script`, `shots`. */
+  view?: string | undefined;
 }) {
   const path = projectPath(tenantId, projectId);
+  const base = `#/app/t/${tenantId}/p/${projectId}/studio`;
+  const view: StudioView = requested === "script" ? "script" : "canvas";
+  const query = new URLSearchParams(location.hash.split("?")[1]);
   const project = useResource<Schema<"Project">>(path);
   const canvas = useResource<Schema<"ProjectCanvas">>(`${path}/canvas`),
     create = useCommand<Schema<"ProjectCanvas">>();
@@ -34,13 +41,26 @@ export default function StudioEntry({
     ? "项目不可访问"
     : (project.data?.name ?? "项目");
   useEffect(() => {
-    document.title = `${projectName} · 创作台 · SceneDesk`;
-  }, [projectName]);
+    document.title = `${projectName} · ${view === "script" ? "剧本" : "创作台"} · SceneDesk`;
+  }, [projectName, view]);
   const active = project.data?.status === "active";
   const canvasId = canvas.data?.canvas.id ?? create.data?.canvas.id;
   const missing =
     canvas.error instanceof ApiError &&
     canvas.error.code === "PROJECT_CANVAS_NOT_CREATED";
+  if (project.data && view === "script")
+    return (
+      <StudioFrame projectName={projectName} environment={environment} view="script" base={base}>
+        <main className={classes.board} aria-label="剧本">
+          <ScriptView
+            tenantId={tenantId}
+            projectId={projectId}
+            active={active}
+            revisionId={query.get("revision") ?? undefined}
+          />
+        </main>
+      </StudioFrame>
+    );
   if (project.data && canvasId && !canvas.isError)
     return (
       <StudioCanvas
@@ -51,6 +71,8 @@ export default function StudioEntry({
         active={active}
         projectName={projectName}
         environment={environment}
+        base={base}
+        focusNodeId={query.get("node") ?? undefined}
       />
     );
   return (
@@ -58,6 +80,8 @@ export default function StudioEntry({
       projectName={project.isPending ? "正在读取项目" : projectName}
       loading={project.isPending}
       environment={environment}
+      view={view}
+      base={base}
     >
       <main className={classes.board} aria-label="创作台">
         {project.isError ? (

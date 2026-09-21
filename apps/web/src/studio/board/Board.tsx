@@ -29,6 +29,7 @@ import {
   MusicNotes,
   PencilSimple,
   Prohibit,
+  Quotes,
   StackSimple,
   Tag,
   Trash,
@@ -150,6 +151,8 @@ export function Board({
   tasks,
   assetPanelOpen,
   onAssetPanel,
+  focusNodeId,
+  scriptHref,
   generation,
 }: {
   controller: CanvasController;
@@ -166,6 +169,10 @@ export function Board({
   tasks: Record<string, TaskLabel>;
   assetPanelOpen: boolean;
   onAssetPanel: (open: boolean) => void;
+  /** A card named in the address: brought into view once it is measured. */
+  focusNodeId?: string | undefined;
+  /** Where a fixed excerpt's source revision can be read. */
+  scriptHref: (revisionId: string) => string;
   /** What the input panel needs from the session: identity, saving, retention. */
   generation: Pick<
     ComposerProps,
@@ -208,6 +215,13 @@ export function Board({
   >({});
   // A width being dragged, before the document takes it on resize end.
   const [liveWidths, setLiveWidths] = useState<Record<string, number>>({});
+  // A card named in the address is brought into view once it has a size.
+  const broughtIntoView = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!focusNodeId || broughtIntoView.current === focusNodeId || !measurements[focusNodeId]) return;
+    broughtIntoView.current = focusNodeId;
+    void flow.fitView({ nodes: [{ id: focusNodeId }], padding: 0.4, maxZoom: 1, duration: 200 });
+  }, [focusNodeId, measurements, flow]);
   useEffect(() => {
     const ids = new Set([
       ...document.nodes.map((node) => node.id),
@@ -1029,6 +1043,15 @@ export function Board({
                 </Menu.Item>
               </Menu.Sub.Dropdown>
             </Menu.Sub>
+            {single && single.kind === "text" && single.content.sourceExcerpt && (
+              <Menu.Item
+                leftSection={<Quotes size={14} />}
+                component="a"
+                href={scriptHref(single.content.sourceExcerpt.scriptRevisionId)}
+              >
+                回看剧本来源
+              </Menu.Item>
+            )}
             {single && single.kind !== "text" && single.content.type === "draft" && (
               <Menu.Item
                 leftSection={<ClockCounterClockwise size={14} />}

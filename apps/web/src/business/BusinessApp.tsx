@@ -531,6 +531,7 @@ function Workspace({
             projectId={projectId}
             projectSection={projectSection}
             studioView
+            studioSubview={segments[7]}
             environment={environment}
           />
         </ProjectUpdates>
@@ -777,6 +778,7 @@ function TenantArea({
   productionView,
   projectSection,
   studioView,
+  studioSubview,
   environment,
 }: {
   tenantId: string;
@@ -789,6 +791,7 @@ function TenantArea({
   productionView?: boolean | undefined;
   projectSection?: string | undefined;
   studioView?: boolean | undefined;
+  studioSubview?: string | undefined;
   environment?: string | undefined;
 }) {
   const session = useSession();
@@ -810,6 +813,7 @@ function TenantArea({
           tenantId={tenantId}
           projectId={projectId}
           environment={environment}
+          view={studioSubview}
         />
       </Suspense>
     );
