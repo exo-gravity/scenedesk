@@ -74,6 +74,8 @@ import {
 } from "../../business/CanvasUploads";
 import { CanvasGenerationBatch } from "../../business/CanvasGenerationBatch";
 import { History } from "../results/History";
+import { AssetsPanel, ASSET_DROP_TYPE, type AssetDrop } from "../assets/AssetsPanel";
+import { api } from "../../business/api";
 import type { TaskLabel } from "../results/useNodeResults";
 import { memo } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
@@ -146,6 +148,8 @@ export function Board({
   attempts,
   results,
   tasks,
+  assetPanelOpen,
+  onAssetPanel,
   generation,
 }: {
   controller: CanvasController;
@@ -160,6 +164,8 @@ export function Board({
   attempts: readonly Schema<"CanvasPlanEntry">[];
   results: Record<string, string> | undefined;
   tasks: Record<string, TaskLabel>;
+  assetPanelOpen: boolean;
+  onAssetPanel: (open: boolean) => void;
   /** What the input panel needs from the session: identity, saving, retention. */
   generation: Pick<
     ComposerProps,
@@ -604,25 +610,24 @@ export function Board({
       "move-nodes",
     );
   };
-  const add = (kind: CanvasNode["kind"]) => {
-    const doc = current();
-    if (!doc || readOnly) return;
+  /**
+   * Where a new card goes: at the given point, or the centre of the view;
+   * from the centre, while the frame would cover another card, it moves to
+   * that card's right, so cards added in a row line up.
+   */
+  const freeSpot = (doc: CanvasDocument, width: number, client?: { x: number; y: number }) => {
     const box = boardElement.current?.getBoundingClientRect();
-    const center = box
-      ? flow.screenToFlowPosition({
-          x: box.left + box.width / 2,
-          y: box.top + box.height / 2,
-        })
-      : { x: 80, y: 80 };
-    const width = kind === "text" ? 320 : 360;
-    const count = doc.nodes.filter((node) => node.kind === kind).length + 1;
-    // Start at the centre of the view; while the frame would cover another
-    // card, move to that card's right, so cards added in a row line up.
     const height = 200;
+    const origin = client
+      ? flow.screenToFlowPosition(client)
+      : box
+        ? flow.screenToFlowPosition({ x: box.left + box.width / 2, y: box.top + box.height / 2 })
+        : { x: 80, y: 80 };
     const position = {
-      x: Math.round(center.x - width / 2),
-      y: Math.round(center.y - height / 2),
+      x: Math.round(origin.x - width / 2),
+      y: Math.round(origin.y - height / 2),
     };
+    if (client) return position;
     const covered = () =>
       doc.nodes.find((node) => {
         const other = measurements[node.id]?.height ?? height;
@@ -635,11 +640,48 @@ export function Board({
       });
     for (let step = 0, hit = covered(); step < 50 && hit; step++, hit = covered())
       position.x = hit.position.x + hit.width + 48;
+    return position;
+  };
+  /** A media card for something from the assets panel: read the record first, never trust the drag. */
+  const placeMedia = async (item: AssetDrop, client?: { x: number; y: number }) => {
+    if (readOnly) return;
+    try {
+      const media = await api<Schema<"Media">>(`${mediaPath}/media/${item.mediaId}`, {
+        signal: AbortSignal.timeout(15000),
+      });
+      if (media.kind === "document" || media.status !== "ready")
+        throw new Error("这份素材还不能放到创作台上。");
+      const doc = current();
+      if (!doc) return;
+      const width = 360;
+      const node: CanvasNode = {
+        id: crypto.randomUUID(),
+        kind: media.kind,
+        title: media.displayName.slice(0, 160) || "素材",
+        width,
+        position: freeSpot(doc, width, client),
+        content: {
+          type: "media",
+          mediaId: media.id,
+          ...(item.assetRevisionId ? { assetRevisionId: item.assetRevisionId } : {}),
+        },
+      };
+      change({ ...doc, nodes: [...doc.nodes, node] });
+      onSelect([node.id]);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause : new Error("素材未加入创作台。"));
+    }
+  };
+  const add = (kind: CanvasNode["kind"]) => {
+    const doc = current();
+    if (!doc || readOnly) return;
+    const width = kind === "text" ? 320 : 360;
+    const count = doc.nodes.filter((node) => node.kind === kind).length + 1;
     const base = {
       id: crypto.randomUUID(),
       title: `${kindLabel[kind]} ${count}`,
       width,
-      position,
+      position: freeSpot(doc, width),
     };
     const node: CanvasNode =
       kind === "text"
@@ -770,13 +812,31 @@ export function Board({
       tabIndex={-1}
       onKeyDown={onKeyDown}
       onDragOver={(event) => {
-        if (!event.dataTransfer.types.includes("Files")) return;
+        const types = event.dataTransfer.types;
+        if (types.includes(ASSET_DROP_TYPE)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = readOnly ? "none" : "copy";
+          return;
+        }
+        if (!types.includes("Files")) return;
         event.preventDefault();
         event.dataTransfer.dropEffect =
           readOnly || !uploads || uploads.readOnly || uploads.busy ? "none" : "copy";
       }}
       onDrop={(event) => {
-        if (!event.dataTransfer.types.includes("Files")) return;
+        const types = event.dataTransfer.types;
+        if (types.includes(ASSET_DROP_TYPE)) {
+          event.preventDefault();
+          try {
+            const item = JSON.parse(event.dataTransfer.getData(ASSET_DROP_TYPE)) as AssetDrop;
+            if (typeof item?.mediaId === "string")
+              void placeMedia(item, { x: event.clientX, y: event.clientY });
+          } catch {
+            // Not one of ours: nothing to place.
+          }
+          return;
+        }
+        if (!types.includes("Files")) return;
         event.preventDefault();
         importFiles([...event.dataTransfer.files], { x: event.clientX, y: event.clientY });
       }}
@@ -1017,7 +1077,17 @@ export function Board({
         onRedo={() => controller.redo()}
         onShortcuts={onShortcuts}
       />
-      <ZoomControl />
+      <ZoomControl assetsOpen={assetPanelOpen} onAssets={() => onAssetPanel(!assetPanelOpen)} />
+      {assetPanelOpen && (
+        <AssetsPanel
+          tenantId={generation.tenantId}
+          projectId={generation.projectId}
+          mediaPath={mediaPath}
+          readOnly={readOnly}
+          onAdd={(item) => void placeMedia(item)}
+          onClose={() => onAssetPanel(false)}
+        />
+      )}
       {single && single.kind !== "text" && single.content.type === "draft" && (
         <ComposerAnchor
           key={`${generation.canvasId}:${single.id}`}

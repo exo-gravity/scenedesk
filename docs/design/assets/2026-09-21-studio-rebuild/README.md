@@ -13,3 +13,4 @@
 | `slice-3-model-picker.png` | ③ 输入面板 | `libtv-model-picker.png` | ST-03：模型列表（受控夹具模型） |
 | `slice-3-spec-picker.png` | ③ 输入面板 | `libtv-spec-picker.png` | ST-03：规格浮层（该模型只允许 1:1 与 32x32） |
 | `slice-4-result.png` | ④ 卡内结果 | `libtv-image-selected.png` | ST-04：视频草稿卡内的结果与面板任务行（合成媒体无海报） |
+| `slice-5-assets.png` | ⑤ 资产侧面板 | `libtv-text-edit.png`（左下空面板） | ST-05：资产面板打开，列出项目资产与素材 |

@@ -2,7 +2,7 @@
 
 日期：2026-09-21。依据：[核心创作区重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)（已确认）。分支 `feat/studio-rebuild`，独立 worktree；每片先交「LibTV 截图 vs 新页面」并排图再提交，不推送。
 
-状态：**阶段 0 与阶段 1（①②③④）已交付，构成第一个 PR；阶段 2、3 在叠加分支上继续（§6）。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
+状态：**阶段 0 与阶段 1（①②③④）已交付，构成第一个 PR；阶段 2 在叠加分支 `feat/studio-rebuild-views` 上进行，第 ⑤ 片已交付（§6）。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
 
 ## 1. 阶段 0（准备）
 
@@ -81,6 +81,20 @@
 
 并排图：[slice-4-result.png](../design/assets/2026-09-21-studio-rebuild/slice-4-result.png)（受控夹具的视频没有海报衍生物，所以结果框里是占位图标而不是画面）。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-04 通过。
 
+## 1e. 第 ⑤ 片：资产侧面板
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 入口 | 左下角「资产」开关（与缩放同一组），开关状态写入偏好 `assetPanelOpen`（本片起由创作台拥有此键） | ST-05：刷新后仍开 |
+| 面板 | `assets/AssetsPanel.tsx`：左下浮出，标题、「管理资产」（跳完整资产库路由）、搜索（250ms 防抖，同时过滤两段）、「项目资产」（`/assets?scope=project&status=active&q=`，行 = 首版参考的缩略图或类别图标、名称、类别；没有首版或只有文字设定的资产不可拖）、「素材」（`/media?scope=project&status=ready&q=`，行 = 缩略图、名称、种类），分页「更多」 | ST-05：列表、搜索空态、链接 |
+| 拖到创作台 | 行以 `application/x-scenedesk-asset` 拖出（只带 mediaId、固定资产版本 id、标题）；创作台 `onDrop` 先读素材记录再建媒体卡，落在放下的位置；也可按行内「加入创作台」放到视野中心。只建媒体卡，不绑定镜头、不采用 | ST-05：拖放后节点 2→3，内容为该 mediaId，不建 take；按钮加入后 3→4 |
+
+按用户要求保持克制，本片不做并记录：工作室共享素材的范围切换（旧素材浏览器有「工作室共享」；共享内容从完整资产库引入项目后再出现在此）、面板内的资产详情与新建、缩略图的懒加载观察器。
+
+调查记录：ST-05 首版在「加入创作台」后立即刷新，页面正确地弹出「发现尚未同步的本机画布」——自动保存还没落地，本机副本先于服务器。这是既有恢复规则的正确表现，不是缺陷；用例改为等公共读取确认后再刷新。
+
+并排图：[slice-5-assets.png](../design/assets/2026-09-21-studio-rebuild/slice-5-assets.png)（LibTV 侧只有 `libtv-text-edit` 里左下拉出的空面板可作对照，调研没有留下打开后有内容的画面）。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-05 通过。
+
 ## 2. 新目录的模块规划
 
 按决定文档 §6 分片，目录随片建立，不预先建空目录：
@@ -92,7 +106,7 @@
 | `studio/board/` | React Flow 创作台：四类卡片、端口与连线、右键菜单、快捷键、框选、就地文本编辑、改名；接 `use-canvas`／`canvas-controller` 的保存与恢复 | ①② |
 | `studio/composer/` | 输入面板（`Composer.tsx`）、模型与规格（`ComposerControls.tsx`）、参考行（`ComposerReferences.tsx`）、放置（`placement.ts`）；接 `use-generation-session` 与三种生成的请求构造 | ③ |
 | `studio/results/` | `useNodeResults.ts`（结果与状态标签）、`History.tsx`（历史与只读检视）；放置评审与归档恢复在 `composer/Composer.tsx` 的任务行 | ④ |
-| `studio/assets/` | 资产侧面板 | ⑤ |
+| `studio/assets/` | `AssetsPanel.tsx`：项目资产与素材的列表、搜索、拖到创作台 | ⑤ |
 | `studio/script/` | 剧本视图与固定摘录卡 | ⑥ |
 | `studio/shots/` | 镜头整理视图 | ⑦ |
 | `studio/dock/` | 助手与任务的浮窗／停靠容器（`CanvasAssistant`、`SceneTaskPanel` 原样接入） | ⑧ |
@@ -153,7 +167,7 @@
 | ② 端口与连线 | 已交付（本文 §1b） | [端口、连线、⊕](../design/assets/2026-09-21-studio-rebuild/slice-2-references.png) |
 | ③ 输入面板 | 已交付（本文 §1c） | [输入面板](../design/assets/2026-09-21-studio-rebuild/slice-3-composer.png)、[模型列表](../design/assets/2026-09-21-studio-rebuild/slice-3-model-picker.png)、[规格浮层](../design/assets/2026-09-21-studio-rebuild/slice-3-spec-picker.png) |
 | ④ 卡内结果 | 已交付（本文 §1d） | [卡内结果](../design/assets/2026-09-21-studio-rebuild/slice-4-result.png) |
-| ⑤ 资产侧面板 | 未开始 | — |
+| ⑤ 资产侧面板 | 已交付（本文 §1e） | [资产侧面板](../design/assets/2026-09-21-studio-rebuild/slice-5-assets.png) |
 | ⑥ 剧本视图 | 未开始 | — |
 | ⑦ 镜头整理视图 | 未开始 | — |
 | ⑧ 助手、任务、创作台切换、项目菜单 | 未开始 | — |

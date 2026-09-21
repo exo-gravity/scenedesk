@@ -192,6 +192,10 @@ export function StudioCanvas({
       change({ viewport }),
     [change],
   );
+  const setAssetPanel = useCallback(
+    (open: boolean) => change({ assetPanelOpen: open }),
+    [change],
+  );
   const attention =
     !!state &&
     (state.accessChecking ||
@@ -270,6 +274,8 @@ export function StudioCanvas({
                   attempts={entries}
                   results={results}
                   tasks={tasks}
+                  assetPanelOpen={preference.view.assetPanelOpen}
+                  onAssetPanel={setAssetPanel}
                   generation={{
                     tenantId,
                     projectId,
