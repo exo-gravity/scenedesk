@@ -1,4 +1,4 @@
-import { Menu, Tooltip, UnstyledButton } from "@mantine/core";
+import { FileButton, Menu, Tooltip, UnstyledButton } from "@mantine/core";
 import {
   ArrowClockwise,
   ArrowCounterClockwise,
@@ -10,8 +10,10 @@ import {
   MusicNotes,
   Plus,
   TextT,
+  UploadSimple,
 } from "@phosphor-icons/react";
 import type { CanvasNode } from "@drama/domain";
+import { importAccept } from "../../business/media-imports";
 import classes from "./shell.module.css";
 
 export type BoardTool = "select" | "hand";
@@ -22,6 +24,7 @@ export function Toolbar({
   tool,
   onTool,
   onAdd,
+  onUpload,
   canUndo,
   canRedo,
   onUndo,
@@ -32,6 +35,8 @@ export function Toolbar({
   tool: BoardTool;
   onTool: (tool: BoardTool) => void;
   onAdd: (kind: CanvasNode["kind"]) => void;
+  /** Files to import onto the board; absent while uploads are unavailable. */
+  onUpload?: ((files: File[]) => void) | undefined;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -72,6 +77,15 @@ export function Toolbar({
           >
             音频
           </Menu.Item>
+          {onUpload && (
+            <FileButton onChange={onUpload} accept={importAccept} multiple>
+              {(props) => (
+                <Menu.Item {...props} leftSection={<UploadSimple size={14} />} closeMenuOnClick={false}>
+                  上传
+                </Menu.Item>
+              )}
+            </FileButton>
+          )}
         </Menu.Dropdown>
       </Menu>
       <Tooltip label="选择 · V">

@@ -307,3 +307,35 @@
   color: var(--ws-studio-card-label);
   cursor: ew-resize;
 }
+/* The newest attempt's state, bottom-left inside the frame. */
+.task {
+  position: absolute;
+  left: var(--mantine-spacing-xs);
+  bottom: var(--mantine-spacing-xs);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--ws-radius);
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1;
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  color: var(--ws-studio-card-label);
+  pointer-events: none;
+}
+.task[data-tone="failed"] {
+  color: var(--ws-danger);
+  border-color: var(--ws-danger);
+}
+/* A file being imported: a temporary card at its drop point. */
+.upload {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--mantine-spacing-md);
+  background: var(--ws-studio-card);
+  border: 1px dashed var(--ws-studio-card-selected);
+  border-radius: var(--ws-card-radius);
+  color: var(--ws-text);
+}

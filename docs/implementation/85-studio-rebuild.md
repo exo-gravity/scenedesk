@@ -2,7 +2,7 @@
 
 日期：2026-09-21。依据：[核心创作区重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)（已确认）。分支 `feat/studio-rebuild`，独立 worktree；每片先交「LibTV 截图 vs 新页面」并排图再提交，不推送。
 
-状态：**阶段 0、第 ①②③片已交付；后续逐片记账。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
+状态：**阶段 0 与阶段 1（①②③④）已交付，构成第一个 PR；阶段 2、3 在叠加分支上继续（§6）。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
 
 ## 1. 阶段 0（准备）
 
@@ -65,6 +65,22 @@
 
 并排图：[slice-3-composer.png](../design/assets/2026-09-21-studio-rebuild/slice-3-composer.png)、[slice-3-model-picker.png](../design/assets/2026-09-21-studio-rebuild/slice-3-model-picker.png)、[slice-3-spec-picker.png](../design/assets/2026-09-21-studio-rebuild/slice-3-spec-picker.png)。本机检查：`ui:check`、`typecheck`、`npm test`、`vite build`、ST-00～ST-03 通过。
 
+## 1d. 第 ④ 片：卡内状态与结果、专注编辑、历史、上传
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 卡内状态 | `results/useNodeResults.ts` 的 `taskLabels`：每张草稿最新一次尝试的状态（排队中、正在生成、生成失败…）在卡内左下小标签；成功不显示标签 | ST-04 |
+| 结果铺满 | `useNodeResults`（`latestSucceededAttempts` + 受限并发读取 job／media，每个身份只读一次）；卡的本体换成结果媒体；刷新后仍在；重试未成功前保留上一张 | ST-04：完成后卡内出现结果，刷新后仍在 |
+| 放置与恢复 | 面板任务行：`添加到创作台`（先再保存创作台、`canvasResultPosition` 算位、进入评审）→ 确认对话框（只在评审态、权限就绪、任务成功时打开）→ `submitCanvasResultPlacement`（412 → 冲突态；成功后回调刷新）；回执未知只给「恢复本次添加」；归档失败两步「核对／继续原归档恢复请求」；附录 A 第 10–15、21 条 | ST-04：放置后节点数 3→4、不建 take、jobs=1 |
+| 专注编辑 | 面板右上展开图标 → 同一面板放进对话框，提示词更高 | 手动 |
+| 历史入口 | 面板右上「历史 N」与右键菜单「尝试与结果」→ `results/History.tsx`：该卡的固定尝试列表（缩略图、状态、时间）→ 单次尝试的固定输入（提示、模型、规格、参考数）与结果，只读 | ST-04：刷新后历史列出 1 次，固定提示词正确 |
+| 上传 | `CanvasUploads` 整体接入：拖文件到创作台或 ＋ 菜单「上传」，导入行以虚线卡出现在落点 | 手动（受控夹具没有素材处理器） |
+| 批次入口 | 多选草稿时右键「查看 N 项的生成计划」→ `CanvasGenerationBatch` 整体接入（自带确认屏） | ST-04：选择不提交，打开只准备 |
+
+按用户要求保持克制，本片主动不做并记录：与上次结果的 A／B 比较（旧界面的「与上次比较」，不在决定文档的片内）；任务详情对话框与取消（`GenerationJobControls`，留待任务坞 ⑧ 统一承载）；从历史里把旧结果放回创作台（附录 A 第 3 条的检视会话 `openExisting` 因此没有启用：历史只读，不开检视会话、不放置；如需从历史放置再单独接）。
+
+并排图：[slice-4-result.png](../design/assets/2026-09-21-studio-rebuild/slice-4-result.png)（受控夹具的视频没有海报衍生物，所以结果框里是占位图标而不是画面）。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-04 通过。
+
 ## 2. 新目录的模块规划
 
 按决定文档 §6 分片，目录随片建立，不预先建空目录：
@@ -75,7 +91,7 @@
 | `studio/shell/` | 顶栏（项目菜单、视图切换、创作台切换、保存状态、任务、助手、账号）、底部工具条、缩放指示、快捷键总览 | ①⑧ |
 | `studio/board/` | React Flow 创作台：四类卡片、端口与连线、右键菜单、快捷键、框选、就地文本编辑、改名；接 `use-canvas`／`canvas-controller` 的保存与恢复 | ①② |
 | `studio/composer/` | 输入面板（`Composer.tsx`）、模型与规格（`ComposerControls.tsx`）、参考行（`ComposerReferences.tsx`）、放置（`placement.ts`）；接 `use-generation-session` 与三种生成的请求构造 | ③ |
-| `studio/results/` | 卡内排队／生成中／失败、结果铺满、重试保留上一张、放置评审、归档恢复、每张卡的历史入口 | ④ |
+| `studio/results/` | `useNodeResults.ts`（结果与状态标签）、`History.tsx`（历史与只读检视）；放置评审与归档恢复在 `composer/Composer.tsx` 的任务行 | ④ |
 | `studio/assets/` | 资产侧面板 | ⑤ |
 | `studio/script/` | 剧本视图与固定摘录卡 | ⑥ |
 | `studio/shots/` | 镜头整理视图 | ⑦ |
@@ -136,9 +152,21 @@
 | ① 页面壳与卡片 | 已交付（本文 §1a） | [选中图片卡](../design/assets/2026-09-21-studio-rebuild/slice-1-image-selected.png)、[编辑文字卡](../design/assets/2026-09-21-studio-rebuild/slice-1-text-edit.png)、[快捷键](../design/assets/2026-09-21-studio-rebuild/slice-1-shortcuts.png) |
 | ② 端口与连线 | 已交付（本文 §1b） | [端口、连线、⊕](../design/assets/2026-09-21-studio-rebuild/slice-2-references.png) |
 | ③ 输入面板 | 已交付（本文 §1c） | [输入面板](../design/assets/2026-09-21-studio-rebuild/slice-3-composer.png)、[模型列表](../design/assets/2026-09-21-studio-rebuild/slice-3-model-picker.png)、[规格浮层](../design/assets/2026-09-21-studio-rebuild/slice-3-spec-picker.png) |
-| ④ 卡内结果 | 未开始 | — |
+| ④ 卡内结果 | 已交付（本文 §1d） | [卡内结果](../design/assets/2026-09-21-studio-rebuild/slice-4-result.png) |
 | ⑤ 资产侧面板 | 未开始 | — |
 | ⑥ 剧本视图 | 未开始 | — |
 | ⑦ 镜头整理视图 | 未开始 | — |
 | ⑧ 助手、任务、创作台切换、项目菜单 | 未开始 | — |
 | ⑨ 切换与清理 | 未开始 | — |
+
+## 6. PR 划分与交接（2026-09-21 决定）
+
+用户要求自行控制 PR 大小并决定是否另起 worktree／分支。划分如下，都不推送：
+
+| PR | 分支 | 内容 |
+|---|---|---|
+| 1 | `feat/studio-rebuild` | 阶段 0 + 阶段 1（①②③④）：本文 §1–§1d |
+| 2 | `feat/studio-rebuild-views`（叠在 1 之上） | 阶段 2（⑤⑥⑦⑧） |
+| 3 | `feat/studio-rebuild-switch`（叠在 2 之上） | 阶段 3（⑨）：新入口成为默认、删旧界面与旧 e2e、文档基线 |
+
+后一个分支从前一个分支的末尾开出，评审顺序即合入顺序。

@@ -22,12 +22,14 @@ import {
 import "@xyflow/react/dist/base.css";
 import {
   ArrowBendDownRight,
+  ClockCounterClockwise,
   Copy,
   FilmStrip,
   ImageSquare,
   MusicNotes,
   PencilSimple,
   Prohibit,
+  StackSimple,
   Tag,
   Trash,
 } from "@phosphor-icons/react";
@@ -65,11 +67,30 @@ import {
   type ScreenRect,
 } from "../composer/placement";
 import type { Schema } from "../../business/api";
+import {
+  CanvasUploadSummary,
+  useCanvasUploads,
+  type CanvasUploadRow,
+} from "../../business/CanvasUploads";
+import { CanvasGenerationBatch } from "../../business/CanvasGenerationBatch";
+import { History } from "../results/History";
+import type { TaskLabel } from "../results/useNodeResults";
+import { memo } from "react";
+import type { Node, NodeProps } from "@xyflow/react";
 import { Toolbar, type BoardTool } from "../shell/Toolbar";
 import { ZoomControl } from "../shell/ZoomControl";
 import classes from "./board.module.css";
 
-const nodeTypes = { card: Card };
+type UploadNode = Node<{ row: CanvasUploadRow }, "upload">;
+type BoardNode = CardNode | UploadNode;
+const UploadCard = memo(function UploadCard({ data }: NodeProps<UploadNode>) {
+  return (
+    <article className={classes.upload} aria-label={`导入 ${data.row.title}`}>
+      <CanvasUploadSummary row={data.row} />
+    </article>
+  );
+});
+const nodeTypes = { card: Card, upload: UploadCard };
 const kindLabel = { text: "文字", image: "图片", video: "视频", audio: "音频" };
 // Constant props for React Flow: a new identity per render would make its
 // store updater write on every render, and any store subscriber in this
@@ -78,12 +99,26 @@ const ariaLabelConfig = {
   "node.a11yDescription.default": "按方向键移动卡片，按回车选中。",
 };
 const panOnDragButtons = [1, 2];
+const multiSelectionKeys = ["Shift", "Meta", "Control"];
 type ReferenceEdge = CanvasDocument["edges"][number];
 type Purpose = ReferenceEdge["purpose"];
 /** A card that can feed a draft: text with something in it, or existing media. */
 const validSource = (node: CanvasNode) =>
   node.content.type === "media" ||
   (node.kind === "text" && node.content.text.trim() !== "");
+/** The selected drafts that already have a model: what a batch can fix plans for. */
+function selectedNodesRunnable(document: CanvasDocument, selected: readonly string[]) {
+  return selected.filter((id) => {
+    const node = document.nodes.find((item) => item.id === id);
+    return (
+      !!node &&
+      node.kind !== "text" &&
+      node.content.type === "draft" &&
+      !!node.content.connectionId &&
+      !!node.content.capabilityId
+    );
+  });
+}
 /** What a new reference means until the user says otherwise. */
 const defaultPurpose = (source: CanvasNode): Purpose =>
   source.kind === "text"
@@ -108,6 +143,9 @@ export function Board({
   onViewport,
   mediaPath,
   onShortcuts,
+  attempts,
+  results,
+  tasks,
   generation,
 }: {
   controller: CanvasController;
@@ -119,14 +157,29 @@ export function Board({
   onViewport: (viewport: { x: number; y: number; zoom: number }) => void;
   mediaPath: string;
   onShortcuts: () => void;
+  attempts: readonly Schema<"CanvasPlanEntry">[];
+  results: Record<string, string> | undefined;
+  tasks: Record<string, TaskLabel>;
   /** What the input panel needs from the session: identity, saving, retention. */
   generation: Pick<
     ComposerProps,
-    "tenantId" | "projectId" | "canvasId" | "sceneId" | "active" | "awaitingSave" | "save" | "registerRetain"
+    | "tenantId"
+    | "projectId"
+    | "canvasId"
+    | "sceneId"
+    | "active"
+    | "awaitingSave"
+    | "save"
+    | "registerRetain"
+    | "afterPlacement"
   >;
 }) {
-  const flow = useReactFlow<CardNode, Edge>();
+  const flow = useReactFlow<BoardNode, Edge>();
   const boardElement = useRef<HTMLDivElement>(null);
+  const uploads = useCanvasUploads();
+  const [historyId, setHistoryId] = useState<string>();
+  const [batch, setBatch] = useState<string[]>();
+  const [focusedPanel, setFocusedPanel] = useState(false);
   const [tool, setTool] = useState<BoardTool>("select");
   const [error, setError] = useState<Error | null>(null);
   const [editingTextId, setEditingTextId] = useState<string>();
@@ -143,7 +196,10 @@ export function Board({
   // A width being dragged, before the document takes it on resize end.
   const [liveWidths, setLiveWidths] = useState<Record<string, number>>({});
   useEffect(() => {
-    const ids = new Set(document.nodes.map((node) => node.id));
+    const ids = new Set([
+      ...document.nodes.map((node) => node.id),
+      ...(uploads?.rows ?? []).map((row) => `upload:${row.id}`),
+    ]);
     setMeasurements((current) =>
       Object.keys(current).every((id) => ids.has(id))
         ? current
@@ -153,7 +209,7 @@ export function Board({
     );
     if (editingTextId && !ids.has(editingTextId)) setEditingTextId(undefined);
     if (renamingId && !ids.has(renamingId)) setRenamingId(undefined);
-  }, [document.nodes, editingTextId, renamingId]);
+  }, [document.nodes, uploads?.rows, editingTextId, renamingId]);
   useEffect(() => {
     const ids = new Set(document.edges.map((edge) => edge.id));
     setSelectedEdges((current) =>
@@ -337,6 +393,8 @@ export function Board({
             selected.length === 1 &&
             selectedSet.has(node.id) &&
             validSource(node),
+          resultMediaId: results?.[node.id],
+          task: tasks[node.id],
         },
         ...(measurements[node.id] ? { measured: measurements[node.id] } : {}),
         selected: selectedSet.has(node.id),
@@ -355,7 +413,29 @@ export function Board({
       selectedSet,
       selected.length,
       referencesBySource,
+      results,
+      tasks,
     ],
+  );
+  const shown = useMemo<BoardNode[]>(
+    () => [
+      ...nodes,
+      ...(uploads?.rows ?? []).map(
+        (row): UploadNode => ({
+          id: `upload:${row.id}`,
+          type: "upload",
+          data: { row },
+          position: row.position,
+          width: 320,
+          ...(measurements[`upload:${row.id}`] ? { measured: measurements[`upload:${row.id}`] } : {}),
+          selectable: false,
+          draggable: false,
+          connectable: false,
+          focusable: false,
+        }),
+      ),
+    ],
+    [nodes, uploads?.rows, measurements],
   );
   const selectedEdgeSet = useMemo(() => new Set(selectedEdges), [selectedEdges]);
   // References are edges: selectable, disabled ones dashed; removal is ours.
@@ -440,7 +520,7 @@ export function Board({
       }),
     });
   };
-  const onNodesChange = (changes: NodeChange<CardNode>[]) => {
+  const onNodesChange = (changes: NodeChange<BoardNode>[]) => {
     const dimensions = changes.filter((c) => c.type === "dimensions");
     if (dimensions.length)
       setMeasurements((current) => {
@@ -634,10 +714,26 @@ export function Board({
       onShortcuts();
     }
   };
+  const dropPoint = (client?: { x: number; y: number }) => {
+    const box = boardElement.current?.getBoundingClientRect();
+    return flow.screenToFlowPosition(
+      client ?? { x: (box?.left ?? 0) + (box?.width ?? 0) / 2, y: (box?.top ?? 0) + (box?.height ?? 0) / 2 },
+    );
+  };
+  const importFiles = (files: File[], client?: { x: number; y: number }) => {
+    if (readOnly || !uploads || uploads.readOnly || uploads.busy || !files.length) return;
+    uploads.begin(files, dropPoint(client));
+  };
   const single =
     selected.length === 1
       ? document.nodes.find((node) => node.id === selected[0])
       : undefined;
+  const nodeAttempts = useMemo(
+    () => (single ? attempts.filter((entry) => entry.origin.nodeId === single.id) : []),
+    [attempts, single],
+  );
+  /** Drafts with a chosen model are the only ones a batch can fix plans for. */
+  const runnable = selectedNodesRunnable(document, selected);
   const selectedNodes = document.nodes.filter((node) => selectedSet.has(node.id));
   const sourcesReady =
     selectedNodes.length > 0 && selectedNodes.every(validSource);
@@ -660,14 +756,26 @@ export function Board({
       data-connecting={connecting || undefined}
       tabIndex={-1}
       onKeyDown={onKeyDown}
+      onDragOver={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect =
+          readOnly || !uploads || uploads.readOnly || uploads.busy ? "none" : "copy";
+      }}
+      onDrop={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        importFiles([...event.dataTransfer.files], { x: event.clientX, y: event.clientY });
+      }}
     >
-      {error && (
+      {(error || uploads?.error) && (
         <div className={classes.error}>
           <ErrorNotice error={error} />
+          <ErrorNotice error={uploads?.error ?? null} {...(uploads?.retry ? { retry: uploads.retry } : {})} />
         </div>
       )}
-      <ReactFlow<CardNode, Edge>
-        nodes={nodes}
+      <ReactFlow<BoardNode, Edge>
+        nodes={shown}
         edges={edges}
         nodeTypes={nodeTypes}
         defaultViewport={viewport}
@@ -702,7 +810,7 @@ export function Board({
           setMenu(null);
         }}
         onNodeDoubleClick={(event, node) => {
-          if (readOnly) return;
+          if (readOnly || node.type !== "card") return;
           if (
             (event.target as HTMLElement).closest(
               "button,input,textarea,video,audio,media-controller",
@@ -714,6 +822,7 @@ export function Board({
         }}
         onNodeContextMenu={(event, node) => {
           event.preventDefault();
+          if (node.type !== "card") return;
           if (!selectedSet.has(node.id)) onSelect([node.id]);
           setRenamingId(undefined);
           setMenu({ x: event.clientX, y: event.clientY, kind: "node" });
@@ -728,6 +837,7 @@ export function Board({
         connectionRadius={24}
         panActivationKeyCode="Space"
         selectionKeyCode="Shift"
+        multiSelectionKeyCode={multiSelectionKeys}
         elementsSelectable={tool === "select"}
         panOnDrag={tool === "hand" ? true : panOnDragButtons}
         panOnScroll
@@ -846,6 +956,23 @@ export function Board({
                 </Menu.Item>
               </Menu.Sub.Dropdown>
             </Menu.Sub>
+            {single && single.kind !== "text" && single.content.type === "draft" && (
+              <Menu.Item
+                leftSection={<ClockCounterClockwise size={14} />}
+                onClick={() => setHistoryId(single.id)}
+              >
+                尝试与结果{nodeAttempts.length ? ` · ${nodeAttempts.length}` : ""}
+              </Menu.Item>
+            )}
+            {selected.length > 1 && (
+              <Menu.Item
+                leftSection={<StackSimple size={14} />}
+                disabled={readOnly || runnable.length !== selected.length}
+                onClick={() => setBatch(runnable)}
+              >
+                查看 {selected.length} 项的生成计划
+              </Menu.Item>
+            )}
             <Menu.Item
               leftSection={<Copy size={14} />}
               rightSection={<kbd className={classes.kbd} aria-hidden>⌘D</kbd>}
@@ -870,6 +997,7 @@ export function Board({
         tool={tool}
         onTool={setTool}
         onAdd={add}
+        onUpload={uploads && !uploads.readOnly ? (files) => importFiles(files) : undefined}
         canUndo={controller.canUndo}
         canRedo={controller.canRedo}
         onUndo={() => controller.undo()}
@@ -898,12 +1026,39 @@ export function Board({
               configure={configure}
               addReference={addReference}
               editEdge={editEdge}
+              attempts={nodeAttempts}
+              onOpenHistory={() => setHistoryId(single.id)}
+              focused={focusedPanel}
+              onFocusChange={setFocusedPanel}
+              onFocusNodes={onSelect}
               style={style}
               docked={docked}
               panelRef={panelRef}
             />
           )}
         </ComposerAnchor>
+      )}
+      {historyId && (
+        <History
+          tenantId={generation.tenantId}
+          title={document.nodes.find((node) => node.id === historyId)?.title ?? "已删除的草稿"}
+          attempts={attempts.filter((entry) => entry.origin.nodeId === historyId)}
+          opened
+          onClose={() => setHistoryId(undefined)}
+        />
+      )}
+      {batch && controller.getSnapshot().local && (
+        <CanvasGenerationBatch
+          tenantId={generation.tenantId}
+          projectId={generation.projectId}
+          sceneId={generation.sceneId}
+          canvasId={generation.canvasId}
+          canvasRevision={controller.getSnapshot().local!.base.revision}
+          document={document}
+          nodeIds={batch}
+          readOnly={readOnly}
+          close={() => setBatch(undefined)}
+        />
       )}
     </div>
   );

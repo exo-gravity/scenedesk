@@ -1,0 +1,66 @@
+/* The history of a card: a list of fixed attempts and one attempt's inputs and result. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-xs);
+  border-radius: var(--ws-tool-radius);
+  text-align: left;
+}
+.row:hover {
+  background: var(--ws-hover);
+}
+.thumb {
+  flex: none;
+  width: var(--ws-studio-reference-size);
+  height: var(--ws-studio-reference-size);
+  border-radius: var(--ws-radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ws-hover);
+  color: var(--ws-studio-card-label);
+}
+.thumb :global(img),
+.thumb :global(video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.attempt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.result {
+  border-radius: var(--ws-card-radius);
+  overflow: hidden;
+  background: var(--ws-media);
+}
+.result :global(img),
+.result :global(video) {
+  display: block;
+  width: 100%;
+}

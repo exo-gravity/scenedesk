@@ -1,8 +1,20 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
-import { Loader, Textarea, UnstyledButton } from "@mantine/core";
-import { ArrowUp, ArrowsClockwise } from "@phosphor-icons/react";
+import { Loader, Modal, Text, Textarea, UnstyledButton } from "@mantine/core";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  ArrowUp,
+  ArrowsClockwise,
+  ArrowsInSimple,
+  ArrowsOutSimple,
+  ClockCounterClockwise,
+} from "@phosphor-icons/react";
 import { editingCanonical, type CanvasDocument, type CanvasNode } from "@drama/domain";
-import { ApiError, useList, type Schema } from "../../business/api";
+import { api, ApiError, useList, useSession, type Schema } from "../../business/api";
+import { canvasResultPosition } from "../../business/canvas-result-position";
+import {
+  canReviewCanvasResultPlacement,
+  submitCanvasResultPlacement,
+} from "../../business/canvas-result-placement";
 import { tenantPath, projectPath } from "../../business/common";
 import { useGenerationSession } from "../../business/use-generation-session";
 import {
@@ -41,6 +53,8 @@ export type ComposerProps = {
   awaitingSave: boolean;
   /** Save the board and return the saved canvas; throws when it cannot. */
   save: () => Promise<Schema<"Canvas">>;
+  /** After a placement: re-read the board so the new cards appear. */
+  afterPlacement: () => Promise<void>;
   changePrompt: (id: string, prompt: string) => void;
   configure: (
     id: string,
@@ -50,6 +64,14 @@ export type ComposerProps = {
   editEdge: (edgeId: string, patch: (edge: ReferenceEdge) => ReferenceEdge | null) => void;
   /** Register the "keep the draft" check the board runs before closing the panel. */
   registerRetain: (retain: (() => Promise<void>) | undefined) => void;
+  /** This draft's fixed attempts, for the history entry. */
+  attempts: readonly Schema<"CanvasPlanEntry">[];
+  onOpenHistory: () => void;
+  /** Focus editing: the same panel, larger, in a dialog. */
+  focused: boolean;
+  onFocusChange: (focused: boolean) => void;
+  /** Select the cards a placement created. */
+  onFocusNodes: (ids: string[]) => void;
   style?: CSSProperties | undefined;
   docked?: boolean | undefined;
   panelRef?: ((element: HTMLElement | null) => void) | undefined;
@@ -67,6 +89,8 @@ export function Composer(props: ComposerProps) {
   const label = labels[kind];
   const tenant = tenantPath(tenantId),
     path = projectPath(tenantId, projectId);
+  const session_ = useSession(),
+    cache = useQueryClient();
   // Rule 1: the session identity is session · kind · canvas · node; the caller keys this component on it.
   const { controller: session, state } = useGenerationSession(
     tenantId,
@@ -83,8 +107,17 @@ export function Composer(props: ComposerProps) {
     [capabilities.data, kind],
   );
   const [error, setError] = useState<string>();
+  const [placementOpen, setPlacementOpen] = useState(false);
   const { record, plan, job } = state,
     draft = record?.draft;
+  const placement = draft?.placement;
+  // The cards' tags and results read the canvas's attempts; a new plan or a job change refreshes them.
+  useEffect(() => {
+    if (state.plan?.id || state.job?.status)
+      void cache.invalidateQueries({
+        queryKey: ["user", session_.userId, `${path}/canvases/${canvasId}/generation-plans`],
+      });
+  }, [cache, session_.userId, path, canvasId, state.plan?.id, state.job?.id, state.job?.status]);
   const content = node.content;
   const capability = models.find((c) => c.id === content.capabilityId);
   const output = content.output ?? {};
@@ -108,9 +141,13 @@ export function Composer(props: ComposerProps) {
   const { registerRetain } = props;
   useEffect(() => {
     registerRetain(async () => {
+      // Let a running access check finish first: while it runs there is
+      // nothing unsaved to protect, and refusing would make every quick
+      // reselection fail.
       await session.settle();
+      await session.settleAccess();
       const current = session.getSnapshot();
-      if (current.access !== "ready" || !current.draftSaved)
+      if (current.access === "ready" && !current.draftSaved)
         throw new Error("当前生成输入尚未保留，请先处理保存或权限提示。");
     });
     return () => registerRetain(undefined);
@@ -164,6 +201,94 @@ export function Composer(props: ComposerProps) {
       );
     });
   };
+  const post = <T,>(url: string, key: string, body?: unknown, revision?: number) =>
+    api<T>(url, {
+      method: "POST",
+      signal: AbortSignal.timeout(15000),
+      headers: {
+        "X-CSRF-Token": session_.csrfToken,
+        "Idempotency-Key": key,
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+        ...(revision === undefined ? {} : { "If-Match": `"${revision}"` }),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  // Rule 10: a finished job with media is reviewed for placement after the board is saved again.
+  const reviewPlacement = () => {
+    if (!draft || !job || job.status !== "succeeded" || !job.mediaIds.length || !canReviewCanvasResultPlacement(placement))
+      return;
+    setError(undefined);
+    void session
+      .commitDraft(draft, draft, async (current) => {
+        const canvas = await props.save();
+        if (canvas.id !== canvasId) throw new Error("结果接收的创作台已改变。");
+        const position = canvasResultPosition(canvas.document.nodes, node.id, job.mediaIds.length);
+        return {
+          ...current,
+          placement: {
+            phase: "review",
+            key: crypto.randomUUID(),
+            canvasId: canvas.id,
+            revision: canvas.revision,
+            input: { jobId: job.id, mediaIds: [...job.mediaIds], position },
+          },
+        };
+      })
+      .then(() => {
+        if (session.getSnapshot().record?.draft.placement?.phase === "review") setPlacementOpen(true);
+      });
+  };
+  // Rules 11 and 12: the placement is submitted with If-Match; 412 becomes the conflict state.
+  const materialize = () => {
+    if (!draft || !placement || job?.status !== "succeeded") return;
+    setError(undefined);
+    void submitCanvasResultPlacement(session, draft, async (intent) => {
+      try {
+        const receipt = await post<Schema<"CanvasResultPlacement">>(
+          `${path}/canvases/${intent.canvasId}/results`,
+          intent.key,
+          intent.input,
+          intent.revision,
+        );
+        return { kind: "placed", receipt };
+      } catch (cause) {
+        if (cause instanceof ApiError && cause.status === 412 && cause.code === "VERSION_CONFLICT")
+          return { kind: "version_conflict" };
+        throw cause;
+      }
+    }).then(async () => {
+      setPlacementOpen(false);
+      const current = session.getSnapshot();
+      const placed = current.record?.draft.placement;
+      if (current.access !== "ready" || placed?.phase !== "placed" || !placed.placed) return;
+      try {
+        await props.afterPlacement();
+      } catch {
+        setError(`${label}已加入创作台，但当前创作台尚未完成刷新，请重新读取。`);
+      }
+    });
+  };
+  // Rule 13: archive recovery is two explicit steps and never calls the model again.
+  const recoverArchive = () => {
+    if (!draft || !job) return;
+    const intent = draft.archiveRequest ?? { jobId: job.id, key: crypto.randomUUID() };
+    void session
+      .commitDraft(draft, { ...draft, archiveRequest: intent }, async (current) => {
+        await post(`${tenant}/generation-jobs/${intent.jobId}/recover-archive`, intent.key);
+        return { ...current, archiveRequest: undefined };
+      })
+      .then(() => session.refresh());
+  };
+  const checkArchive = () => {
+    if (!draft?.archiveRequest) return;
+    const request = draft.archiveRequest;
+    void session
+      .commitDraft(draft, draft, async (current) => {
+        await api(`${tenant}/generation-jobs/${request.jobId}`, { signal: AbortSignal.timeout(15000) });
+        return { ...current, archiveRequest: { ...request, checked: true } };
+      })
+      .then(() => session.refresh());
+  };
   const expired = !!plan && Date.parse(plan.expiresAt) <= Date.now(); // rule 16
   const reason = !draft
     ? "生成输入正在读取"
@@ -208,15 +333,31 @@ export function Composer(props: ComposerProps) {
       </section>
     );
   const continueLabel = `保留原任务，准备${nextLabel[kind]}`;
-  return (
+  const panel = (
     <section
-      ref={props.panelRef}
+      ref={props.focused ? undefined : props.panelRef}
       className={classes.panel}
-      style={props.style}
-      data-docked={props.docked || undefined}
+      style={props.focused ? undefined : props.style}
+      data-docked={(!props.focused && props.docked) || undefined}
+      data-focus={props.focused || undefined}
       aria-label={`生成${label}`}
       onKeyDown={stop}
     >
+      <div className={classes.row} data-align="end" data-corner>
+        {props.attempts.length > 0 && (
+          <UnstyledButton className={classes.pill} data-quiet onClick={props.onOpenHistory} aria-label="尝试与结果">
+            <ClockCounterClockwise size={12} aria-hidden />
+            <span>历史 {props.attempts.length}</span>
+          </UnstyledButton>
+        )}
+        <UnstyledButton
+          className={classes.corner}
+          aria-label={props.focused ? "退出专注编辑" : "专注编辑"}
+          onClick={() => props.onFocusChange(!props.focused)}
+        >
+          {props.focused ? <ArrowsInSimple size={16} aria-hidden /> : <ArrowsOutSimple size={16} aria-hidden />}
+        </UnstyledButton>
+      </div>
       <ComposerReferences
         document={document}
         nodeId={node.id}
@@ -242,8 +383,8 @@ export function Composer(props: ComposerProps) {
           ref={promptRef}
           variant="unstyled"
           autosize
-          minRows={2}
-          maxRows={8}
+          minRows={props.focused ? 8 : 2}
+          maxRows={props.focused ? 24 : 8}
           aria-label="提示词"
           placeholder={`描述这${kind === "audio" ? "段声音" : "个画面"}，参考与模型在下方`}
           className={classes.promptRoot}
@@ -298,6 +439,16 @@ export function Composer(props: ComposerProps) {
                     ? "生成前会先保存创作台" // rule 9
                     : (reason ?? ""))}
         </span>
+        {record?.execution && (
+          <UnstyledButton
+            className={classes.corner}
+            aria-label={`核对${label}任务`}
+            disabled={state.busy}
+            onClick={() => void session.refresh()}
+          >
+            <ArrowsClockwise size={14} aria-hidden />
+          </UnstyledButton>
+        )}
         {record?.execution ? (
           !job ? (
             <UnstyledButton
@@ -332,17 +483,7 @@ export function Composer(props: ComposerProps) {
             >
               {continueLabel}
             </UnstyledButton>
-          ) : (
-            <UnstyledButton
-              className={classes.action}
-              data-quiet
-              aria-label={`核对${label}任务`}
-              disabled={state.busy}
-              onClick={() => void session.refresh()}
-            >
-              <ArrowsClockwise size={14} aria-hidden />
-            </UnstyledButton>
-          )
+          ) : null
         ) : plan ? (
           <SubmitButton
             label={`继续生成${label}`}
@@ -363,6 +504,97 @@ export function Composer(props: ComposerProps) {
           </SubmitButton>
         )}
       </div>
+      {record?.execution && job && (job.status === "succeeded" || job.status === "archive_failed" || draft?.archiveRequest) && (
+        <div className={classes.row} data-align="end" aria-label="本次生成结果">
+          {job.status === "succeeded" && !placement && (
+            <UnstyledButton className={classes.action} disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
+              添加到创作台
+            </UnstyledButton>
+          )}
+          {placement?.phase === "review" && (
+            <UnstyledButton className={classes.action} disabled={disabled} onClick={() => setPlacementOpen(true)}>
+              确认添加位置
+            </UnstyledButton>
+          )}
+          {placement?.phase === "unknown" && (
+            <>
+              <span className={classes.status}>添加结果待核对：恢复会核对同一次添加，不会生成新{label}</span>
+              <UnstyledButton className={classes.action} disabled={disabled || job.status !== "succeeded"} onClick={materialize}>
+                恢复本次添加
+              </UnstyledButton>
+            </>
+          )}
+          {placement?.phase === "conflict" && (
+            <>
+              <span className={classes.status}>创作台已有修改，{label}尚未添加</span>
+              <UnstyledButton className={classes.action} disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
+                重新核对添加位置
+              </UnstyledButton>
+            </>
+          )}
+          {placement?.phase === "placed" && (
+            <>
+              <span className={classes.status}>已添加到创作台</span>
+              {placement.placed && (
+                <UnstyledButton
+                  className={classes.action}
+                  data-quiet
+                  onClick={() => props.onFocusNodes(placement.placed!.placements.map((item) => item.nodeId))}
+                >
+                  定位{label}结果
+                </UnstyledButton>
+              )}
+            </>
+          )}
+          {job.status === "archive_failed" && !draft?.archiveRequest && (
+            <>
+              <span className={classes.status}>结果保存未完成，恢复不会重新调用模型</span>
+              <UnstyledButton className={classes.action} disabled={disabled} onClick={recoverArchive}>
+                恢复{label}归档
+              </UnstyledButton>
+            </>
+          )}
+          {draft?.archiveRequest && (
+            <>
+              <span className={classes.status}>归档恢复结果待核对，请先读取原任务</span>
+              <UnstyledButton className={classes.action} data-quiet disabled={disabled} onClick={checkArchive}>
+                核对归档恢复
+              </UnstyledButton>
+              {draft.archiveRequest.checked && (
+                <UnstyledButton className={classes.action} disabled={disabled} onClick={recoverArchive}>
+                  继续原归档恢复请求
+                </UnstyledButton>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      <Modal
+        opened={placementOpen && placement?.phase === "review" && state.access === "ready" && job?.status === "succeeded"} // rule 21
+        onClose={() => {
+          setPlacementOpen(false);
+          if (draft) session.updateDraft({ ...draft, placement: undefined }, true);
+        }}
+        title={`确认添加${label}结果`}
+      >
+        <Text size="sm">将已归档的{label}作为独立卡片加入创作台，本次固定 {placement?.input.mediaIds.length ?? 0} 份结果。</Text>
+        <Text size="xs" c="dimmed" mt="xs">
+          位置：{placement?.input.position?.x ?? 0}，{placement?.input.position?.y ?? 0}
+        </Text>
+        <div className={classes.row} data-align="end" style={{ marginTop: "var(--mantine-spacing-md)" }}>
+          <UnstyledButton className={classes.action} disabled={disabled || job?.status !== "succeeded"} onClick={materialize}>
+            确认添加到创作台
+          </UnstyledButton>
+        </div>
+      </Modal>
     </section>
+  );
+  // Focus editing is the same panel in a dialog: nothing else changes.
+  return props.focused ? (
+    <Modal opened onClose={() => props.onFocusChange(false)} title={`专注编辑 · ${node.title}`} size="xl">
+      {panel}
+    </Modal>
+  ) : (
+    panel
   );
 }

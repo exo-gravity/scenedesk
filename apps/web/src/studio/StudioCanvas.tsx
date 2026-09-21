@@ -1,5 +1,8 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Loader, UnstyledButton } from "@mantine/core";
+import { useList, type Schema } from "../business/api";
+import { CanvasUploads } from "../business/CanvasUploads";
+import { taskLabels, useNodeResults } from "./results/useNodeResults";
 import { Check } from "@phosphor-icons/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCanvas } from "../business/use-canvas";
@@ -111,6 +114,30 @@ export function StudioCanvas({
     state.dirty ||
     !state.localSaved ||
     !!state.local?.pending;
+  // Every fixed attempt on this canvas: the cards' task tags and results come from it.
+  const attempts = useList<Schema<"CanvasPlanEntry">>(
+    `${path}/canvases/${canvasId}/generation-plans`,
+    !!state?.local && !state.accessChecking && state.phase !== "forbidden",
+  );
+  const entries = attempts.data ?? [];
+  const running = entries.some(
+    (entry) => entry.jobStatus && !["succeeded", "failed", "cancelled"].includes(entry.jobStatus),
+  );
+  const refetchAttempts = attempts.refetch;
+  useEffect(() => {
+    if (!running || state?.accessChecking || state?.phase === "forbidden") return;
+    const timer = setInterval(() => void refetchAttempts(), 5000);
+    return () => clearInterval(timer);
+  }, [running, state?.accessChecking, state?.phase, refetchAttempts]);
+  const results = useNodeResults({ tenantId, projectId, attempts: entries });
+  const tasks = useMemo(() => taskLabels(entries), [entries]);
+  const afterPlacement = useCallback(async () => {
+    await controller?.refresh();
+    await refetchAttempts();
+    const current = controller?.getSnapshot();
+    if (!current || current.accessChecking || current.phase === "forbidden")
+      throw new Error("当前创作台访问尚未核对。");
+  }, [controller, refetchAttempts]);
   const moveViewport = useCallback(
     (viewport: { x: number; y: number; zoom: number }) =>
       change({ viewport }),
@@ -166,27 +193,39 @@ export function StudioCanvas({
               </section>
             )}
             {document && (
-              <Board
+              <CanvasUploads
                 controller={controller}
-                document={document}
+                tenantId={tenantId}
+                projectId={projectId}
+                canvasId={canvasId}
                 readOnly={readOnly}
-                selected={selected}
-                onSelect={select}
-                viewport={preference.view.viewport}
-                onViewport={moveViewport}
-                mediaPath={tenantPath(tenantId)}
-                onShortcuts={() => setShortcutsOpen(true)}
-                generation={{
-                  tenantId,
-                  projectId,
-                  canvasId,
-                  sceneId: undefined,
-                  active,
-                  awaitingSave,
-                  save,
-                  registerRetain,
-                }}
-              />
+              >
+                <Board
+                  controller={controller}
+                  document={document}
+                  readOnly={readOnly}
+                  selected={selected}
+                  onSelect={select}
+                  viewport={preference.view.viewport}
+                  onViewport={moveViewport}
+                  mediaPath={tenantPath(tenantId)}
+                  onShortcuts={() => setShortcutsOpen(true)}
+                  attempts={entries}
+                  results={results}
+                  tasks={tasks}
+                  generation={{
+                    tenantId,
+                    projectId,
+                    canvasId,
+                    sceneId: undefined,
+                    active,
+                    awaitingSave,
+                    save,
+                    afterPlacement,
+                    registerRetain,
+                  }}
+                />
+              </CanvasUploads>
             )}
             <Shortcuts
               opened={shortcutsOpen}

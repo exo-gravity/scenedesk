@@ -164,3 +164,38 @@ test("ST-03: a revoked collaborator's panel turns into the access recheck and th
   await expect(page).not.toHaveTitle(new RegExp(project.name));
   expect((await f.request("GET", `${path}/canvas`, undefined, undefined, undefined, collaborator)).statusCode).toBe(404);
 });
+
+test("ST-04: selecting several drafts is not submitting; the batch review opens from the menu and prepares only", async ({ page, generation: f }) => {
+  const project = await f.createProject("批量生成 · 创作台");
+  const path = `${f.base}/projects/${project.id}`;
+  const ensured = await f.request("POST", `${path}/canvas`);
+  const canvasId = ensured.json().canvas.id;
+  const draftNode = (title: string, prompt: string, x: number) => ({
+    id: crypto.randomUUID(), kind: "image" as const, title, width: 320, position: { x, y: 200 },
+    content: { type: "draft" as const, prompt, connectionId: f.input.connectionId, capabilityId: f.input.capabilityId, output: f.input.output },
+  });
+  await f.ok("PUT", `${path}/canvases/${canvasId}`, {
+    schemaVersion: 1, document: { nodes: [draftNode("第一镜", "雨夜便利店门口，女主回头", 240), draftNode("第二镜", "推门而入，暖光落在肩上", 700)], edges: [], groups: [] },
+  }, ensured.json().canvas.revision);
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && /\/(generation-jobs|generation-batches|generation-plans|canvas-generation-batches)/.test(request.url()))
+      writes.push(request.url().replace(f.origin, ""));
+  });
+  await openStudio(page, f, project.id);
+  const board = page.getByRole("main", { name: "创作台", exact: true });
+  const first = board.getByRole("article", { name: "第一镜 · 图片", exact: true });
+  const second = board.getByRole("article", { name: "第二镜 · 图片", exact: true });
+  await first.click();
+  await second.click({ modifiers: ["Shift"] });
+  await expect(first.locator("xpath=..")).toHaveAttribute("data-selected", "true");
+  await expect(second.locator("xpath=..")).toHaveAttribute("data-selected", "true");
+  await second.click({ button: "right" });
+  expect(writes).toHaveLength(0);
+  await page.getByRole("menuitem", { name: "查看 2 项的生成计划", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText(/这一步只准备计划，不会提交任何生成。/)).toBeVisible();
+  await dialog.getByRole("button", { name: "取消", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  expect(writes).toHaveLength(0);
+});

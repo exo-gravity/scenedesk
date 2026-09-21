@@ -49,6 +49,10 @@ export type CardData = {
   references: CanvasDocument["edges"];
   /** Single selection of a usable source: the ⊕ to continue from it appears. */
   canContinue: boolean;
+  /** The draft's latest finished result; it fills the frame. */
+  resultMediaId?: string | undefined;
+  /** What the draft's newest attempt is doing, when it is not a finished success. */
+  task?: { label: string; tone: "pending" | "failed" } | undefined;
 };
 export type CardNode = Node<CardData, "card">;
 
@@ -70,10 +74,14 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
   const { node, readOnly, actions } = data;
   const Icon = icons[node.kind];
   const excerpt = node.kind === "text" && !!node.content.sourceExcerpt;
-  const aspect = node.content.type === "draft" ? draftFrameAspect(node) : null;
+  // A draft keeps its output ratio as a frame until a result gives it a picture.
+  const aspect =
+    node.content.type === "draft" && !data.resultMediaId ? draftFrameAspect(node) : null;
+  const shownMediaId =
+    node.content.type === "media" ? node.content.mediaId : data.resultMediaId;
   const media = useResource<Schema<"Media">>(
-    `${data.mediaPath}/media/${node.content.type === "media" ? node.content.mediaId : ""}`,
-    node.content.type === "media",
+    `${data.mediaPath}/media/${shownMediaId ?? ""}`,
+    !!shownMediaId,
   );
   const mediaStatus =
     node.content.type !== "media"
@@ -146,17 +154,23 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
             readOnly={readOnly}
             actions={actions}
           />
-        ) : node.content.type === "draft" ? (
+        ) : node.content.type === "draft" && !data.resultMediaId ? (
           <div className={classes.placeholder}>
             <Icon size={40} aria-hidden />
           </div>
         ) : (
           <MediaBody
             kind={node.kind}
-            mediaId={node.content.mediaId}
+            mediaId={shownMediaId!}
             path={data.mediaPath}
             media={media}
+            result={node.content.type === "draft"}
           />
+        )}
+        {data.task && (
+          <span className={classes.task} data-tone={data.task.tone} role="status">
+            {data.task.label}
+          </span>
         )}
         {node.kind !== "text" && badgeRow}
       </article>
@@ -337,11 +351,14 @@ function MediaBody({
   mediaId,
   path,
   media,
+  result = false,
 }: {
   kind: "image" | "video" | "audio";
   mediaId: string;
   path: string;
   media: ReturnType<typeof useResource<Schema<"Media">>>;
+  /** A draft's generated result rather than the card's own media. */
+  result?: boolean;
 }) {
   const Icon = icons[kind];
   if (media.isError)
@@ -359,7 +376,7 @@ function MediaBody({
     );
   if (kind === "audio")
     return (
-      <div className={classes.audio}>
+      <div className={classes.audio} data-result={result || undefined}>
         <MusicNotes size={28} aria-hidden />
         <Text size="xs" truncate>
           {media.data.displayName}
@@ -373,7 +390,7 @@ function MediaBody({
         ? "16 / 9"
         : "1 / 1";
   return (
-    <div className={classes.media} style={{ aspectRatio: ratio }}>
+    <div className={classes.media} style={{ aspectRatio: ratio }} data-result={result || undefined}>
       <MediaPreview media={media.data} path={path} thumbnail />
       {kind === "video" && (
         <span className={classes.playBadge} aria-hidden>
