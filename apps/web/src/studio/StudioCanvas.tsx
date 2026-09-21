@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Alert, Loader, UnstyledButton } from "@mantine/core";
+import { ListChecks, Sparkle } from "@phosphor-icons/react";
 import { useList, useSession, type Schema } from "../business/api";
 import {
   retainProjectAssistantDrafts,
@@ -7,7 +8,12 @@ import {
 } from "../business/assistant-lifecycle";
 import { useProjectNavigationGuard } from "../business/project-navigation-guard";
 import { CanvasUploads } from "../business/CanvasUploads";
+import { CanvasAssistant } from "../business/CanvasAssistant";
+import { SceneTaskPanel, type SceneTaskView } from "../business/SceneTaskPanel";
+import { CanvasNavigator } from "../business/SceneNavigator";
 import { taskLabels, useNodeResults } from "./results/useNodeResults";
+import { AttemptBrowser } from "./results/History";
+import { Dock, type DockMode } from "./dock/Dock";
 import { Check } from "@phosphor-icons/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCanvas } from "../business/use-canvas";
@@ -33,19 +39,30 @@ export function StudioCanvas({
   tenantId,
   projectId,
   canvasId,
+  sceneId,
+  canvasLabel,
+  content,
   active,
   projectName,
   environment,
   base,
+  menu,
+  account,
   focusNodeId,
 }: {
   tenantId: string;
   projectId: string;
   canvasId: string;
+  /** The scene this canvas belongs to; absent for the project canvas. */
+  sceneId: string | undefined;
+  canvasLabel: string;
+  content: Schema<"ContentTree"> | undefined;
   active: boolean;
   projectName: string;
   environment?: string | undefined;
   base: string;
+  menu?: ReactNode;
+  account?: ReactNode;
   /** A card named in the address (`?node=`): selected and brought into view once. */
   focusNodeId?: string | undefined;
 }) {
@@ -65,6 +82,13 @@ export function StudioCanvas({
   const [navigationError, setNavigationError] = useState<Error | null>(null);
   const navigationLock = useRef(false),
     pendingDestination = useRef<string | null>(null);
+  // Docks: the assistant's open state is the view preference the studio owns; tasks are per visit.
+  const [tasksOpen, setTasksOpen] = useState(false);
+  const [taskView, setTaskView] = useState<SceneTaskView | null>(null);
+  const [taskPlan, setTaskPlan] = useState<string>();
+  const [assistantMode, setAssistantMode] = useState<DockMode>("docked");
+  const [tasksMode, setTasksMode] = useState<DockMode>("docked");
+  const [assistantContext, setAssistantContext] = useState<{ nodeIds: string[]; nonce: number }>();
   const document = state?.local?.document;
   const readOnly =
     !active ||
@@ -201,6 +225,15 @@ export function StudioCanvas({
     (open: boolean) => change({ assetPanelOpen: open }),
     [change],
   );
+  const setAssistant = useCallback(
+    (open: boolean) => change({ assistantOpen: open }),
+    [change],
+  );
+  const assistantOpen = !!preference.view?.assistantOpen;
+  const titles = useMemo(
+    () => Object.fromEntries((document?.nodes ?? []).map((node) => [node.id, node.title])),
+    [document?.nodes],
+  );
   // The address can name a card (from the script view's "进入画布"): select it once it exists.
   const focused = useRef<string | undefined>(undefined);
   useEffect(() => {
@@ -222,6 +255,50 @@ export function StudioCanvas({
       environment={environment}
       view="canvas"
       base={base}
+      menu={menu}
+      account={account}
+      canvasSwitch={
+        content ? (
+          <span className={classes.canvasSwitch}>
+            <CanvasNavigator
+              content={content}
+              sceneId={sceneId}
+              canCreate={active}
+              onSelect={(next) => {
+                location.hash = next ? `${base}?scene=${next}` : base;
+              }}
+              onDirectory={() => {
+                location.hash = `#/app/t/${tenantId}/p/${projectId}/content`;
+              }}
+              onCreate={() => {
+                location.hash = `#/app/t/${tenantId}/p/${projectId}/content?create=scene`;
+              }}
+            />
+          </span>
+        ) : null
+      }
+      tools={
+        <>
+          <UnstyledButton
+            className={classes.tool}
+            aria-label="任务"
+            aria-pressed={tasksOpen}
+            onClick={() => setTasksOpen((open) => !open)}
+          >
+            <ListChecks size={16} aria-hidden />
+            <span>任务</span>
+          </UnstyledButton>
+          <UnstyledButton
+            className={classes.tool}
+            aria-label="助手"
+            aria-pressed={assistantOpen}
+            onClick={() => setAssistant(!assistantOpen)}
+          >
+            <Sparkle size={16} aria-hidden />
+            <span>助手</span>
+          </UnstyledButton>
+        </>
+      }
       status={
         controller && state ? (
           <SaveStatus controller={controller} state={state} readOnly={readOnly} />
@@ -294,11 +371,15 @@ export function StudioCanvas({
                   focusNodeId={focusNodeId}
                   scriptHref={(revisionId) => `${base}/script?revision=${revisionId}`}
                   shotsHref={(mediaId) => `${base}/shots?media=${mediaId}`}
+                  onAssistantContext={(nodeIds) => {
+                    setAssistantContext({ nodeIds, nonce: Date.now() });
+                    if (!assistantOpen) setAssistant(true);
+                  }}
                   generation={{
                     tenantId,
                     projectId,
                     canvasId,
-                    sceneId: undefined,
+                    sceneId,
                     active,
                     awaitingSave,
                     save,
@@ -306,6 +387,33 @@ export function StudioCanvas({
                     registerRetain,
                   }}
                 />
+                {tasksOpen && (
+                  <Dock label="任务" title={`任务 · ${canvasLabel}`} mode={tasksMode} onMode={setTasksMode} onClose={() => setTasksOpen(false)}>
+                    <SceneTaskPanel view={taskView} onChange={setTaskView}>
+                      <AttemptBrowser tenantId={tenantId} attempts={entries} titles={titles} planId={taskPlan} onPlan={setTaskPlan} />
+                    </SceneTaskPanel>
+                  </Dock>
+                )}
+                {assistantOpen && (
+                  <Dock label="助手" title="助手" mode={assistantMode} onMode={setAssistantMode} onClose={() => setAssistant(false)}>
+                    <CanvasAssistant
+                      tenantId={tenantId}
+                      projectId={projectId}
+                      sceneId={sceneId}
+                      controller={controller}
+                      active={active && !readOnly}
+                      visible
+                      requestedContext={assistantContext}
+                      onEditDraft={async (nodeId) => {
+                        const target = controller.getSnapshot().local?.document.nodes.find((node) => node.id === nodeId);
+                        if (target?.content.type !== "draft")
+                          throw new Error("原草稿已移除或改变，请在创作台中核对。助手建议仍保留。");
+                        select([nodeId]);
+                      }}
+                      onClose={() => setAssistant(false)}
+                    />
+                  </Dock>
+                )}
               </CanvasUploads>
             )}
             <Shortcuts

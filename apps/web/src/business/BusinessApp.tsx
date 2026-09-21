@@ -3,6 +3,7 @@ import {
   useProjectNavigationGuard,
 } from "./project-navigation-guard";
 import {
+  type ReactNode,
   lazy,
   Suspense,
   useEffect,
@@ -533,6 +534,7 @@ function Workspace({
             studioView
             studioSubview={segments[7]}
             environment={environment}
+            account={accountMenu}
           />
         </ProjectUpdates>
       </div>
@@ -780,6 +782,7 @@ function TenantArea({
   studioView,
   studioSubview,
   environment,
+  account,
 }: {
   tenantId: string;
   section?: string | undefined;
@@ -793,6 +796,7 @@ function TenantArea({
   studioView?: boolean | undefined;
   studioSubview?: string | undefined;
   environment?: string | undefined;
+  account?: ReactNode;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -814,6 +818,7 @@ function TenantArea({
           projectId={projectId}
           environment={environment}
           view={studioSubview}
+          account={account}
         />
       </Suspense>
     );

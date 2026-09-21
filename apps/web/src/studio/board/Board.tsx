@@ -30,6 +30,7 @@ import {
   PencilSimple,
   Prohibit,
   Quotes,
+  Sparkle,
   StackSimple,
   Tag,
   Trash,
@@ -154,6 +155,7 @@ export function Board({
   focusNodeId,
   scriptHref,
   shotsHref,
+  onAssistantContext,
   generation,
 }: {
   controller: CanvasController;
@@ -176,6 +178,8 @@ export function Board({
   scriptHref: (revisionId: string) => string;
   /** Where a board video can be registered as a shot's candidate. */
   shotsHref: (mediaId: string) => string;
+  /** Hand the selected cards to the assistant as context. */
+  onAssistantContext: (nodeIds: string[]) => void;
   /** What the input panel needs from the session: identity, saving, retention. */
   generation: Pick<
     ComposerProps,
@@ -1081,6 +1085,13 @@ export function Board({
                 查看 {selected.length} 项的生成计划
               </Menu.Item>
             )}
+            <Menu.Item
+              leftSection={<Sparkle size={14} />}
+              disabled={!selected.length}
+              onClick={() => onAssistantContext(selected)}
+            >
+              交给助手
+            </Menu.Item>
             <Menu.Item
               leftSection={<Copy size={14} />}
               rightSection={<kbd className={classes.kbd} aria-hidden>⌘D</kbd>}

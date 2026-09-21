@@ -167,3 +167,34 @@
 .environment {
   white-space: nowrap;
 }
+/* Top bar tools: task and assistant switches. */
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: var(--ws-studio-tool-size);
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-text);
+  white-space: nowrap;
+}
+.tool:hover,
+.tool[aria-pressed="true"] {
+  background: var(--ws-hover);
+}
+.brand[aria-haspopup] {
+  cursor: pointer;
+  border-radius: var(--ws-radius);
+}
+.brand[aria-haspopup]:hover {
+  background: var(--ws-hover);
+}
+.canvasSwitch {
+  display: inline-flex;
+  align-items: center;
+  height: var(--ws-studio-tool-size);
+  min-width: 0;
+}

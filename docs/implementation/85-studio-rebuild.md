@@ -125,6 +125,21 @@
 
 并排图：[slice-7-shots.png](../design/assets/2026-09-21-studio-rebuild/slice-7-shots.png)。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-07 通过。
 
+## 1h. 第 ⑧ 片：助手、任务、创作台切换、项目菜单、账号
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 停靠容器 | `dock/Dock.tsx`：助手与任务共用的容器，`data-mode` 为 `docked`（右侧整高）或 `floating`（右下浮窗），头部只有标题、改为浮窗／停靠到右侧、关闭 | ST-08：助手停靠→浮窗 |
+| 助手 | 顶栏「助手」开关；`CanvasAssistant` 原样接入，关闭后草稿保留，重开与刷新后仍在；开关状态写入既有偏好 `assistantOpen`（旧画布同一字段）；卡片右键「交给助手」把卡片作为上下文带入 | ST-08：草稿跨关闭与刷新保留，偏好 false→true 往返 |
+| 任务 | 顶栏「任务」开关；`SceneTaskPanel` 原样接入（尝试／文件导入两页），尝试页里放 `results/History.tsx` 的 `AttemptBrowser`：本画布固定尝试的列表与只读检视，进行中时每 5 秒刷新 | ST-08：空态文案与文件导入页 |
+| 创作台切换 | 顶栏第二个胶囊「切换画布：{当前}」，`CanvasNavigator` 原样接入；场次创作台地址为 `…/studio?scene=`，没有时给「创建场次创作台」；标题与保存状态随画布走，「打开内容目录」「新建场次」跳内容页 | ST-08：切到场次并创建，文字卡只保存进场次画布，项目画布仍为 0 个节点，再切回 |
+| 项目菜单 | `shell/ProjectMenu.tsx`：品牌处的菜单：返回项目列表、切换项目（读租户项目列表）、「项目设置、成员与归档」到项目页 | ST-08：两条链接地址 |
+| 账号 | 旧壳的账号菜单原样传入顶栏右端（`BusinessApp` 的 `account` 插槽），退出登录与身份邮箱不变 | ST-08：菜单与邮箱可见 |
+
+按用户要求保持克制，本片不做并记录：浮窗的位置与大小不可拖改、停靠／浮窗模式不写偏好（每次打开回到停靠；旧偏好只有 `assistantOpen`，不新增字段）、项目成员与归档不在创作台里重做（菜单直达项目页）、`CanvasShotConnections`（场次画布上的镜头关联面板）仍未接入——它的价值要看场次创作台的实际用法，留到第 ⑨ 片决定去留。
+
+并排图：[slice-8-docks.png](../design/assets/2026-09-21-studio-rebuild/slice-8-docks.png)。本机检查：`ui:check`、`typecheck`、`vite build`、ST-08 与全部生产浏览器用例（55 例）通过。
+
 ## 2. 新目录的模块规划
 
 按决定文档 §6 分片，目录随片建立，不预先建空目录：
@@ -200,7 +215,7 @@
 | ⑤ 资产侧面板 | 已交付（本文 §1e） | [资产侧面板](../design/assets/2026-09-21-studio-rebuild/slice-5-assets.png) |
 | ⑥ 剧本视图 | 已交付（本文 §1f） | [剧本视图](../design/assets/2026-09-21-studio-rebuild/slice-6-script.png) |
 | ⑦ 镜头整理视图 | 已交付（本文 §1g） | [镜头整理](../design/assets/2026-09-21-studio-rebuild/slice-7-shots.png) |
-| ⑧ 助手、任务、创作台切换、项目菜单 | 未开始 | — |
+| ⑧ 助手、任务、创作台切换、项目菜单 | 已交付（本文 §1h） | [助手浮窗](../design/assets/2026-09-21-studio-rebuild/slice-8-docks.png) |
 | ⑨ 切换与清理 | 未开始 | — |
 
 ## 6. PR 划分与交接（2026-09-21 决定）

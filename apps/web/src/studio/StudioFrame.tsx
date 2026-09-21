@@ -22,6 +22,10 @@ export function StudioFrame({
   status,
   view,
   base,
+  menu,
+  canvasSwitch,
+  tools,
+  account,
   children,
 }: {
   projectName: string;
@@ -33,6 +37,14 @@ export function StudioFrame({
   environment?: string | undefined;
   /** Save state of the current view, when it has one. */
   status?: ReactNode;
+  /** The project menu behind the brand; the brand alone when absent. */
+  menu?: ReactNode;
+  /** The canvas switch, only while a canvas is open. */
+  canvasSwitch?: ReactNode;
+  /** Task and assistant switches, only while a canvas is open. */
+  tools?: ReactNode;
+  /** The account menu. */
+  account?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -40,10 +52,12 @@ export function StudioFrame({
       <header className={classes.topBar}>
         <div className={classes.barGroup}>
           <div className={classes.context}>
-            <span className={classes.brand}>
-              SceneDesk
-              <CaretDown size={12} aria-hidden />
-            </span>
+            {menu ?? (
+              <span className={classes.brand}>
+                SceneDesk
+                <CaretDown size={12} aria-hidden />
+              </span>
+            )}
             <span className={classes.divider} aria-hidden />
             <span
               className={classes.projectName}
@@ -52,6 +66,7 @@ export function StudioFrame({
               {projectName}
             </span>
           </div>
+          {canvasSwitch}
         </div>
         <nav className={classes.viewSwitch} aria-label="创作区视图">
           {views.map((item) =>
@@ -77,11 +92,13 @@ export function StudioFrame({
         </nav>
         <div className={classes.barGroup} data-align="end">
           {status}
+          {tools}
           {environment && (
             <Text size="xs" c="dimmed" className={classes.environment}>
               {environment}
             </Text>
           )}
+          {account}
         </div>
       </header>
       {children}
