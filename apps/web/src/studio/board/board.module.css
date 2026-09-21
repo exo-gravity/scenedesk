@@ -167,7 +167,7 @@
   color: var(--ws-text);
   background: transparent;
   border: none;
-  border-radius: 0;
+  border-radius: inherit;
   box-shadow: none;
   outline: none;
 }
@@ -200,7 +200,8 @@
   padding: var(--mantine-spacing-md);
   color: var(--ws-studio-card-label);
 }
-/* Ports: small rings on the side midpoints, only while the card is selected. */
+/* Ports: small rings on the side midpoints, shown while the card is selected
+   or hovered, and on every draft while a reference is being dragged. */
 .card .port {
   width: var(--ws-studio-port-size);
   height: var(--ws-studio-port-size);
@@ -210,8 +211,87 @@
   opacity: 0;
   transition: opacity 120ms ease;
 }
-.card[data-selected] .port {
+.card[data-selected] .port,
+.card:hover .port,
+.board[data-connecting] .card[data-content="draft"] .port {
   opacity: 1;
+}
+.board[data-connecting] .card[data-content="draft"] .port {
+  border-color: var(--ws-focus);
+}
+.board {
+  --xy-connectionline-stroke-default: var(--ws-focus);
+  --xy-connectionline-stroke-width-default: 1.5;
+}
+.board :global(.react-flow__edge.selected .react-flow__edge-path),
+.board :global(.react-flow__edge:focus-visible .react-flow__edge-path) {
+  stroke: var(--ws-focus);
+  stroke-width: 2;
+}
+.edgeDisabled :global(.react-flow__edge-path) {
+  stroke-dasharray: 4 4;
+}
+/* Purpose badges: over the frame of a referenced media card, in the label
+   row of a text card so they never sit on the words. */
+.badges {
+  display: inline-flex;
+  gap: var(--mantine-spacing-xs);
+  pointer-events: none;
+}
+.body > .badges {
+  position: absolute;
+  top: var(--mantine-spacing-xs);
+  left: var(--mantine-spacing-xs);
+  z-index: 1;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--ws-radius);
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1;
+  background: color-mix(in srgb, var(--ws-media) 72%, transparent);
+  color: var(--ws-studio-card);
+}
+.card[data-kind="text"] .badge {
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  color: var(--ws-studio-card-label);
+}
+.badge[data-tone="disabled"] {
+  opacity: 0.6;
+}
+.badge[data-tone="failed"],
+.badge[data-tone="missing"] {
+  background: var(--ws-danger);
+  color: var(--ws-studio-card);
+}
+.badge[data-tone="archived"],
+.badge[data-tone="pending"] {
+  background: var(--ws-warning);
+  color: var(--ws-studio-card);
+}
+/* The ⊕ beside a selected source: continue from it. Screen-sized, not zoomed. */
+.continueToolbar {
+  display: flex;
+  align-items: center;
+}
+.plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ws-round-radius);
+  background: var(--ws-studio-chrome);
+  border: 1.5px solid var(--ws-studio-card-selected);
+  color: var(--ws-text);
+  box-shadow: var(--ws-studio-shadow);
+}
+.plus:hover {
+  background: var(--ws-hover);
 }
 /* Width handle at the text card's corner. */
 .card .resize {

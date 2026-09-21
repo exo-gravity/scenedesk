@@ -2,7 +2,7 @@
 
 日期：2026-09-21。依据：[核心创作区重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)（已确认）。分支 `feat/studio-rebuild`，独立 worktree；每片先交「LibTV 截图 vs 新页面」并排图再提交，不推送。
 
-状态：**阶段 0 与第 ① 片已交付；后续逐片记账。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
+状态：**阶段 0、第 ①②片已交付；后续逐片记账。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
 
 ## 1. 阶段 0（准备）
 
@@ -33,6 +33,22 @@
 并排图：[slice-1-image-selected.png](../design/assets/2026-09-21-studio-rebuild/slice-1-image-selected.png)、[slice-1-text-edit.png](../design/assets/2026-09-21-studio-rebuild/slice-1-text-edit.png)、[slice-1-shortcuts.png](../design/assets/2026-09-21-studio-rebuild/slice-1-shortcuts.png)。本机检查：`ui:check` 通过、`typecheck` 通过、`vite build` 通过、ST-00 与 ST-01（两例）通过。
 
 实现中定下的两条细则：新卡从视野中心放起，若会盖住已有卡则移到该卡右侧；新建的文字卡在 React Flow 量出尺寸前是隐藏的，焦点在其可见后才落入输入框。
+
+## 1b. 第 ② 片：端口、拖连、用途、⊕ 继续创作、引用角标
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 端口 | 文字与媒体卡只有右侧「作为参考」端口，草稿只有左侧「接收参考」端口；选中或悬停时出现，拖连进行中所有草稿的端口亮起 | ST-02 |
+| 拖连 | React Flow 连接接 `appendCanvasReference`（同来源同用途拒绝，位置顺延）；`isValidConnection` 只放行「文字／媒体 → 草稿」；默认用途：文字→提示、音频→声音、图片／视频→构图 | ST-02：拖连成功、重复拒绝并提示、公共接口核对 |
+| 用途 | 连线右键菜单：用途子菜单（文字来源只有「提示」，媒体来源为全部用途）、停用／启用、删除；停用的连线虚线；连线可点选，⌫ 删除所选连线 | ST-02：停用、删除 |
+| ⊕ 继续创作 | 单选一张可作来源的卡（有内容的文字、已有媒体）时卡右侧出现 ⊕（屏幕尺度，不随缩放），选图片／视频／音频后由 `prepareCanvasCreation`／`createCanvasDraft` 固定来源身份、在右侧放新草稿并连线；多选时在右键菜单「共同作为参考」；草稿不能作来源 | ST-02：⊕ 建视频草稿并连线、草稿无 ⊕ 且菜单项禁用 |
+| 引用角标 | 被引用的卡显示用途角标：媒体卡在缩略图左上角，文字卡在标题行；状态由 `referenceState` 决定（已停用、来源不在、素材读取失败、归档、待验收） | ST-02：提示 → 已停用 |
+
+未做，属于后续片：输入面板里的参考缩略图与用途角标（③）；生成时的来源快照（③）。
+
+并排图：[slice-2-references.png](../design/assets/2026-09-21-studio-rebuild/slice-2-references.png)。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00／ST-01／ST-02 通过。
+
+实现中定下的细则：交给 React Flow 的回调与配置对象保持稳定身份（`useCallback`、模块常量），并且创作台组件不订阅 React Flow 的连接状态（改用 `onConnectStart`／`onConnectEnd`）——否则它的 store 更新器会在每次渲染写入 store，而订阅者又触发下一次渲染，直到 React 报「更新深度超限」。
 
 ## 2. 新目录的模块规划
 
@@ -103,7 +119,7 @@
 |---|---|---|
 | 0 准备 | 已交付（本文 §1） | [phase-0-shell.png](../design/assets/2026-09-21-studio-rebuild/phase-0-shell.png) |
 | ① 页面壳与卡片 | 已交付（本文 §1a） | [选中图片卡](../design/assets/2026-09-21-studio-rebuild/slice-1-image-selected.png)、[编辑文字卡](../design/assets/2026-09-21-studio-rebuild/slice-1-text-edit.png)、[快捷键](../design/assets/2026-09-21-studio-rebuild/slice-1-shortcuts.png) |
-| ② 端口与连线 | 未开始 | — |
+| ② 端口与连线 | 已交付（本文 §1b） | [端口、连线、⊕](../design/assets/2026-09-21-studio-rebuild/slice-2-references.png) |
 | ③ 输入面板 | 未开始 | — |
 | ④ 卡内结果 | 未开始 | — |
 | ⑤ 资产侧面板 | 未开始 | — |

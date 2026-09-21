@@ -12,11 +12,24 @@ import {
   BackgroundVariant,
   ReactFlow,
   useReactFlow,
+  type Connection,
   type Edge,
+  type EdgeChange,
+  type IsValidConnection,
   type NodeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/base.css";
-import { Copy, PencilSimple, Trash } from "@phosphor-icons/react";
+import {
+  ArrowBendDownRight,
+  Copy,
+  FilmStrip,
+  ImageSquare,
+  MusicNotes,
+  PencilSimple,
+  Prohibit,
+  Tag,
+  Trash,
+} from "@phosphor-icons/react";
 import {
   inspectCanvasDocument,
   type CanvasDocument,
@@ -35,6 +48,11 @@ import {
   updateCanvasNodeGeometry,
 } from "../../business/canvas-node-actions";
 import { referencePurposes } from "../../business/reference-purposes";
+import { appendCanvasReference } from "../../business/canvas-reference";
+import {
+  createCanvasDraft,
+  prepareCanvasCreation,
+} from "../../business/canvas-creation";
 import { ErrorNotice } from "../../business/common";
 import { Card, type CardActions, type CardNode } from "./Card";
 import { Toolbar, type BoardTool } from "../shell/Toolbar";
@@ -43,6 +61,26 @@ import classes from "./board.module.css";
 
 const nodeTypes = { card: Card };
 const kindLabel = { text: "文字", image: "图片", video: "视频", audio: "音频" };
+// Constant props for React Flow: a new identity per render would make its
+// store updater write on every render, and any store subscriber in this
+// component would then re-render it again without end.
+const ariaLabelConfig = {
+  "node.a11yDescription.default": "按方向键移动卡片，按回车选中。",
+};
+const panOnDragButtons = [1, 2];
+type ReferenceEdge = CanvasDocument["edges"][number];
+type Purpose = ReferenceEdge["purpose"];
+/** A card that can feed a draft: text with something in it, or existing media. */
+const validSource = (node: CanvasNode) =>
+  node.content.type === "media" ||
+  (node.kind === "text" && node.content.text.trim() !== "");
+/** What a new reference means until the user says otherwise. */
+const defaultPurpose = (source: CanvasNode): Purpose =>
+  source.kind === "text"
+    ? "prompt"
+    : source.kind === "audio"
+      ? "voice"
+      : "composition";
 
 /**
  * The board: React Flow over the canvas document, with the studio's own cards.
@@ -77,7 +115,11 @@ export function Board({
   const [error, setError] = useState<Error | null>(null);
   const [editingTextId, setEditingTextId] = useState<string>();
   const [renamingId, setRenamingId] = useState<string>();
-  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const [selectedEdges, setSelectedEdges] = useState<string[]>([]);
+  const [menu, setMenu] = useState<
+    { x: number; y: number; kind: "node" } | { x: number; y: number; kind: "edge"; edgeId: string } | null
+  >(null);
+  const [connecting, setConnecting] = useState(false);
   // React Flow needs measured sizes on controlled nodes; they are view state only.
   const [measurements, setMeasurements] = useState<
     Record<string, { width: number; height: number }>
@@ -96,6 +138,14 @@ export function Board({
     if (editingTextId && !ids.has(editingTextId)) setEditingTextId(undefined);
     if (renamingId && !ids.has(renamingId)) setRenamingId(undefined);
   }, [document.nodes, editingTextId, renamingId]);
+  useEffect(() => {
+    const ids = new Set(document.edges.map((edge) => edge.id));
+    setSelectedEdges((current) =>
+      current.every((id) => ids.has(id))
+        ? current
+        : current.filter((id) => ids.has(id)),
+    );
+  }, [document.edges]);
   const selectedSet = useMemo(() => new Set(selected), [selected]);
   const current = useCallback(
     () => controller.getSnapshot().local?.document,
@@ -156,9 +206,38 @@ export function Board({
         const doc = current();
         if (doc) change(updateCanvasNodeGeometry(doc, id, { width }));
       },
+      continueWith: (ids, kind) => {
+        // The engine pins the sources' identity, refuses drafts as sources,
+        // places the new draft to their right and wires the references.
+        const doc = current();
+        if (!doc) return;
+        try {
+          const prepared = prepareCanvasCreation(doc, ids);
+          change(createCanvasDraft(doc, prepared, kind));
+          if (
+            controller
+              .getSnapshot()
+              .local?.document.nodes.some((node) => node.id === prepared.id)
+          ) {
+            onSelect([prepared.id]);
+            setRenamingId(undefined);
+            setEditingTextId(undefined);
+          }
+        } catch (cause) {
+          setError(
+            cause instanceof Error ? cause : new Error("草稿尚未创建，原来源已保留。"),
+          );
+        }
+      },
     }),
-    [change, current],
+    [change, current, controller, onSelect],
   );
+  const referencesBySource = useMemo(() => {
+    const map = new Map<string, ReferenceEdge[]>();
+    for (const edge of document.edges)
+      map.set(edge.sourceNodeId, [...(map.get(edge.sourceNodeId) ?? []), edge]);
+    return map;
+  }, [document.edges]);
   const groupTitles = useMemo(
     () => new Map(document.groups.map((group) => [group.id, group.title])),
     [document.groups],
@@ -178,6 +257,12 @@ export function Board({
           renaming: renamingId === node.id,
           readOnly,
           actions,
+          references: referencesBySource.get(node.id) ?? [],
+          canContinue:
+            !readOnly &&
+            selected.length === 1 &&
+            selectedSet.has(node.id) &&
+            validSource(node),
         },
         ...(measurements[node.id] ? { measured: measurements[node.id] } : {}),
         selected: selectedSet.has(node.id),
@@ -194,24 +279,93 @@ export function Board({
       measurements,
       liveWidths,
       selectedSet,
+      selected.length,
+      referencesBySource,
     ],
   );
-  // Existing references are drawn; connecting and editing them is the next slice.
+  const selectedEdgeSet = useMemo(() => new Set(selectedEdges), [selectedEdges]);
+  // References are edges: selectable, disabled ones dashed; removal is ours.
   const edges = useMemo<Edge[]>(
     () =>
       document.edges.map((edge) => ({
         id: edge.id,
         source: edge.sourceNodeId,
         target: edge.targetNodeId,
-        ariaLabel:
-          edge.purpose === "prompt" ? "提示" : referencePurposes[edge.purpose],
+        ariaLabel: `${edge.purpose === "prompt" ? "提示" : referencePurposes[edge.purpose]}${edge.enabled ? "" : " · 已停用"}`,
         ...(edge.enabled ? {} : { className: classes.edgeDisabled! }),
         deletable: false,
-        selectable: false,
-        focusable: false,
+        selectable: true,
+        focusable: true,
+        selected: selectedEdgeSet.has(edge.id),
       })),
-    [document.edges],
+    [document.edges, selectedEdgeSet],
   );
+  const onEdgesChange = (changes: EdgeChange<Edge>[]) => {
+    const selection = new Set(selectedEdges);
+    let selecting = false;
+    for (const c of changes)
+      if (c.type === "select") {
+        selecting = true;
+        if (c.selected) selection.add(c.id);
+        else selection.delete(c.id);
+      }
+    if (selecting) setSelectedEdges([...selection]);
+  };
+  const isValidConnection = useCallback<IsValidConnection<Edge>>(
+    (candidate) => {
+      const doc = current();
+      const source = doc?.nodes.find((node) => node.id === candidate.source),
+        target = doc?.nodes.find((node) => node.id === candidate.target);
+      return (
+        !!source &&
+        !!target &&
+        source.id !== target.id &&
+        source.content.type !== "draft" &&
+        target.content.type === "draft"
+      );
+    },
+    [current],
+  );
+  const connect = useCallback(
+    (connection: Connection) => {
+      setConnecting(false);
+      const doc = current();
+      const source = doc?.nodes.find((node) => node.id === connection.source);
+      if (!doc || !source || readOnly) return;
+      try {
+        change({
+          ...doc,
+          edges: appendCanvasReference(doc.edges, {
+            id: crypto.randomUUID(),
+            sourceNodeId: connection.source,
+            targetNodeId: connection.target,
+            enabled: true,
+            purpose: defaultPurpose(source),
+          }),
+        });
+      } catch (cause) {
+        setError(cause instanceof Error ? cause : new Error("引用未添加。"));
+      }
+    },
+    [current, change, readOnly],
+  );
+  const onConnectStart = useCallback(() => setConnecting(true), []);
+  const onConnectEnd = useCallback(() => setConnecting(false), []);
+  const editEdge = (
+    edgeId: string,
+    patch: (edge: ReferenceEdge) => ReferenceEdge | null,
+  ) => {
+    const doc = current();
+    if (!doc || readOnly) return;
+    change({
+      ...doc,
+      edges: doc.edges.flatMap((edge) => {
+        if (edge.id !== edgeId) return [edge];
+        const next = patch(edge);
+        return next ? [next] : [];
+      }),
+    });
+  };
   const onNodesChange = (changes: NodeChange<CardNode>[]) => {
     const dimensions = changes.filter((c) => c.type === "dimensions");
     if (dimensions.length)
@@ -333,17 +487,21 @@ export function Board({
     boardElement.current?.focus({ preventScroll: true });
   const remove = () => {
     const doc = current();
-    if (!doc || readOnly || !selected.length) return;
+    if (!doc || readOnly || (!selected.length && !selectedEdges.length))
+      return;
     focusBoard();
     change({
       ...doc,
       nodes: doc.nodes.filter((n) => !selectedSet.has(n.id)),
       edges: doc.edges.filter(
         (e) =>
-          !selectedSet.has(e.sourceNodeId) && !selectedSet.has(e.targetNodeId),
+          !selectedEdgeSet.has(e.id) &&
+          !selectedSet.has(e.sourceNodeId) &&
+          !selectedSet.has(e.targetNodeId),
       ),
     });
-    onSelect([]);
+    setSelectedEdges([]);
+    if (selected.length) onSelect([]);
   };
   const duplicate = () => {
     const doc = current();
@@ -406,11 +564,26 @@ export function Board({
     selected.length === 1
       ? document.nodes.find((node) => node.id === selected[0])
       : undefined;
+  const selectedNodes = document.nodes.filter((node) => selectedSet.has(node.id));
+  const sourcesReady =
+    selectedNodes.length > 0 && selectedNodes.every(validSource);
+  const menuEdge =
+    menu?.kind === "edge"
+      ? document.edges.find((edge) => edge.id === menu.edgeId)
+      : undefined;
+  const menuEdgeSource = menuEdge
+    ? document.nodes.find((node) => node.id === menuEdge.sourceNodeId)
+    : undefined;
+  const purposeChoices: Purpose[] =
+    menuEdgeSource?.kind === "text"
+      ? ["prompt"]
+      : (Object.keys(referencePurposes) as Purpose[]);
   return (
     <div
       ref={boardElement}
       className={classes.board}
       data-tool={tool}
+      data-connecting={connecting || undefined}
       tabIndex={-1}
       onKeyDown={onKeyDown}
     >
@@ -438,7 +611,17 @@ export function Board({
           onViewport(next);
         }}
         onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         onNodeDragStop={() => void controller.save()}
+        isValidConnection={isValidConnection}
+        onConnectStart={onConnectStart}
+        onConnect={connect}
+        onConnectEnd={onConnectEnd}
+        onEdgeContextMenu={(event, edge) => {
+          event.preventDefault();
+          setSelectedEdges([edge.id]);
+          setMenu({ x: event.clientX, y: event.clientY, kind: "edge", edgeId: edge.id });
+        }}
         onPaneClick={() => {
           setEditingTextId(undefined);
           setRenamingId(undefined);
@@ -459,7 +642,7 @@ export function Board({
           event.preventDefault();
           if (!selectedSet.has(node.id)) onSelect([node.id]);
           setRenamingId(undefined);
-          setMenu({ x: event.clientX, y: event.clientY });
+          setMenu({ x: event.clientX, y: event.clientY, kind: "node" });
         }}
         onPaneContextMenu={(event) => {
           event.preventDefault();
@@ -467,20 +650,19 @@ export function Board({
         }}
         zoomOnDoubleClick={false}
         nodesDraggable={!readOnly && tool === "select"}
-        nodesConnectable={false}
+        nodesConnectable={!readOnly}
+        connectionRadius={24}
         panActivationKeyCode="Space"
         selectionKeyCode="Shift"
         elementsSelectable={tool === "select"}
-        panOnDrag={tool === "hand" ? true : [1, 2]}
+        panOnDrag={tool === "hand" ? true : panOnDragButtons}
         panOnScroll
         zoomOnScroll
         zoomOnPinch
         selectionOnDrag={tool === "select"}
         deleteKeyCode={null}
         onlyRenderVisibleElements
-        ariaLabelConfig={{
-          "node.a11yDescription.default": "按方向键移动卡片，按回车选中。",
-        }}
+        ariaLabelConfig={ariaLabelConfig}
       >
         <Background
           variant={BackgroundVariant.Dots}
@@ -507,31 +689,107 @@ export function Board({
             aria-hidden
           />
         </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Item
-            leftSection={<PencilSimple size={14} />}
-            disabled={readOnly || !single}
-            onClick={() => single && actions.startRename(single.id)}
-          >
-            重命名
-          </Menu.Item>
-          <Menu.Item
-            leftSection={<Copy size={14} />}
-            rightSection={<kbd className={classes.kbd} aria-hidden>⌘D</kbd>}
-            disabled={readOnly}
-            onClick={duplicate}
-          >
-            复制
-          </Menu.Item>
-          <Menu.Item
-            leftSection={<Trash size={14} />}
-            rightSection={<kbd className={classes.kbd} aria-hidden>⌫</kbd>}
-            disabled={readOnly}
-            onClick={remove}
-          >
-            删除
-          </Menu.Item>
-        </Menu.Dropdown>
+        {menu?.kind === "edge" && menuEdge ? (
+          <Menu.Dropdown>
+            <Menu.Label>
+              {menuEdgeSource?.title ?? "参考"} → {document.nodes.find((node) => node.id === menuEdge.targetNodeId)?.title ?? "草稿"}
+            </Menu.Label>
+            <Menu.Sub>
+              <Menu.Sub.Target>
+                <Menu.Sub.Item leftSection={<Tag size={14} />} disabled={readOnly}>
+                  用途 · {menuEdge.purpose === "prompt" ? "提示" : referencePurposes[menuEdge.purpose]}
+                </Menu.Sub.Item>
+              </Menu.Sub.Target>
+              <Menu.Sub.Dropdown>
+                {purposeChoices.map((purpose) => (
+                  <Menu.Item
+                    key={purpose}
+                    disabled={readOnly}
+                    data-active={purpose === menuEdge.purpose || undefined}
+                    onClick={() =>
+                      editEdge(menuEdge.id, (edge) => ({ ...edge, purpose }))
+                    }
+                  >
+                    {purpose === "prompt" ? "提示" : referencePurposes[purpose]}
+                  </Menu.Item>
+                ))}
+              </Menu.Sub.Dropdown>
+            </Menu.Sub>
+            <Menu.Item
+              leftSection={<Prohibit size={14} />}
+              disabled={readOnly}
+              onClick={() =>
+                editEdge(menuEdge.id, (edge) => ({ ...edge, enabled: !edge.enabled }))
+              }
+            >
+              {menuEdge.enabled ? "停用" : "启用"}
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<Trash size={14} />}
+              rightSection={<kbd className={classes.kbd} aria-hidden>⌫</kbd>}
+              disabled={readOnly}
+              onClick={() => editEdge(menuEdge.id, () => null)}
+            >
+              删除
+            </Menu.Item>
+          </Menu.Dropdown>
+        ) : (
+          <Menu.Dropdown>
+            <Menu.Item
+              leftSection={<PencilSimple size={14} />}
+              disabled={readOnly || !single}
+              onClick={() => single && actions.startRename(single.id)}
+            >
+              重命名
+            </Menu.Item>
+            <Menu.Sub>
+              <Menu.Sub.Target>
+                <Menu.Sub.Item
+                  leftSection={<ArrowBendDownRight size={14} />}
+                  disabled={readOnly || !sourcesReady}
+                >
+                  {selected.length > 1 ? "共同作为参考" : "继续创作"}
+                </Menu.Sub.Item>
+              </Menu.Sub.Target>
+              <Menu.Sub.Dropdown>
+                <Menu.Item
+                  leftSection={<ImageSquare size={14} />}
+                  onClick={() => actions.continueWith(selected, "image")}
+                >
+                  图片
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<FilmStrip size={14} />}
+                  onClick={() => actions.continueWith(selected, "video")}
+                >
+                  视频
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<MusicNotes size={14} />}
+                  onClick={() => actions.continueWith(selected, "audio")}
+                >
+                  音频
+                </Menu.Item>
+              </Menu.Sub.Dropdown>
+            </Menu.Sub>
+            <Menu.Item
+              leftSection={<Copy size={14} />}
+              rightSection={<kbd className={classes.kbd} aria-hidden>⌘D</kbd>}
+              disabled={readOnly}
+              onClick={duplicate}
+            >
+              复制
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<Trash size={14} />}
+              rightSection={<kbd className={classes.kbd} aria-hidden>⌫</kbd>}
+              disabled={readOnly}
+              onClick={remove}
+            >
+              删除
+            </Menu.Item>
+          </Menu.Dropdown>
+        )}
       </Menu>
       <Toolbar
         readOnly={readOnly}

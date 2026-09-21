@@ -8,3 +8,4 @@
 | `slice-1-image-selected.png` | ① 页面壳与卡片 | `libtv-image-selected.png` | ST-01：文字卡旁选中的空图片卡，端口可见 |
 | `slice-1-text-edit.png` | ① 页面壳与卡片 | `libtv-text-edit.png` | ST-01：文字卡就地编辑 |
 | `slice-1-shortcuts.png` | ① 页面壳与卡片 | `libtv-shortcuts.png` | ST-01：快捷键总览，只列已实现的 |
+| `slice-2-references.png` | ② 端口与连线 | `libtv-video-composer.png` | ST-02：文字卡的 ⊕、两条连线、用途角标与重复引用的提示 |

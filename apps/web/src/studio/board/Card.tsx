@@ -1,8 +1,9 @@
 import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
-import { Text, TextInput, Textarea } from "@mantine/core";
+import { Menu, Text, TextInput, Textarea, UnstyledButton } from "@mantine/core";
 import {
   Handle,
   NodeResizeControl,
+  NodeToolbar,
   Position,
   type Node,
   type NodeProps,
@@ -13,15 +14,17 @@ import {
   ImageSquare,
   MusicNotes,
   Play,
+  Plus,
   Quotes,
   TextAlignLeft,
   WarningCircle,
 } from "@phosphor-icons/react";
-import type { CanvasNode } from "@drama/domain";
+import type { CanvasDocument, CanvasNode } from "@drama/domain";
 import { useResource, type Schema } from "../../business/api";
 import { MediaPreview } from "../../business/MediaPreview";
 import { draftFrameAspect } from "../../business/canvas-card-frame";
 import { CANVAS_NODE_WIDTH } from "../../business/canvas-node-actions";
+import { referenceState } from "../../business/canvas-reference-state";
 import classes from "./board.module.css";
 
 export type CardActions = {
@@ -31,6 +34,8 @@ export type CardActions = {
   /** `null` cancels; a title commits (validated by the engine). */
   rename: (id: string, title: string | null) => void;
   resizeWidth: (id: string, width: number, done: boolean) => void;
+  /** Create a draft of `kind` fed by these cards; the engine checks the sources. */
+  continueWith: (ids: string[], kind: "image" | "video" | "audio") => void;
 };
 export type CardData = {
   node: CanvasNode;
@@ -40,6 +45,10 @@ export type CardData = {
   renaming: boolean;
   readOnly: boolean;
   actions: CardActions;
+  /** References this card feeds, shown as purpose badges on it. */
+  references: CanvasDocument["edges"];
+  /** Single selection of a usable source: the ⊕ to continue from it appears. */
+  canContinue: boolean;
 };
 export type CardNode = Node<CardData, "card">;
 
@@ -62,6 +71,38 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
   const Icon = icons[node.kind];
   const excerpt = node.kind === "text" && !!node.content.sourceExcerpt;
   const aspect = node.content.type === "draft" ? draftFrameAspect(node) : null;
+  const media = useResource<Schema<"Media">>(
+    `${data.mediaPath}/media/${node.content.type === "media" ? node.content.mediaId : ""}`,
+    node.content.type === "media",
+  );
+  const mediaStatus =
+    node.content.type !== "media"
+      ? undefined
+      : media.isError
+        ? null
+        : media.data?.id === node.content.mediaId
+          ? { status: media.data.status }
+          : undefined;
+  const badges = [
+    ...new Map(
+      data.references
+        .map((edge) => referenceState({ edge, source: node, media: mediaStatus }))
+        .map((state) => [state.label, state] as const),
+    ).values(),
+  ];
+  // Purposes this card serves: in the label row for text, over the frame for media.
+  const badgeRow = badges.length > 0 && (
+    <span className={classes.badges} aria-label="作为参考的用途">
+      {badges.slice(0, 3).map((badge) => (
+        <span key={badge.label} className={classes.badge} data-tone={badge.tone}>
+          {badge.label}
+        </span>
+      ))}
+      {badges.length > 3 && (
+        <span className={classes.badge}>+{badges.length - 3}</span>
+      )}
+    </span>
+  );
   const style: CSSProperties | undefined = aspect
     ? { aspectRatio: `${aspect.width} / ${aspect.height}` }
     : undefined;
@@ -86,6 +127,7 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
         ) : (
           <span className={classes.title}>{node.title}</span>
         )}
+        {node.kind === "text" && badgeRow}
         {data.groupTitle && (
           <span className={classes.group}>{data.groupTitle}</span>
         )}
@@ -113,23 +155,66 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
             kind={node.kind}
             mediaId={node.content.mediaId}
             path={data.mediaPath}
+            media={media}
           />
         )}
+        {node.kind !== "text" && badgeRow}
       </article>
-      <Handle
-        type="target"
-        position={Position.Left}
-        className={classes.port}
-        isConnectable={false}
-        aria-label="接收参考"
-      />
-      <Handle
-        type="source"
+      {node.content.type === "draft" ? (
+        <Handle
+          type="target"
+          position={Position.Left}
+          className={classes.port}
+          isConnectable={!readOnly}
+          aria-label="接收参考"
+        />
+      ) : (
+        <Handle
+          type="source"
+          position={Position.Right}
+          className={classes.port}
+          isConnectable={!readOnly}
+          aria-label="作为参考"
+        />
+      )}
+      <NodeToolbar
         position={Position.Right}
-        className={classes.port}
-        isConnectable={false}
-        aria-label="作为参考"
-      />
+        isVisible={data.canContinue}
+        offset={12}
+        className={classes.continueToolbar!}
+      >
+        <Menu position="right-start" shadow="md" width={140} withinPortal>
+          <Menu.Target>
+            <UnstyledButton
+              className={`nodrag nopan ${classes.plus}`}
+              aria-label="继续创作"
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <Plus size={16} aria-hidden />
+            </UnstyledButton>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Item
+              leftSection={<ImageSquare size={14} />}
+              onClick={() => actions.continueWith([id], "image")}
+            >
+              图片
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<FilmStrip size={14} />}
+              onClick={() => actions.continueWith([id], "video")}
+            >
+              视频
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<MusicNotes size={14} />}
+              onClick={() => actions.continueWith([id], "audio")}
+            >
+              音频
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+      </NodeToolbar>
       {node.kind === "text" && !excerpt && !readOnly && selected && (
         <NodeResizeControl
           position="bottom-right"
@@ -251,12 +336,13 @@ function MediaBody({
   kind,
   mediaId,
   path,
+  media,
 }: {
   kind: "image" | "video" | "audio";
   mediaId: string;
   path: string;
+  media: ReturnType<typeof useResource<Schema<"Media">>>;
 }) {
-  const media = useResource<Schema<"Media">>(`${path}/media/${mediaId}`);
   const Icon = icons[kind];
   if (media.isError)
     return (
