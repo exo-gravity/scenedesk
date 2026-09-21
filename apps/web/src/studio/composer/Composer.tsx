@@ -306,8 +306,12 @@ export function Composer(props: ComposerProps) {
   const busyText = state.busy ? "处理中…" : undefined;
   const notice = error ?? state.error;
   const stop = (event: KeyboardEvent) => event.stopPropagation();
-  // Rule 19: without confirmed access the whole panel is the recheck prompt.
-  if (state.access !== "ready")
+  // Rule 19: without confirmed access nothing can be submitted. A denied read
+  // swaps the panel for the recheck prompt; a check in progress keeps the
+  // same panel with everything disabled, so selecting a card never flashes
+  // a different shape first.
+  const checking = state.access === "checking";
+  if (state.access !== "ready" && !checking)
     return (
       <section
         ref={props.panelRef}
@@ -435,7 +439,10 @@ export function Composer(props: ComposerProps) {
           </UnstyledButton>
         ) : (
           <span className={classes.status} data-tone={notice ? "error" : undefined} role="status">
-            {notice ??
+            {checking ? (
+              <Loader size="xs" aria-label="正在核对访问" />
+            ) : (
+              notice ??
               busyText ??
               (plan
                 ? expired
@@ -447,7 +454,8 @@ export function Composer(props: ComposerProps) {
                   ? "原请求已固定，可继续"
                   : props.awaitingSave
                     ? "生成前会先保存创作台" // rule 9
-                    : (reason ?? ""))}
+                    : "")
+            )}
           </span>
         )}
         {record?.execution ? (
@@ -514,7 +522,7 @@ export function Composer(props: ComposerProps) {
       {record?.execution && job && (job.status === "succeeded" || job.status === "archive_failed" || draft?.archiveRequest) && (
         <div className={classes.row} data-align="end" aria-label="本次生成结果">
           {job.status === "succeeded" && !placement && (
-            <UnstyledButton className={classes.action} disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
+            <UnstyledButton className={classes.action} data-quiet disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
               添加到创作台
             </UnstyledButton>
           )}
@@ -583,13 +591,23 @@ export function Composer(props: ComposerProps) {
           if (draft) session.updateDraft({ ...draft, placement: undefined }, true);
         }}
         title={`确认添加${label}结果`}
+        radius="lg"
+        padding="lg"
+        withCloseButton={false}
+        classNames={{ title: classes.focusTitle, content: classes.focusContent }}
       >
-        <Text size="sm">将已归档的{label}作为独立卡片加入创作台，本次固定 {placement?.input.mediaIds.length ?? 0} 份结果。</Text>
-        <Text size="xs" c="dimmed" mt="xs">
-          位置：{placement?.input.position?.x ?? 0}，{placement?.input.position?.y ?? 0}
-        </Text>
-        <div className={classes.row} data-align="end" style={{ marginTop: "var(--mantine-spacing-md)" }}>
-          <UnstyledButton className={classes.action} disabled={disabled || job?.status !== "succeeded"} onClick={materialize}>
+        <Text size="sm">将已归档的{label}作为独立卡片加入创作台，放在草稿旁边；本次固定 {placement?.input.mediaIds.length ?? 0} 份结果。</Text>
+        <div className={classes.dialogActions}>
+          <UnstyledButton
+            className={classes.cancel}
+            onClick={() => {
+              setPlacementOpen(false);
+              if (draft) session.updateDraft({ ...draft, placement: undefined }, true);
+            }}
+          >
+            取消
+          </UnstyledButton>
+          <UnstyledButton className={classes.primary} disabled={disabled || job?.status !== "succeeded"} onClick={materialize}>
             确认添加到创作台
           </UnstyledButton>
         </div>
@@ -598,7 +616,16 @@ export function Composer(props: ComposerProps) {
   );
   // Focus editing is the same panel in a dialog: nothing else changes.
   return props.focused ? (
-    <Modal opened onClose={() => props.onFocusChange(false)} title={`专注编辑 · ${node.title}`} size="xl">
+    <Modal
+      opened
+      onClose={() => props.onFocusChange(false)}
+      title={`专注编辑 · ${node.title}`}
+      size={920}
+      radius="lg"
+      padding="lg"
+      withCloseButton={false}
+      classNames={{ title: classes.focusTitle, content: classes.focusContent }}
+    >
       {panel}
     </Modal>
   ) : (

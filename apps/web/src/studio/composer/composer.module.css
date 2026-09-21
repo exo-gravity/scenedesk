@@ -67,6 +67,7 @@
   height: var(--ws-studio-reference-size);
   border-radius: var(--ws-radius);
   overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--ws-studio-card-border);
   background: var(--ws-hover);
   color: var(--ws-studio-card-label);
   display: flex;
@@ -76,20 +77,32 @@
 .reference[data-tone="disabled"] {
   opacity: 0.5;
 }
+/* The shared preview brings a 16:10 thumbnail box; here it fills the square. */
+.reference > div {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  background: transparent;
+}
 .reference :global(img),
 .reference :global(video) {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+/* The purpose is a small corner tag, as LibTV tags a first frame. */
 .referenceTag {
   position: absolute;
   top: 2px;
   left: 2px;
+  max-width: calc(100% - 4px);
   padding: 0 4px;
   border-radius: var(--ws-radius);
   font-size: var(--mantine-font-size-xs);
   line-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   background: color-mix(in srgb, var(--ws-media) 72%, transparent);
   color: var(--ws-studio-card);
   pointer-events: none;
@@ -159,6 +172,45 @@
 }
 .submit:disabled {
   opacity: 0.35;
+}
+.submit:not(:disabled):hover,
+.action:not(:disabled):hover {
+  background: color-mix(in srgb, var(--ws-studio-submit) 86%, var(--ws-studio-card));
+}
+.submit:not(:disabled):active,
+.action:not(:disabled):active {
+  transform: scale(0.96);
+}
+.action[data-quiet]:not(:disabled):hover {
+  background: var(--ws-studio-chrome-border);
+}
+/* Dialog actions: one primary the size of the submit control, a text cancel. */
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--mantine-spacing-sm);
+  margin-top: var(--mantine-spacing-lg);
+}
+.primary {
+  height: 36px;
+  padding-inline: var(--mantine-spacing-md);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-studio-submit);
+  color: var(--ws-studio-on-submit);
+  font-size: var(--mantine-font-size-sm);
+}
+.primary:disabled {
+  opacity: 0.35;
+}
+.cancel {
+  height: 36px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  color: var(--ws-secondary);
+  font-size: var(--mantine-font-size-sm);
+}
+.cancel:hover {
+  background: var(--ws-hover);
 }
 .action {
   height: 28px;
@@ -306,9 +358,18 @@
   box-shadow: none;
   border: none;
   padding: 0;
+  gap: var(--mantine-spacing-md);
 }
 .panel[data-focus] .prompt {
-  min-height: 200px;
+  min-height: clamp(200px, 40vh, 480px);
+}
+.focusTitle {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--ws-secondary);
+}
+.focusContent {
+  background: var(--ws-studio-card);
 }
 /* The status doubles as the check control while a task exists. */
 .status[data-check] {

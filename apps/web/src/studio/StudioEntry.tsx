@@ -149,6 +149,7 @@ export default function StudioEntry({
         canvasId={canvasId}
         sceneId={sceneId}
         canvasLabel={canvasLabel}
+        projectAspect={{ width: project.data.spec.width, height: project.data.spec.height }}
         content={content.data}
         active={active}
         projectName={projectName}

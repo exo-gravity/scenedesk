@@ -106,3 +106,17 @@ test("other cards break ties only after references", () => {
   assert.equal(kept.side, "below");
   assert.equal(intersectionArea(kept.rect, reference), 0);
 });
+
+test("a panel that grows keeps its side while that side still fits", () => {
+  const safe: ScreenRect = { x: 0, y: 0, width: 1600, height: 900 };
+  const anchor: ScreenRect = { x: 700, y: 100, width: 280, height: 300 };
+  const first = placeComposer({ anchor, safe, size: { width: 660, height: 240 } });
+  assert.equal(first.kind, "local");
+  // A reference card sits below the anchor, which the soft constraints would rather not cover.
+  const grown = placeComposer({
+    anchor, safe, previous: first, size: { width: 660, height: 420 },
+    references: [{ x: 700, y: 420, width: 280, height: 200 }],
+  });
+  assert.equal(grown.kind, "local");
+  assert.equal((grown as { side: string }).side, (first as { side: string }).side);
+});

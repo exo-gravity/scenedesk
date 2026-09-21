@@ -124,7 +124,7 @@ function AttemptRow({ tenantId, entry, title, open }: { tenantId: string; entry:
           {title ? `${title} · ` : ""}{kindLabel[kind] ?? "结果"} · {status}
         </Text>
         <Text component="span" size="xs" c="dimmed">
-          {entry.plan.createdAt ? new Date(entry.plan.createdAt).toLocaleString() : `计划 ${entry.plan.id.slice(0, 8)}`}
+          {entry.plan.createdAt ? new Date(entry.plan.createdAt).toLocaleString("zh-CN", { hour12: false, month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : `计划 ${entry.plan.id.slice(0, 8)}`}
         </Text>
       </span>
     </UnstyledButton>

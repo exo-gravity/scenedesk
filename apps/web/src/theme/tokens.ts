@@ -49,7 +49,7 @@ export const studio = {
   toolbarHeight: 48,
   toolSize: 36,
   composerWidth: 660,
-  referenceSize: 48,
+  referenceSize: 56,
   portSize: 10,
   dotSize: 1.5,
   dotGap: 20,

@@ -29,6 +29,21 @@
   padding-inline: var(--mantine-spacing-md);
   pointer-events: none;
   z-index: 2;
+  container-type: inline-size;
+}
+/* Narrow boards: the right group gives up its words before the view switch is touched. */
+@container (max-width: 1160px) {
+  .environment {
+    display: none;
+  }
+  .tool > span,
+  .status > span {
+    display: none;
+  }
+  .tool,
+  .status {
+    padding-inline: var(--mantine-spacing-xs);
+  }
 }
 .barGroup {
   display: flex;
@@ -197,4 +212,9 @@
   align-items: center;
   height: var(--ws-studio-tool-size);
   min-width: 0;
+}
+/* The legacy layer clamps every svg to 18px; inside the studio icons keep their own size. */
+.studio svg {
+  width: auto;
+  height: auto;
 }

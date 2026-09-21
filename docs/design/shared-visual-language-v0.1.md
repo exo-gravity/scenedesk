@@ -75,7 +75,7 @@
 | `--ws-studio-toolbar-height` | 48px | 底部工具条 |
 | `--ws-studio-tool-size` | 36px | 顶栏胶囊与工具按钮高度 |
 | `--ws-studio-composer-width` | 660px | 输入面板宽度 |
-| `--ws-studio-reference-size` | 48px | 参考缩略图 |
+| `--ws-studio-reference-size` | 56px | 参考缩略图 |
 | `--ws-studio-port-size` | 10px | 卡片端口 |
 | `--ws-studio-dot-size`、`--ws-studio-dot-gap` | 1.5px、20px | 点阵背景 |
 | `--ws-studio-canvas`、`--ws-studio-dot` | canvas、dot | 创作台底色与点 |

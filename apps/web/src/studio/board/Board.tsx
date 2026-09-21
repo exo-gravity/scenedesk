@@ -143,6 +143,7 @@ export function Board({
   readOnly,
   selected,
   onSelect,
+  projectAspect,
   viewport,
   onViewport,
   mediaPath,
@@ -163,6 +164,8 @@ export function Board({
   readOnly: boolean;
   selected: string[];
   onSelect: (ids: string[]) => void;
+  /** The project's picture shape: the frame of drafts and loading media cards. */
+  projectAspect: { width: number; height: number };
   viewport: { x: number; y: number; zoom: number };
   onViewport: (viewport: { x: number; y: number; zoom: number }) => void;
   mediaPath: string;
@@ -319,7 +322,21 @@ export function Board({
         if (!doc) return;
         try {
           const prepared = prepareCanvasCreation(doc, ids);
-          change(createCanvasDraft(doc, prepared, kind));
+          const created = createCanvasDraft(doc, prepared, kind);
+          // The engine places the draft to the right of its sources without
+          // looking at other cards; settle it into the nearest free spot.
+          const fresh = created.nodes.find((node) => node.id === prepared.id);
+          if (fresh) {
+            const spot = freeSpot(
+              { ...created, nodes: created.nodes.filter((node) => node.id !== prepared.id) },
+              fresh.width,
+              flow.flowToScreenPosition({ x: fresh.position.x + fresh.width / 2, y: fresh.position.y + 100 }),
+              true,
+            );
+            fresh.position = spot;
+            change(created);
+            reveal(prepared.id, spot, fresh.width);
+          } else change(created);
           if (
             controller
               .getSnapshot()
@@ -414,6 +431,7 @@ export function Board({
         position: node.position,
         width: liveWidths[node.id] ?? node.width,
         data: {
+          projectAspect,
           node,
           mediaPath,
           groupTitle: node.groupId ? groupTitles.get(node.groupId) : undefined,
@@ -636,7 +654,7 @@ export function Board({
    * from the centre, while the frame would cover another card, it moves to
    * that card's right, so cards added in a row line up.
    */
-  const freeSpot = (doc: CanvasDocument, width: number, client?: { x: number; y: number }) => {
+  const freeSpot = (doc: CanvasDocument, width: number, client?: { x: number; y: number }, settle = false) => {
     const box = boardElement.current?.getBoundingClientRect();
     const height = 200;
     const origin = client
@@ -648,7 +666,7 @@ export function Board({
       x: Math.round(origin.x - width / 2),
       y: Math.round(origin.y - height / 2),
     };
-    if (client) return position;
+    if (client && !settle) return position;
     const covered = () =>
       doc.nodes.find((node) => {
         const other = measurements[node.id]?.height ?? height;
@@ -659,9 +677,33 @@ export function Board({
           node.position.y < position.y + height + 24
         );
       });
+    if (!covered()) return position;
+    // Search around the origin in growing rings, right and below first, so a
+    // new card lands in the nearest gap rather than walking off the screen.
+    const start = { ...position };
+    const dx = width + 40, dy = height + 40;
+    const ring = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]] as const;
+    for (let step = 1; step <= 6; step++)
+      for (const [ox, oy] of ring) {
+        position.x = start.x + ox * dx * step;
+        position.y = start.y + oy * dy * step;
+        if (!covered()) return position;
+      }
+    position.x = start.x; position.y = start.y;
     for (let step = 0, hit = covered(); step < 50 && hit; step++, hit = covered())
       position.x = hit.position.x + hit.width + 48;
     return position;
+  };
+  /** Bring a node into view when it sits outside the visible board. */
+  const reveal = (id: string, position: { x: number; y: number }, width: number, height = 200) => {
+    const box = boardElement.current?.getBoundingClientRect();
+    if (!box) return;
+    const topLeft = flow.flowToScreenPosition(position),
+      bottomRight = flow.flowToScreenPosition({ x: position.x + width, y: position.y + height });
+    const inside =
+      topLeft.x >= box.left && topLeft.y >= box.top + 60 &&
+      bottomRight.x <= box.right && bottomRight.y <= box.bottom - 76;
+    if (!inside) void flow.fitView({ nodes: [{ id }], padding: 0.4, maxZoom: 1, duration: 200 });
   };
   /** A media card for something from the assets panel: read the record first, never trust the drag. */
   const placeMedia = async (item: AssetDrop, client?: { x: number; y: number }) => {
@@ -712,6 +754,7 @@ export function Board({
     onSelect([node.id]);
     setRenamingId(undefined);
     setEditingTextId(kind === "text" ? node.id : undefined);
+    reveal(node.id, node.position, width);
   };
   const focusBoard = () =>
     boardElement.current?.focus({ preventScroll: true });
