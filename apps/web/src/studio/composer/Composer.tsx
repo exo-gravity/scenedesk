@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type Keyboard
 import { Loader, Modal, Text, Textarea, UnstyledButton } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowClockwise,
   ArrowUp,
   ArrowsClockwise,
   ArrowsInSimple,
   ArrowsOutSimple,
+  CircleNotch,
   ClockCounterClockwise,
 } from "@phosphor-icons/react";
 import { editingCanonical, type CanvasDocument, type CanvasNode } from "@drama/domain";
@@ -420,14 +422,24 @@ export function Composer(props: ComposerProps) {
           onShotSources={(shotSources) => draft && session.updateDraft({ ...draft, shotSources })}
           shotSourceProps={{ path, projectId, sceneId }}
         />
-        <span className={classes.status} data-tone={notice ? "error" : undefined} role="status">
-          {notice ??
-            busyText ??
-            (record?.execution
-              ? job
-                ? jobStatusLabel[job.status]
-                : `${label}提交结果待核对`
-              : plan
+        {record?.execution ? (
+          // The state of the task is the check control: one quiet element, no separate icon.
+          <UnstyledButton
+            className={classes.status}
+            data-tone={notice ? "error" : undefined}
+            data-check
+            aria-label={`核对${label}任务`}
+            disabled={state.busy}
+            onClick={() => void session.refresh()}
+          >
+            <ArrowsClockwise size={12} aria-hidden />
+            <span role="status">{notice ?? busyText ?? (job ? jobStatusLabel[job.status] : `${label}提交结果待核对`)}</span>
+          </UnstyledButton>
+        ) : (
+          <span className={classes.status} data-tone={notice ? "error" : undefined} role="status">
+            {notice ??
+              busyText ??
+              (plan
                 ? expired
                   ? "固定计划已过期，请保留原计划并重新准备"
                   : plan.status === "ready"
@@ -438,36 +450,29 @@ export function Composer(props: ComposerProps) {
                   : props.awaitingSave
                     ? "生成前会先保存创作台" // rule 9
                     : (reason ?? ""))}
-        </span>
-        {record?.execution && (
-          <UnstyledButton
-            className={classes.corner}
-            aria-label={`核对${label}任务`}
-            disabled={state.busy}
-            onClick={() => void session.refresh()}
-          >
-            <ArrowsClockwise size={14} aria-hidden />
-          </UnstyledButton>
+          </span>
         )}
         {record?.execution ? (
           !job ? (
-            <UnstyledButton
-              className={classes.action}
-              data-quiet
+            // Rule 15: the submission receipt is unknown; the only move is to check and resume it.
+            <SubmitButton
+              label="核对后恢复原提交"
+              reason="核对后恢复原提交"
               disabled={disabled}
-              onClick={() => void session.resumeSubmission()} // rule 15
+              onClick={() => void session.resumeSubmission()}
             >
-              核对后恢复原提交
-            </UnstyledButton>
+              <ArrowsClockwise size={18} weight="bold" aria-hidden />
+            </SubmitButton>
           ) : jobFinished(job) || canContinueCreation(job) ? (
-            <UnstyledButton
-              className={classes.action}
-              data-quiet
+            // Rule 14: keep the original task, prepare the next draft.
+            <SubmitButton
+              label={continueLabel}
+              reason={continueLabel}
               disabled={
                 disabled ||
                 draft?.placement?.phase === "unknown" ||
                 draft?.placement?.phase === "review"
-              } // rule 14
+              }
               onClick={() =>
                 draft &&
                 void session.revise(
@@ -481,9 +486,13 @@ export function Composer(props: ComposerProps) {
                 )
               }
             >
-              {continueLabel}
-            </UnstyledButton>
-          ) : null
+              <ArrowClockwise size={18} weight="bold" aria-hidden />
+            </SubmitButton>
+          ) : (
+            <SubmitButton label={jobStatusLabel[job.status]} reason={jobStatusLabel[job.status]} disabled onClick={() => {}}>
+              <CircleNotch size={18} weight="bold" aria-hidden className={classes.spin} />
+            </SubmitButton>
+          )
         ) : plan ? (
           <SubmitButton
             label={`继续生成${label}`}

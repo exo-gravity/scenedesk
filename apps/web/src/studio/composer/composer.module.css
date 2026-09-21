@@ -310,3 +310,31 @@
 .panel[data-focus] .prompt {
   min-height: 200px;
 }
+/* The status doubles as the check control while a task exists. */
+.status[data-check] {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: 28px;
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--ws-tool-radius);
+}
+.status[data-check]:not(:disabled):hover {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
