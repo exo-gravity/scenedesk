@@ -469,12 +469,21 @@ test("CW-13: concurrent selection retains reason for explicit recheck; revoked c
     undefined,
     grant.revision,
   );
-  await dialog.getByRole("button", { name: "刷新列表", exact: true }).click();
+  // Revocation reaches the page two ways. A manual refresh replaces the list
+  // inside the dialog with the notice; the project event stream's access_revoked
+  // re-reads the project itself, which replaces the whole project view and closes
+  // the dialog. Both are correct, and which one lands first is a race, so the
+  // manual refresh is attempted but not required, and the outcome is asserted at
+  // page level: a notice is shown and no cached shot order remains anywhere.
+  await dialog
+    .getByRole("button", { name: "刷新列表", exact: true })
+    .click({ timeout: 3000 })
+    .catch(() => undefined);
   await expect(
-    dialog.getByRole("alert").filter({ hasText: "操作未完成" }),
+    page.getByRole("alert").filter({ hasText: "操作未完成" }).first(),
   ).toBeVisible();
   await expect(
-    dialog.getByRole("navigation", { name: "镜头顺序", exact: true }),
+    page.getByRole("navigation", { name: "镜头顺序", exact: true }),
   ).toHaveCount(0);
   expect(
     (

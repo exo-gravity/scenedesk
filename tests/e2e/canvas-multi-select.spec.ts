@@ -147,6 +147,13 @@ test("CW-BATCH-2/3: the canvas never registers or adopts, and shot candidates st
   const link = dock.getByRole("link", { name: "在画布上查看来源节点" });
   await expect(link).toHaveCount(1);
   expect(await link.getAttribute("href")).toContain(`node=${nodeId}`);
+  // Following it must land on that node: the canvas selects it, not merely opens.
+  await link.click();
+  await expect(
+    page.getByRole("button", { name: "画布保存状态：已保存", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("已选 · 合成蓝片", { exact: true })).toBeVisible();
+  await expect(page.getByText("已选 · 未关联蓝片", { exact: true })).toHaveCount(0);
 
   // Nothing in this whole flow adopted a candidate or produced an extra one.
   expect((await seeded.selection()).currentSelection?.takeId).toBe(
