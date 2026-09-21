@@ -6,6 +6,7 @@ import { palettes } from "../apps/web/src/theme/shared-language-study.js";
 // This gate covers migrated UI only. It does not claim a full visual/accessibility audit.
 const migrated = [
   "apps/web/src/business",
+  "apps/web/src/studio",
   "apps/web/src/components/workspace",
   "apps/web/src/pages/SceneProduction.tsx",
   "apps/web/src/pages/DesignPage.tsx",
@@ -28,6 +29,24 @@ const files = (path: string): string[] =>
             ? [join(path, entry.name)]
             : [],
       );
+// The rebuilt creative workspace (`src/studio/`) replaces these files and must
+// never import them; the engine modules it may reuse are listed in
+// docs/design/creative-workspace-rebuild-libtv-2026-09-21.md §3.
+const studioRoot = "apps/web/src/studio";
+const retiredUi = new Set([
+  "CanvasBoard",
+  "CanvasContextualEditor",
+  "CanvasContinueCreation",
+  "CanvasReferenceChip",
+  "GenerationSpecificationFields",
+  "MediaGenerationWorkspace",
+  "SceneProductionWorkspace",
+  "ProjectCanvasEntry",
+  "ProjectNavigation",
+  "ShotListWorkspace",
+  "ScriptDocumentReader",
+  "canvas.module.css",
+]);
 const failures: string[] = [];
 if (
   !readFileSync("apps/web/index.html", "utf8").includes(
@@ -59,9 +78,13 @@ for (const path of migrated.flatMap(files)) {
     failures.push(`${path}: raw color outside theme`);
   if (/font-size\s*:\s*\d|border-radius\s*:\s*\d/.test(source))
     failures.push(`${path}: raw type/radius instead of theme token`);
-  for (const match of source.matchAll(/from\s+['"]([^'"]+)['"]/g))
+  for (const match of source.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
     if (forbidden.test(match[1]!))
       failures.push(`${path}: unapproved import ${match[1]}`);
+    const imported = match[1]!.split("/").pop()!.replace(/\.tsx?$/, "");
+    if (path.startsWith(studioRoot) && retiredUi.has(imported))
+      failures.push(`${path}: studio must not import retired UI ${match[1]}`);
+  }
   if (/<(?:button|input|select|textarea)\b/.test(source))
     failures.push(`${path}: use Mantine for general controls`);
 }

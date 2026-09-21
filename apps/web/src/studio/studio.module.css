@@ -1,0 +1,107 @@
+/* The rebuilt creative workspace. Structure and density follow LibTV; every
+   colour and size is a theme variable, `--ws-studio-*` where the shared scale
+   has no value of its own. Light is the reference; dark only has to stay readable. */
+.studio {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  color: var(--ws-text);
+  background-color: var(--ws-studio-canvas);
+  background-image: radial-gradient(
+    circle,
+    var(--ws-studio-dot) var(--ws-studio-dot-size),
+    transparent var(--ws-studio-dot-size)
+  );
+  background-size: var(--ws-studio-dot-gap) var(--ws-studio-dot-gap);
+}
+
+/* Top bar: "where am I". It floats over the board; only its groups take pointer events. */
+.topBar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--ws-studio-topbar-height);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+  padding-inline: var(--mantine-spacing-md);
+  pointer-events: none;
+  z-index: 2;
+}
+.barGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  min-width: 0;
+  pointer-events: auto;
+}
+.barGroup[data-align="end"] {
+  justify-content: flex-end;
+}
+.context,
+.viewSwitch {
+  display: inline-flex;
+  align-items: center;
+  height: var(--ws-studio-tool-size);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  border-radius: var(--ws-tool-radius);
+  pointer-events: auto;
+}
+.context {
+  gap: var(--mantine-spacing-sm);
+  padding-inline: var(--mantine-spacing-sm);
+  min-width: 0;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.divider {
+  width: 1px;
+  height: 16px;
+  background: var(--ws-studio-chrome-border);
+}
+.projectName {
+  font-size: var(--mantine-font-size-sm);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.projectName[data-loading] {
+  color: var(--ws-studio-card-label);
+}
+.viewSwitch {
+  padding: 3px;
+  gap: 2px;
+}
+.view {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: var(--mantine-spacing-md);
+  border-radius: calc(var(--ws-tool-radius) - 2px);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-studio-card-label);
+  white-space: nowrap;
+}
+.view[aria-current="page"] {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+  font-weight: 500;
+}
+
+/* The board: the full remaining viewport. Phase 0 leaves it empty. */
+.board {
+  grid-row: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}

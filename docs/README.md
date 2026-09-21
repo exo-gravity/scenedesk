@@ -11,7 +11,7 @@ SceneDesk 当前是独立 Web 的私有短剧创作工作台，以画布为主�
 | 了解产品、运行本地工作台 | [仓库 README](../README.md) |
 | 看当前布局与产品取舍 | [核心创作区重建（2026-09-21 已确认，取代下列两份中的页面分工与导航条款）](design/creative-workspace-rebuild-libtv-2026-09-21.md)、[创作工作区方向](design/creative-workspace-approved-2026-09-16.md)、[画布导航与场次目录](design/canvas-navigation-approved-2026-09-16.md)、[首版范围](implementation/38-first-release-scope-review.md) |
 | 看重建所依据的竞品现场与本地审计 | [LibTV / 即梦现场对照](research/2026-09-21-libtv-jimeng-canvas-design-review.md)、[SceneDesk 当前实现审计](research/2026-09-21-scenedesk-canvas-card-audit.md)、[卡片修改计划（历史，已被重建决定取代）](design/canvas-cards-redesign-plan-2026-09-21.md)、[调研交接（历史）](design/canvas-cards-agent-handoff-2026-09-21.md) |
-| 看落地节奏、已交付和待验收项 | [八个工作包](implementation/70-creative-workspace-refactor.md)、[实施进度](implementation/22-implementation-progress.md)、[非模型收尾](implementation/77-non-provider-workspace-closure.md) |
+| 看落地节奏、已交付和待验收项 | [创作区重建分片记录](implementation/85-studio-rebuild.md)、[八个工作包](implementation/70-creative-workspace-refactor.md)、[实施进度](implementation/22-implementation-progress.md)、[非模型收尾](implementation/77-non-provider-workspace-closure.md) |
 | 导入并阅读剧本 | [Word 导入](implementation/72-script-docx-import.md)、[飞书正文导入与配置](implementation/75-feishu-script-import.md) |
 | 理解画布、助手与镜头列表 | [项目画布](implementation/71-project-canvas-workspace.md)、[连续创作](implementation/74-canvas-continuous-creation.md)、[镜头列表与原片包](implementation/76-shot-list-workspace.md) |
 | 修改业务或接口 | [实施设计包](implementation/README.md)、[领域术语](../CONTEXT.md)、[工程约定](../AGENTS.md) |

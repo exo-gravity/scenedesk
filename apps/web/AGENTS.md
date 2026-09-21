@@ -21,6 +21,7 @@ npm run test:e2e       # 自己会先跑生产构建;另需回环的一次性 dr
 | 位置 | 职责 |
 |---|---|
 | `src/business/` | 业务页面、控制器、本机草稿恢复 |
+| `src/studio/` | 核心创作区重建(LibTV 模式):创作台、资产面板、剧本与镜头整理视图、助手与任务停靠。只 import `business/` 里的引擎模块与决定文档列出的整体接入组件;被替换的旧界面由 `ui:check` 拦截 |
 | `src/components/workspace/` | 共享工作区组件(`WorkspaceShell`、`MediaPlayer` …) |
 | `src/theme/tokens.ts` | 原始值,并导出 `--ws-*` 语义变量 |
 | `src/theme/theme.ts` | Mantine 主题与 CSS 变量解析 |
@@ -36,6 +37,7 @@ npm run test:e2e       # 自己会先跑生产构建;另需回环的一次性 dr
 | 助手侧栏、模型选择器 | `docs/implementation/68-assistant-conversation-sidebar.md` |
 | 镜头列表 | `docs/implementation/76-shot-list-workspace.md`、`80-shot-list-stable-viewer.md` |
 | 资产库 | `docs/design/unified-asset-library-2026-09-15.md`、`docs/implementation/69-unified-asset-library.md` |
+| 创作台(`src/studio/`) | `docs/design/creative-workspace-rebuild-libtv-2026-09-21.md`、`docs/implementation/85-studio-rebuild.md` |
 | 组件与视觉规范 | `docs/design/mantine-ui-agent-spec-v0.1.md`、`docs/design/shared-visual-language-v0.1.md` |
 
 用户决定和场次 MVP 契约优先于任何设计文档。
@@ -64,10 +66,11 @@ npm run test:e2e       # 自己会先跑生产构建;另需回环的一次性 dr
 }
 ```
 
-- **`npm run ui:check` 的硬规则**(不通过就失败,范围是 `src/business/`、`src/components/workspace/` 与 8 个指定页面文件):
+- **`npm run ui:check` 的硬规则**(不通过就失败,范围是 `src/business/`、`src/studio/`、`src/components/workspace/` 与 8 个指定页面文件):
   - 出现原始颜色字面量(`#hex`、`rgb()`、`hsl()`)或原始 `font-size:` / `border-radius:` 数值
   - 使用原生 `<button>` / `<input>` / `<select>` / `<textarea>` 而不走 Mantine
   - 引入未批准的依赖或导入
+  - `src/studio/` 导入被重建替换的旧界面文件(清单在 `scripts/check-ui.ts`)
   - 文本对比度低于 4.5:1,或字段边框／焦点低于 3:1
   - `index.html` 没有在抽取的第三方 CSS 之前声明 `@layer legacy, mantine;`
 - **先复用** `src/theme/` 与 `src/components/workspace/`;共享变体加到它归属的定义和样例页,再在页面里组合。新页面直接用 Mantine;`components/ui.tsx` 适配器供较旧页面使用。
