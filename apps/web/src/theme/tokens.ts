@@ -25,7 +25,7 @@ export const tokens = {
   focus: "#B3CDF8",
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
   control: { compact: 28, default: 32, form: 36 },
-  radius: { control: 6, content: 8 },
+  radius: { control: 6, content: 8, round: "50%" },
   font: {
     family:
       '-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif',
@@ -81,6 +81,7 @@ export const semanticVariables = {
   "--ws-control-form": `${tokens.control.form}px`,
   "--ws-radius": `${tokens.radius.control}px`,
   "--ws-card-radius": `${tokens.radius.content}px`,
+  "--ws-round-radius": tokens.radius.round,
   "--ws-media-radius": sharedSurfaces.mediaRadius,
   "--ws-tool-radius": sharedSurfaces.toolRadius,
   "--ws-floating-radius": sharedSurfaces.floatingRadius,

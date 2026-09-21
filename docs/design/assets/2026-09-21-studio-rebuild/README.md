@@ -5,3 +5,6 @@
 | 文件 | 片 | 左 | 右 |
 |---|---|---|---|
 | `phase-0-shell.png` | 0 准备 | `libtv-image-selected.png` | ST-00：新入口的空创作台 |
+| `slice-1-image-selected.png` | ① 页面壳与卡片 | `libtv-image-selected.png` | ST-01：文字卡旁选中的空图片卡，端口可见 |
+| `slice-1-text-edit.png` | ① 页面壳与卡片 | `libtv-text-edit.png` | ST-01：文字卡就地编辑 |
+| `slice-1-shortcuts.png` | ① 页面壳与卡片 | `libtv-shortcuts.png` | ST-01：快捷键总览，只列已实现的 |

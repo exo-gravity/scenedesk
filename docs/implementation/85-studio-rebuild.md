@@ -2,7 +2,7 @@
 
 日期：2026-09-21。依据：[核心创作区重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)（已确认）。分支 `feat/studio-rebuild`，独立 worktree；每片先交「LibTV 截图 vs 新页面」并排图再提交，不推送。
 
-状态：**阶段 0 已交付；阶段 1 起逐片记账。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
+状态：**阶段 0 与第 ① 片已交付；后续逐片记账。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
 
 ## 1. 阶段 0（准备）
 
@@ -18,6 +18,21 @@
 未做，属于后续片：底部工具条、缩放、快捷键总览、视图切换的实际跳转、创作台切换、保存状态、任务、助手、账号。顶栏上的三个视图名此时是静态文字，「创作台」标为当前；创作台本体为空。
 
 并排图：[phase-0-shell.png](../design/assets/2026-09-21-studio-rebuild/phase-0-shell.png)（左 LibTV `libtv-image-selected`，右 ST-00 在 1920×902 浅色下的新页面）。本机检查：`ui:check` 通过、`typecheck` 通过、`npm test` 303/303、`vite build` 通过、ST-00 通过。后端、契约、迁移均未改；未发起付费生成。
+
+## 1a. 第 ① 片：页面壳、创作台本体与四类卡片
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 页面壳 | `StudioFrame.tsx`：顶栏（项目胶囊、视图切换、保存状态、环境标识）；`shell/Toolbar.tsx` 底部工具条（＋ 文字／图片／视频／音频、选择 V、平移 H、撤销、重做、快捷键）；`shell/ZoomControl.tsx` 左下缩放（放大、缩小、适应内容、100%）；`shell/Shortcuts.tsx` 快捷键总览，只列已实现的 | ST-01 |
+| 创作台本体 | `board/Board.tsx`：React Flow 接 `use-canvas`／`canvas-controller`（文档、本机恢复、自动保存、撤销重做）；平移（滚轮、Space、抓手）、缩放（捏合、⌘滚轮、⌘+/−/0）、框选、Shift 加选、拖动（分组同移）、删除（⌫）、复制（⌘D，`copyCanvasNodes`）、全选、Esc；右键菜单（重命名、复制、删除）；视口与选中集写入 `workspace-preference`，其余键不碰 | ST-01：新建、输入、改名、缩放、刷新恢复、删除、撤销、右键删除，并读公共接口核对 |
+| 四类卡片 | `board/Card.tsx`：标题在卡外（类型图标 + 名称，双击改名，`renameCanvasNode` 校验）；本体白底细边圆角；图片／视频草稿按画幅定高（`draftFrameAspect`），空态只有居中浅灰图标；音频草稿固定高；媒体卡以 `MediaPreview` 铺满，视频叠播放标；文字卡双击就地编辑纯文本、右下拉伸角只改宽度（`updateCanvasNodeGeometry`）；固定摘录只读；选中细边变深并露出两侧端口（端口本片不可拖连）；键盘焦点另有描边；已有分组只在卡名旁显示分组名 | ST-01；归档项目只读用例 |
+| 新入口的空态 | 项目尚无创作台时居中提示与「创建项目创作台」 | ST-01 |
+
+未做，属于后续片：端口拖连与 ⊕ 继续创作（②）、输入面板（③）、卡内生成状态与结果、上传（④）、资产面板（⑤）、视图切换的实际跳转、创作台切换、项目菜单、账号、助手与任务（⑧）。多选时的「查看 N 项的生成计划」与「关联镜头」随 ③／⑦ 进右键菜单。
+
+并排图：[slice-1-image-selected.png](../design/assets/2026-09-21-studio-rebuild/slice-1-image-selected.png)、[slice-1-text-edit.png](../design/assets/2026-09-21-studio-rebuild/slice-1-text-edit.png)、[slice-1-shortcuts.png](../design/assets/2026-09-21-studio-rebuild/slice-1-shortcuts.png)。本机检查：`ui:check` 通过、`typecheck` 通过、`vite build` 通过、ST-00 与 ST-01（两例）通过。
+
+实现中定下的两条细则：新卡从视野中心放起，若会盖住已有卡则移到该卡右侧；新建的文字卡在 React Flow 量出尺寸前是隐藏的，焦点在其可见后才落入输入框。
 
 ## 2. 新目录的模块规划
 
@@ -87,7 +102,7 @@
 | 片 | 状态 | 并排图 |
 |---|---|---|
 | 0 准备 | 已交付（本文 §1） | [phase-0-shell.png](../design/assets/2026-09-21-studio-rebuild/phase-0-shell.png) |
-| ① 页面壳与卡片 | 未开始 | — |
+| ① 页面壳与卡片 | 已交付（本文 §1a） | [选中图片卡](../design/assets/2026-09-21-studio-rebuild/slice-1-image-selected.png)、[编辑文字卡](../design/assets/2026-09-21-studio-rebuild/slice-1-text-edit.png)、[快捷键](../design/assets/2026-09-21-studio-rebuild/slice-1-shortcuts.png) |
 | ② 端口与连线 | 未开始 | — |
 | ③ 输入面板 | 未开始 | — |
 | ④ 卡内结果 | 未开始 | — |
