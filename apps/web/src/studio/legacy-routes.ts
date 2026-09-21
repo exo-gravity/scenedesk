@@ -20,12 +20,15 @@ export function studioRouteFor(hash: string): string | null {
   switch (match[3]) {
     case "canvas":
       return `${base}/studio${query.get("node") ? `?${param("node")}` : ""}`;
-    case "production":
-      // Scene canvases are addressed by `?scene=`; a storyboard deep link to a
-      // shot opens that shot in the shot organiser.
-      if (query.get("scene") && query.get("shot"))
-        return `${base}/studio/shots?${param("scene")}&${param("shot")}`;
-      return `${base}/studio${query.get("scene") ? `?${param("scene")}` : ""}`;
+    case "production": {
+      // Scene canvases are addressed by `?scene=`, keeping a node focus; a
+      // storyboard deep link opens the shot organiser, on its shot when named.
+      const scene = query.get("scene");
+      if (scene && (query.get("shot") || query.get("mode") === "storyboard"))
+        return `${base}/studio/shots?${[param("scene"), param("shot")].filter(Boolean).join("&")}`;
+      const rest = [scene ? param("scene") : "", param("node")].filter(Boolean).join("&");
+      return `${base}/studio${rest ? `?${rest}` : ""}`;
+    }
     case "script":
       // The story settings tab moved to the project page.
       if (query.get("tab") === "settings") return base;

@@ -780,7 +780,7 @@ function TenantArea({
       <Stack gap="lg">
         <SectionHeading
           title="此入口暂未开放"
-          description="导入剧本，在画布中创作，整理镜头与项目资产。"
+          description="在创作台里创作，整理场次、镜头与项目资产。"
         />
         <Button
           component="a"
@@ -790,7 +790,7 @@ function TenantArea({
               : `#/app/t/${tenantId}`
           }
         >
-          {projectId ? "返回剧本与集场镜" : "返回项目"}
+          {projectId ? "返回场次目录" : "返回项目"}
         </Button>
       </Stack>
     );

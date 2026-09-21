@@ -94,12 +94,14 @@ export default function MyWork({
           const query = new URLSearchParams();
           if (task.sceneId) query.set("scene", task.sceneId);
           if (task.shotId) query.set("shot", task.shotId);
+          // Generation work opens the scene canvas, or the shot organiser when
+          // it names a shot; everything else opens the content directory.
           const destination =
             task.sceneId && task.stage === "generation"
-              ? "production"
+              ? task.shotId
+                ? "studio/shots"
+                : "studio"
               : "content";
-          if (destination === "production" && task.shotId)
-            query.set("mode", "storyboard");
           return (
             <article key={task.id} className={classes.workRow}>
               <div className={classes.workSummary}>

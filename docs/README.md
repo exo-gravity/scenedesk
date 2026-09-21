@@ -15,7 +15,7 @@ SceneDesk 当前是独立 Web 的私有短剧创作工作台，以画布为主�
 | 导入并阅读剧本 | [Word 导入](implementation/72-script-docx-import.md)、[飞书正文导入与配置](implementation/75-feishu-script-import.md) |
 | 理解创作台、助手与镜头整理 | [创作区重建分片记录（现行界面）](implementation/85-studio-rebuild.md)；引擎与领域事实的来历：[项目画布](implementation/71-project-canvas-workspace.md)、[连续创作](implementation/74-canvas-continuous-creation.md)、[镜头列表与原片包](implementation/76-shot-list-workspace.md) |
 | 修改业务或接口 | [实施设计包](implementation/README.md)、[领域术语](../CONTEXT.md)、[工程约定](../AGENTS.md) |
-| 修改页面 | [前端工程约定](../apps/web/AGENTS.md)、[UI 执行规范](design/mantine-ui-agent-spec-v0.1.md)、[端到端验收矩阵](implementation/73-creative-workspace-e2e.md) |
+| 修改页面 | [前端工程约定](../apps/web/AGENTS.md)、[UI 执行规范](design/mantine-ui-agent-spec-v0.1.md)、[端到端验收矩阵（历史；现行清单在 tests/e2e/README.md）](implementation/73-creative-workspace-e2e.md) |
 | 部署与恢复 | [私有部署](../deploy/README.md)、[首次操作者开通](implementation/55-private-owner-bootstrap.md)、[成对恢复检查](../deploy/recovery/smoke/README.md) |
 
 ## 当前范围

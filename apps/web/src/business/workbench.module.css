@@ -333,7 +333,7 @@
     padding-inline: 4px;
   }
   .studioSwitch,
-.railItem {
+  .railItem {
     width: 50px;
   }
   .studioSwitch span {
@@ -366,7 +366,7 @@
     display: none;
   }
   .projectSubLink,
-.projectSettings {
+  .projectSettings {
     margin: 0;
   }
   .contextHeader {
@@ -379,7 +379,7 @@
     display: none;
   }
   .row,
-.workRow {
+  .workRow {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
@@ -441,7 +441,7 @@
     flex-wrap: wrap;
   }
   .projectCover,
-.projectCover > div {
+  .projectCover > div {
     height: 260px;
     --ws-preview-height: 260px;
   }

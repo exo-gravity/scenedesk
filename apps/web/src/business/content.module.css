@@ -100,8 +100,8 @@
 }
 @media (max-width: 700px) {
   .episodeHeader,
-.sceneRow,
-.basis {
+  .sceneRow,
+  .basis {
     flex-wrap: wrap;
   }
   .sceneActions {

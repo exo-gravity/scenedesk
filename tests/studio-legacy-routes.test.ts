@@ -22,6 +22,14 @@ test("the old scene workspace opens the scene canvas, or the shot organiser for 
     studioRouteFor(`${base}/production?scene=s1&mode=storyboard&shot=sh1`),
     `${base}/studio/shots?scene=s1&shot=sh1`,
   );
+  assert.equal(
+    studioRouteFor(`${base}/production?scene=s1&mode=storyboard`),
+    `${base}/studio/shots?scene=s1`,
+  );
+  assert.equal(
+    studioRouteFor(`${base}/production?scene=s1&mode=canvas&node=n1`),
+    `${base}/studio?scene=s1&node=n1`,
+  );
 });
 
 test("the old script page opens the script view; its settings tab goes to the project page", () => {

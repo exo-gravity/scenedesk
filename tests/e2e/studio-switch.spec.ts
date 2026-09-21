@@ -20,6 +20,11 @@ test("ST-09: the studio is the only creative entry: old addresses open it, the p
   await page.goto(`${base(w)}/script?revision=${w.first.id}`);
   await expect(page).toHaveURL(`${studio}/script?revision=${w.first.id}`);
   await expect(page.getByRole("article", { name: "剧本阅读正文", exact: true })).toContainText("第一稿：林在雨夜发现一封没有署名的信。");
+  // A scene that is not in this project is a wrong address, not lost access: the project stays open.
+  await page.goto(`${studio}?scene=00000000-0000-4000-8000-000000000000`);
+  await expect(page.getByText("这个项目里没有这一场", { exact: true })).toBeVisible();
+  await expect(page.getByRole("banner")).toContainText(w.project.name);
+  await expect(page.getByRole("alert")).toHaveCount(0);
   // The story settings tab of the old script page now lives on the project page.
   await page.goto(`${base(w)}/script?tab=settings`);
   await expect(page).toHaveURL(base(w));

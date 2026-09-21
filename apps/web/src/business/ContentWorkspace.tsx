@@ -15,7 +15,6 @@ import {
   Select,
   Stack,
   Tabs,
-  Tooltip,
   Text,
   Textarea,
 } from "@mantine/core";
@@ -29,8 +28,6 @@ import {
   FilmSlate,
   PencilSimple,
   Plus,
-  Sparkle,
-  X,
   DotsThree,
 } from "@phosphor-icons/react";
 import { ApiError, useCommand, useList, useResource, type Schema } from "./api";
