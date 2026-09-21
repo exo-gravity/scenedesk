@@ -32,22 +32,7 @@
   min-height: 0;
   display: grid;
   grid-template-columns: 68px minmax(0, 1fr);
-}
-.layout:not([data-production]) {
   grid-template-rows: 48px minmax(0, 1fr);
-}
-.layout[data-project] {
-  grid-template-columns: 68px 180px minmax(0, 1fr);
-}
-.shell[data-scene-production] > .header,
-.layout[data-scene-production] > .sidebar {
-  display: none;
-}
-.layout[data-scene-production] {
-  grid-template-columns: minmax(0, 1fr);
-}
-.layout[data-scene-production] > .content {
-  grid-column: 1;
 }
 .sidebar {
   grid-column: 1;
@@ -151,12 +136,6 @@
   min-height: 0;
   min-width: 0;
 }
-.layout[data-project] .content {
-  grid-column: 3;
-}
-.layout:not([data-production]) .content {
-  grid-row: 2;
-}
 .contextHeader {
   grid-column: 2 / -1;
   grid-row: 1;
@@ -197,10 +176,6 @@
   min-width: 0;
   padding: 42px clamp(28px, 4vw, 64px);
   overflow: auto;
-}
-.layout[data-production] .main {
-  padding: 0;
-  overflow: hidden;
 }
 .title {
   margin: 0;
@@ -343,9 +318,6 @@
   }
 }
 @media (max-width: 1000px) {
-  .layout[data-project] {
-    grid-template-columns: 76px 168px minmax(0, 1fr);
-  }
   .projectNav {
     padding-inline: 10px;
   }
@@ -354,15 +326,14 @@
   }
 }
 @media (max-width: 700px) {
-  .layout,
-  .layout[data-project] {
+  .layout {
     grid-template-columns: 60px minmax(0, 1fr);
   }
   .sidebar {
     padding-inline: 4px;
   }
   .studioSwitch,
-  .railItem {
+.railItem {
     width: 50px;
   }
   .studioSwitch span {
@@ -395,18 +366,8 @@
     display: none;
   }
   .projectSubLink,
-  .projectSettings {
+.projectSettings {
     margin: 0;
-  }
-  .layout[data-project] {
-    grid-template-rows: 48px auto minmax(0, 1fr);
-  }
-  .layout[data-project] .sidebar {
-    grid-row: 1 / 4;
-  }
-  .layout[data-project] .content {
-    grid-column: 2;
-    grid-row: 3;
   }
   .contextHeader {
     padding-inline: 16px;
@@ -418,7 +379,7 @@
     display: none;
   }
   .row,
-  .workRow {
+.workRow {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
@@ -431,29 +392,8 @@
   }
 }
 
-.main[data-asset-detail],
-.main[data-script-editor] {
+.main[data-asset-detail] {
   padding: 0;
-}
-
-/* Project browsing shares one rail, including script and asset details. */
-.shell[data-project-workspace] > .header {
-  display: none;
-}
-.layout[data-project] {
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: 48px minmax(0, 1fr);
-}
-.layout[data-project] > .sidebar {
-  display: none;
-}
-.layout[data-project] > .content {
-  grid-column: 2;
-  grid-row: 2;
-}
-.layout[data-project] > .contextHeader {
-  grid-column: 2;
-  grid-row: 1;
 }
 
 .sectionHeading {
@@ -501,7 +441,7 @@
     flex-wrap: wrap;
   }
   .projectCover,
-  .projectCover > div {
+.projectCover > div {
     height: 260px;
     --ws-preview-height: 260px;
   }
@@ -512,16 +452,6 @@
   }
 }
 
-.layout[data-project][data-project-canvas] {
-  grid-template-rows: minmax(0, 1fr);
-}
-.layout[data-project][data-project-canvas] > .content {
-  grid-row: 1;
-}
-.layout[data-project-canvas] .main {
-  padding: 0;
-  overflow: hidden;
-}
 /* The studio owns the viewport; this wrapper only routes link clicks through the leave guard. */
 .studioHost {
   display: contents;

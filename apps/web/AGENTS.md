@@ -20,8 +20,8 @@ npm run test:e2e       # 自己会先跑生产构建;另需回环的一次性 dr
 
 | 位置 | 职责 |
 |---|---|
-| `src/business/` | 业务页面、控制器、本机草稿恢复 |
-| `src/studio/` | 核心创作区重建(LibTV 模式):创作台、资产面板、剧本与镜头整理视图、助手与任务停靠。只 import `business/` 里的引擎模块与决定文档列出的整体接入组件;被替换的旧界面由 `ui:check` 拦截 |
+| `src/business/` | 项目、内容目录与资产库页面，控制器、本机草稿恢复，以及创作台整体接入的引擎模块与组件 |
+| `src/studio/` | 创作区(LibTV 模式):创作台、资产面板、剧本与镜头整理视图、助手与任务停靠;`…/p/{id}/studio` 是唯一创作入口,旧的 `canvas`、`production`、`script` 地址由 `legacy-routes.ts` 转过来。只 import `business/` 里的引擎模块与决定文档列出的整体接入组件 |
 | `src/components/workspace/` | 共享工作区组件(`WorkspaceShell`、`MediaPlayer` …) |
 | `src/theme/tokens.ts` | 原始值,并导出 `--ws-*` 语义变量 |
 | `src/theme/theme.ts` | Mantine 主题与 CSS 变量解析 |
@@ -32,10 +32,10 @@ npm run test:e2e       # 自己会先跑生产构建;另需回环的一次性 dr
 
 | 要改 | 先读 |
 |---|---|
-| 导航、壳层、账户菜单 | `docs/design/canvas-navigation-approved-2026-09-16.md`、`docs/design/creative-workspace-approved-2026-09-16.md` |
-| 画布、场次工作区、模式切换 | `docs/design/creative-workspace-approved-2026-09-16.md`、`docs/design/primary-canvas-approved-2026-09-14.md` |
+| 创作区顶栏、项目菜单、账户菜单 | `docs/design/creative-workspace-rebuild-libtv-2026-09-21.md` §4、`docs/implementation/85-studio-rebuild.md` §1h |
+| 创作台、场次创作台切换 | `docs/design/creative-workspace-rebuild-libtv-2026-09-21.md`(附录 A 是生成流程红线)、`docs/implementation/85-studio-rebuild.md`;2026-09-16 的 approved 文档只作历史 |
 | 助手侧栏、模型选择器 | `docs/implementation/68-assistant-conversation-sidebar.md` |
-| 镜头列表 | `docs/implementation/76-shot-list-workspace.md`、`80-shot-list-stable-viewer.md` |
+| 镜头整理 | `docs/implementation/85-studio-rebuild.md` §1g;候选、选用与交付的领域事实见 `76-shot-list-workspace.md`、`80-shot-list-stable-viewer.md` |
 | 资产库 | `docs/design/unified-asset-library-2026-09-15.md`、`docs/implementation/69-unified-asset-library.md` |
 | 创作台(`src/studio/`) | `docs/design/creative-workspace-rebuild-libtv-2026-09-21.md`、`docs/implementation/85-studio-rebuild.md` |
 | 组件与视觉规范 | `docs/design/mantine-ui-agent-spec-v0.1.md`、`docs/design/shared-visual-language-v0.1.md` |
@@ -70,7 +70,6 @@ npm run test:e2e       # 自己会先跑生产构建;另需回环的一次性 dr
   - 出现原始颜色字面量(`#hex`、`rgb()`、`hsl()`)或原始 `font-size:` / `border-radius:` 数值
   - 使用原生 `<button>` / `<input>` / `<select>` / `<textarea>` 而不走 Mantine
   - 引入未批准的依赖或导入
-  - `src/studio/` 导入被重建替换的旧界面文件(清单在 `scripts/check-ui.ts`)
   - 文本对比度低于 4.5:1,或字段边框／焦点低于 3:1
   - `index.html` 没有在抽取的第三方 CSS 之前声明 `@layer legacy, mantine;`
 - **先复用** `src/theme/` 与 `src/components/workspace/`;共享变体加到它归属的定义和样例页,再在页面里组合。新页面直接用 Mantine;`components/ui.tsx` 适配器供较旧页面使用。

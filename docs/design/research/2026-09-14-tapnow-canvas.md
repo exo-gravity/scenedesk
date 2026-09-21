@@ -1,5 +1,7 @@
 # TapNow 官方画布布局与交互研究
 
+> 本文引用的部分源文件与 e2e 规格属于旧创作界面，已在 2026-09-21 阶段 3 删除（见 [85-studio-rebuild.md §1i](../../implementation/85-studio-rebuild.md)）；这些引用改为纯文本，内容按当时原样保留。
+
 研究日期：2026-09-14。用途：为 SceneDesk 下一版画布方案提供依据，**本稿不实施产品修改**。SceneDesk 对照源码为 `f4f005c981ea195dbca56c1c5d570de66470f994`。执行 research 技能的后台一手源研究：只读取 TapNow 官方文档、其中的官方动图，以及当前项目源码；未登录 TapNow、未上传数据、未调用生成，也未操作主任务浏览器。
 
 ## 先给设计判断
@@ -106,7 +108,7 @@ SceneDesk 可以采用同样“明确焦点域”的原则，不能把新 floati
 
 ## 8. 对照 SceneDesk 底部编辑区：具体需要改变什么
 
-当前源码把 `CanvasComposer` 和 `{generation}` 顺序组合在 `localPanel` 中（[CanvasBoard.tsx](../../../apps/web/src/business/CanvasBoard.tsx#L1020)）。样式是视口底部布局中的固定收缩区，宽 `min(900px, calc(100% - 40px))`，高上限 `min(370px, 42dvh)` 并可滚动（[canvas.module.css](../../../apps/web/src/business/canvas.module.css#L532)）。这说明“控件位于底部”，并不说明“控件就近跟随当前对象”。以下是**SceneDesk 设计建议，不是 TapNow 事实**：
+当前源码把 `CanvasComposer` 和 `{generation}` 顺序组合在 `localPanel` 中（CanvasBoard.tsx）。样式是视口底部布局中的固定收缩区，宽 `min(900px, calc(100% - 40px))`，高上限 `min(370px, 42dvh)` 并可滚动（canvas.module.css）。这说明“控件位于底部”，并不说明“控件就近跟随当前对象”。以下是**SceneDesk 设计建议，不是 TapNow 事实**：
 
 | 当前影响 | 方案方向 | 必须保留 |
 | --- | --- | --- |

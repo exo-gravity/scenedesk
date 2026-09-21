@@ -1,5 +1,7 @@
 # 画布卡片与生成输入区修改计划
 
+> 本文引用的部分源文件与 e2e 规格属于旧创作界面，已在 2026-09-21 阶段 3 删除（见 [85-studio-rebuild.md §1i](../implementation/85-studio-rebuild.md)）；这些引用改为纯文本，内容按当时原样保留。
+
 日期：2026-09-21。状态：**历史**。五个切片曾于同日在分支 `feat/canvas-cards-redesign` 实施并验收，随后用户决定不合入，改为按 [核心创作区重建](creative-workspace-rebuild-libtv-2026-09-21.md) 从零新写界面；本文的复刻清单已并入该决定。下文保留计划原貌。
 
 ## 1. 目标与依据
@@ -69,7 +71,7 @@
 - 模型／规格／参考详情浮层同一时刻只开一层；关闭后焦点返回触发控件。
 - 专注编辑继续复用同一份草稿和编辑会话；返回时保留画布视图、输入选区和参考状态。
 
-主要实现位置：[CanvasContextualEditor](../../apps/web/src/business/CanvasContextualEditor.tsx)、[定位计算](../../apps/web/src/business/canvas-editor-placement.ts)、[CanvasBoard](../../apps/web/src/business/CanvasBoard.tsx)。
+主要实现位置：CanvasContextualEditor、定位计算、CanvasBoard。
 
 ## 4. 生成输入区：对齐 LibTV 的具体内容
 
@@ -107,7 +109,7 @@
 
 涉及公开契约、schema 或新依赖的能力工作项，在形成具体方案后按仓库约定确认再实施；不妨碍前端交互结构的修改。这里列出缺口，不将图中样例认定为已有能力。
 
-主要实现位置：[MediaGenerationWorkspace](../../apps/web/src/business/MediaGenerationWorkspace.tsx)、[CanvasMediaGeneration](../../apps/web/src/business/CanvasMediaGeneration.tsx)、[图片校验](../../apps/web/src/business/image-generation.ts)、[视频校验](../../apps/web/src/business/video-generation.ts)、[声音校验](../../apps/web/src/business/audio-generation.ts)。复用控制器和提交函数，不另建一条生成链路。
+主要实现位置：MediaGenerationWorkspace、CanvasMediaGeneration、[图片校验](../../apps/web/src/business/image-generation.ts)、[视频校验](../../apps/web/src/business/video-generation.ts)、[声音校验](../../apps/web/src/business/audio-generation.ts)。复用控制器和提交函数，不另建一条生成链路。
 
 ## 5. 参考材料、节点属性与继续创作
 
@@ -140,7 +142,7 @@
 - **空生成草稿不显示可派生的右侧＋**。完整效果图中的该细节需修正。当前领域仅允许文字／媒体到草稿，不能让两张草稿直接相连。
 - 从成功草稿结果继续创作，先沿用明确放置为媒体再派生的完整路径。直接把未放置结果作为来源的快捷操作需另做原子性／幂等设计，本轮不通过隐藏中间写入伪造草稿互连。
 
-主要实现位置：[引用编辑与属性](../../apps/web/src/business/CanvasBoard.tsx)、[继续创作](../../apps/web/src/business/CanvasContinueCreation.tsx)、[来源创建](../../apps/web/src/business/canvas-creation.ts)、[引用约束](../../packages/domain/src/canvas.ts)。
+主要实现位置：引用编辑与属性、继续创作、[来源创建](../../apps/web/src/business/canvas-creation.ts)、[引用约束](../../packages/domain/src/canvas.ts)。
 
 ## 6. 结果、历史和失败恢复
 
@@ -160,7 +162,7 @@
 | 生成明确失败 | 原输入保留，原因和可执行恢复动作就近显示 |
 | 保存失败／冲突／撤权 | 使用现有恢复和授权规则；不错误显示已保存 |
 
-当前[预览 hook](../../apps/web/src/business/use-canvas-node-preview.ts)只读取编辑中的一个节点。扩大到收起态卡片时，需要按可视／选中范围调度、合并重复读取、限制并发并取消过期请求；缓存不作为权限证明。切换项目／租户／会话或撤权时不展示旧预览。
+当前预览 hook只读取编辑中的一个节点。扩大到收起态卡片时，需要按可视／选中范围调度、合并重复读取、限制并发并取消过期请求；缓存不作为权限证明。切换项目／租户／会话或撤权时不展示旧预览。
 
 ## 7. 实施切片与顺序
 

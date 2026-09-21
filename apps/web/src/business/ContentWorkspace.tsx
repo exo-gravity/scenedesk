@@ -1,9 +1,5 @@
-import { ScriptDocumentReader } from "./ScriptDocumentReader";
-import { ShotListLauncher } from "./ShotListWorkspace";
-import { ProposalDetail, ProposalWorkspace } from "./ProposalWorkspace";
-import { SceneAssistant } from "./SceneAssistant";
+import { ProposalWorkspace } from "./ProposalWorkspace";
 import { CreativeWorkspace } from "./CreativeWorkspace";
-import { ProductionSettings } from "./ProductionSettings";
 import { SceneIndexPreview } from "./SceneIndexPreview";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -59,13 +55,11 @@ export function ContentWorkspace({
   projectId,
   own,
   members,
-  view = "scenes",
 }: {
   tenantId: string;
   projectId: string;
   own: Schema<"Membership">;
   members: Schema<"Membership">[];
-  view?: "scenes" | "script";
 }) {
   const path = projectPath(tenantId, projectId);
   const project = useResource<Schema<"Project">>(path),
@@ -85,28 +79,10 @@ export function ContentWorkspace({
     linkedRevision = linked.get("revision");
   const createSceneRequested = linked.get("create") === "scene",
     linkedEpisode = linked.get("episode");
-  const scriptView = view === "script" || !!(linkedRevision && !linkedShot);
-  const scriptTab = linked.get("tab") === "settings" ? "settings" : "text";
-  function setScriptTab(value: string | null) {
-    const query = new URLSearchParams(location.hash.split("?")[1]);
-    if (value === "settings") query.set("tab", "settings");
-    else query.delete("tab");
-    location.hash = `${location.hash.split("?")[0]}${query.size ? `?${query}` : ""}`;
-  }
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [scriptMounted, setScriptMounted] = useState(scriptView),
-    [scriptEpoch, setScriptEpoch] = useState(0),
-    [scriptOpening, setScriptOpening] = useState(false),
-    [scriptTargetId, setScriptTargetId] = useState<string | null>(linkedScene),
-    [scriptProposalId, setScriptProposalId] = useState<string>(),
-    [detailsOpen, setDetailsOpen] = useState(!!(linkedScene || linkedShot));
-  useEffect(() => {
-    if (scriptView) setScriptMounted(true);
-  }, [scriptView]);
+  const [detailsOpen, setDetailsOpen] = useState(!!(linkedScene || linkedShot));
   useEffect(() => {
     if (
       !createSceneRequested ||
-      scriptView ||
       !content.data ||
       !project.data ||
       project.data.status !== "active"
@@ -130,7 +106,6 @@ export function ContentWorkspace({
   }, [
     createSceneRequested,
     linkedEpisode,
-    scriptView,
     content.data,
     project.data,
   ]);
@@ -189,8 +164,8 @@ export function ContentWorkspace({
   useEffect(() => {
     if (blockedAccess) document.title = "内容不可访问 · SceneDesk";
     else if (project.data)
-      document.title = `${project.data.name} · ${scriptView ? "剧本" : "场次目录"} · SceneDesk`;
-  }, [project.data?.name, blockedAccess, scriptView]);
+      document.title = `${project.data.name} · 场次目录 · SceneDesk`;
+  }, [project.data?.name, blockedAccess]);
   if (
     blockedAccess ||
     (project.isError && !project.data) ||
@@ -229,33 +204,29 @@ export function ContentWorkspace({
     active && episode?.status === "active" && scene?.status === "active";
   if (creativeOpen)
     return (
-      <div className={scriptView ? layout.fullWorkspace : undefined}>
-        <CreativeWorkspace
-          path={path}
-          project={p}
-          tree={tree}
-          members={members}
-          canConfirm={
-            own.role === "owner" ||
-            own.role === "admin" ||
-            p.leadMembershipId === own.id
-          }
-          onClose={() => setCreativeOpen(false)}
-        />
-      </div>
+      <CreativeWorkspace
+        path={path}
+        project={p}
+        tree={tree}
+        members={members}
+        canConfirm={
+          own.role === "owner" ||
+          own.role === "admin" ||
+          p.leadMembershipId === own.id
+        }
+        onClose={() => setCreativeOpen(false)}
+      />
     );
   if (proposalOpen)
     return (
-      <div className={scriptView ? layout.fullWorkspace : undefined}>
-        <ProposalWorkspace
-          path={path}
-          tree={tree}
-          active={active}
-          projectName={p.name}
-          {...(scene?.id ? { initialSceneId: scene.id } : {})}
-          onClose={() => setProposalOpen(false)}
-        />
-      </div>
+      <ProposalWorkspace
+        path={path}
+        tree={tree}
+        active={active}
+        projectName={p.name}
+        {...(scene?.id ? { initialSceneId: scene.id } : {})}
+        onClose={() => setProposalOpen(false)}
+      />
     );
   function move(
     kind: ContentEditing["kind"],
@@ -372,21 +343,19 @@ export function ContentWorkspace({
           void content.refetch();
         }}
       />
-      {!scriptView && (
-        <>
-          <Group mb="md" className={layout.directoryBreadcrumb}>
-            <Button
-              component="a"
-              href={`#/app/t/${tenantId}/p/${projectId}/canvas`}
-              variant="subtle"
-              leftSection={<ArrowLeft size={16} />}
-            >
-              返回画布
-            </Button>
-          </Group>
-          <SectionHeading
-            title="场次目录"
-            description="按单集整理场次，打开画布继续创作。"
+      <Group mb="md" className={layout.directoryBreadcrumb}>
+        <Button
+          component="a"
+          href={`#/app/t/${tenantId}/p/${projectId}/studio`}
+          variant="subtle"
+          leftSection={<ArrowLeft size={16} />}
+        >
+          返回创作台
+        </Button>
+      </Group>
+      <SectionHeading
+        title="场次目录"
+        description="按单集整理场次，打开每一场的创作台继续创作。"
             action={
               <Group gap="sm">
                 <Button
@@ -437,8 +406,6 @@ export function ContentWorkspace({
               </Group>
             }
           />
-        </>
-      )}
       <ErrorNotice error={scripts.error} retry={() => void scripts.refetch()} />
       <ErrorNotice error={command.error} />
       {!active && (
@@ -446,7 +413,7 @@ export function ContentWorkspace({
           内容与历史可查阅，恢复项目后可继续修改。
         </Alert>
       )}
-      <div hidden={scriptView} className={layout.catalog}>
+      <div className={layout.catalog}>
         {!episodes.length && <Empty>先新建单集，再安排故事发生的场次。</Empty>}
         <div aria-label="集场结构">
           {episodes.map((ep) => {
@@ -489,7 +456,7 @@ export function ContentWorkspace({
                   <article key={sc.id} className={layout.sceneRow}>
                     <SceneIndexPreview
                       path={path}
-                      href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}&mode=canvas`}
+                      href={`#/app/t/${tenantId}/p/${projectId}/studio?scene=${sc.id}`}
                       shot={tree.shots.find(
                         (sh) =>
                           sh.sceneId === sc.id &&
@@ -512,13 +479,14 @@ export function ContentWorkspace({
                           .filter(Boolean)
                           .join(" · ")}
                       </Text>
-                      <ShotListLauncher
-                        tenantId={tenantId}
-                        projectId={projectId}
-                        sceneId={sc.id}
-                        label={`${tree.shots.filter((shot) => shot.sceneId === sc.id && shot.status === "active").length} 镜头 · ${tree.shots.filter((shot) => shot.sceneId === sc.id && shot.status === "active" && !!shot.currentTakeId).length} 已选用`}
-                        onBeforeOpen={async () => {}}
-                      />
+                      <Button
+                        size="xs"
+                        variant="subtle"
+                        component="a"
+                        href={`#/app/t/${tenantId}/p/${projectId}/studio/shots?scene=${sc.id}`}
+                      >
+                        {`${tree.shots.filter((shot) => shot.sceneId === sc.id && shot.status === "active").length} 镜头 · ${tree.shots.filter((shot) => shot.sceneId === sc.id && shot.status === "active" && !!shot.currentTakeId).length} 已选用`}
+                      </Button>
                     </div>
                     {(sc.status === "archived" || ep.status === "archived") && (
                       <Text size="xs" c="dimmed" className={layout.sceneState}>
@@ -530,9 +498,9 @@ export function ContentWorkspace({
                         size="sm"
                         variant="default"
                         component="a"
-                        href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${sc.id}&mode=canvas`}
+                        href={`#/app/t/${tenantId}/p/${projectId}/studio?scene=${sc.id}`}
                       >
-                        打开画布
+                        打开创作台
                       </Button>
                       <Button
                         size="xs"
@@ -578,7 +546,7 @@ export function ContentWorkspace({
         </Group>
         <Drawer
           opened={
-            !scriptView && detailsOpen && !editing && !history && !archive
+            detailsOpen && !editing && !history && !archive
           }
           onClose={() => setDetailsOpen(false)}
           position="right"
@@ -656,11 +624,11 @@ export function ContentWorkspace({
                 )}
                 <Button
                   component="a"
-                  href={`#/app/t/${tenantId}/p/${projectId}/production?scene=${scene.id}&mode=canvas`}
+                  href={`#/app/t/${tenantId}/p/${projectId}/studio?scene=${scene.id}`}
                   rightSection={<ArrowRight size={16} />}
                   mb="lg"
                 >
-                  打开画布
+                  打开创作台
                 </Button>
                 <details
                   className={layout.legacyRequirements}
@@ -757,174 +725,6 @@ export function ContentWorkspace({
           </section>
         </Drawer>
       </div>
-      {(scriptMounted || scriptView) && (
-        <div
-          hidden={!scriptView}
-          className={layout.scriptWorkspace}
-          data-assistant={(assistantOpen && scriptTab === "text") || undefined}
-        >
-          <section className={layout.scriptMain} aria-label="剧本正文与版本">
-            {" "}
-            <SectionHeading
-              title={scriptView ? "剧本" : "场次目录"}
-              description={
-                scriptView
-                  ? "导入已确定的初稿，与项目成员一起阅读，再带着原文进入画布。"
-                  : "按单集组织场次，从这里进入每一场的制作。"
-              }
-              action={
-                <Group gap="sm">
-                  <Menu position="bottom-end" withinPortal>
-                    <Menu.Target>
-                      <ActionIcon aria-label="剧本操作" variant="subtle">
-                        <DotsThree size={22} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item
-                        leftSection={<Sparkle size={16} />}
-                        onClick={() => {
-                          setScriptTab("text");
-                          setAssistantOpen(true);
-                        }}
-                      >
-                        分镜建议
-                      </Menu.Item>
-                      <Menu.Item onClick={() => setProposalOpen(true)}>
-                        提案历史与导入
-                      </Menu.Item>
-                      <Menu.Item onClick={() => setCreativeOpen(true)}>
-                        创作依据
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                </Group>
-              }
-            />
-            {scriptTab === "settings" ? (
-              <StorySettings path={path} active={active} />
-            ) : (
-              <>
-                {(scriptOpening || scripts.isPending) && (
-                  <Loader aria-label="正在读取已保存的剧本版本" />
-                )}
-                {scripts.data && (
-                  <ScriptDocumentReader
-                    key={scriptEpoch}
-                    tree={tree}
-                    scripts={scripts.data}
-                    path={path}
-                    active={active}
-                    initialHistoryId={!linkedShot ? linkedRevision : null}
-                    done={() => {
-                      setScriptOpening(true);
-                      void Promise.all([content.refetch(), scripts.refetch()])
-                        .then(([nextContent, nextScripts]) => {
-                          if (!nextContent.isError && !nextScripts.isError)
-                            setScriptEpoch((epoch) => epoch + 1);
-                        })
-                        .finally(() => setScriptOpening(false));
-                    }}
-                  />
-                )}
-              </>
-            )}
-          </section>
-          <aside
-            hidden={!assistantOpen || scriptTab !== "text"}
-            className={layout.scriptAssistant}
-            aria-label="剧本提案助手"
-          >
-            <div className={layout.assistantHeader}>
-              <Group justify="space-between">
-                <Text component="h2" className={layout.episodeTitle}>
-                  提案助手
-                </Text>
-                <Tooltip label="收起提案助手">
-                  <ActionIcon
-                    aria-label="收起提案助手"
-                    onClick={() => setAssistantOpen(false)}
-                  >
-                    <X size={16} />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-              <Text size="xs" c="dimmed">
-                选定来源 · 核对建议 · 明确采纳
-              </Text>
-            </div>
-            {scriptProposalId ? (
-              <>
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  onClick={() => setScriptProposalId(undefined)}
-                >
-                  返回准备提案
-                </Button>
-                <ProposalDetail
-                  key={scriptProposalId}
-                  path={path}
-                  tree={tree}
-                  active={active}
-                  projectName={p.name}
-                  id={scriptProposalId}
-                  onClose={() => setScriptProposalId(undefined)}
-                />
-              </>
-            ) : (
-              <Select
-                label="本次建议的目标场次"
-                placeholder="明确选择一个场次"
-                clearable
-                searchable
-                value={scriptTargetId}
-                onChange={setScriptTargetId}
-                data={tree.scenes
-                  .filter(
-                    (sc) =>
-                      sc.status === "active" &&
-                      tree.episodes.some(
-                        (ep) =>
-                          ep.id === sc.episodeId && ep.status === "active",
-                      ),
-                  )
-                  .map((sc) => ({
-                    value: sc.id,
-                    label: `${tree.episodes.find((ep) => ep.id === sc.episodeId)?.title ?? ""} · ${sc.title}`,
-                  }))}
-              />
-            )}
-            {scriptTargetId ? (
-              <SceneAssistant
-                key={scriptTargetId}
-                tenantId={tenantId}
-                projectId={projectId}
-                sceneId={scriptTargetId}
-                active={active}
-                visible={
-                  scriptView &&
-                  assistantOpen &&
-                  scriptTab === "text" &&
-                  !scriptProposalId
-                }
-                onOpenProposal={setScriptProposalId}
-              />
-            ) : (
-              !scriptProposalId && (
-                <Text size="sm" c="dimmed">
-                  先选择场次，再明确选取已保存的剧本版本与原文。正在编辑的文字不会自动成为生成输入。
-                </Text>
-              )
-            )}
-            {!scriptProposalId && (
-              <Button variant="subtle" onClick={() => setProposalOpen(true)}>
-                查看全部提案与导入
-              </Button>
-            )}
-          </aside>
-        </div>
-      )}
       <Modal
         opened={!!editing}
         onClose={() => setEditing(undefined)}
@@ -1030,45 +830,6 @@ export function ContentWorkspace({
         )}
       </Modal>
     </>
-  );
-}
-function StorySettings({ path, active }: { path: string; active: boolean }) {
-  const production = useResource<Schema<"Production">>(`${path}/production`);
-  if (production.isError)
-    return (
-      <ErrorNotice
-        error={production.error}
-        retry={() => void production.refetch()}
-      />
-    );
-  if (!production.data) return <Loader aria-label="正在读取剧目设定" />;
-  return (
-    <ProductionSettings
-      key={production.data.id}
-      production={production.data}
-      path={`${path}/production`}
-      active={active}
-      presentation="summary"
-    />
-  );
-}
-function ScriptArchive({ scripts }: { scripts: Schema<"ScriptRevision">[] }) {
-  return (
-    <Stack>
-      {[...scripts]
-        .sort((a, b) => b.number - a.number)
-        .map((s) => (
-          <Textarea
-            key={s.id}
-            label={`第 ${s.number} 版`}
-            value={s.text}
-            readOnly
-            minRows={4}
-            maxRows={12}
-            autosize
-          />
-        ))}
-    </Stack>
   );
 }
 function ShotHistory({

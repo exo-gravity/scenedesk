@@ -61,9 +61,8 @@ import {
   projectPath,
 } from "./common";
 import { Projects } from "./Projects";
-import { ProjectNavigation, projectSections } from "./ProjectNavigation";
-const ProjectCanvasEntry = lazy(() => import("./ProjectCanvasEntry"));
 const StudioEntry = lazy(() => import("../studio/StudioEntry"));
+import { studioRouteFor } from "../studio/legacy-routes";
 import {
   clearUserEditing,
   suspendEditingAccess,
@@ -74,9 +73,6 @@ import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
 import "./assistant-lifecycle";
 const MyWork = lazy(() => import("./MyWork"));
 const AssetLibrary = lazy(() => import("./AssetLibrary"));
-const SceneProductionWorkspace = lazy(
-  () => import("./SceneProductionWorkspace"),
-);
 import classes from "./workbench.module.css";
 import { ProjectUpdates } from "./ProjectUpdates";
 import {
@@ -258,20 +254,6 @@ function AuthenticatedApp({ hash }: { hash: string }) {
     <div
       className={classes.shell}
       ref={shell}
-      data-project-workspace={
-        (!!session.data &&
-          !session.isError &&
-          /^#\/app\/t\/[^/]+\/p\/[^/?]+(?:[/?]|$)/.test(hash) &&
-          !hash.split("?")[0]?.endsWith("/production")) ||
-        undefined
-      }
-      data-scene-production={
-        (session.data &&
-          !session.isError &&
-          hash.split("?")[0]?.endsWith("/production") &&
-          new URLSearchParams(hash.split("?")[1]).has("scene")) ||
-        undefined
-      }
     >
       <ErrorNotice
         error={editingCleanupError}
@@ -387,20 +369,14 @@ function Workspace({
   const segments = hash.split("?")[0]!.split("/");
   const tenantId = segments[2] === "t" ? segments[3] : undefined;
   const projectId = segments[4] === "p" ? segments[5] : undefined;
-  const production = !!projectId && segments[6] === "production";
   const projectSection = segments[6];
   const studioView = !!projectId && projectSection === "studio";
+  // Addresses of the retired workspace pages open the studio instead.
+  const legacy = studioRouteFor(hash);
   const assetDetail =
     (projectSection === "assets" || (!projectId && segments[4] === "assets")) &&
     new URLSearchParams(hash.split("?")[1]).has("asset");
   const params = new URLSearchParams(hash.split("?")[1]);
-  const scriptEditing =
-    !!projectId &&
-    (projectSection === "script" ||
-      (projectSection === "content" &&
-        params.has("revision") &&
-        !params.has("shot")));
-  const projectDirectory = !!projectId && (!production || params.has("scene"));
   const section = projectId ? "projects" : (segments[4] ?? "projects");
   const studio = tenants.data?.find((tenant) => tenant.id === tenantId);
   const detailObject = params.get("asset") ?? params.get("media");
@@ -413,8 +389,10 @@ function Workspace({
     projectSection,
     section,
     detailObject,
-    scriptEditing,
   ]);
+  useEffect(() => {
+    if (legacy) location.replace(legacy);
+  }, [legacy]);
   useEffect(() => {
     if (
       !tenantId &&
@@ -520,6 +498,12 @@ function Workspace({
     event.preventDefault();
     void navigationGuard.current(destination).catch(() => {});
   };
+  if (legacy)
+    return (
+      <div className={classes.welcome}>
+        <Loader aria-label="正在打开创作台" />
+      </div>
+    );
   // The rebuilt creative workspace owns the whole viewport: no studio rail,
   // context header or project navigation (see docs/design/creative-workspace-rebuild-libtv-2026-09-21.md §4).
   if (tenantId && projectId && studioView)
@@ -543,15 +527,7 @@ function Workspace({
     <>
       <div
         className={classes.layout}
-        data-project-canvas={
-          projectSection === "canvas" ||
-          (production && params.has("scene")) ||
-          undefined
-        }
         onClickCapture={guardLinkClick}
-        data-production={production || undefined}
-        data-scene-production={(production && params.has("scene")) || undefined}
-        data-project={projectDirectory || undefined}
       >
         <nav className={classes.sidebar} aria-label="工作室导航">
           <Menu position="right-start" width={240}>
@@ -617,30 +593,17 @@ function Workspace({
           )}
           <div className={classes.railFooter}>{accountMenu}</div>
         </nav>
-        {!production && projectSection !== "canvas" && (
-          <WorkspaceContext
-            tenantId={tenantId}
-            projectId={projectId}
-            section={projectSection}
-            studioName={studio?.name}
-            studioSection={section}
-          />
-        )}
-        {tenantId && projectId && projectDirectory && (
-          <ProjectNavigation
-            tenantId={tenantId}
-            projectId={projectId}
-            section={projectSection}
-            scriptView={scriptEditing}
-            footer={accountMenu}
-            environment={environment}
-          />
-        )}
+        <WorkspaceContext
+          tenantId={tenantId}
+          projectId={projectId}
+          section={projectSection}
+          studioName={studio?.name}
+          studioSection={section}
+        />
         <section className={classes.content}>
           <main
             className={classes.main}
             data-asset-detail={assetDetail || undefined}
-            data-script-editor={scriptEditing || undefined}
             ref={main}
             id="workspace-content"
             tabIndex={-1}
@@ -695,10 +658,8 @@ function Workspace({
                   section={segments[4]}
                   projectId={segments[4] === "p" ? segments[5] : undefined}
                   contentView={segments[6] === "content"}
-                  scriptView={segments[6] === "script"}
                   mediaView={segments[6] === "media"}
                   assetView={segments[6] === "assets"}
-                  productionView={segments[6] === "production"}
                   projectSection={segments[6]}
                 />
               </ProjectUpdates>
@@ -727,12 +688,11 @@ function WorkspaceContext({
     !!tenantId && !!projectId,
   );
   const title = projectId
-    ? (projectSections.find((item) => item.id === section)?.label ??
-      (section === "media"
-        ? "项目资产"
-        : section === "content"
-          ? "场次目录"
-          : "项目设置"))
+    ? section === "media" || section === "assets"
+      ? "项目资产"
+      : section === "content"
+        ? "场次目录"
+        : "项目设置"
     : ({
         projects: "项目",
         work: "我的工作",
@@ -748,18 +708,10 @@ function WorkspaceContext({
         <CaretRight size={14} />
         {projectId && (
           <>
-            <Anchor href={`#/app/t/${tenantId}/p/${projectId}/script`}>
+            <Anchor href={`#/app/t/${tenantId}/p/${projectId}`}>
               {project.isError
                 ? "项目不可访问"
                 : (project.data?.name ?? "项目")}
-            </Anchor>
-            <CaretRight size={14} />
-          </>
-        )}
-        {projectId && section === "content" && (
-          <>
-            <Anchor href={`#/app/t/${tenantId}/p/${projectId}/canvas`}>
-              画布
             </Anchor>
             <CaretRight size={14} />
           </>
@@ -774,10 +726,8 @@ function TenantArea({
   section,
   projectId,
   contentView,
-  scriptView,
   mediaView,
   assetView,
-  productionView,
   projectSection,
   studioView,
   studioSubview,
@@ -788,10 +738,8 @@ function TenantArea({
   section?: string | undefined;
   projectId?: string | undefined;
   contentView?: boolean | undefined;
-  scriptView?: boolean | undefined;
   mediaView?: boolean | undefined;
   assetView?: boolean | undefined;
-  productionView?: boolean | undefined;
   projectSection?: string | undefined;
   studioView?: boolean | undefined;
   studioSubview?: string | undefined;
@@ -822,29 +770,10 @@ function TenantArea({
         />
       </Suspense>
     );
-  if (projectId && projectSection === "canvas")
-    return (
-      <Suspense fallback={<Loader aria-label="正在加载画布入口" />}>
-        <ProjectCanvasEntry tenantId={tenantId} projectId={projectId} />
-      </Suspense>
-    );
-  if (projectId && productionView)
-    return (
-      <Suspense fallback={<Loader aria-label="正在加载镜头制作" />}>
-        <SceneProductionWorkspace tenantId={tenantId} projectId={projectId} />
-      </Suspense>
-    );
   if (
     (projectId &&
       projectSection &&
-      ![
-        "content",
-        "script",
-        "canvas",
-        "media",
-        "assets",
-        "production",
-      ].includes(projectSection)) ||
+      !["content", "media", "assets"].includes(projectSection)) ||
     (!projectId && section && !["media", "assets", "work"].includes(section))
   )
     return (
@@ -893,7 +822,6 @@ function TenantArea({
       members={members.data}
       projectId={projectId}
       contentView={contentView}
-      scriptView={scriptView}
     />
   );
 }

@@ -293,7 +293,7 @@ export function ScriptCanvasExcerpt({
                       void draft.complete(() => {
                         location.hash = canvasHref
                           ? canvasHref(receipt.nodeActive ? receipt.nodeId : undefined)
-                          : `${path.replace(/^\/v1\/tenants\//, "#/app/t/").replace("/projects/", "/p/")}/canvas?scope=project${receipt.nodeActive ? `&node=${receipt.nodeId}` : ""}`;
+                          : `${path.replace(/^\/v1\/tenants\//, "#/app/t/").replace("/projects/", "/p/")}/studio${receipt.nodeActive ? `?node=${receipt.nodeId}` : ""}`;
                       })
                     }
                   >

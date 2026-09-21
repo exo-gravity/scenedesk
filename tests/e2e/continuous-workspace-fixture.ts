@@ -364,7 +364,7 @@ export async function startContinuousWorkspace(
                 return next();
               response.writeHead(303, {
                 "Set-Cookie": `session=${f.owner.token}; Path=/; HttpOnly; SameSite=Lax`,
-                Location: `/#/app/t/${f.tenant.id}/p/${f.project.id}/canvas?node=${referenceId}`,
+                Location: `/#/app/t/${f.tenant.id}/p/${f.project.id}/studio?node=${referenceId}`,
               });
               response.end();
             });

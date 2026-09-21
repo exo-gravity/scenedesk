@@ -34,6 +34,7 @@ import { QualityReferenceSettings } from "./QualityReferenceSettings";
 import { MediaPreview } from "./MediaPreview";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { CreateProjectForm } from "./CreateProjectForm";
+import { ProductionSettings } from "./ProductionSettings";
 
 type Member = Schema<"Membership">;
 type Project = Schema<"Project">;
@@ -51,14 +52,12 @@ export function Projects({
   members,
   projectId,
   contentView,
-  scriptView,
 }: {
   tenantId: string;
   own: Member;
   members: Member[];
   projectId?: string | undefined;
   contentView?: boolean | undefined;
-  scriptView?: boolean | undefined;
 }) {
   const manager = own.role === "owner" || own.role === "admin";
   const [creating, setCreating] = useState(false),
@@ -67,7 +66,7 @@ export function Projects({
   useEffect(() => {
     if (!projectId) document.title = "项目 · SceneDesk";
   }, [projectId]);
-  if (projectId && (contentView || scriptView))
+  if (projectId && contentView)
     return (
       <ContentWorkspace
         key={projectId}
@@ -75,7 +74,6 @@ export function Projects({
         projectId={projectId}
         own={own}
         members={members}
-        view={scriptView ? "script" : "scenes"}
       />
     );
   if (projectId)
@@ -192,7 +190,7 @@ function ProjectCard({
     `${path}/media?scope=project&projectId=${project.id}&kind=image&status=ready&limit=1`,
   );
   const cover = covers.data?.items[0];
-  const href = `#/app/t/${tenantId}/p/${project.id}/script`;
+  const href = `#/app/t/${tenantId}/p/${project.id}/studio`;
   return (
     <article className={classes.projectCard}>
       <Anchor
@@ -322,12 +320,7 @@ function ProjectDetails({
           <h2 className={classes.subheading}>剧目设定</h2>
           <Text c="dimmed">故事、风格与默认参考集中在创作页。</Text>
         </div>
-        <Button
-          component="a"
-          href={`#/app/t/${tenantId}/p/${projectId}/script?tab=settings`}
-        >
-          查看剧目设定
-        </Button>
+        <StorySettings path={path} active={active} />
       </Group>
       <Modal
         opened={action !== null}
@@ -380,6 +373,42 @@ function ProjectDetails({
             {action?.kind === "archive" ? "确认归档" : "确认恢复"}
           </Button>
         </Stack>
+      </Modal>
+    </>
+  );
+}
+/** The story settings summary, opened from the project page since the old script page went. */
+function StorySettings({ path, active }: { path: string; active: boolean }) {
+  const [open, setOpen] = useState(false);
+  const production = useResource<Schema<"Production">>(
+    `${path}/production`,
+    open,
+  );
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>查看剧目设定</Button>
+      <Modal
+        opened={open}
+        onClose={() => setOpen(false)}
+        title="剧目设定"
+        size="lg"
+      >
+        {production.isError ? (
+          <ErrorNotice
+            error={production.error}
+            retry={() => void production.refetch()}
+          />
+        ) : !production.data ? (
+          <Loader aria-label="正在读取剧目设定" />
+        ) : (
+          <ProductionSettings
+            key={production.data.id}
+            production={production.data}
+            path={`${path}/production`}
+            active={active}
+            presentation="summary"
+          />
+        )}
       </Modal>
     </>
   );

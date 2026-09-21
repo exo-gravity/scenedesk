@@ -5,10 +5,6 @@ import {
   type AssistantRecord,
   type AssistantTransport,
 } from "../apps/web/src/business/assistant-session.js";
-import {
-  TakeFeedbackSession,
-  type FeedbackDraft,
-} from "../apps/web/src/business/take-feedback.js";
 
 type Scope = {
   sessionId: string;
@@ -305,58 +301,6 @@ test("navigation does not wait for or retry an in-flight business operation", as
     gate.resolve();
     unregister();
     await f.controller.settle();
-  }
-});
-
-test("the existing candidate-feedback saved field is also checked without sending the opinion", async () => {
-  const owner = scope(),
-    gate = deferred();
-  let stored: FeedbackDraft | undefined;
-  let failure = false;
-  let sends = 0;
-  const controller = new TakeFeedbackSession(
-    {
-      read: async () => structuredClone(stored),
-      write: async (draft) => {
-        await gate.promise;
-        if (failure) throw Error("feedback disk failed");
-        stored = structuredClone(draft);
-      },
-      clear: async () => {
-        stored = undefined;
-      },
-    },
-    {
-      read: async () => ({ reviews: [], comments: [] }),
-      send: async () => {
-        sends++;
-        throw Error("must not send feedback");
-      },
-    },
-    owner.projectId,
-    crypto.randomUUID(),
-    owner.userId,
-  );
-  await controller.verify();
-  const unregister = lifecycle.registerAssistant({ ...owner, controller });
-  try {
-    controller.edit({ body: "unsubmitted candidate opinion" });
-    const retention = lifecycle.retainProjectAssistantDrafts(owner);
-    gate.resolve();
-    await retention;
-    assert.equal(stored?.body, "unsubmitted candidate opinion");
-    failure = true;
-    controller.edit({ body: "keep the last opinion on failure" });
-    await assert.rejects(lifecycle.retainProjectAssistantDrafts(owner), /本机/);
-    assert.equal(
-      controller.getSnapshot().draft?.body,
-      "keep the last opinion on failure",
-    );
-    assert.equal(sends, 0);
-  } finally {
-    gate.resolve();
-    unregister();
-    await controller.settle();
   }
 });
 
@@ -861,54 +805,6 @@ test("closing an empty editor releases its obsolete access wait without requirin
     await load;
     close();
     await f.controller.settle();
-  }
-});
-
-test("candidate opinion navigation waits for its already-running read and does not submit the opinion", async () => {
-  const owner = scope(),
-    gate = deferred();
-  let reads = 0,
-    sends = 0;
-  const controller = new TakeFeedbackSession(
-    {
-      read: async () => undefined,
-      write: async () => {},
-      clear: async () => {},
-    },
-    {
-      read: async () => {
-        reads++;
-        await gate.promise;
-        return { reviews: [], comments: [] };
-      },
-      send: async () => {
-        sends++;
-        throw new Error("no opinion submission");
-      },
-    },
-    owner.projectId,
-    crypto.randomUUID(),
-    owner.userId,
-  );
-  const close = lifecycle.registerAssistant({ ...owner, controller });
-  const initial = controller.verify();
-  let completed = false;
-  const navigation = lifecycle.retainProjectAssistantDrafts(owner).then(() => {
-    completed = true;
-  });
-  try {
-    await new Promise<void>(setImmediate);
-    assert.equal(completed, false);
-    gate.resolve();
-    await Promise.all([initial, navigation]);
-    assert.equal(completed, true);
-    assert.equal(reads, 1);
-    assert.equal(sends, 0);
-  } finally {
-    gate.resolve();
-    await initial;
-    close();
-    await controller.settle();
   }
 });
 

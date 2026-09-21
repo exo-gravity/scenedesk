@@ -121,3 +121,30 @@ test("ST-01: an archived project shows its board read-only and keeps its revisio
   await expect(page.getByRole("textbox", { name: "文字内容", exact: true })).toHaveCount(0);
   expect((await s.canvas()).canvas.revision).toBe(saved.revision);
 });
+
+test("ST-01: a revoked collaborator cannot reopen the cached board or read its document", async ({ page, context, workspace: w }) => {
+  const s = studio(w);
+  const ensured = await w.runtime.request<Schema<"ProjectCanvas">>(w.owner, "POST", `${s.path}/canvas`);
+  expect(ensured.status).toBe(200);
+  const collaborator = await w.runtime.identity("board-collaborator"), membershipId = randomUUID();
+  await w.runtime.database.admin.query(
+    `INSERT INTO "${w.runtime.database.schema}".memberships(id,tenant_id,user_id,role) VALUES($1,$2,$3,'member')`,
+    [membershipId, w.tenant.id, collaborator.userId],
+  );
+  const grant = await w.command<{ revision: number }>("POST", `${s.path}/members`, { membershipId });
+  await context.clearCookies();
+  await context.addCookies([{ name: "session", value: collaborator.token, url: w.runtime.origin, httpOnly: true, sameSite: "Lax" }]);
+  await page.goto(s.url);
+  await expect(page.getByRole("button", { name: "创作台保存状态：已保存", exact: true })).toBeVisible();
+  const views = page.getByRole("navigation", { name: "创作区视图", exact: true });
+  await views.getByRole("link", { name: "剧本", exact: true }).click();
+  await expect(page).toHaveURL(`${s.url}/script`);
+  await w.command("DELETE", `${s.path}/members/${membershipId}`, undefined, grant.revision);
+  await views.getByRole("link", { name: "创作台", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "操作未完成" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /^创作台保存状态：/ })).toHaveCount(0);
+  await expect(page.getByText(w.project.name, { exact: true })).toHaveCount(0);
+  await expect(page).not.toHaveTitle(new RegExp(w.project.name));
+  expect((await w.runtime.request(collaborator, "GET", `${s.path}/canvas`)).status).toBe(404);
+  expect((await w.runtime.request(collaborator, "GET", `${s.path}/canvases/${ensured.value.canvas.id}`)).status).toBe(404);
+});

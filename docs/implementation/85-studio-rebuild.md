@@ -140,6 +140,20 @@
 
 并排图：[slice-8-docks.png](../design/assets/2026-09-21-studio-rebuild/slice-8-docks.png)。本机检查：`ui:check`、`typecheck`、`vite build`、ST-08 与全部生产浏览器用例（55 例）通过。
 
+## 1i. 第 ⑨ 片：切换与清理（分支 `feat/studio-rebuild-switch`）
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 唯一入口 | `studio/legacy-routes.ts`：旧地址一律转到创作台——`…/canvas[?node=]` → `…/studio[?node=]`；`…/production?scene=` → `…/studio?scene=`，带 `shot=` 的旧分镜深链 → `…/studio/shots?scene=&shot=`；`…/script[?revision=]` → `…/studio/script[?revision=]`，`?tab=settings` → 项目页；`…/content?revision=`（无 shot）→ 剧本视图。`BusinessApp` 在渲染前 `location.replace`，期间只显示读取态 | 单测 `studio-legacy-routes.test.ts` 6 例；ST-00、ST-09 |
+| 项目页与场次目录 | 项目卡打开创作台；「查看剧目设定」在项目页里弹出（原在旧剧本页的设置页签）；场次目录去掉项目左栏与「画布」面包屑，行内「打开创作台」到场次创作台、「N 镜头 · M 已选用」到镜头整理；创作依据、CSV 与提案仍在目录页 | ST-09 |
+| 撤权关门 | `StudioEntry` 对项目、内容或画布任一读取的 401／403／404 整体关门（查询缓存会保留上次成功数据，旧页面各自有同样的判断）：顶栏显示「项目不可访问」，视图换成「操作未完成」，不显示缓存的正文与项目名 | ST-01、ST-06、ST-07 的撤权用例 |
+| 删除 | 旧画布（`CanvasBoard`、`CanvasContextualEditor`、`CanvasContinueCreation`、`MediaGenerationWorkspace` 与三个包装、`CanvasMediaGeneration`、结果视图、放置与导航辅助、`canvas.module.css`——上传列表用到的三条规则移到 `canvas-uploads.module.css`）、场次工作区（`SceneProductionWorkspace`、`ProjectCanvasEntry`、`ProjectNavigation`、`CanvasShotConnections`、`EditingPresence`、`SceneAssistant`、`ShotPromptComposer`、`CandidateWorkspace`、`TakeFeedback` 及其控制器）、旧剧本页（`ScriptDocumentReader`；`ContentWorkspace` 的剧本视图、`ScriptArchive`）、旧镜头列表（`ShotListWorkspace`）、早已无人引用的孤儿（`CutWorkspace`、`CutWorkPanels`、`CutDialoguePanel`、`cut-*`、`TaskWorkspace`、`TaskEditor`、`Members`、`canvas-card-dialog`、`use-prompt-session` 与四个样式文件）；共 59 个源文件、7 个单测文件与 `assistant-lifecycle.test.ts` 里两例候选意见用例。`check-ui.ts` 的旧界面清单随之删除；`workbench.module.css`、`content.module.css` 去掉只有旧页面用的路由属性与剧本布局规则 | 可达性脚本（从 `main.tsx` 与 `studio/` 出发）无孤儿；`typecheck`、`ui:check`、`vite build`、286/286 单测 |
+| e2e | 删除 14 个旧规格（40 例）。行为仍在的红线用例搬进 `studio-*.spec.ts`：Word 提交回执丢失、选文回执丢失、飞书两例、撤权后不显示缓存剧本、归档项目剧本只读（`studio-script`）；并发选用保留理由与撤权后不显示缓存列表（`studio-shots`）；撤权后不能重开缓存创作台（`studio-board`）；归档项目创作台可读且拒绝新编辑（`studio-switch`）。`continuous-workspace-fixture` 与四个 `preview-*` 人工检查脚本改落到创作台地址 | 全套 24 例通过（见下） |
+
+按用户要求保持克制，本片主动不做并记录：候选意见（`TakeFeedback`，对候选的评审与留言）随旧候选工作区退役，接口与数据未动，需要时在镜头整理抽屉里重新接入；分镜建议（`SceneAssistant`）随旧剧本页退役，提案历史与导入仍在场次目录；`CanvasShotConnections` 退役，场次创作台与镜头的关系走「登记为镜头候选」与镜头整理的「定位」；旧 e2e 中只针对已删界面的用例不搬（左栏键盘导航、旧分镜深链、画布切换对话框、分组面板、剧本纯文本编辑）；Word 无效文件恢复与并发 CAS、交付「改变选用后拒绝旧确认」、助手应用回执丢失这三组用例未搬，模块本身原样接入未改，留作后续补测；`workbench.module.css` 里旧左栏的样式类未清，随下次壳层改动一起清。
+
+并排图：[slice-9-switch.png](../design/assets/2026-09-21-studio-rebuild/slice-9-switch.png)（从项目卡进入的创作台）。本机检查：`npm run check`（契约、`ui:check`、构建、单测）、全套生产浏览器用例、文档门禁通过。
+
 ## 2. 新目录的模块规划
 
 按决定文档 §6 分片，目录随片建立，不预先建空目录：
@@ -216,7 +230,7 @@
 | ⑥ 剧本视图 | 已交付（本文 §1f） | [剧本视图](../design/assets/2026-09-21-studio-rebuild/slice-6-script.png) |
 | ⑦ 镜头整理视图 | 已交付（本文 §1g） | [镜头整理](../design/assets/2026-09-21-studio-rebuild/slice-7-shots.png) |
 | ⑧ 助手、任务、创作台切换、项目菜单 | 已交付（本文 §1h） | [助手浮窗](../design/assets/2026-09-21-studio-rebuild/slice-8-docks.png) |
-| ⑨ 切换与清理 | 未开始 | — |
+| ⑨ 切换与清理 | 已交付（本文 §1i） | [默认入口](../design/assets/2026-09-21-studio-rebuild/slice-9-switch.png) |
 
 ## 6. PR 划分与交接（2026-09-21 决定）
 
@@ -229,3 +243,5 @@
 | 3 | `feat/studio-rebuild-switch`（叠在 2 之上） | 阶段 3（⑨）：新入口成为默认、删旧界面与旧 e2e、文档基线 |
 
 后一个分支从前一个分支的末尾开出，评审顺序即合入顺序。
+
+三个分支都已交付（2026-09-21），均未推送；合入后创作区只有 `…/studio` 一个入口。

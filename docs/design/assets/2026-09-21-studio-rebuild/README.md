@@ -17,3 +17,4 @@
 | `slice-6-script.png` | ⑥ 剧本视图 | `libtv-script-workspace.png` | ST-06：当前稿阅读与顶部工具行 |
 | `slice-7-shots.png` | ⑦ 镜头整理视图 | `libtv-script-workspace.png` | ST-07：三镜表格，01 已选用 |
 | `slice-8-docks.png` | ⑧ 助手、任务、切换 | `libtv-agent-floating.png` | ST-08：助手浮窗里保留着未发送的草稿，顶栏有切换画布、任务、助手与账号 |
+| `slice-9-switch.png` | ⑨ 切换与清理 | `libtv-image-selected.png` | ST-09：从项目卡进入的创作台；旧地址一律转到这里 |

@@ -25,7 +25,7 @@ const bootstrap = createServer((request, response) => {
   response.writeHead(303, {
     "Set-Cookie": `session=${workspace.owner.token}; HttpOnly; SameSite=Lax; Path=/`,
     "Cache-Control": "no-store",
-    Location: `${runtime.origin}${workspace.basePath}/script`,
+    Location: `${runtime.origin}${workspace.basePath}/studio/script`,
   });
   response.end();
 });

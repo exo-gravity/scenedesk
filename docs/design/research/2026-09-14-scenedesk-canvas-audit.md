@@ -1,5 +1,7 @@
 # SceneDesk 画布定位与交互结构审计
 
+> 本文引用的部分源文件与 e2e 规格属于旧创作界面，已在 2026-09-21 阶段 3 删除（见 [85-studio-rebuild.md §1i](../../implementation/85-studio-rebuild.md)）；这些引用改为纯文本，内容按当时原样保留。
+
 日期：2026-09-14。范围：为竞品调研后的新方案提供本项目事实、约束与待验证问题；不修改产品，不运行服务、模型或测试数据。代码基线为 `f4f005c981ea195dbca56c1c5d570de66470f994`，读取时 `HEAD`、`main`、`origin/main` 一致，即 PR #34 合入后。代码行号均指这一基线。
 
 ## 1. 结论与证据口径
@@ -14,7 +16,7 @@ SceneDesk 的画布应帮助创作者在同一场戏中组织想法、比较材�
 - **已观察画面**：重新查看上一轮实际生产构建截图；它们来自隔离 API、PostgreSQL、MinIO 和技术媒体，不是设计效果图。单帧只能证明该状态的呈现，不能证明所有情况下都会拥挤或误操作。
 - **设计推断**：上述结构可能增加目标辨认、找回结果或比较媒体的负担，仍需目标创作者实际任务验证；没有将自动化通过换算成人类操作效率。
 
-下文代码文件位于 `apps/web/src/business/`。主要读取：[CanvasBoard](../../../apps/web/src/business/CanvasBoard.tsx)、[场次工作区](../../../apps/web/src/business/SceneProductionWorkspace.tsx)、[画布生成接入](../../../apps/web/src/business/CanvasMediaGeneration.tsx)、[生成工作区](../../../apps/web/src/business/MediaGenerationWorkspace.tsx)、[画布样式](../../../apps/web/src/business/canvas.module.css)、[镜头候选工作区](../../../apps/web/src/business/CandidateWorkspace.tsx)、[画布控制器](../../../apps/web/src/business/canvas-controller.ts)。
+下文代码文件位于 `apps/web/src/business/`。主要读取：CanvasBoard、场次工作区、画布生成接入、生成工作区、画布样式、镜头候选工作区、[画布控制器](../../../apps/web/src/business/canvas-controller.ts)。
 
 [上一轮 E2E 说明](../../../output/playwright/2026-09-13-creative-experience/README.md)记录了真实编辑保存、刷新读回、指针拖动、继续创作、412 恢复、上传和播放。最终产品构建为 `093d8c5`；部分截图绘制于同片较早的 `652ab9a`，构建身份及修正顺序保留在原证据中。本轮未重新绘制当前页面，根任务另行实看。无真实模型执行和质量结论，未完成目标创作者可用性实验。
 
