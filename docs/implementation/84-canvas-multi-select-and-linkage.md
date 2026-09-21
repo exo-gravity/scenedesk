@@ -121,7 +121,7 @@ getCanvasGenerationBatch              executeCanvasGenerationBatch
 
 ### 8.4 一条既有的不稳定用例
 
-`CW-13: concurrent selection retains reason…; revoked collaborator cannot display cached list` 在本分支之前的 `main`（PR #62 合入后）就失败过一次，失败点在撤权后点击「刷新列表」时元素已从 DOM 脱离。根因：撤权到达页面有两条路。手动「刷新列表」让列表在弹窗内被「操作未完成」替换；项目事件流（`ProjectUpdates.tsx` 的 `access_revoked`）则重读项目本身，整个项目视图被提示替换、弹窗随之关闭。两条都对，谁先到是竞争；用例原来只认第一条，并且把断言限定在弹窗内。本地重复 5 次复现了第二条路（弹窗已关闭，提示出现在主区域）。修法：手动刷新改为可选动作，断言提到页面级——出现「操作未完成」提示、页面上不再有「镜头顺序」导航、撤权者读取 selection 得 404。本地对该用例重复 8 次通过。
+`CW-13: concurrent selection retains reason…; revoked collaborator cannot display cached list` 在本分支之前的 `main`（PR #62 合入后）就失败过一次，失败点在撤权后点击「刷新列表」时元素已从 DOM 脱离。根因：撤权到达页面有三条路，谁先到是竞争。手动「刷新列表」让列表在弹窗内被「操作未完成」替换；项目事件流（`ProjectUpdates.tsx` 的 `access_revoked`）重读项目本身，整个项目视图被「操作未完成」替换、弹窗关闭；画布自己的访问核对（`CanvasRecovery.tsx`）则显示「画布访问已失效」并停止展示本机内容，弹窗同样关闭。三条都是对的产品行为；用例原来只认第一条，并把断言限定在弹窗内。本地重复运行复现了第二条，远端 CI 复现了第三条。修法：手动刷新改为可选动作，断言提到页面级——出现任一失效提示、页面上不再有「镜头顺序」导航、撤权者读取 selection 得 404。
 
 ## 9. 中途建成又移除的部分（2026-09-21）
 
