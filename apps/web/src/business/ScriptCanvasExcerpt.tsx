@@ -35,6 +35,7 @@ export function ScriptCanvasExcerpt({
   path,
   actionTarget,
   selectedExcerpt,
+  canvasHref,
 }: {
   script: Schema<"ScriptRevision">;
   current: boolean;
@@ -42,6 +43,8 @@ export function ScriptCanvasExcerpt({
   path: string;
   actionTarget?: HTMLDivElement | null;
   selectedExcerpt?: Schema<"ScriptExcerpt"> | undefined;
+  /** Where "进入画布" goes; the default is the classic canvas entry. */
+  canvasHref?: ((nodeId: string | undefined) => string) | undefined;
 }) {
   const session = useSession();
   const draft = useContentDraft<Intent>(`${path}/canvas-excerpt`, empty, 1);
@@ -288,7 +291,9 @@ export function ScriptCanvasExcerpt({
                     mt="sm"
                     onClick={() =>
                       void draft.complete(() => {
-                        location.hash = `${path.replace(/^\/v1\/tenants\//, "#/app/t/").replace("/projects/", "/p/")}/canvas?scope=project${receipt.nodeActive ? `&node=${receipt.nodeId}` : ""}`;
+                        location.hash = canvasHref
+                          ? canvasHref(receipt.nodeActive ? receipt.nodeId : undefined)
+                          : `${path.replace(/^\/v1\/tenants\//, "#/app/t/").replace("/projects/", "/p/")}/canvas?scope=project${receipt.nodeActive ? `&node=${receipt.nodeId}` : ""}`;
                       })
                     }
                   >
