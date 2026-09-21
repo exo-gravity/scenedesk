@@ -48,7 +48,7 @@
 
 并排图：[slice-2-references.png](../design/assets/2026-09-21-studio-rebuild/slice-2-references.png)。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00／ST-01／ST-02 通过。
 
-实现中定下的细则：交给 React Flow 的回调与配置对象保持稳定身份（`useCallback`、模块常量），并且创作台组件不订阅 React Flow 的连接状态（改用 `onConnectStart`／`onConnectEnd`）——否则它的 store 更新器会在每次渲染写入 store，而订阅者又触发下一次渲染，直到 React 报「更新深度超限」。
+实现中定下的细则：交给 React Flow 的回调与配置对象保持稳定身份（`useCallback`、模块常量），并且创作台组件不订阅 React Flow 的连接状态（改用 `onConnectStart`／`onConnectEnd`）——否则它的 store 更新器会在每次渲染写入 store，而订阅者又触发下一次渲染，直到 React 报「更新深度超限」。`Board` 自己的 `onNodesChange` 等处理函数每次渲染重建，这只在创作台不订阅 store 的前提下安全，代码里已注明。
 
 ## 1c. 第 ③ 片：输入面板、模型列表、规格浮层、提交接生成会话
 
@@ -122,13 +122,13 @@
 
 | # | 规则 | 现有实现 | 新归属 | 片 | 验证 |
 |---|---|---|---|---|---|
-| 1 | 会话身份 = 会话 · 类型 · 画布 · 节点 ·（检视时的计划 id），任一变化即重建 | `MediaGenerationWorkspace` 外层 `key`：`session.id : kind : canvas.id : nodeId : (inspection ? historyPlanId : "editor")` | `composer/Composer.tsx` 外层同样的 `key`；`use-generation-session` 不改 | ③ | e2e：切换所选卡后面板从该卡自己的草稿重建 |
-| 2 | 打开面板时向画布登记「保留草稿」检查：会话落定且草稿已保存，否则阻止并说明 | `onRetainDraft` effect：`controller.settle()` 后要求 `access === "ready" && draftSaved`，否则抛「当前生成输入尚未保留」 | `Composer` 挂载时向 `board` 的离开守卫登记同一检查；守卫沿用 `project-navigation-guard` | ③ | 搬入 `canvas-continuous-creation` 的离开阻止用例 |
-| 3 | 检视固定尝试只打开一次，并校验项目与用途 | `openedAttempt` ref + `controller.openExisting(historyPlanId, fixed => 校验 id / projectId / purpose)` | `results/` 的历史入口沿用同一 ref 与校验 | ④ | e2e：从历史入口打开固定尝试，只读一次 |
+| 1 | 会话身份 = 会话 · 类型 · 画布 · 节点 ·（检视时的计划 id），任一变化即重建 | `MediaGenerationWorkspace` 外层 `key`：`session.id : kind : canvas.id : nodeId : (inspection ? historyPlanId : "editor")` | `Board` 以 `canvas.id : nodeId` 为 `key`；会话变化时外壳整体重挂（`BusinessApp` 的 `key={session.data.id}`），卡的类型不会变，效果相同；`use-generation-session` 不改 | ③ | e2e：切换所选卡后面板从该卡自己的草稿重建 |
+| 2 | 打开面板时向画布登记「保留草稿」检查：会话落定且草稿已保存，否则阻止并说明 | `onRetainDraft` effect：`controller.settle()` 后要求 `access === "ready" && draftSaved`，否则抛「当前生成输入尚未保留」 | `Composer` 挂载时登记检查：`session.settle()` 后 `hasUnretainedDraft()` 为真即阻止（含挂起时隐藏的草稿；不等权限核对，否则每次快速改选都要等一轮核对）。创作台的改选与离开守卫都先跑它：`StudioCanvas.navigate` = 登记的检查 → 项目助手草稿 → 视图偏好 flush → 改地址，经 `project-navigation-guard` 接壳层对站内链接的拦截 | ③ | 搬入 `canvas-continuous-creation` 的离开阻止用例 |
+| 3 | 检视固定尝试只打开一次，并校验项目与用途 | `openedAttempt` ref + `controller.openExisting(historyPlanId, fixed => 校验 id / projectId / purpose)` | 未启用：历史只读，不开检视会话（见 §1d）；从历史把旧结果放回创作台是旧页面有、创作台还没有的能力 | ④ | e2e：从历史入口打开固定尝试，只读一次 |
 | 4 | 能力读取 401／403／404 → 挂起会话并重新核对权限 | `capabilities.error` effect：`controller.suspend(); controller.verify()` | `Composer` 的能力查询 effect | ③ | 搬入撤权用例：撤权后创作台失效并清缓存 |
 | 5 | 草稿的模型与规格保存在画布文档里，不在会话里 | `change()` → `source.configure(nodeId, { connectionId, capabilityId, output })` | `Composer` → `board` 暴露的 `configure`（来自 `use-canvas`） | ③ | e2e：选模型、改规格 → 保存 → 刷新仍在 |
 | 6 | 已有计划或原请求时，模型与规格全部冻结 | `frozen = !!record?.planId \|\| !!record?.planRequest`，作用于模型 `Select` 与全部规格控件 | `ModelList`、`SpecificationPopover` 的 `disabled` 同样取 `frozen` | ③ | e2e：准备后模型胶囊与规格胶囊不可改 |
-| 7 | 不活跃、会话忙、无草稿时禁用输入 | `disabled = !active \|\| state.busy \|\| !draft` | `Composer` 顶层 `disabled` | ③ | e2e：提交中输入禁用 |
+| 7 | 不活跃、会话忙、无草稿时禁用输入 | `disabled = !active \|\| state.busy \|\| !draft` | `Composer` 顶层 `disabled`；提示词框在冻结、只读、不活跃时隐藏而非禁用，提示词存在画布文档里，第 8 条的文档校验兜底 | ③ | e2e：提交中输入禁用 |
 | 8 | 生成前：先固定镜头来源快照，再保存画布，保存后 id 或文档变化则拒绝，再构造请求 | `prepare()`：`fixedShotSources(draft.shotSources)` → `source.save()` → 校验 `canvas.id` 与 `editingCanonical(document)` → `canvasXRequest(...)`，交 `controller.generateFrom` | `Composer` 的提交同序执行；请求构造沿用 `image/video/audio-generation.ts` | ③ | 搬入连续创作与幂等用例 |
 | 9 | 画布未保存时显示「生成前会先保存」，并禁用结果放置 | `awaitingSave` → 文案「生成时会先保存本次画布输入…」；放置评审按钮 `disabled \|\| awaitingSave` | `Composer` 底行状态文字；`results/` 的放置入口 | ③④ | e2e：脏画布下提示可见、放置禁用 |
 | 10 | 结果放置评审：任务成功且有媒体，先再保存画布，算出位置，进入评审态 | `reviewPlacement()`：`commitDraft` 内 `source.save()`、校验 id、`canvasResultPosition(nodes, nodeId, count)` → `placement.phase = "review"` | `results/placement.ts`，复用 `canvas-result-position`、`canvas-result-placement` | ④ | 搬入结果与恢复用例 |

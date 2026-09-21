@@ -185,6 +185,13 @@ export function Board({
   const [editingTextId, setEditingTextId] = useState<string>();
   const [renamingId, setRenamingId] = useState<string>();
   const [selectedEdges, setSelectedEdges] = useState<string[]>([]);
+  // React Flow reports selection as deltas. They are applied to the latest
+  // selection asked for, not to the rendered one: the retain guard in front
+  // of `onSelect` may still be settling when the next click or box arrives.
+  const requestedSelection = useRef(selected);
+  useEffect(() => {
+    requestedSelection.current = selected;
+  }, [selected]);
   const [menu, setMenu] = useState<
     { x: number; y: number; kind: "node" } | { x: number; y: number; kind: "edge"; edgeId: string } | null
   >(null);
@@ -520,6 +527,9 @@ export function Board({
       }),
     });
   };
+  // These handlers are rebuilt each render. That is safe only because the
+  // board never subscribes to React Flow's store (see `onConnectStart` below);
+  // a subscription plus fresh handlers would loop the store updater.
   const onNodesChange = (changes: NodeChange<BoardNode>[]) => {
     const dimensions = changes.filter((c) => c.type === "dimensions");
     if (dimensions.length)
@@ -539,7 +549,7 @@ export function Board({
         }
         return next;
       });
-    const selection = new Set(selected);
+    const selection = new Set(requestedSelection.current);
     let selecting = false;
     for (const c of changes)
       if (c.type === "select") {
@@ -547,7 +557,10 @@ export function Board({
         if (c.selected) selection.add(c.id);
         else selection.delete(c.id);
       }
-    if (selecting) onSelect([...selection]);
+    if (selecting) {
+      requestedSelection.current = [...selection];
+      onSelect(requestedSelection.current);
+    }
     if (readOnly) return;
     const moves = new Map(
       changes.flatMap((c) =>

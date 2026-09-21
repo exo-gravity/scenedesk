@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Loader, UnstyledButton } from "@mantine/core";
-import { useList, type Schema } from "../business/api";
+import { useList, useSession, type Schema } from "../business/api";
+import {
+  retainProjectAssistantDrafts,
+  retryProjectAssistantRetention,
+} from "../business/assistant-lifecycle";
+import { useProjectNavigationGuard } from "../business/project-navigation-guard";
 import { CanvasUploads } from "../business/CanvasUploads";
 import { taskLabels, useNodeResults } from "./results/useNodeResults";
 import { Check } from "@phosphor-icons/react";
@@ -47,6 +52,14 @@ export function StudioCanvas({
   );
   const preference = useScenePreference(`${path}/workspace-preference`);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // Leaving the studio through an in-app link waits for the open panel's
+  // draft, the project's assistant drafts and the view preference, the same
+  // barrier the old canvas page had; the shell routes link clicks here.
+  const session = useSession(),
+    guard = useProjectNavigationGuard();
+  const [navigationError, setNavigationError] = useState<Error | null>(null);
+  const navigationLock = useRef(false),
+    pendingDestination = useRef<string | null>(null);
   const document = state?.local?.document;
   const readOnly =
     !active ||
@@ -89,9 +102,45 @@ export function StudioCanvas({
     },
     [change],
   );
+  const navigate = useCallback(
+    async (destination: string, recheck = false) => {
+      if (navigationLock.current) throw new Error("正在保留当前编辑，请稍候。");
+      navigationLock.current = true;
+      setNavigationError(null);
+      pendingDestination.current = destination;
+      const partition = { sessionId: session.id, userId: session.userId, tenantId, projectId };
+      try {
+        if (recheck) await retryProjectAssistantRetention(partition);
+        await retain.current?.();
+        await retainProjectAssistantDrafts(partition);
+        await preference.flush();
+        // New input may arrive while asynchronous retention is running.
+        await retain.current?.();
+        await retainProjectAssistantDrafts(partition);
+        location.hash = destination;
+        pendingDestination.current = null;
+      } catch (cause) {
+        const failure = cause instanceof Error ? cause : new Error("当前编辑尚未保留，页面仍留在原处。");
+        setNavigationError(failure);
+        throw failure;
+      } finally {
+        navigationLock.current = false;
+      }
+    },
+    [session.id, session.userId, tenantId, projectId, preference.flush],
+  );
+  useEffect(() => {
+    guard.current = navigate;
+    return () => {
+      if (guard.current === navigate) guard.current = undefined;
+    };
+  }, [guard, navigate]);
   // Rule 8: generation saves the board first and needs the saved canvas back.
-  const save = useCallback(async () => {
+  // A placement review asks for a refresh first, so a board changed elsewhere
+  // is adopted (or surfaces as a conflict) before the position is computed.
+  const save = useCallback(async (options?: { refresh?: boolean }) => {
     if (!controller) throw new Error("创作台尚未就绪。");
+    if (options?.refresh) await controller.refresh();
     await controller.save();
     const current = controller.getSnapshot();
     if (
@@ -169,9 +218,17 @@ export function StudioCanvas({
           </div>
         ) : (
           <ReactFlowProvider>
-            {(attention || !active || preference.error || retainError) && (
+            {(attention || !active || preference.error || retainError || navigationError) && (
               <section className={classes.notice} aria-label="创作台状态">
                 <ErrorNotice error={retainError} />
+                <ErrorNotice
+                  error={navigationError}
+                  retryLabel="重试保留并离开"
+                  retry={() => {
+                    const destination = pendingDestination.current;
+                    if (destination) void navigate(destination, true).catch(() => {});
+                  }}
+                />
                 {!active && (
                   <Alert title="只读项目">
                     项目已归档，可继续查看原有创作台。

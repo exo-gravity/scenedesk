@@ -54,7 +54,7 @@ export type ComposerProps = {
   /** The board has unsaved or unconfirmed changes; generation saves first. */
   awaitingSave: boolean;
   /** Save the board and return the saved canvas; throws when it cannot. */
-  save: () => Promise<Schema<"Canvas">>;
+  save: (options?: { refresh?: boolean }) => Promise<Schema<"Canvas">>;
   /** After a placement: re-read the board so the new cards appear. */
   afterPlacement: () => Promise<void>;
   changePrompt: (id: string, prompt: string) => void;
@@ -143,13 +143,11 @@ export function Composer(props: ComposerProps) {
   const { registerRetain } = props;
   useEffect(() => {
     registerRetain(async () => {
-      // Let a running access check finish first: while it runs there is
-      // nothing unsaved to protect, and refusing would make every quick
-      // reselection fail.
+      // Wait for pending local writes only, never for an access check: the
+      // session keeps a suspended draft hidden until access is back, and
+      // `hasUnretainedDraft` counts that draft too.
       await session.settle();
-      await session.settleAccess();
-      const current = session.getSnapshot();
-      if (current.access === "ready" && !current.draftSaved)
+      if (session.hasUnretainedDraft())
         throw new Error("当前生成输入尚未保留，请先处理保存或权限提示。");
     });
     return () => registerRetain(undefined);
@@ -222,7 +220,7 @@ export function Composer(props: ComposerProps) {
     setError(undefined);
     void session
       .commitDraft(draft, draft, async (current) => {
-        const canvas = await props.save();
+        const canvas = await props.save({ refresh: true });
         if (canvas.id !== canvasId) throw new Error("结果接收的创作台已改变。");
         const position = canvasResultPosition(canvas.document.nodes, node.id, job.mediaIds.length);
         return {

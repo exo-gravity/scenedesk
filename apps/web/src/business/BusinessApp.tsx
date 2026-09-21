@@ -493,20 +493,48 @@ function Workspace({
       </Stack>
     );
   if (hash.startsWith("#/invitation")) return <Invitation hash={hash} />;
+  // In-app links go through the active workspace's leave guard, which
+  // retains drafts before the address changes.
+  const guardLinkClick = (event: React.MouseEvent) => {
+    if (
+      !navigationGuard.current ||
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    const anchor = (event.target as Element).closest<HTMLAnchorElement>(
+      'a[href^="#"]',
+    );
+    const destination = anchor?.getAttribute("href");
+    if (
+      !destination ||
+      anchor?.target === "_blank" ||
+      destination === location.hash
+    )
+      return;
+    event.preventDefault();
+    void navigationGuard.current(destination).catch(() => {});
+  };
   // The rebuilt creative workspace owns the whole viewport: no studio rail,
   // context header or project navigation (see docs/design/creative-workspace-rebuild-libtv-2026-09-21.md §4).
   if (tenantId && projectId && studioView)
     return (
-      <ProjectUpdates tenantId={tenantId} projectId={projectId}>
-        <TenantArea
-          key={tenantId}
-          tenantId={tenantId}
-          projectId={projectId}
-          projectSection={projectSection}
-          studioView
-          environment={environment}
-        />
-      </ProjectUpdates>
+      <div className={classes.studioHost} onClickCapture={guardLinkClick}>
+        <ProjectUpdates tenantId={tenantId} projectId={projectId}>
+          <TenantArea
+            key={tenantId}
+            tenantId={tenantId}
+            projectId={projectId}
+            projectSection={projectSection}
+            studioView
+            environment={environment}
+          />
+        </ProjectUpdates>
+      </div>
     );
   return (
     <>
@@ -517,30 +545,7 @@ function Workspace({
           (production && params.has("scene")) ||
           undefined
         }
-        onClickCapture={(event) => {
-          if (
-            !navigationGuard.current ||
-            event.defaultPrevented ||
-            event.button !== 0 ||
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey
-          )
-            return;
-          const anchor = (event.target as Element).closest<HTMLAnchorElement>(
-            'a[href^="#"]',
-          );
-          const destination = anchor?.getAttribute("href");
-          if (
-            !destination ||
-            anchor?.target === "_blank" ||
-            destination === location.hash
-          )
-            return;
-          event.preventDefault();
-          void navigationGuard.current(destination).catch(() => {});
-        }}
+        onClickCapture={guardLinkClick}
         data-production={production || undefined}
         data-scene-production={(production && params.has("scene")) || undefined}
         data-project={projectDirectory || undefined}
