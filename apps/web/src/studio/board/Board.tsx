@@ -153,6 +153,7 @@ export function Board({
   onAssetPanel,
   focusNodeId,
   scriptHref,
+  shotsHref,
   generation,
 }: {
   controller: CanvasController;
@@ -173,6 +174,8 @@ export function Board({
   focusNodeId?: string | undefined;
   /** Where a fixed excerpt's source revision can be read. */
   scriptHref: (revisionId: string) => string;
+  /** Where a board video can be registered as a shot's candidate. */
+  shotsHref: (mediaId: string) => string;
   /** What the input panel needs from the session: identity, saving, retention. */
   generation: Pick<
     ComposerProps,
@@ -1050,6 +1053,15 @@ export function Board({
                 href={scriptHref(single.content.sourceExcerpt.scriptRevisionId)}
               >
                 回看剧本来源
+              </Menu.Item>
+            )}
+            {single && single.kind === "video" && single.content.type === "media" && (
+              <Menu.Item
+                leftSection={<FilmStrip size={14} />}
+                component="a"
+                href={shotsHref(single.content.mediaId)}
+              >
+                登记为镜头候选
               </Menu.Item>
             )}
             {single && single.kind !== "text" && single.content.type === "draft" && (

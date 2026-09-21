@@ -2,7 +2,7 @@
 
 日期：2026-09-21。依据：[核心创作区重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)（已确认）。分支 `feat/studio-rebuild`，独立 worktree；每片先交「LibTV 截图 vs 新页面」并排图再提交，不推送。
 
-状态：**阶段 0 与阶段 1（①②③④）已交付，构成第一个 PR；阶段 2 在叠加分支 `feat/studio-rebuild-views` 上进行，第 ⑤⑥ 片已交付（§6）。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
+状态：**阶段 0 与阶段 1（①②③④）已交付，构成第一个 PR；阶段 2 在叠加分支 `feat/studio-rebuild-views` 上进行，第 ⑤⑥⑦ 片已交付（§6）。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
 
 ## 1. 阶段 0（准备）
 
@@ -109,6 +109,22 @@
 
 并排图：[slice-6-script.png](../design/assets/2026-09-21-studio-rebuild/slice-6-script.png)——LibTV 的「脚本」是镜头表生成器，决定文档明确不照做（剧本是稿件不是生成器），并排只为对照密度与顶部工具行。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-06 通过。
 
+## 1g. 第 ⑦ 片：镜头整理视图
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 路由 | `…/studio/shots?scene=&shot=&media=`；顶栏「镜头整理」成为链接；标题「项目 · 镜头整理」 | ST-07 |
+| 表格 | `shots/ShotsView.tsx`：场次选择、计数、调整顺序、新增镜头、下载本场已选用；表格列 = 镜号、时长（当前选用的入出点差）、画面描述、来源（选用原片名）、候选数、选用（缩略图 + 已选用／未选用，旧要求另注）、操作（打开、定位）；已归档镜头灰显加标签。表格只改外观：候选数、选用与旧要求都是既有领域事实 | ST-07：三行、归档标签、选用后时长与来源 |
+| 候选与选用 | 「打开」在右侧抽屉里整体接入 `ShotResultFocus`（候选条、对比、采用与理由、选用历史、下载已选用原片）；`?media=` 带来创作台视频时抽屉里出现「从所选画布视频建立候选」 | ST-07：登记候选（入出点 0.5–2.5 s）→ 采用 → 预览另一候选仍下载蓝片原件（SHA-256 一致） |
+| 交付 | `SelectedDelivery` 整体接入：清单区域、确认下载原片包 | ST-07：清单 2 个已选用、省略 1 个已归档；ZIP 清单顺序与微秒区间一致，文件摘要一致 |
+| 候选反查 | 行内「定位」：按当前选用的原片在项目创作台上找媒体卡，`…/studio?node=` 打开并选中；不在创作台上时说明 | ST-07 |
+| 关联镜头动作 | 创作台上视频媒体卡右键「登记为镜头候选」→ `…/studio/shots?media=`；未接入 `CanvasShotConnections`（它依赖场次画布，随 ⑧ 的创作台切换再定） | 手动 |
+| 顺序与新增 | 「调整顺序」对话框整体接入 `SceneShotOrder`（含归档项、CAS、本机草稿）；「新增镜头」整体接入 `StructureEditor`；抽屉、对话框关闭前沿用 `ContentDraftRetention` 保留输入 | ST-07：下移并保存后表格与内容根顺序一致，刷新仍在 |
+
+按用户要求保持克制，本片不做并记录：镜头多选与批量入口（旧镜头列表本就没有；创作台的多选批次已在 ④）、按镜头的候选反查到具体草稿（现按选用原片定位媒体卡）、旧 e2e 里的并发选用理由保留与撤权缓存隐藏（逻辑在整体接入的组件里未改，留到阶段 3 迁移 e2e 时整体搬）。
+
+并排图：[slice-7-shots.png](../design/assets/2026-09-21-studio-rebuild/slice-7-shots.png)。本机检查：`ui:check`、`typecheck`、`vite build`、ST-00～ST-07 通过。
+
 ## 2. 新目录的模块规划
 
 按决定文档 §6 分片，目录随片建立，不预先建空目录：
@@ -122,7 +138,7 @@
 | `studio/results/` | `useNodeResults.ts`（结果与状态标签）、`History.tsx`（历史与只读检视）；放置评审与归档恢复在 `composer/Composer.tsx` 的任务行 | ④ |
 | `studio/assets/` | `AssetsPanel.tsx`：项目资产与素材的列表、搜索、拖到创作台 | ⑤ |
 | `studio/script/` | `ScriptView.tsx`：稿件阅读、历史、Word／飞书导入入口、选文带入创作台 | ⑥ |
-| `studio/shots/` | 镜头整理视图 | ⑦ |
+| `studio/shots/` | `ShotsView.tsx`：镜头表格、抽屉里的候选与选用、交付、顺序、新增 | ⑦ |
 | `studio/dock/` | 助手与任务的浮窗／停靠容器（`CanvasAssistant`、`SceneTaskPanel` 原样接入） | ⑧ |
 
 规则：`studio/` 只 import `business/` 里的引擎模块、`api.tsx`、`common.tsx`、契约与领域包，以及决定文档 §3「整体接入」的五个组件；被替换的旧界面由 `ui:check` 拦截。
@@ -183,7 +199,7 @@
 | ④ 卡内结果 | 已交付（本文 §1d） | [卡内结果](../design/assets/2026-09-21-studio-rebuild/slice-4-result.png) |
 | ⑤ 资产侧面板 | 已交付（本文 §1e） | [资产侧面板](../design/assets/2026-09-21-studio-rebuild/slice-5-assets.png) |
 | ⑥ 剧本视图 | 已交付（本文 §1f） | [剧本视图](../design/assets/2026-09-21-studio-rebuild/slice-6-script.png) |
-| ⑦ 镜头整理视图 | 未开始 | — |
+| ⑦ 镜头整理视图 | 已交付（本文 §1g） | [镜头整理](../design/assets/2026-09-21-studio-rebuild/slice-7-shots.png) |
 | ⑧ 助手、任务、创作台切换、项目菜单 | 未开始 | — |
 | ⑨ 切换与清理 | 未开始 | — |
 

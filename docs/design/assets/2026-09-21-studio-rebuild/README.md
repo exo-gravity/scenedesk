@@ -15,3 +15,4 @@
 | `slice-4-result.png` | ④ 卡内结果 | `libtv-image-selected.png` | ST-04：视频草稿卡内的结果与面板任务行（合成媒体无海报） |
 | `slice-5-assets.png` | ⑤ 资产侧面板 | `libtv-text-edit.png`（左下空面板） | ST-05：资产面板打开，列出项目资产与素材 |
 | `slice-6-script.png` | ⑥ 剧本视图 | `libtv-script-workspace.png` | ST-06：当前稿阅读与顶部工具行 |
+| `slice-7-shots.png` | ⑦ 镜头整理视图 | `libtv-script-workspace.png` | ST-07：三镜表格，01 已选用 |

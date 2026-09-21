@@ -293,6 +293,7 @@ export function StudioCanvas({
                   onAssetPanel={setAssetPanel}
                   focusNodeId={focusNodeId}
                   scriptHref={(revisionId) => `${base}/script?revision=${revisionId}`}
+                  shotsHref={(mediaId) => `${base}/shots?media=${mediaId}`}
                   generation={{
                     tenantId,
                     projectId,

@@ -10,6 +10,7 @@ import { ErrorNotice, projectPath } from "../business/common";
 import { StudioFrame, type StudioView } from "./StudioFrame";
 import { StudioCanvas } from "./StudioCanvas";
 import { ScriptView } from "./script/ScriptView";
+import { ShotsView } from "./shots/ShotsView";
 import classes from "./studio.module.css";
 
 /**
@@ -32,7 +33,7 @@ export default function StudioEntry({
 }) {
   const path = projectPath(tenantId, projectId);
   const base = `#/app/t/${tenantId}/p/${projectId}/studio`;
-  const view: StudioView = requested === "script" ? "script" : "canvas";
+  const view: StudioView = requested === "script" ? "script" : requested === "shots" ? "shots" : "canvas";
   const query = new URLSearchParams(location.hash.split("?")[1]);
   const project = useResource<Schema<"Project">>(path);
   const canvas = useResource<Schema<"ProjectCanvas">>(`${path}/canvas`),
@@ -41,7 +42,7 @@ export default function StudioEntry({
     ? "项目不可访问"
     : (project.data?.name ?? "项目");
   useEffect(() => {
-    document.title = `${projectName} · ${view === "script" ? "剧本" : "创作台"} · SceneDesk`;
+    document.title = `${projectName} · ${view === "script" ? "剧本" : view === "shots" ? "镜头整理" : "创作台"} · SceneDesk`;
   }, [projectName, view]);
   const active = project.data?.status === "active";
   const canvasId = canvas.data?.canvas.id ?? create.data?.canvas.id;
@@ -57,6 +58,22 @@ export default function StudioEntry({
             projectId={projectId}
             active={active}
             revisionId={query.get("revision") ?? undefined}
+          />
+        </main>
+      </StudioFrame>
+    );
+  if (project.data && view === "shots")
+    return (
+      <StudioFrame projectName={projectName} environment={environment} view="shots" base={base}>
+        <main className={classes.board} aria-label="镜头整理">
+          <ShotsView
+            tenantId={tenantId}
+            projectId={projectId}
+            projectActive={active}
+            base={base}
+            sceneParam={query.get("scene") ?? undefined}
+            shotParam={query.get("shot") ?? undefined}
+            mediaParam={query.get("media") ?? undefined}
           />
         </main>
       </StudioFrame>

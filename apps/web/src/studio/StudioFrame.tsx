@@ -7,7 +7,7 @@ import classes from "./studio.module.css";
 const views = [
   { id: "script", label: "剧本", href: (base: string) => `${base}/script` },
   { id: "canvas", label: "创作台", href: (base: string) => base },
-  { id: "shots", label: "镜头整理", href: undefined },
+  { id: "shots", label: "镜头整理", href: (base: string) => `${base}/shots` },
 ] as const;
 export type StudioView = (typeof views)[number]["id"];
 

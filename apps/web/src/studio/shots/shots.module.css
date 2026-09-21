@@ -1,0 +1,191 @@
+/* The shot organiser: a table under the top bar. */
+.view {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-lg)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+  background: var(--ws-studio-canvas);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+}
+.center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  flex-wrap: wrap;
+}
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  flex-wrap: wrap;
+}
+.sceneRoot {
+  width: 320px;
+}
+.scene,
+.scene:focus,
+.scene:focus-within {
+  height: 32px;
+  min-height: 32px;
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-hover);
+  border: none;
+  box-shadow: none;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-text);
+}
+.count {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+  white-space: nowrap;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: 32px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-hover);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-text);
+  white-space: nowrap;
+}
+.pill:not(:disabled):hover {
+  background: var(--ws-studio-chrome-border);
+}
+.pill:disabled {
+  color: var(--ws-studio-card-label);
+}
+.hint {
+  color: var(--ws-studio-card-label);
+}
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--ws-studio-card);
+  border: 1px solid var(--ws-studio-card-border);
+  border-radius: var(--ws-card-radius);
+  font-size: var(--mantine-font-size-sm);
+}
+.table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--ws-studio-card-label);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--ws-studio-card-border);
+  background: var(--ws-studio-chrome);
+  white-space: nowrap;
+}
+.table th:first-child {
+  border-top-left-radius: var(--ws-card-radius);
+}
+.table th:last-child {
+  border-top-right-radius: var(--ws-card-radius);
+}
+.table td {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--ws-studio-card-border);
+  vertical-align: middle;
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.row[data-archived] td {
+  color: var(--ws-studio-card-label);
+}
+.number {
+  width: 160px;
+  white-space: nowrap;
+}
+.label {
+  display: inline-block;
+  min-width: 24px;
+  color: var(--ws-studio-card-label);
+}
+.shotLabel {
+  font-weight: 500;
+}
+.tag {
+  margin-left: var(--mantine-spacing-xs);
+  padding: 0 var(--mantine-spacing-xs);
+  border-radius: var(--ws-radius);
+  background: var(--ws-hover);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+}
+.duration {
+  width: 80px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.description {
+  max-width: 420px;
+  overflow-wrap: anywhere;
+}
+.source {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.candidates {
+  width: 64px;
+  text-align: center;
+}
+.selected {
+  width: 200px;
+}
+.selection {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+.thumb {
+  width: var(--ws-studio-reference-size);
+  height: 32px;
+  border-radius: var(--ws-radius);
+  overflow: hidden;
+  background: var(--ws-media);
+  flex: none;
+}
+.thumb :global(img),
+.thumb :global(video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.muted {
+  color: var(--ws-studio-card-label);
+}
+.actions {
+  width: 160px;
+  white-space: nowrap;
+}
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-text);
+}
+.action:not(:disabled):hover {
+  background: var(--ws-hover);
+}
+.action:disabled {
+  color: var(--ws-studio-card-label);
+}
