@@ -1,0 +1,368 @@
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { Loader, Textarea, UnstyledButton } from "@mantine/core";
+import { ArrowUp, ArrowsClockwise } from "@phosphor-icons/react";
+import { editingCanonical, type CanvasDocument, type CanvasNode } from "@drama/domain";
+import { ApiError, useList, type Schema } from "../../business/api";
+import { tenantPath, projectPath } from "../../business/common";
+import { useGenerationSession } from "../../business/use-generation-session";
+import {
+  canvasImageRequest,
+  executableImages,
+  type ImageCapability,
+} from "../../business/image-generation";
+import { canvasVideoRequest, executableVideos } from "../../business/video-generation";
+import { canvasAudioRequest, executableAudios } from "../../business/audio-generation";
+import { fixedShotSources } from "../../business/canvas-shot-sources";
+import { reconcileOutputForCapability } from "../../business/generation-specification";
+import { canContinueCreation, jobFinished, jobStatusLabel } from "../../business/assistant-session";
+import { ComposerReferences } from "./ComposerReferences";
+import { ModelPicker, SpecificationPicker, SubmitButton } from "./ComposerControls";
+import classes from "./composer.module.css";
+
+type Kind = "image" | "video" | "audio";
+type ReferenceEdge = CanvasDocument["edges"][number];
+type Draft = Extract<CanvasNode, { kind: Kind }> & {
+  content: Extract<CanvasNode["content"], { type: "draft" }>;
+};
+const labels = { image: "图片", video: "视频", audio: "音频" };
+const nextLabel = { image: "下一张图片", video: "下一段视频", audio: "下一段音频" };
+
+export type ComposerProps = {
+  tenantId: string;
+  projectId: string;
+  canvasId: string;
+  sceneId: string | undefined;
+  node: Draft;
+  document: CanvasDocument;
+  active: boolean;
+  readOnly: boolean;
+  mediaPath: string;
+  /** The board has unsaved or unconfirmed changes; generation saves first. */
+  awaitingSave: boolean;
+  /** Save the board and return the saved canvas; throws when it cannot. */
+  save: () => Promise<Schema<"Canvas">>;
+  changePrompt: (id: string, prompt: string) => void;
+  configure: (
+    id: string,
+    change: Pick<Schema<"CanvasDraftContent">, "connectionId" | "capabilityId" | "output">,
+  ) => void;
+  addReference: (sourceId: string, targetId: string) => void;
+  editEdge: (edgeId: string, patch: (edge: ReferenceEdge) => ReferenceEdge | null) => void;
+  /** Register the "keep the draft" check the board runs before closing the panel. */
+  registerRetain: (retain: (() => Promise<void>) | undefined) => void;
+  style?: CSSProperties | undefined;
+  docked?: boolean | undefined;
+  panelRef?: ((element: HTMLElement | null) => void) | undefined;
+};
+
+/**
+ * The input panel under a selected draft. Prompt, model and specification
+ * live in the canvas document; the generation session owns the fixed plan,
+ * the submission and its receipts. The rules it reproduces are numbered in
+ * docs/design/creative-workspace-rebuild-libtv-2026-09-21.md, Appendix A.
+ */
+export function Composer(props: ComposerProps) {
+  const { tenantId, projectId, canvasId, sceneId, node, document, active, readOnly } = props;
+  const kind = node.kind;
+  const label = labels[kind];
+  const tenant = tenantPath(tenantId),
+    path = projectPath(tenantId, projectId);
+  // Rule 1: the session identity is session · kind · canvas · node; the caller keys this component on it.
+  const { controller: session, state } = useGenerationSession(
+    tenantId,
+    projectId,
+    { kind: "canvas", canvasId, nodeId: node.id, sceneId },
+    kind,
+  );
+  const capabilities = useList<ImageCapability>(`${tenant}/capabilities?purpose=${kind}`);
+  const models = useMemo(
+    () =>
+      ({ image: executableImages, video: executableVideos, audio: executableAudios })[kind](
+        capabilities.data ?? [],
+      ),
+    [capabilities.data, kind],
+  );
+  const [error, setError] = useState<string>();
+  const { record, plan, job } = state,
+    draft = record?.draft;
+  const content = node.content;
+  const capability = models.find((c) => c.id === content.capabilityId);
+  const output = content.output ?? {};
+  const frozen = !!record?.planId || !!record?.planRequest; // rule 6
+  const disabled = !active || readOnly || state.busy || !draft; // rule 7
+  const edges = useMemo(
+    () =>
+      document.edges
+        .filter((edge) => edge.targetNodeId === node.id)
+        .sort((a, b) => a.position - b.position),
+    [document.edges, node.id],
+  );
+  // Rule 4: a capability read that comes back 401/403/404 suspends the session until access is rechecked.
+  useEffect(() => {
+    if (capabilities.error instanceof ApiError && [401, 403, 404].includes(capabilities.error.status)) {
+      session.suspend();
+      void session.verify();
+    }
+  }, [capabilities.error, session]);
+  // Rule 2: the board asks this before the panel closes; a settled session with a saved draft is required.
+  const { registerRetain } = props;
+  useEffect(() => {
+    registerRetain(async () => {
+      await session.settle();
+      const current = session.getSnapshot();
+      if (current.access !== "ready" || !current.draftSaved)
+        throw new Error("当前生成输入尚未保留，请先处理保存或权限提示。");
+    });
+    return () => registerRetain(undefined);
+  }, [session, registerRetain]);
+  const promptRef = useRef<HTMLTextAreaElement>(null);
+  const ready = state.access === "ready";
+  useEffect(() => {
+    // Once the panel is usable for an empty draft, typing can start at once;
+    // a later change of the prompt must not steal focus again.
+    if (ready && !frozen && !readOnly && !content.prompt)
+      promptRef.current?.focus({ preventScroll: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node.id, ready]);
+  const configure = (change: Parameters<ComposerProps["configure"]>[1]) => {
+    setError(undefined);
+    try {
+      props.configure(node.id, change);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "草稿尚未更新。");
+    }
+  };
+  // Rule 17: switching models keeps only what the new model accepts and fills in single choices.
+  const chooseModel = (model: ImageCapability) =>
+    configure({
+      connectionId: model.connectionId,
+      capabilityId: model.id,
+      output: reconcileOutputForCapability({ kind, output, capability: model }),
+    });
+  // Rule 8: fixed shot sources first, then save the board, refuse a changed board, then build the request.
+  const submit = () => {
+    if (!draft) return;
+    setError(undefined);
+    let shotSources: Schema<"ShotSource">[];
+    try {
+      shotSources = fixedShotSources(draft.shotSources);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "请核对镜头来源。");
+      return;
+    }
+    const expected = editingCanonical(document);
+    void session.generateFrom(draft, async () => {
+      const canvas = await props.save();
+      if (canvas.id !== canvasId || editingCanonical(canvas.document) !== expected)
+        throw new Error("创作台已改变，请重新核对后再生成。");
+      return { image: canvasImageRequest, video: canvasVideoRequest, audio: canvasAudioRequest }[kind](
+        canvas,
+        sceneId,
+        node.id,
+        models,
+        shotSources,
+      );
+    });
+  };
+  const expired = !!plan && Date.parse(plan.expiresAt) <= Date.now(); // rule 16
+  const reason = !draft
+    ? "生成输入正在读取"
+    : !active
+      ? "项目已归档"
+      : capabilities.isLoading
+        ? "正在读取模型"
+        : !models.length
+          ? "暂无可用模型"
+          : !capability
+            ? "先选择模型"
+            : !content.prompt.trim()
+              ? "先写下提示词"
+              : undefined;
+  const busyText = state.busy ? "处理中…" : undefined;
+  const notice = error ?? state.error;
+  const stop = (event: KeyboardEvent) => event.stopPropagation();
+  // Rule 19: without confirmed access the whole panel is the recheck prompt.
+  if (state.access !== "ready")
+    return (
+      <section
+        ref={props.panelRef}
+        className={classes.panel}
+        style={props.style}
+        data-docked={props.docked || undefined}
+        aria-label={`生成${label}`}
+        onKeyDown={stop}
+      >
+        <div className={classes.row}>
+          <span className={classes.status} data-tone={state.access === "forbidden" ? "error" : undefined}>
+            {state.access === "forbidden" ? `${label}任务不可访问` : `正在核对${label}任务访问`}
+            {state.error ? ` · ${state.error}` : ""}
+          </span>
+          {state.access === "checking" ? (
+            <Loader size="xs" aria-label="正在核对访问" />
+          ) : (
+            <UnstyledButton className={classes.action} data-quiet onClick={() => void session.verify()}>
+              重新核对访问权限
+            </UnstyledButton>
+          )}
+        </div>
+      </section>
+    );
+  const continueLabel = `保留原任务，准备${nextLabel[kind]}`;
+  return (
+    <section
+      ref={props.panelRef}
+      className={classes.panel}
+      style={props.style}
+      data-docked={props.docked || undefined}
+      aria-label={`生成${label}`}
+      onKeyDown={stop}
+    >
+      <ComposerReferences
+        document={document}
+        nodeId={node.id}
+        edges={edges}
+        mediaPath={props.mediaPath}
+        disabled={disabled || frozen}
+        onAdd={(sourceId) => {
+          setError(undefined);
+          try {
+            props.addReference(sourceId, node.id);
+          } catch (cause) {
+            setError(cause instanceof Error ? cause.message : "引用未添加。");
+          }
+        }}
+        onEdit={props.editEdge}
+      />
+      {frozen || readOnly || !active ? (
+        <div className={classes.promptFrozen} aria-label="提示词">
+          {content.prompt || <span className={classes.status}>（没有提示词）</span>}
+        </div>
+      ) : (
+        <Textarea
+          ref={promptRef}
+          variant="unstyled"
+          autosize
+          minRows={2}
+          maxRows={8}
+          aria-label="提示词"
+          placeholder={`描述这${kind === "audio" ? "段声音" : "个画面"}，参考与模型在下方`}
+          className={classes.promptRoot}
+          classNames={{ input: classes.prompt }}
+          value={content.prompt}
+          onChange={(event) => props.changePrompt(node.id, event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+              event.preventDefault();
+              if (!reason && !disabled && !frozen) submit();
+            }
+          }}
+        />
+      )}
+      <div className={classes.bottom}>
+        <ModelPicker
+          kind={kind}
+          models={models}
+          loading={capabilities.isLoading}
+          capability={capability}
+          disabled={disabled || frozen}
+          onChange={chooseModel}
+        />
+        <SpecificationPicker
+          kind={kind}
+          capability={capability}
+          output={output}
+          disabled={disabled}
+          frozen={frozen}
+          onChange={(next) => configure({ output: next })}
+          shotSources={draft?.shotSources}
+          showShotSources={!!draft && !frozen} // rule 18
+          onShotSources={(shotSources) => draft && session.updateDraft({ ...draft, shotSources })}
+          shotSourceProps={{ path, projectId, sceneId }}
+        />
+        <span className={classes.status} data-tone={notice ? "error" : undefined} role="status">
+          {notice ??
+            busyText ??
+            (record?.execution
+              ? job
+                ? jobStatusLabel[job.status]
+                : `${label}提交结果待核对`
+              : plan
+                ? expired
+                  ? "固定计划已过期，请保留原计划并重新准备"
+                  : plan.status === "ready"
+                    ? "输入已固定，可继续生成"
+                    : (plan.blockingReasons[0] ?? "计划暂不可执行")
+                : record?.planRequest
+                  ? "原请求已固定，可继续"
+                  : props.awaitingSave
+                    ? "生成前会先保存创作台" // rule 9
+                    : (reason ?? ""))}
+        </span>
+        {record?.execution ? (
+          !job ? (
+            <UnstyledButton
+              className={classes.action}
+              data-quiet
+              disabled={disabled}
+              onClick={() => void session.resumeSubmission()} // rule 15
+            >
+              核对后恢复原提交
+            </UnstyledButton>
+          ) : jobFinished(job) || canContinueCreation(job) ? (
+            <UnstyledButton
+              className={classes.action}
+              data-quiet
+              disabled={
+                disabled ||
+                draft?.placement?.phase === "unknown" ||
+                draft?.placement?.phase === "review"
+              } // rule 14
+              onClick={() =>
+                draft &&
+                void session.revise(
+                  {
+                    capabilityId: draft.capabilityId,
+                    output: draft.output,
+                    ...(draft.shotSources === undefined ? {} : { shotSources: draft.shotSources }),
+                  },
+                  draft,
+                  true,
+                )
+              }
+            >
+              {continueLabel}
+            </UnstyledButton>
+          ) : (
+            <UnstyledButton
+              className={classes.action}
+              data-quiet
+              aria-label={`核对${label}任务`}
+              disabled={state.busy}
+              onClick={() => void session.refresh()}
+            >
+              <ArrowsClockwise size={14} aria-hidden />
+            </UnstyledButton>
+          )
+        ) : plan ? (
+          <SubmitButton
+            label={`继续生成${label}`}
+            reason={expired ? "固定计划已过期" : plan.status !== "ready" ? "计划暂不可执行" : undefined}
+            disabled={disabled || plan.status !== "ready" || expired}
+            onClick={() => void session.execute()}
+          >
+            <ArrowUp size={18} weight="bold" aria-hidden />
+          </SubmitButton>
+        ) : (
+          <SubmitButton
+            label={record?.planRequest ? `继续原${label}生成` : `生成${label}`}
+            reason={reason}
+            disabled={disabled || (!record?.planRequest && !!reason)}
+            onClick={submit}
+          >
+            <ArrowUp size={18} weight="bold" aria-hidden />
+          </SubmitButton>
+        )}
+      </div>
+    </section>
+  );
+}

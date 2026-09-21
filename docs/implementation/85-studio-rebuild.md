@@ -2,7 +2,7 @@
 
 日期：2026-09-21。依据：[核心创作区重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)（已确认）。分支 `feat/studio-rebuild`，独立 worktree；每片先交「LibTV 截图 vs 新页面」并排图再提交，不推送。
 
-状态：**阶段 0、第 ①②片已交付；后续逐片记账。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
+状态：**阶段 0、第 ①②③片已交付；后续逐片记账。** 本文只记每一片实际做了什么、怎么验证的，以及决定文档附录 A 的 21 条流程规则在新面板里的落点；范围、边界与分期以决定文档为准，不在此重述。
 
 ## 1. 阶段 0（准备）
 
@@ -50,6 +50,21 @@
 
 实现中定下的细则：交给 React Flow 的回调与配置对象保持稳定身份（`useCallback`、模块常量），并且创作台组件不订阅 React Flow 的连接状态（改用 `onConnectStart`／`onConnectEnd`）——否则它的 store 更新器会在每次渲染写入 store，而订阅者又触发下一次渲染，直到 React 报「更新深度超限」。
 
+## 1c. 第 ③ 片：输入面板、模型列表、规格浮层、提交接生成会话
+
+| 项 | 交付 | 验证 |
+|---|---|---|
+| 输入面板 | `composer/Composer.tsx`：选中生成草稿即出现在卡的正下方、左对齐、660 宽、白底细边轻阴影、高随内容；行 1「＋参考」、行 2 参考缩略图（48px，用途角标，状态角标）、行 3 提示词大字、底行 `模型 ▾`、规格 `▾`、状态文字、黑色圆形 ↑；文本卡不出面板。放置算法 `composer/placement.ts`（下→右→左→上，无处可放时裁边，四边皆不可时停靠左下），单测 `tests/studio-composer-placement.test.ts` 9 例 | ST-03 |
+| 模型列表 | `composer/ComposerControls.tsx` `ModelPicker`：行 = 图标、名称（能力记录的 `modelVersion`，不改名）、状态小字（已接入／受控测试）；选中浅灰底；一个都没有时「暂无可用模型」；无耗时、无费用 | ST-03 |
+| 规格浮层 | `SpecificationPicker`：比例为带图形的方块 tile、清晰度两列格子、时长滑杆 + 数字 + s（固定时长只显示数值）、生成音频开启／关闭、固定镜头来源（接 `CanvasShotSources`）；只列该模型允许的项；无生成数量 | ST-03 |
+| 提交 | `useGenerationSession` 原样接入；一次点击固定输入并提交；附录 A 第 1–9、16–20 条逐条落地（对照见 §4 的「片」列），14、15 条的按钮暂放在面板底行，第 ④ 片搬进卡内 | ST-03 三例：一次提交（plans=1、jobs=1）、准备下一张并刷新恢复、丢回执后只核对不重发、撤权后面板换成核对提示且创作台隐藏项目 |
+
+未做，属于后续片：专注编辑的展开图标、上传、每张卡的历史入口、卡内生成状态与结果（④）；多选时右键菜单的「查看 N 项的生成计划」（随 `CanvasGenerationBatch` 整体接入，放到 ④ 末尾）。
+
+按用户 2026-09-21 的要求保持克制，本片主动不做：面板的费用与耗时显示（能力记录里没有）、`@` 引用、模型说明文案、生成数量、参考的拖拽排序（旧界面也没有）。
+
+并排图：[slice-3-composer.png](../design/assets/2026-09-21-studio-rebuild/slice-3-composer.png)、[slice-3-model-picker.png](../design/assets/2026-09-21-studio-rebuild/slice-3-model-picker.png)、[slice-3-spec-picker.png](../design/assets/2026-09-21-studio-rebuild/slice-3-spec-picker.png)。本机检查：`ui:check`、`typecheck`、`npm test`、`vite build`、ST-00～ST-03 通过。
+
 ## 2. 新目录的模块规划
 
 按决定文档 §6 分片，目录随片建立，不预先建空目录：
@@ -59,7 +74,7 @@
 | `studio/StudioEntry.tsx` | 路由入口、权限之后的项目读取、视图分派 | 0 |
 | `studio/shell/` | 顶栏（项目菜单、视图切换、创作台切换、保存状态、任务、助手、账号）、底部工具条、缩放指示、快捷键总览 | ①⑧ |
 | `studio/board/` | React Flow 创作台：四类卡片、端口与连线、右键菜单、快捷键、框选、就地文本编辑、改名；接 `use-canvas`／`canvas-controller` 的保存与恢复 | ①② |
-| `studio/composer/` | 输入面板、模型列表、规格浮层、提交；接 `use-generation-session` 与三种生成的请求构造 | ③ |
+| `studio/composer/` | 输入面板（`Composer.tsx`）、模型与规格（`ComposerControls.tsx`）、参考行（`ComposerReferences.tsx`）、放置（`placement.ts`）；接 `use-generation-session` 与三种生成的请求构造 | ③ |
 | `studio/results/` | 卡内排队／生成中／失败、结果铺满、重试保留上一张、放置评审、归档恢复、每张卡的历史入口 | ④ |
 | `studio/assets/` | 资产侧面板 | ⑤ |
 | `studio/script/` | 剧本视图与固定摘录卡 | ⑥ |
@@ -120,7 +135,7 @@
 | 0 准备 | 已交付（本文 §1） | [phase-0-shell.png](../design/assets/2026-09-21-studio-rebuild/phase-0-shell.png) |
 | ① 页面壳与卡片 | 已交付（本文 §1a） | [选中图片卡](../design/assets/2026-09-21-studio-rebuild/slice-1-image-selected.png)、[编辑文字卡](../design/assets/2026-09-21-studio-rebuild/slice-1-text-edit.png)、[快捷键](../design/assets/2026-09-21-studio-rebuild/slice-1-shortcuts.png) |
 | ② 端口与连线 | 已交付（本文 §1b） | [端口、连线、⊕](../design/assets/2026-09-21-studio-rebuild/slice-2-references.png) |
-| ③ 输入面板 | 未开始 | — |
+| ③ 输入面板 | 已交付（本文 §1c） | [输入面板](../design/assets/2026-09-21-studio-rebuild/slice-3-composer.png)、[模型列表](../design/assets/2026-09-21-studio-rebuild/slice-3-model-picker.png)、[规格浮层](../design/assets/2026-09-21-studio-rebuild/slice-3-spec-picker.png) |
 | ④ 卡内结果 | 未开始 | — |
 | ⑤ 资产侧面板 | 未开始 | — |
 | ⑥ 剧本视图 | 未开始 | — |

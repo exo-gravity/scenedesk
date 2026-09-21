@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Alert, Loader, UnstyledButton } from "@mantine/core";
 import { Check } from "@phosphor-icons/react";
 import { ReactFlowProvider } from "@xyflow/react";
@@ -61,10 +61,56 @@ export function StudioCanvas({
     [preference.view?.selectedNodeIds, document?.nodes],
   );
   const change = preference.change;
+  const [retainError, setRetainError] = useState<Error | null>(null);
+  // Rule 2: the open input panel registers a "keep the draft" check; the
+  // selection only moves on once it passes.
+  const retain = useRef<(() => Promise<void>) | undefined>(undefined);
+  const registerRetain = useCallback((fn: (() => Promise<void>) | undefined) => {
+    retain.current = fn;
+  }, []);
   const select = useCallback(
-    (ids: string[]) => change({ selectedNodeIds: ids }),
+    (ids: string[]) => {
+      const guard = retain.current;
+      if (!guard) {
+        change({ selectedNodeIds: ids });
+        return;
+      }
+      guard()
+        .then(() => {
+          setRetainError(null);
+          change({ selectedNodeIds: ids });
+        })
+        .catch((cause: unknown) =>
+          setRetainError(cause instanceof Error ? cause : new Error("当前输入尚未保留。")),
+        );
+    },
     [change],
   );
+  // Rule 8: generation saves the board first and needs the saved canvas back.
+  const save = useCallback(async () => {
+    if (!controller) throw new Error("创作台尚未就绪。");
+    await controller.save();
+    const current = controller.getSnapshot();
+    if (
+      current.accessChecking ||
+      current.phase !== "ready" ||
+      current.dirty ||
+      current.hasInvalidInput ||
+      !current.localSaved ||
+      !current.local ||
+      current.local.pending ||
+      current.recovery ||
+      current.recoveryBlocked
+    )
+      throw new Error("请先完成创作台保存或冲突恢复，再开始生成。");
+    return current.local.base;
+  }, [controller]);
+  const awaitingSave =
+    !state ||
+    state.phase !== "ready" ||
+    state.dirty ||
+    !state.localSaved ||
+    !!state.local?.pending;
   const moveViewport = useCallback(
     (viewport: { x: number; y: number; zoom: number }) =>
       change({ viewport }),
@@ -96,8 +142,9 @@ export function StudioCanvas({
           </div>
         ) : (
           <ReactFlowProvider>
-            {(attention || !active || preference.error) && (
+            {(attention || !active || preference.error || retainError) && (
               <section className={classes.notice} aria-label="创作台状态">
+                <ErrorNotice error={retainError} />
                 {!active && (
                   <Alert title="只读项目">
                     项目已归档，可继续查看原有创作台。
@@ -129,6 +176,16 @@ export function StudioCanvas({
                 onViewport={moveViewport}
                 mediaPath={tenantPath(tenantId)}
                 onShortcuts={() => setShortcutsOpen(true)}
+                generation={{
+                  tenantId,
+                  projectId,
+                  canvasId,
+                  sceneId: undefined,
+                  active,
+                  awaitingSave,
+                  save,
+                  registerRetain,
+                }}
               />
             )}
             <Shortcuts

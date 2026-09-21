@@ -9,3 +9,6 @@
 | `slice-1-text-edit.png` | ① 页面壳与卡片 | `libtv-text-edit.png` | ST-01：文字卡就地编辑 |
 | `slice-1-shortcuts.png` | ① 页面壳与卡片 | `libtv-shortcuts.png` | ST-01：快捷键总览，只列已实现的 |
 | `slice-2-references.png` | ② 端口与连线 | `libtv-video-composer.png` | ST-02：文字卡的 ⊕、两条连线、用途角标与重复引用的提示 |
+| `slice-3-composer.png` | ③ 输入面板 | `libtv-video-composer.png` | ST-03：图片草稿下的输入面板，已填提示词与模型 |
+| `slice-3-model-picker.png` | ③ 输入面板 | `libtv-model-picker.png` | ST-03：模型列表（受控夹具模型） |
+| `slice-3-spec-picker.png` | ③ 输入面板 | `libtv-spec-picker.png` | ST-03：规格浮层（该模型只允许 1:1 与 32x32） |

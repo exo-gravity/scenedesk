@@ -12,6 +12,7 @@ import {
   BackgroundVariant,
   ReactFlow,
   useReactFlow,
+  useViewport,
   type Connection,
   type Edge,
   type EdgeChange,
@@ -55,6 +56,15 @@ import {
 } from "../../business/canvas-creation";
 import { ErrorNotice } from "../../business/common";
 import { Card, type CardActions, type CardNode } from "./Card";
+import { Composer, type ComposerProps } from "../composer/Composer";
+import {
+  COMPOSER_SIZE,
+  composerSafeArea,
+  placeComposer,
+  type ComposerPlacement,
+  type ScreenRect,
+} from "../composer/placement";
+import type { Schema } from "../../business/api";
 import { Toolbar, type BoardTool } from "../shell/Toolbar";
 import { ZoomControl } from "../shell/ZoomControl";
 import classes from "./board.module.css";
@@ -98,6 +108,7 @@ export function Board({
   onViewport,
   mediaPath,
   onShortcuts,
+  generation,
 }: {
   controller: CanvasController;
   document: CanvasDocument;
@@ -108,6 +119,11 @@ export function Board({
   onViewport: (viewport: { x: number; y: number; zoom: number }) => void;
   mediaPath: string;
   onShortcuts: () => void;
+  /** What the input panel needs from the session: identity, saving, retention. */
+  generation: Pick<
+    ComposerProps,
+    "tenantId" | "projectId" | "canvasId" | "sceneId" | "active" | "awaitingSave" | "save" | "registerRetain"
+  >;
 }) {
   const flow = useReactFlow<CardNode, Edge>();
   const boardElement = useRef<HTMLDivElement>(null);
@@ -231,6 +247,64 @@ export function Board({
       },
     }),
     [change, current, controller, onSelect],
+  );
+  // The panel writes prompt, model and specification into the document (rule 5).
+  const changePrompt = useCallback(
+    (id: string, prompt: string) => {
+      const doc = current();
+      if (!doc) return;
+      change(
+        {
+          ...doc,
+          nodes: doc.nodes.map((node) =>
+            node.id === id && node.kind !== "text" && node.content.type === "draft"
+              ? { ...node, content: { ...node.content, prompt } }
+              : node,
+          ),
+        },
+        `prompt:${id}`,
+      );
+    },
+    [change, current],
+  );
+  const configure = useCallback(
+    (
+      id: string,
+      patch: Pick<Schema<"CanvasDraftContent">, "connectionId" | "capabilityId" | "output">,
+    ) => {
+      const doc = current();
+      const state = controller.getSnapshot();
+      if (readOnly || !doc || state.accessChecking || state.phase === "forbidden")
+        throw new Error("当前固定输入不可修改。");
+      const node = doc.nodes.find((item) => item.id === id);
+      if (!node || node.kind === "text" || node.content.type !== "draft")
+        throw new Error("原草稿已改变，请重新核对编辑目标。");
+      change({
+        ...doc,
+        nodes: doc.nodes.map((item) =>
+          item.id === id ? { ...node, content: { ...node.content, ...patch } } : item,
+        ),
+      });
+    },
+    [change, current, controller, readOnly],
+  );
+  const addReference = useCallback(
+    (sourceId: string, targetId: string) => {
+      const doc = current();
+      const source = doc?.nodes.find((node) => node.id === sourceId);
+      if (!doc || !source || readOnly) return;
+      change({
+        ...doc,
+        edges: appendCanvasReference(doc.edges, {
+          id: crypto.randomUUID(),
+          sourceNodeId: sourceId,
+          targetNodeId: targetId,
+          enabled: true,
+          purpose: defaultPurpose(source),
+        }),
+      });
+    },
+    [change, current, readOnly],
   );
   const referencesBySource = useMemo(() => {
     const map = new Map<string, ReferenceEdge[]>();
@@ -803,6 +877,119 @@ export function Board({
         onShortcuts={onShortcuts}
       />
       <ZoomControl />
+      {single && single.kind !== "text" && single.content.type === "draft" && (
+        <ComposerAnchor
+          key={`${generation.canvasId}:${single.id}`}
+          boardElement={boardElement}
+          document={document}
+          nodeId={single.id}
+          references={document.edges
+            .filter((edge) => edge.targetNodeId === single.id)
+            .map((edge) => edge.sourceNodeId)}
+        >
+          {(style, docked, panelRef) => (
+            <Composer
+              {...generation}
+              node={single as ComposerProps["node"]}
+              document={document}
+              readOnly={readOnly}
+              mediaPath={mediaPath}
+              changePrompt={changePrompt}
+              configure={configure}
+              addReference={addReference}
+              editEdge={editEdge}
+              style={style}
+              docked={docked}
+              panelRef={panelRef}
+            />
+          )}
+        </ComposerAnchor>
+      )}
     </div>
+  );
+}
+
+/**
+ * Screen placement of the input panel: below the card, left-aligned, or
+ * another side when that is taken; docked at the bottom-left when the card is
+ * off screen or the board too small. Re-evaluated on every viewport change.
+ */
+function ComposerAnchor({
+  boardElement,
+  document,
+  nodeId,
+  references,
+  children,
+}: {
+  boardElement: React.RefObject<HTMLDivElement | null>;
+  document: CanvasDocument;
+  nodeId: string;
+  references: string[];
+  children: (
+    style: React.CSSProperties | undefined,
+    docked: boolean,
+    panelRef: (element: HTMLElement | null) => void,
+  ) => React.ReactNode;
+}) {
+  const { x, y, zoom } = useViewport();
+  const flow = useReactFlow<CardNode>();
+  const [size, setSize] = useState<{ width: number; height: number }>(COMPOSER_SIZE);
+  const [board, setBoard] = useState({ width: 0, height: 0 });
+  const previous = useRef<ComposerPlacement | undefined>(undefined);
+  useEffect(() => {
+    const element = boardElement.current;
+    if (!element) return;
+    const measure = () =>
+      setBoard({ width: element.clientWidth, height: element.clientHeight });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [boardElement]);
+  const panelObserver = useRef<ResizeObserver | null>(null);
+  const panelRef = useCallback((element: HTMLElement | null) => {
+    panelObserver.current?.disconnect();
+    panelObserver.current = null;
+    if (!element) return;
+    const observer = new ResizeObserver(() => {
+      const next = { width: element.offsetWidth, height: element.offsetHeight };
+      setSize((current) =>
+        current.width === next.width && current.height === next.height ? current : next,
+      );
+    });
+    observer.observe(element);
+    panelObserver.current = observer;
+  }, []);
+  const rectOf = (id: string): ScreenRect | undefined => {
+    const internal = flow.getInternalNode(id);
+    const node = document.nodes.find((item) => item.id === id);
+    if (!internal || !node) return undefined;
+    const position = internal.internals.positionAbsolute;
+    return {
+      x: position.x * zoom + x,
+      y: position.y * zoom + y,
+      width: (internal.measured.width ?? node.width) * zoom,
+      height: (internal.measured.height ?? 200) * zoom,
+    };
+  };
+  const anchor = rectOf(nodeId);
+  if (!anchor || !board.width) return null;
+  const placement = placeComposer({
+    anchor,
+    safe: composerSafeArea(board.width, board.height),
+    references: references.flatMap((id) => rectOf(id) ?? []),
+    avoid: document.nodes.flatMap((node) =>
+      node.id === nodeId || references.includes(node.id) ? [] : (rectOf(node.id) ?? []),
+    ),
+    previous: previous.current,
+    size,
+  });
+  previous.current = placement;
+  return children(
+    placement.kind === "local"
+      ? { left: placement.rect.x, top: placement.rect.y }
+      : undefined,
+    placement.kind !== "local",
+    panelRef,
   );
 }
