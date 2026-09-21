@@ -60,6 +60,10 @@ test("ST-08: the assistant and task docks, the canvas switch to a scene canvas, 
   await expect(status).toBeVisible();
   await expect.poll(async () => (await w.command<Schema<"SceneCanvas">>("GET", `${w.path}/scenes/${w.scene.id}/canvas`)).canvas.document.nodes.length).toBe(1);
   expect((await w.command<Schema<"ProjectCanvas">>("GET", `${w.path}/canvas`)).canvas.document.nodes).toHaveLength(0);
+  // The scene canvas keeps its own view preference: its selected card is written there, never to the project's.
+  const sceneNode = (await w.command<Schema<"SceneCanvas">>("GET", `${w.path}/scenes/${w.scene.id}/canvas`)).canvas.document.nodes[0]!.id;
+  await expect.poll(async () => (await w.command<Schema<"SceneWorkspacePreference">>("GET", `${w.path}/scenes/${w.scene.id}/workspace-preference`)).selectedNodeIds).toContain(sceneNode);
+  expect((await w.command<Schema<"ProjectWorkspacePreference">>("GET", `${w.path}/workspace-preference`)).selectedNodeIds ?? []).not.toContain(sceneNode);
   await page.getByRole("button", { name: /^切换画布：/ }).click();
   await page.getByRole("dialog", { name: /^切换画布/ }).getByRole("button", { name: "项目画布", exact: true }).click();
   await expect(page).toHaveURL(/\/studio$/);

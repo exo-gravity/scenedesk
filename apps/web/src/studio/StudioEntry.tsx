@@ -43,7 +43,7 @@ export default function StudioEntry({
   const content = useResource<Schema<"ContentTree">>(`${path}/content`);
   const canvas = useResource<Schema<"ProjectCanvas">>(`${path}/canvas`, !sceneId),
     create = useCommand<Schema<"ProjectCanvas">>();
-  const sceneCanvas = useResource<Schema<"SceneCanvas">>(`${path}/scenes/${sceneId ?? ""}/canvas`, !!sceneId),
+  const sceneCanvas = useResource<Schema<"SceneCanvas">>(`${path}/scenes/${encodeURIComponent(sceneId ?? "")}/canvas`, !!sceneId),
     createScene = useCommand<Schema<"SceneCanvas">>();
   const scene = content.data?.scenes.find((item) => item.id === sceneId),
     episode = content.data?.episodes.find((item) => item.id === scene?.episodeId);
@@ -148,7 +148,7 @@ export default function StudioEntry({
               onClick={() =>
                 sceneId
                   ? createScene.mutate(
-                      { path: `${path}/scenes/${sceneId}/canvas` },
+                      { path: `${path}/scenes/${encodeURIComponent(sceneId)}/canvas` },
                       { onSuccess: () => void sceneCanvas.refetch() },
                     )
                   : create.mutate(

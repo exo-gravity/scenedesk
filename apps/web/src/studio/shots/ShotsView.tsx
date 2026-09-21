@@ -39,6 +39,7 @@ export function ShotsView({
   const path = projectPath(tenantId, projectId),
     mediaPath = tenantPath(tenantId);
   const content = useResource<Schema<"ContentTree">>(`${path}/content`);
+  const scripts = useList<Schema<"ScriptRevision">>(`${path}/scripts`);
   const tree = content.data;
   const [selection, setSelection] = useState<ListSelection>(() =>
     shotParam ? { focused: shotParam } : emptySelection,
@@ -216,7 +217,7 @@ export function ShotsView({
               editing={{ kind: "shot", parentId: scene.id }}
               tree={tree}
               path={path}
-              scripts={[]}
+              scripts={scripts.data ?? []}
               done={() => void transition(() => { setCreating(false); void content.refetch(); })}
             />
           )}

@@ -35,7 +35,7 @@ export function ScriptView({
   const tree = content.data;
   const selectedId = revisionId ?? tree?.currentScriptRevisionId;
   const listed = scripts.data?.find((script) => script.id === selectedId);
-  const fixed = useResource<Schema<"ScriptRevision">>(`${path}/scripts/${selectedId ?? ""}`, !!selectedId);
+  const fixed = useResource<Schema<"ScriptRevision">>(`${path}/scripts/${encodeURIComponent(selectedId ?? "")}`, !!selectedId);
   const [epoch, setEpoch] = useState(0);
   const [wordAction, setWordAction] = useState<HTMLDivElement | null>(null);
   const [feishuAction, setFeishuAction] = useState<HTMLDivElement | null>(null);
@@ -160,7 +160,7 @@ export function ScriptView({
         {active && (
           <ScriptWordImport key={`word:${epoch}`} path={path} tree={tree} actionTarget={wordAction} reset={() => setEpoch((value) => value + 1)} done={done} />
         )}
-        {active && <FeishuScriptImport key={`feishu:${epoch}`} path={path} tree={tree} done={done} actionTarget={feishuAction} />}
+        {active && <FeishuScriptImport path={path} tree={tree} done={done} actionTarget={feishuAction} />}
         {listed?.source && (
           <Text size="xs" c="dimmed">
             飞书 · {listed.source.title} · 读取于 {new Date(listed.source.fetchedAt).toLocaleString()}{" "}

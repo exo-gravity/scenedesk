@@ -72,7 +72,11 @@ export function StudioCanvas({
     projectId,
     canvasId,
   );
-  const preference = useScenePreference(`${path}/workspace-preference`);
+  // A scene canvas keeps its own view preference, as the old scene page did;
+  // the project canvas must not inherit a scene's viewport or selection.
+  const preference = useScenePreference(
+    sceneId ? `${path}/scenes/${encodeURIComponent(sceneId)}/workspace-preference` : `${path}/workspace-preference`,
+  );
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   // Leaving the studio through an in-app link waits for the open panel's
   // draft, the project's assistant drafts and the view preference, the same
@@ -265,13 +269,13 @@ export function StudioCanvas({
               sceneId={sceneId}
               canCreate={active}
               onSelect={(next) => {
-                location.hash = next ? `${base}?scene=${next}` : base;
+                void navigate(next ? `${base}?scene=${encodeURIComponent(next)}` : base).catch(() => {});
               }}
               onDirectory={() => {
-                location.hash = `#/app/t/${tenantId}/p/${projectId}/content`;
+                void navigate(`#/app/t/${tenantId}/p/${projectId}/content`).catch(() => {});
               }}
               onCreate={() => {
-                location.hash = `#/app/t/${tenantId}/p/${projectId}/content?create=scene`;
+                void navigate(`#/app/t/${tenantId}/p/${projectId}/content?create=scene`).catch(() => {});
               }}
             />
           </span>
