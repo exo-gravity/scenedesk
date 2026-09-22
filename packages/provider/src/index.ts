@@ -4,3 +4,6 @@ export * from "./verified/profiles.js";
 export * from "./verified/http.js";
 export * from "./verified/inputs.js";
 export * from "./verified/outputs.js";
+export * from "./verified/prepare.js";
+export { createMinimaxAdapter } from "./verified/minimax/adapter.js";
+export { createMinimaxClient } from "./verified/minimax/client.js";
