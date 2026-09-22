@@ -29,24 +29,6 @@ const files = (path: string): string[] =>
             ? [join(path, entry.name)]
             : [],
       );
-// The rebuilt creative workspace (`src/studio/`) replaces these files and must
-// never import them; the engine modules it may reuse are listed in
-// docs/design/creative-workspace-rebuild-libtv-2026-09-21.md §3.
-const studioRoot = "apps/web/src/studio";
-const retiredUi = new Set([
-  "CanvasBoard",
-  "CanvasContextualEditor",
-  "CanvasContinueCreation",
-  "CanvasReferenceChip",
-  "GenerationSpecificationFields",
-  "MediaGenerationWorkspace",
-  "SceneProductionWorkspace",
-  "ProjectCanvasEntry",
-  "ProjectNavigation",
-  "ShotListWorkspace",
-  "ScriptDocumentReader",
-  "canvas.module.css",
-]);
 const failures: string[] = [];
 if (
   !readFileSync("apps/web/index.html", "utf8").includes(
@@ -81,9 +63,6 @@ for (const path of migrated.flatMap(files)) {
   for (const match of source.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
     if (forbidden.test(match[1]!))
       failures.push(`${path}: unapproved import ${match[1]}`);
-    const imported = match[1]!.split("/").pop()!.replace(/\.tsx?$/, "");
-    if (path.startsWith(studioRoot) && retiredUi.has(imported))
-      failures.push(`${path}: studio must not import retired UI ${match[1]}`);
   }
   if (/<(?:button|input|select|textarea)\b/.test(source))
     failures.push(`${path}: use Mantine for general controls`);

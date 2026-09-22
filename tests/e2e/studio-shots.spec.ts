@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import type { components } from "@drama/contracts";
 import { test as base, expect, startWorkspaceRuntime } from "./fixture.js";
@@ -113,4 +113,45 @@ test("ST-07: the scene handoff packs only the explicit selections in order, what
     expect(createHash("sha256").update(bytes).digest("hex")).toBe(entry.sha256);
   }
   await expect(list.getByText(/原片包已交给浏览器下载/)).toBeVisible();
+});
+
+test("ST-07: a concurrent selection keeps the reason for an explicit recheck, and a revoked collaborator cannot display the cached list", async ({ page, context, workspace: w }) => {
+  const seeded = await seedShotList(w);
+  const other = await w.command<Schema<"Take">>("POST", `${w.path}/takes`, {
+    shotId: seeded.shot.id, shotRevisionId: seeded.shot.specRevisionId, mediaId: seeded.blue.id,
+    range: { inUs: 500000, outUs: 2500000 },
+  });
+  const collaborator = await w.runtime.identity("shot-collaborator"), membershipId = randomUUID();
+  await w.runtime.database.admin.query(
+    `INSERT INTO ${w.runtime.database.schema}.memberships(id,tenant_id,user_id,role) VALUES($1,$2,$3,'member')`,
+    [membershipId, w.tenant.id, collaborator.userId],
+  );
+  const grant = await w.command<{ revision: number }>("POST", `${w.path}/members`, { membershipId });
+  await context.clearCookies();
+  await context.addCookies([{ name: "session", value: collaborator.token, url: w.runtime.origin, httpOnly: true, sameSite: "Lax" }]);
+  await page.goto(`${w.runtime.origin}${w.basePath}/studio/shots?shot=${seeded.shot.id}`);
+  const drawer = page.getByRole("dialog", { name: "镜头 01 推门", exact: true });
+  await expect(drawer).toBeVisible();
+  const takes = (await seeded.takes()).items;
+  const previewed = takes[0]!, previewedIndex = takes.findIndex((t) => t.id === previewed.id) + 1;
+  await drawer.getByRole("button", { name: `采用候选 ${previewedIndex}`, exact: true }).click();
+  const reason = drawer.getByRole("textbox", { name: "采用理由（可选）", exact: true });
+  await reason.fill("并发修改后仍应保留的选择理由。");
+  const serverChoice = previewed.id === other.id ? seeded.orangeTake : other;
+  await w.command("PUT", `${w.path}/shots/${seeded.shot.id}/selection`, { takeId: serverChoice.id }, seeded.shot.revision);
+  await drawer.getByRole("button", { name: "确认采用", exact: true }).click();
+  await expect(drawer.getByText("镜头已被修改", { exact: true })).toBeVisible();
+  await expect(reason).toHaveValue("并发修改后仍应保留的选择理由。");
+  expect((await seeded.selection()).currentSelection?.takeId).toBe(serverChoice.id);
+  await drawer.getByRole("button", { name: "已核对，使用最新修改版本", exact: true }).click();
+  await drawer.getByRole("button", { name: "确认采用", exact: true }).click();
+  await expect(reason).toHaveCount(0);
+  expect((await seeded.selection()).currentSelection?.takeId).toBe(previewed.id);
+  // Revoked: a refresh shows the access notice and no cached shot list or project name.
+  await w.command("DELETE", `${w.path}/members/${membershipId}`, undefined, grant.revision);
+  await page.reload();
+  await expect(page.getByRole("alert").filter({ hasText: "操作未完成" }).first()).toBeVisible();
+  await expect(page.getByRole("table", { name: "镜头列表", exact: true })).toHaveCount(0);
+  await expect(page.getByText(w.project.name, { exact: true })).toHaveCount(0);
+  expect((await w.runtime.request(collaborator, "GET", `${w.path}/shots/${seeded.shot.id}/selection`)).status).toBe(404);
 });

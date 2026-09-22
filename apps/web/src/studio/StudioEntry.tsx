@@ -53,15 +53,6 @@ export default function StudioEntry({
       : "场次创作台"
     : "项目创作台";
   const menu = <ProjectMenu tenantId={tenantId} projectId={projectId} />;
-  const projectName = project.isError
-    ? "项目不可访问"
-    : (project.data?.name ?? "项目");
-  useEffect(() => {
-    document.title = `${projectName} · ${view === "script" ? "剧本" : view === "shots" ? "镜头整理" : "创作台"} · SceneDesk`;
-  }, [projectName, view]);
-  const active =
-    project.data?.status === "active" &&
-    (!sceneId || (scene?.status === "active" && episode?.status === "active"));
   const canvasId = sceneId
     ? (sceneCanvas.data?.canvas.id ?? createScene.data?.canvas.id)
     : (canvas.data?.canvas.id ?? create.data?.canvas.id);
@@ -70,6 +61,56 @@ export default function StudioEntry({
   const missing =
     canvasError instanceof ApiError &&
     (canvasError.code === "PROJECT_CANVAS_NOT_CREATED" || canvasError.code === "SCENE_CANVAS_NOT_CREATED");
+  // A scene id that is not in this project is a wrong address, not lost access.
+  const sceneMissing = !!sceneId && !!content.data && !scene;
+  // Query caches keep the last good read after a refetch fails. A denied read
+  // of the project, its content or its canvas closes the studio regardless,
+  // so revoked access shows neither cached content nor the project's name.
+  const isDenied = (error: unknown) =>
+    error instanceof ApiError && [401, 403, 404].includes(error.status);
+  const denied =
+    [project.error, content.error].find(isDenied) ??
+    (!missing && !sceneMissing && isDenied(canvasError) ? canvasError : undefined);
+  const projectName = project.isError || denied
+    ? "项目不可访问"
+    : (project.data?.name ?? "项目");
+  useEffect(() => {
+    document.title = `${projectName} · ${view === "script" ? "剧本" : view === "shots" ? "镜头整理" : "创作台"} · SceneDesk`;
+  }, [projectName, view]);
+  const active =
+    project.data?.status === "active" &&
+    (!sceneId || (scene?.status === "active" && episode?.status === "active"));
+  if (denied)
+    return (
+      <StudioFrame projectName={projectName} environment={environment} view={view} base={base} menu={menu} account={account}>
+        <main className={classes.board} aria-label={view === "script" ? "剧本" : view === "shots" ? "镜头整理" : "创作台"}>
+          <div className={classes.center}>
+            <ErrorNotice
+              error={denied}
+              retry={() => {
+                void project.refetch();
+                void content.refetch();
+                void (sceneId ? sceneCanvas.refetch() : canvas.refetch());
+              }}
+            />
+          </div>
+        </main>
+      </StudioFrame>
+    );
+  if (sceneMissing && project.data)
+    return (
+      <StudioFrame projectName={projectName} environment={environment} view={view} base={base} menu={menu} account={account}>
+        <main className={classes.board} aria-label="创作台">
+          <div className={classes.center}>
+            <Text fw={600}>这个项目里没有这一场</Text>
+            <Text c="dimmed">地址里的场次不属于本项目，或已被删除。</Text>
+            <UnstyledButton className={classes.primaryAction} component="a" href={base}>
+              打开项目创作台
+            </UnstyledButton>
+          </div>
+        </main>
+      </StudioFrame>
+    );
   if (project.data && view === "script")
     return (
       <StudioFrame projectName={projectName} environment={environment} view="script" base={base} menu={menu} account={account}>
@@ -108,6 +149,7 @@ export default function StudioEntry({
         canvasId={canvasId}
         sceneId={sceneId}
         canvasLabel={canvasLabel}
+        projectAspect={{ width: project.data.spec.width, height: project.data.spec.height }}
         content={content.data}
         active={active}
         projectName={projectName}

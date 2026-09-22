@@ -62,7 +62,14 @@ export function placeComposer({
   // make the panel jump between sides. It may have grown since, so re-check
   // the old spot with the current size.
   if (previous?.kind === "local" && width <= safe.width) {
-    const kept = { ...previous.rect, width, height };
+    // A panel that grows extends away from the card on its own side, so the
+    // edge next to the card stays put and the panel never overlaps it.
+    const kept = {
+      x: previous.side === "left" ? previous.rect.x - (width - previous.rect.width) : previous.rect.x,
+      y: previous.side === "above" ? previous.rect.y - (height - previous.rect.height) : previous.rect.y,
+      width,
+      height,
+    };
     if (fits(kept)) {
       const distance =
         previous.side === "below"
@@ -99,7 +106,12 @@ export function placeComposer({
     covered(a.rect, references) - covered(b.rect, references) ||
     covered(a.rect, avoid) - covered(b.rect, avoid);
   const available = candidates.filter((candidate) => fits(candidate.rect));
-  available.sort(bySoftConstraints);
+  // A panel that changes size (a model chosen, a task row appearing) stays on
+  // the side it was on while that side still fits; only then do the soft
+  // constraints choose, so the panel does not hop around the card.
+  const sameSide = (candidate: Extract<ComposerPlacement, { kind: "local" }>) =>
+    previous?.kind === "local" && candidate.side === previous.side ? 0 : 1;
+  available.sort((a, b) => sameSide(a) - sameSide(b) || bySoftConstraints(a, b));
   if (available[0]) return available[0];
   // No side is free: pull each side into the safe area and take the one that
   // clips the card least, unless every side would cover most of the card.

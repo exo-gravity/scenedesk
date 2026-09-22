@@ -1,5 +1,7 @@
 # 画布重设计交接：调研结论与后续计划
 
+> 本文引用的部分源文件与 e2e 规格属于旧创作界面，已在 2026-09-21 阶段 3 删除（见 [85-studio-rebuild.md §1i](../implementation/85-studio-rebuild.md)）；这些引用改为纯文本，内容按当时原样保留。
+
 日期：2026-09-21。用途：供接手 agent 在不读取完整对话的情况下继续评审或实施。本文汇总已经取得的证据与设计方案，不表示产品改动已完成。
 
 接手结果：卡片改版曾在分支 `feat/canvas-cards-redesign` 实施并验收，随后用户决定不合入该分支，改为按 [核心创作区重建](creative-workspace-rebuild-libtv-2026-09-21.md) 从零新写界面；下文保持交接时的状态描述，仅作历史。
@@ -109,12 +111,12 @@ SceneDesk 并非只有场次画布；也不缺模型参数、前置校验、批�
 
 | 入口 | 关注点 |
 |---|---|
-| [CanvasBoard.tsx](../../apps/web/src/business/CanvasBoard.tsx) | 节点渲染、选择与编辑、参考折叠区、属性、工具条；是生产入口，pages 原型不能代替 |
-| [CanvasContextualEditor.tsx](../../apps/web/src/business/CanvasContextualEditor.tsx)、[定位计算](../../apps/web/src/business/canvas-editor-placement.ts) | 当前就地编辑在世界坐标中缩放；专注模式已有反向缩放和焦点保护，应复用同一编辑会话 |
-| [MediaGenerationWorkspace.tsx](../../apps/web/src/business/MediaGenerationWorkspace.tsx) | 模型、规格、任务状态、提交与恢复；避免换皮时另写执行链路 |
-| [CanvasMediaGeneration.tsx](../../apps/web/src/business/CanvasMediaGeneration.tsx)、[NodeGenerationResults.tsx](../../apps/web/src/business/NodeGenerationResults.tsx) | 画布保存前置、历史、比较及结果呈现 |
-| [use-canvas-node-preview.ts](../../apps/web/src/business/use-canvas-node-preview.ts) | 当前只查一个编辑节点、一次成功尝试，并核对作业和媒体；扩到可视节点后要限并发、合并读取、取消过期请求，缓存不是权限证明 |
-| [CanvasContinueCreation.tsx](../../apps/web/src/business/CanvasContinueCreation.tsx)、[canvas-creation.ts](../../apps/web/src/business/canvas-creation.ts) | 固定来源、创建引用、重复点击保护与新节点定位 |
+| CanvasBoard.tsx | 节点渲染、选择与编辑、参考折叠区、属性、工具条；是生产入口，pages 原型不能代替 |
+| CanvasContextualEditor.tsx、定位计算 | 当前就地编辑在世界坐标中缩放；专注模式已有反向缩放和焦点保护，应复用同一编辑会话 |
+| MediaGenerationWorkspace.tsx | 模型、规格、任务状态、提交与恢复；避免换皮时另写执行链路 |
+| CanvasMediaGeneration.tsx、NodeGenerationResults.tsx | 画布保存前置、历史、比较及结果呈现 |
+| use-canvas-node-preview.ts | 当前只查一个编辑节点、一次成功尝试，并核对作业和媒体；扩到可视节点后要限并发、合并读取、取消过期请求，缓存不是权限证明 |
+| CanvasContinueCreation.tsx、[canvas-creation.ts](../../apps/web/src/business/canvas-creation.ts) | 固定来源、创建引用、重复点击保护与新节点定位 |
 | [canvas-reference.ts](../../apps/web/src/business/canvas-reference.ts)、[领域约束](../../packages/domain/src/canvas.ts) | 角色、顺序、启用状态、不可变来源、草稿不能作为来源 |
 | [canvas-controller.ts](../../apps/web/src/business/canvas-controller.ts)、[CanvasRecovery.tsx](../../apps/web/src/business/CanvasRecovery.tsx) | 本机未完成输入、撤销、冲突、保存状态与恢复 |
 | [前端约定](../../apps/web/AGENTS.md)、[主题 token](../../apps/web/src/theme/tokens.ts) | Mantine／Phosphor、现有主题、焦点与对比度要求；不增第二套 UI 系统 |

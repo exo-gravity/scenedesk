@@ -41,6 +41,7 @@ export function StudioCanvas({
   canvasId,
   sceneId,
   canvasLabel,
+  projectAspect,
   content,
   active,
   projectName,
@@ -56,6 +57,7 @@ export function StudioCanvas({
   /** The scene this canvas belongs to; absent for the project canvas. */
   sceneId: string | undefined;
   canvasLabel: string;
+  projectAspect: { width: number; height: number };
   content: Schema<"ContentTree"> | undefined;
   active: boolean;
   projectName: string;
@@ -363,6 +365,7 @@ export function StudioCanvas({
                   readOnly={readOnly}
                   selected={selected}
                   onSelect={select}
+                  projectAspect={projectAspect}
                   viewport={preference.view.viewport}
                   onViewport={moveViewport}
                   mediaPath={tenantPath(tenantId)}

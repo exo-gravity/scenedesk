@@ -14,38 +14,27 @@ The database provisioner needs schema and role creation rights, matching existin
 
 Synthetic identities are issued in the test process, then an HttpOnly session cookie is installed in a fresh browser context. No bootstrap endpoint, login bypass, or test identity is added to production code. OIDC login itself remains covered by the separate identity integration tests. The fixture never prints or saves session values; trace, video and storage-state recording are disabled. CI uploads only screenshots of synthetic content and assertion context, retained seven days. Each run writes a new `output/playwright/<timestamp-and-process-id>/results/` directory; CI supplies its unique run/attempt ID through `SCENEDESK_E2E_RUN_ID`. Use a fresh ID if overriding it locally. `output/playwright/` is ignored by Git.
 
-## Initial coverage
+## Coverage: the studio (`studio-*.spec.ts`)
 
-- CW-01: project card → script → canvas → existing scene canvas → create the actual board → text node → save → public API readback → refresh → guarded exit → project assets → fixed asset detail, with the project navigation retained. The preview proxies `/design/openapi.json` as well as business routes, so the real browser contract compiler participates in the save.
-- CW-01: compact rail, 820 px and 390 px drawers, Enter, trapped keyboard focus, Escape and restored trigger focus.
-- CW-02: historical script read, read-only controls and fixed deep-link refresh without changing current history.
-- CW-02: unsaved draft → navigate away/back → explicit restore → refresh → restore → save one new immutable revision → refresh without stale draft recovery.
-- CW-02: a real concurrent server revision preserves a local draft and prevents saving until explicit rebase.
-- CW-01/02: revoke a collaborator through the API after reading; subsequent navigation must hide cached script and project identity. Unauthorized API reads must be denied.
-- CW-02: archived project remains readable without script editing.
+The creative workspace is the studio at `…/p/{id}/studio` (canvas), `…/studio/script` and `…/studio/shots`; the retired canvas, scene workspace, script page and shot list, and their specs, are gone. Every spec runs at 1920×902 so its screenshot pairs with the LibTV reference frames in `docs/design/assets/2026-09-21-studio-rebuild/`. The design decision is `docs/design/creative-workspace-rebuild-libtv-2026-09-21.md`; the slice record with what each case proves is `docs/implementation/85-studio-rebuild.md`.
 
-The fixture exports `WorkspaceRuntime` and `WorkspaceFixture` from [fixture.ts](fixture.ts) for subsequent canvas and document-import tests. Extend seed data through the authenticated API; add storage/worker fixtures only when a flow actually needs them. Keep test-only bootstrap confined to this directory and `tests/support`. Browser tests should assert user-visible outcomes and durable public reads, not component internals.
+- `studio-entry.spec.ts` — ST-00: the full-viewport frame with the view switch and environment labels; the old `/canvas` address opens the studio.
+- `studio-board.spec.ts` — ST-01: cards created, edited in place, renamed, saved through the engine and restored after a reload; multi-select and shortcuts; a revoked collaborator cannot reopen the cached board or read its document.
+- `studio-references.spec.ts` — ST-02: ports, dragged references, purposes, ⊕ continue-creation and reference badges.
+- `studio-composer.spec.ts` — ST-03/04: one submission per fixed inputs, refresh recovery, a lost receipt that is only rechecked, revoked access mid-session, and the multi-select batch review.
+- `studio-results.spec.ts` — ST-04: results shown inside the card, placement review and archive recovery without re-calling a model.
+- `studio-assets.spec.ts` — ST-05: the asset panel lists project assets and media, searches, and drops onto the board.
+- `studio-script.spec.ts` — ST-06: current and fixed earlier manuscripts, a real Word upload with exact original download, a selected passage as a fixed excerpt card with a way back; carried over from the old script page: a lost Word commit and a lost excerpt reply recovered through receipts without a second request, the Feishu synthetic provider (fixed preview, fail-closed permissions, pending import across a refresh, lost commit with one receipt), revoked access hiding the cached script and project name, and an archived project with no import controls.
+- `studio-shots.spec.ts` — ST-07: a board video becomes a fixed candidate, explicit selection, exact original download, reordering with archived children, the batch handoff; carried over: a concurrent selection keeps the reason for an explicit recheck, and a revoked collaborator cannot display the cached list.
+- `studio-docks.spec.ts` — ST-08: the assistant and task docks (docked and floating, drafts kept across close and reload, the `assistantOpen` preference), the switch to a scene canvas, the project menu and the account menu.
+- `studio-switch.spec.ts` — ST-09: old addresses redirect (`canvas`, `production` with and without a storyboard shot, `script` with a revision or the settings tab, `content?revision=`), the project card and the content page lead to the studio, and an archived project stays readable while the API refuses new edits.
+
+Not carried over from the retired specs, because the interface they exercised is gone: rail keyboard navigation, storyboard deep links, the canvas-switch dialogs, the group panel and plain-text script editing. Three groups are untested for now although their modules are mounted unchanged: invalid Word file recovery and concurrent Word CAS, the handoff refusing an old confirmation after the selection changed, and a lost assistant-application reply. Canonical excerpt selection (Unicode, CRLF, repeated quotes) is a unit test, `tests/script-excerpt-selection.test.ts`.
 
 ## Evidence boundaries
 
-Screenshots are attached for desktop script (light/dark), the saved scene canvas, asset detail and both drawer widths. These are review evidence, **not approved pixel baselines**: inspect them against the accepted design before reporting visual acceptance. The initial suite does not prove document import, canvas generation, external provider execution, media decoding, OIDC login, or full refactor acceptance. The matrix marks those separate gates. CI run links and actual pass/fail evidence belong in the implementation progress record after execution, not in this file as assumed results.
+Screenshots are review evidence, **not approved pixel baselines**: inspect them against the accepted design before reporting visual acceptance. The suite does not prove external provider execution, media decoding beyond the synthetic MP4 fixtures, or OIDC login. No business response body is fabricated: transport faults are injected only after the real server committed.
 
-## Unified canvas and directory coverage
+## Fixtures and manual harnesses
 
-`canvas-navigation.spec.ts` covers the existing-scene default, explicit project destination and browser Back, remembered/archived workspaces, fresh authorized index after an external update, cross-navigation canvas/assistant drafts, directory creation, local details and legacy links. It checks canvas menu bounds and restored focus at 820px and 390px, plus explicit episode creation in an empty project without creating a canvas as a side effect.
-
-`script-paper-selection.spec.ts` verifies direct paper selection with Unicode/CRLF fixed offsets and exact confirmation preview. Repeated text must use canonical selection; keyboard selection remains readonly and stores the intended occurrence. Existing receipt-loss, draft recovery, Word/Feishu and immutable source tests remain part of the full suite.
-
-
-## Word import coverage
-
-`docx.spec.ts` adds real local-file upload, pre-import preview, exact original download bytes/SHA-256, immutable updated/history reading, invalid-file draft recovery, concurrent-content CAS recovery and explicitly labelled transport-fault tests. That fault sends the real authenticated import request and drops its response only after the actual server committed; refresh must recover with a read-only domain receipt and exactly one import POST. A second test holds a real receipt response while the user leaves, returns and replaces the import: the old response must never remove the replacement draft, including after refresh. No success response body is fabricated. Synthetic Word fixtures are in `tests/fixtures/scripts/`; actual team Word templates remain a separate acceptance gate.
-
-
-## Shot organization coverage
-
-The shot-switch regression holds an actual next-shot response and checks unchanged modal/list/preview geometry through loading. It also checks independent scrolling with 12 shots, bounded 1366/820/390px layouts, visible primary actions, and explicit recovery of selection reasons. No business response body is fabricated.
-
-`shot-list.spec.ts` adds canvas video → fixed candidate → actual two-video comparison → explicit selection → exact original download SHA-256, full shot ordering including archived children, failed-request local recovery through refresh, concurrent selection CAS and revoked cached-list access. It uses real production business routes with synthetic four-second MP4 originals from `tests/fixtures/video/`. Only immutable accepted media metadata and the byte-serving store are fixtures; upload/probe and real-provider acceptance remain separate. The reorder failure aborts one transport request rather than replacing a business response.
-
-`startWorkspaceRuntime` accepts optional `media` services for this isolated store. `preview-shot-list.ts` starts the same synthetic setup for coordinated manual inspection after building Web; it requires the same disposable `drama_e2e*` loopback database and `PROVIDER_MODE=mock`. It defaults to `[::1]:4464` so its test-only HttpOnly identity does not overwrite a developer's `127.0.0.1` or `localhost` cookie. The printed loopback bootstrap is only in this harness; no auth bypass is added to the product. Ctrl-C tears down the isolated schema, roles and servers.
+`startWorkspaceRuntime` accepts optional `media` services for the isolated store (`shot-media.ts`). `shot-list-fixture.ts` and `selected-delivery-fixture.ts` seed shots, takes and synthetic originals through the real API; `continuous-workspace-fixture.ts` and `canvas-generation-fixture.ts` seed a project with controlled model capabilities and a signed-in preview server. The `preview-*.ts` scripts start the same synthetic setups for coordinated manual inspection after building Web; they need a disposable `drama_e2e*` loopback database and `PROVIDER_MODE=mock`, and default to `[::1]` ports so their test-only HttpOnly identity does not overwrite a developer's `127.0.0.1` or `localhost` session.

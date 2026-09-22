@@ -109,7 +109,7 @@
   margin: 0 0 var(--mantine-spacing-md);
   font-size: var(--mantine-font-size-sm);
   font-weight: 500;
-  color: var(--ws-focus);
+  color: var(--ws-secondary);
 }
 .shortcutList {
   margin: 0;

@@ -364,7 +364,7 @@ export async function startContinuousWorkspace(
                 return next();
               response.writeHead(303, {
                 "Set-Cookie": `session=${f.owner.token}; Path=/; HttpOnly; SameSite=Lax`,
-                Location: `/#/app/t/${f.tenant.id}/p/${f.project.id}/canvas?node=${referenceId}`,
+                Location: `/#/app/t/${f.tenant.id}/p/${f.project.id}/studio?node=${referenceId}`,
               });
               response.end();
             });
@@ -386,6 +386,24 @@ export async function startContinuousWorkspace(
           web.httpServer.close((error) => (error ? reject(error) : resolve()));
         }),
     );
+    /** Manual previews only: register real bytes as an accepted upload and a ready media record. */
+    async function seedMedia(item: {
+      bytes: Buffer; mime: string; name: string; kind: "image" | "video";
+      width: number; height: number; durationUs?: number | null; hasAudio?: boolean | null; fpsNum?: number | null; fpsDen?: number | null;
+    }) {
+      const id = randomUUID(), uploadId = randomUUID(), key = `originals/${id}`,
+        sha = createHash("sha256").update(item.bytes).digest("hex");
+      files.set(key, { bytes: item.bytes, mime: item.mime });
+      await f.admin.query(
+        `INSERT INTO ${f.scope}.upload_intents(id,tenant_id,project_id,scope,staging_key,expected_bytes,expected_sha256,safe_file_name,mime_hint,display_name,created_by,status,expires_at,staging_version_id,epoch) VALUES($1,$2,$3,'project',$4,$5,$6,$7,$8,$7,$9,'accepted',now()+interval '15 minutes','synthetic-v1',1)`,
+        [uploadId, f.tenant.id, f.project.id, `staging/${uploadId}`, item.bytes.length, sha, item.name, item.mime, f.owner.userId],
+      );
+      await f.admin.query(
+        `INSERT INTO ${f.scope}.media(id,tenant_id,project_id,scope,kind,status,display_name,safe_original_file_name,created_by,source_upload_id,immutable_key,storage_version_id,sha256,bytes,mime,width,height,has_audio,duration_us,fps_num,fps_den) VALUES($1,$2,$3,'project',$4,'ready',$5,$5,$6,$7,$8,'synthetic-v1',$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+        [id, f.tenant.id, f.project.id, item.kind, item.name, f.owner.userId, uploadId, key, sha, item.bytes.length, item.mime, item.width, item.height, item.hasAudio ?? false, item.durationUs ?? null, item.fpsNum ?? null, item.fpsDen ?? null],
+      );
+      return { id, key, sha };
+    }
     return {
       ...f,
       origin,
@@ -396,6 +414,7 @@ export async function startContinuousWorkspace(
       seedAdvice,
       completeVideo,
       videoCalls: () => videoCalls,
+      seedMedia,
       stop,
     };
   } catch (error) {

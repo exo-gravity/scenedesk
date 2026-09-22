@@ -31,7 +31,7 @@ import {
   type ImportRecord,
 } from "./media-imports";
 import { ErrorNotice } from "./common";
-import classes from "./canvas.module.css";
+import classes from "./canvas-uploads.module.css";
 
 type Point = Schema<"CanvasPoint">;
 type Entry = Schema<"CanvasUpload">;

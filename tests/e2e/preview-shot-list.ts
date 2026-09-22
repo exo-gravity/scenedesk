@@ -41,7 +41,7 @@ try {
     response.writeHead(303, {
       "Set-Cookie": `session=${w.owner.token}; HttpOnly; SameSite=Lax; Path=/`,
       "Cache-Control": "no-store",
-      Location: `${w.runtime.origin}${w.basePath}/canvas`,
+      Location: `${w.runtime.origin}${w.basePath}/studio`,
     });
     response.end();
   });

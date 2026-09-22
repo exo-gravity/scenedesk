@@ -1,10 +1,8 @@
 .catalog,
-.scriptWorkspace,
 .content {
   min-width: 0;
 }
 .catalog[hidden],
-.scriptWorkspace[hidden],
 .content[hidden] {
   display: none;
 }
@@ -77,45 +75,8 @@
   padding-left: var(--mantine-spacing-md);
   border-left: 2px solid var(--ws-border);
 }
-.scriptWorkspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
-  height: 100%;
-  min-height: 0;
-  align-items: stretch;
-}
-.scriptWorkspace[data-assistant] {
-  grid-template-columns: minmax(0, 1fr) 370px;
-}
-.scriptAssistant[hidden] {
-  display: none;
-}
-.scriptMain,
 .document {
   min-width: 0;
-}
-.scriptMain,
-.scriptAssistant {
-  min-height: 0;
-  overflow-y: auto;
-}
-.scriptMain,
-.fullWorkspace {
-  padding: var(--mantine-spacing-xl) 34px;
-}
-.scriptAssistant {
-  min-width: 0;
-  padding: var(--mantine-spacing-xl);
-  background: var(--ws-panel);
-  border-left: 1px solid var(--ws-border);
-  display: flex;
-  flex-direction: column;
-  gap: var(--mantine-spacing-lg);
-}
-.assistantHeader {
-  padding-bottom: var(--mantine-spacing-lg);
-  border-bottom: 1px solid var(--ws-border-subtle);
 }
 .documentToolbar {
   align-items: end;
@@ -137,32 +98,6 @@
   padding-block: var(--mantine-spacing-xl);
   border-top: 1px solid var(--ws-border);
 }
-@media (max-width: 1400px) {
-  .scriptWorkspace[data-assistant] {
-    grid-template-columns: minmax(0, 1fr) 340px;
-  }
-  .scriptMain,
-  .fullWorkspace {
-    padding: var(--mantine-spacing-xl);
-  }
-}
-@media (max-width: 1000px) {
-  .scriptWorkspace,
-  .scriptWorkspace[data-assistant] {
-    grid-template-columns: minmax(0, 1fr);
-    height: auto;
-    min-height: 100%;
-  }
-  .scriptMain,
-  .scriptAssistant {
-    overflow-y: visible;
-  }
-  .scriptAssistant {
-    padding: var(--mantine-spacing-xl);
-    border-left: 0;
-    border-top: 1px solid var(--ws-border);
-  }
-}
 @media (max-width: 700px) {
   .episodeHeader,
   .sceneRow,
@@ -174,10 +109,6 @@
   }
   .sceneState {
     margin-left: auto;
-  }
-  .scriptMain,
-  .fullWorkspace {
-    padding: var(--mantine-spacing-xl);
   }
   .documentInput {
     min-height: 400px;
@@ -322,10 +253,6 @@
   }
   .readingText {
     line-height: 1.95;
-  }
-  .scriptMain,
-  .fullWorkspace {
-    padding: 24px 16px;
   }
   .scenePreview {
     width: 100%;

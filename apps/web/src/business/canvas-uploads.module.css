@@ -1,0 +1,20 @@
+/* Styles of the upload list and its choices, kept from the retired canvas stylesheet. */
+.choice {
+  border-bottom: 1px solid var(--ws-border);
+  padding-bottom: var(--mantine-spacing-md);
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.uploadList {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  min-width: 0;
+}
+.uploadList > article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

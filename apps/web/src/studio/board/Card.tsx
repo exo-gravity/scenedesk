@@ -38,6 +38,8 @@ export type CardActions = {
   continueWith: (ids: string[], kind: "image" | "video" | "audio") => void;
 };
 export type CardData = {
+  /** The project's picture shape, the frame of anything that has not said otherwise. */
+  projectAspect: { width: number; height: number };
   node: CanvasNode;
   mediaPath: string;
   groupTitle?: string | undefined;
@@ -75,8 +77,13 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
   const Icon = icons[node.kind];
   const excerpt = node.kind === "text" && !!node.content.sourceExcerpt;
   // A draft keeps its output ratio as a frame until a result gives it a picture.
+  const named = node.content.type === "draft" && !!node.content.output.aspectRatio;
+  const frame = (named ? draftFrameAspect(node) : null) ?? data.projectAspect,
+    frameRatio = `${frame.width} / ${frame.height}`;
   const aspect =
-    node.content.type === "draft" && !data.resultMediaId ? draftFrameAspect(node) : null;
+    node.content.type === "draft" && !data.resultMediaId
+      ? (named ? draftFrameAspect(node) : null) ?? data.projectAspect
+      : null;
   const shownMediaId =
     node.content.type === "media" ? node.content.mediaId : data.resultMediaId;
   const media = useResource<Schema<"Media">>(
@@ -165,6 +172,7 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
             path={data.mediaPath}
             media={media}
             result={node.content.type === "draft"}
+            fallback={frameRatio}
           />
         )}
         {data.task && (
@@ -194,7 +202,7 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
       <NodeToolbar
         position={Position.Right}
         isVisible={data.canContinue}
-        offset={12}
+        offset={8}
         className={classes.continueToolbar!}
       >
         <Menu position="right-start" shadow="md" width={140} withinPortal>
@@ -351,12 +359,15 @@ function MediaBody({
   mediaId,
   path,
   media,
+  fallback,
   result = false,
 }: {
   kind: "image" | "video" | "audio";
   mediaId: string;
   path: string;
   media: ReturnType<typeof useResource<Schema<"Media">>>;
+  /** The frame's ratio until the record says otherwise: the project's own shape. */
+  fallback: string;
   /** A draft's generated result rather than the card's own media. */
   result?: boolean;
 }) {
@@ -369,8 +380,10 @@ function MediaBody({
       </div>
     );
   if (media.data?.id !== mediaId)
+    // The frame keeps the project's shape while the record loads, so a card
+    // never renders in one ratio and then re-flows into another.
     return (
-      <div className={classes.placeholder}>
+      <div className={classes.media} style={{ aspectRatio: fallback }} data-loading data-result={result || undefined}>
         <Icon size={40} aria-hidden />
       </div>
     );
@@ -394,7 +407,9 @@ function MediaBody({
       <MediaPreview media={media.data} path={path} thumbnail />
       {kind === "video" && (
         <span className={classes.playBadge} aria-hidden>
-          <Play size={18} weight="fill" />
+          <span className={classes.playDisc}>
+            <Play size={28} weight="fill" />
+          </span>
         </span>
       )}
     </div>

@@ -1,5 +1,7 @@
 # 自由画布与创作交互审查
 
+> 本文引用的部分源文件与 e2e 规格属于旧创作界面，已在 2026-09-21 阶段 3 删除（见 [85-studio-rebuild.md §1i](../../implementation/85-studio-rebuild.md)）；这些引用改为纯文本，内容按当时原样保留。
+
 日期：2026-09-13。基线：main `585eb10df26bc7b1d32d8b67bb99a8ee7b596898`；本轮检查的场次、画布与生成组件同已验收视觉分支内容一致。主任务已按用户要求执行 `fetch origin --prune` 与 `pull --ff-only origin main`，确认最新 main 仍为该 SHA，无新增差异。
 
 最新用户要求是提升整体视觉与 UX、减少后台表单感，并参考 TapNow / LibTV。这覆盖旧设计记录中“不再调整布局”的限制；以下是待整合的新建议，不把旧原型直接替代真实业务。本轮只读代码、文档、既有生产截图和第三方公开资料，没有更改 UI、运行模型、登录第三方或操作主任务浏览器。
@@ -27,7 +29,7 @@
 
 ### 1. 选中对象的动作离对象太远
 
-**证据：** [CanvasBoard.tsx:748](../../../apps/web/src/business/CanvasBoard.tsx#L748) 将“继续创作、复制、移除、组合”放在全画布底栏；[CanvasBoard.tsx:93](../../../apps/web/src/business/CanvasBoard.tsx#L93) 的节点只有标题、内容和连线端口。历史 1512 截图也呈现草稿在中部、相关动作在右下的距离问题；本轮以源码结构为定位证据。已有操作可用，问题是位置和发现性。
+**证据：** CanvasBoard.tsx:748 将“继续创作、复制、移除、组合”放在全画布底栏；CanvasBoard.tsx:93 的节点只有标题、内容和连线端口。历史 1512 截图也呈现草稿在中部、相关动作在右下的距离问题；本轮以源码结构为定位证据。已有操作可用，问题是位置和发现性。
 
 **建议：** 单选在对象上方放最多三项短动作：继续创作、查看/播放、更多；多选在选择范围旁显示“用作参考 · N”，更多里放复制、移除和组合。屏幕边缘时停靠到画布可见边界；键盘选中也能聚焦工具，不只依赖 hover。左下仅保留视口工具与添加。
 
@@ -37,7 +39,7 @@
 
 ### 2. 提示与生成是两段叠加表单，主路径不连续
 
-**证据：** [CanvasBoard.tsx:916](../../../apps/web/src/business/CanvasBoard.tsx#L916) 先挂 `CanvasComposer` 再挂 generation；[CanvasMediaGeneration.tsx:75](../../../apps/web/src/business/CanvasMediaGeneration.tsx#L75) 又用默认折叠 Accordion 包生成；[canvas.module.css:161](../../../apps/web/src/business/canvas.module.css#L161) 把两段放进最多 290px 的滚动容器。展开后，模型、规格、种子、计划与结果继续纵向堆叠（[MediaGenerationWorkspace.tsx:427](../../../apps/web/src/business/MediaGenerationWorkspace.tsx#L427)）。分镜输入的图/视频/音频也各自嵌套 Accordion（[ShotPromptComposer.tsx:326](../../../apps/web/src/business/ShotPromptComposer.tsx#L326)）。
+**证据：** CanvasBoard.tsx:916 先挂 `CanvasComposer` 再挂 generation；CanvasMediaGeneration.tsx:75 又用默认折叠 Accordion 包生成；canvas.module.css:161 把两段放进最多 290px 的滚动容器。展开后，模型、规格、种子、计划与结果继续纵向堆叠（MediaGenerationWorkspace.tsx:427）。分镜输入的图/视频/音频也各自嵌套 Accordion（ShotPromptComposer.tsx:326）。
 
 **建议：** 一个稳定、居中的有界 composer：顶行明确对象与类型；中间是主要文本；下面是参考条；最下为模型、比例、时长等紧凑可展开参数与一个主动作。随机种子和非必要字段进入“更多参数”。未配置模型时保留可写输入与清晰不可用说明，不能显示伪可用执行按钮。计划准备后原区切成摘要确认状态，可展开完整固定输入；确认执行仍是独立点击。
 
@@ -47,7 +49,7 @@
 
 ### 3. 最重要的参考用途藏在几何设置后面
 
-**证据：** [CanvasBoard.tsx:1048](../../../apps/web/src/business/CanvasBoard.tsx#L1048) 的“参考与节点设置”先放名称、x/y/宽度和分组，之后才是添加参考及逐边用途（1190 行以后）。节点连接有用途标签，但用户在输入前不容易确认哪些参考启用、各自负责什么。
+**证据：** CanvasBoard.tsx:1048 的“参考与节点设置”先放名称、x/y/宽度和分组，之后才是添加参考及逐边用途（1190 行以后）。节点连接有用途标签，但用户在输入前不容易确认哪些参考启用、各自负责什么。
 
 **建议：** 输入旁直接显示已启用参考的小缩略、名称和用途；文字来源用短摘录。点击项目展开固定媒体/资产版本和用途选择；移除/停用为局部动作。名称、数值坐标和分组移到独立“节点属性”，保留精确编辑的无效输入恢复。画布参考与固定镜头来源分别标明，不能把镜头导航当引用选择。
 
@@ -57,7 +59,7 @@
 
 ### 4. “历史”分散，删除来源后找回成果靠下拉文字辨认
 
-**证据：** 场次顶栏有历史 dock（[SceneProductionWorkspace.tsx:448](../../../apps/web/src/business/SceneProductionWorkspace.tsx#L448)）；生成历史却在 [CanvasMediaGeneration.tsx:89](../../../apps/web/src/business/CanvasMediaGeneration.tsx#L89) 用 `NativeSelect` 列出节点标题/序号/是否有任务，选后再点“打开所选固定任务”。旧节点删除后标题退化为“已删除的…草稿”。生成工作区又有此前任务折叠区（832 行）。这些是现有独立事实，不能合并成一个回滚操作。
+**证据：** 场次顶栏有历史 dock（SceneProductionWorkspace.tsx:448）；生成历史却在 CanvasMediaGeneration.tsx:89 用 `NativeSelect` 列出节点标题/序号/是否有任务，选后再点“打开所选固定任务”。旧节点删除后标题退化为“已删除的…草稿”。生成工作区又有此前任务折叠区（832 行）。这些是现有独立事实，不能合并成一个回滚操作。
 
 **建议：** 明确命名“生成结果”与“画布修订”。结果入口用带缩略、类型、创建时间、真实阶段的紧凑列表，打开详情读原计划及来源，提供“定位已在画布的结果”或“取回画布”。没有 ready 媒体时显示阶段，不造预览。保留本场范围和原 API 分页。
 
@@ -67,7 +69,7 @@
 
 ### 5. 生成状态藏在编辑区，节点仍一律写“尚未生成”
 
-**证据：** [CanvasBoard.tsx:121](../../../apps/web/src/business/CanvasBoard.tsx#L121) 对所有 draft 显示“尚未生成”，与真实任务无关联；实际阶段、取消、归档恢复及成果位于 [MediaGenerationWorkspace.tsx:666](../../../apps/web/src/business/MediaGenerationWorkspace.tsx#L666) 的纵向结果区。实现已经有真实状态，缺的是状态与空间对象的就近联系。
+**证据：** CanvasBoard.tsx:121 对所有 draft 显示“尚未生成”，与真实任务无关联；实际阶段、取消、归档恢复及成果位于 MediaGenerationWorkspace.tsx:666 的纵向结果区。实现已经有真实状态，缺的是状态与空间对象的就近联系。
 
 **建议：** 对存在固定任务的来源草稿显示轻量“排队/生成/整理结果/待核对/已有结果”附着状态及“查看任务”。正在编辑的新文本与旧任务使用的固定输入分别可查；不能因原草稿有旧成功任务就把当前新输入画成已完成。详细取消/归档恢复仍进任务详情。成功后展示成果缩略和明确取回动作，原草稿、旧媒体保留。
 
@@ -77,7 +79,7 @@
 
 ### 6. 空画布有文案，没有同位置的明确起步动作
 
-**证据：** [CanvasBoard.tsx:932](../../../apps/web/src/business/CanvasBoard.tsx#L932) 空态只给两句说明，真实入口在左下添加菜单；[CanvasBoard.tsx:717](../../../apps/web/src/business/CanvasBoard.tsx#L717) 的双击分支直接 `add("text", point)`，没有类型菜单。这是可用入口的发现性问题，不应写成“完全不能创建”。
+**证据：** CanvasBoard.tsx:932 空态只给两句说明，真实入口在左下添加菜单；CanvasBoard.tsx:717 的双击分支直接 `add("text", point)`，没有类型菜单。这是可用入口的发现性问题，不应写成“完全不能创建”。
 
 **建议：** 空态中央提供“写一个想法”“导入参考”“开始图片/视频/声音草稿”，复用已有添加/上传；第一次内容出现即退场。文案说明无需先绑镜头。空白双击只打开就地添加菜单，保留真实点击落点；不要直接创建无意义节点。无实际模型时写入草稿仍可用，明确执行不可用原因。
 
@@ -87,7 +89,7 @@
 
 ### 7. 常态把技术状态和多个操作做成同等显著，削弱作品层级
 
-**证据：** [SceneProductionWorkspace.tsx:412](../../../apps/web/src/business/SceneProductionWorkspace.tsx#L412) 常态同时展示保存状态、服务器版本、保存按钮与协作入口；[CanvasBoard.tsx:749](../../../apps/web/src/business/CanvasBoard.tsx#L749) 常驻容量分母与百分比。历史截图中这些项与创作动作使用近似按钮外观；最新绘制需新开生产页复核。节点列表及组管理也是原生 details 面板。
+**证据：** SceneProductionWorkspace.tsx:412 常态同时展示保存状态、服务器版本、保存按钮与协作入口；CanvasBoard.tsx:749 常驻容量分母与百分比。历史截图中这些项与创作动作使用近似按钮外观；最新绘制需新开生产页复核。节点列表及组管理也是原生 details 面板。
 
 **建议：** 正常时简短“已保存”与紧凑状态图标；点击看服务器修订、本机恢复与协作细节。未同步、失败、冲突必须立即可见并给对应动作，容量接近上限也要提升可见度。保留现有媒体 6px / 工具 8px / 浮层 12px 的形状层次，以单一克制强调色标选择和主动作。搜索使用轻量检索面板，数量与容量进入信息区，字体使用 tabular figures 对齐比例与时间。
 

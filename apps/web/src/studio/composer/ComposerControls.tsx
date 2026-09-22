@@ -287,7 +287,6 @@ export function SpecificationPicker({
           )}
           {showShotSources && (
             <section>
-              <h4 className={classes.specTitle}>镜头来源</h4>
               <CanvasShotSources
                 path={shotSourceProps.path}
                 projectId={shotSourceProps.projectId}
@@ -295,6 +294,7 @@ export function SpecificationPicker({
                 sources={shotSources}
                 disabled={locked}
                 onChange={onShotSources}
+                compact
               />
             </section>
           )}

@@ -28,6 +28,7 @@ export function CanvasShotSources({
   sources,
   disabled,
   onChange,
+  compact = false,
 }: {
   path: string;
   projectId: string;
@@ -35,6 +36,8 @@ export function CanvasShotSources({
   sources: readonly ShotSource[] | undefined;
   disabled: boolean;
   onChange: (sources: ShotSource[]) => void;
+  /** One quiet row: the count only when there is one, the guidance only while choosing. */
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   let selected: ShotSource[];
@@ -51,20 +54,29 @@ export function CanvasShotSources({
   }
   return (
     <Stack gap="sm" aria-label="本次镜头来源">
-      <Group justify="space-between">
-        <Text fw={500}>镜头来源 · {selected.length} / 100</Text>
+      <Group justify="space-between" wrap="nowrap">
+        {compact ? (
+          <Text size="sm" {...(selected.length ? {} : { c: "dimmed" })}>
+            镜头来源{selected.length ? ` · ${selected.length}` : ""}
+          </Text>
+        ) : (
+          <Text fw={500}>镜头来源 · {selected.length} / 100</Text>
+        )}
         <Button
           variant="subtle"
+          {...(compact ? { size: "compact-xs" } : {})}
           disabled={disabled}
           onClick={() => setOpen(!open)}
         >
-          {open ? "收起来源选择" : "选择镜头来源"}
+          {compact ? (open ? "收起" : selected.length ? "修改" : "选择") : open ? "收起来源选择" : "选择镜头来源"}
         </Button>
       </Group>
-      <Text size="xs" c="dimmed">
-        可不选镜头，独立探索。加入后固定该版要求与参考；上下顺序就是本次输入顺序。
-      </Text>
-      {!selected.length && <Text size="sm">不使用镜头来源</Text>}
+      {(!compact || open) && (
+        <Text size="xs" c="dimmed">
+          可不选镜头，独立探索。加入后固定该版要求与参考；上下顺序就是本次输入顺序。
+        </Text>
+      )}
+      {!compact && !selected.length && <Text size="sm">不使用镜头来源</Text>}
       {selected.length > 0 && (
         <Stack gap="sm" className={classes.sourceList}>
           {selected.map((source, index) => (
