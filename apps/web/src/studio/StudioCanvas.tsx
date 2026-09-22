@@ -311,7 +311,11 @@ export function StudioCanvas({
         ) : null
       }
     >
-      <main className={classes.board} aria-label="创作台">
+      <main
+        className={classes.board}
+        aria-label="创作台"
+        data-dock={(tasksOpen && tasksMode === "docked") || (assistantOpen && assistantMode === "docked") ? "docked" : undefined}
+      >
         {!controller || !state || !preference.view ? (
           <div className={classes.center}>
             <ErrorNotice error={error} retry={retry} />
@@ -366,6 +370,7 @@ export function StudioCanvas({
                   selected={selected}
                   onSelect={select}
                   projectAspect={projectAspect}
+                  docked={(tasksOpen && tasksMode === "docked") || (assistantOpen && assistantMode === "docked")}
                   viewport={preference.view.viewport}
                   onViewport={moveViewport}
                   mediaPath={tenantPath(tenantId)}
@@ -402,7 +407,7 @@ export function StudioCanvas({
                   </Dock>
                 )}
                 {assistantOpen && (
-                  <Dock label="助手" title="助手" mode={assistantMode} onMode={setAssistantMode} onClose={() => setAssistant(false)}>
+                  <Dock label="助手" title="助手" chromeless mode={assistantMode} onMode={setAssistantMode} onClose={() => setAssistant(false)}>
                     <CanvasAssistant
                       tenantId={tenantId}
                       projectId={projectId}

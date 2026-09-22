@@ -244,6 +244,7 @@ export function SpecificationPicker({
                   />
                   <NumberInput
                     className={classes.durationValue}
+                    classNames={{ input: classes.durationInput }}
                     size="xs"
                     min={duration.min}
                     max={duration.max}

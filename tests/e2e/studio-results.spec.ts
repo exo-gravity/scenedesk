@@ -103,7 +103,7 @@ test("ST-04: a placement refused for a changed board is re-reviewed, and the res
   }, current.revision);
   await dialog.getByRole("button", { name: "确认添加到创作台", exact: true }).click();
   // Rule 11: the stale If-Match is refused; the panel says so and offers a fresh review, nothing was added.
-  await expect(panel.getByText("创作台已有修改，视频尚未添加", { exact: true })).toBeVisible();
+  await expect(panel.getByText("创作台已有修改，视频未添加", { exact: true })).toBeVisible();
   expect(statuses).toEqual([412]);
   let afterRefusal = await f.ok("GET", `${f.path}/canvases/${f.canvas.id}`);
   expect(afterRefusal.document.nodes.filter((node: any) => node.content.mediaId === first.jobId)).toHaveLength(0);

@@ -55,6 +55,60 @@
   background: transparent;
   border: 1px solid var(--ws-studio-chrome-border);
 }
+/* The reference picker: a grid of the board's cards as thumbnails. */
+.pickerDropdown {
+  padding: var(--mantine-spacing-sm);
+  max-height: 340px;
+  overflow: auto;
+}
+.pickerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 72px);
+  gap: var(--mantine-spacing-xs);
+}
+.pickerItem {
+  width: 72px;
+  padding: 4px;
+  border-radius: var(--ws-radius);
+}
+.pickerItem :global(.mantine-Menu-itemLabel) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.pickerThumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--ws-radius);
+  overflow: hidden;
+  background: var(--ws-hover);
+  color: var(--ws-studio-card-label);
+  box-shadow: inset 0 0 0 1px var(--ws-studio-card-border);
+}
+.pickerThumb > div {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  background: transparent;
+}
+.pickerThumb :global(img),
+.pickerThumb :global(video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pickerTitle {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Reference thumbnails with a purpose tag in the corner. */
 .references {
   display: flex;
@@ -184,6 +238,21 @@
 .action[data-quiet]:not(:disabled):hover {
   background: var(--ws-studio-chrome-border);
 }
+/* Result and recovery actions share the bottom row; the panel never grows for them. */
+.resultActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+  flex: none;
+}
+.resultActions .status {
+  flex: none;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Dialog actions: one primary the size of the submit control, a text cancel. */
 .dialogActions {
   display: flex;
@@ -227,6 +296,16 @@
 .action[data-quiet] {
   background: var(--ws-hover);
   color: var(--ws-text);
+}
+.durationInput {
+  border: 1px solid var(--ws-studio-chrome-border);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-studio-card);
+  color: var(--ws-text);
+  font-size: var(--mantine-font-size-xs);
+}
+.durationInput:focus {
+  border-color: var(--ws-studio-card-selected);
 }
 /* Model list rows. */
 .models {

@@ -53,7 +53,7 @@ export function ComposerReferences({
   return (
     <>
       <div className={classes.row}>
-        <Menu position="bottom-start" shadow="md" width={240} withinPortal>
+        <Menu position="bottom-start" shadow="md" width={344} withinPortal classNames={{ dropdown: classes.pickerDropdown }}>
           <Menu.Target>
             <UnstyledButton className={classes.pill} aria-label="添加参考" disabled={disabled}>
               <Plus size={12} aria-hidden />
@@ -62,14 +62,11 @@ export function ComposerReferences({
           </Menu.Target>
           <Menu.Dropdown>
             {candidates.length ? (
-              candidates.map((node) => {
-                const Icon = icons[node.kind];
-                return (
-                  <Menu.Item key={node.id} leftSection={<Icon size={14} />} onClick={() => onAdd(node.id)}>
-                    {node.title}
-                  </Menu.Item>
-                );
-              })
+              <div className={classes.pickerGrid}>
+                {candidates.map((node) => (
+                  <CandidateTile key={node.id} node={node} mediaPath={mediaPath} onAdd={onAdd} />
+                ))}
+              </div>
             ) : (
               <Menu.Item disabled>创作台上没有可再加入的文字或素材</Menu.Item>
             )}
@@ -175,5 +172,32 @@ function ReferenceThumb({
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>
+  );
+}
+
+/** One card on the board offered as a reference: its picture when it has one, its title underneath. */
+function CandidateTile({
+  node,
+  mediaPath,
+  onAdd,
+}: {
+  node: CanvasDocument["nodes"][number];
+  mediaPath: string;
+  onAdd: (id: string) => void;
+}) {
+  const mediaId = node.content.type === "media" ? node.content.mediaId : undefined;
+  const media = useResource<Schema<"Media">>(`${mediaPath}/media/${mediaId ?? ""}`, !!mediaId);
+  const Icon = icons[node.kind];
+  return (
+    <Menu.Item className={classes.pickerItem} aria-label={node.title} onClick={() => onAdd(node.id)}>
+      <span className={classes.pickerThumb} data-kind={node.kind}>
+        {media.data && media.data.id === mediaId ? (
+          <MediaPreview media={media.data} path={mediaPath} thumbnail />
+        ) : (
+          <Icon size={20} aria-hidden />
+        )}
+      </span>
+      <span className={classes.pickerTitle}>{node.title}</span>
+    </Menu.Item>
   );
 }

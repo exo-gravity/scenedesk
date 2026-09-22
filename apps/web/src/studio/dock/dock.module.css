@@ -11,13 +11,13 @@
   top: var(--ws-studio-topbar-height);
   right: 0;
   bottom: 0;
-  width: 400px;
+  width: var(--ws-studio-dock-width);
   border-left: 1px solid var(--ws-studio-chrome-border);
 }
 .dock[data-mode="floating"] {
   right: var(--mantine-spacing-md);
   bottom: calc(var(--ws-studio-toolbar-height) + 2 * var(--mantine-spacing-md));
-  width: 400px;
+  width: var(--ws-studio-dock-width);
   height: min(640px, calc(100% - var(--ws-studio-topbar-height) - var(--ws-studio-toolbar-height) - 4 * var(--mantine-spacing-md)));
   border: 1px solid var(--ws-studio-chrome-border);
   border-radius: var(--ws-floating-radius);
@@ -59,4 +59,20 @@
   min-height: 0;
   overflow: auto;
   padding: var(--mantine-spacing-md);
+}
+/* Chromeless: the content's header is the title; the dock's controls float over its right end. */
+.dock[data-chromeless] .header {
+  position: absolute;
+  top: 0;
+  right: var(--mantine-spacing-sm);
+  height: 52px;
+  border-bottom: 0;
+  padding: 0;
+  z-index: 1;
+}
+.dock[data-chromeless] .body {
+  padding: 0;
+}
+.dock[data-chromeless] .body :global(header) {
+  padding-right: 72px;
 }

@@ -23,6 +23,13 @@
   --xy-connectionline-stroke-default: var(--ws-studio-card-selected);
   --xy-connectionline-stroke-width-default: 1.5;
 }
+.board[data-zoom="small"] .label {
+  visibility: hidden;
+}
+/* Editing lifts the card off the board. */
+.card[data-editing] {
+  box-shadow: var(--ws-studio-shadow);
+}
 .board[data-tool="hand"] :global(.react-flow__pane) {
   cursor: grab;
 }

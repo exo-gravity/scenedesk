@@ -96,6 +96,18 @@
   font-size: var(--mantine-font-size-xs);
   color: var(--ws-studio-card-label);
 }
+/* Dialog chrome shared by the shell's dialogs: a quiet title, the studio surface, a quiet close. */
+.dialogTitle {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--ws-secondary);
+}
+.dialogContent {
+  background: var(--ws-studio-card);
+}
+.dialogClose {
+  color: var(--ws-secondary);
+}
 /* Shortcuts overview. */
 .shortcuts {
   display: grid;
@@ -131,6 +143,10 @@
   margin: 0;
   display: flex;
   gap: var(--mantine-spacing-xs);
+}
+.shortcut .hint {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-secondary);
 }
 .shortcut .kbd {
   min-width: 24px;

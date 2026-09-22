@@ -65,8 +65,13 @@ export function StudioFrame({
             >
               {projectName}
             </span>
+            {canvasSwitch && (
+              <>
+                <span className={classes.divider} aria-hidden />
+                {canvasSwitch}
+              </>
+            )}
           </div>
-          {canvasSwitch}
         </div>
         <nav className={classes.viewSwitch} aria-label="创作区视图">
           {views.map((item) =>
@@ -94,11 +99,11 @@ export function StudioFrame({
           {status}
           {tools}
           {environment && (
-            <Text size="xs" c="dimmed" className={classes.environment}>
+            <Text size="xs" className={classes.environment}>
               {environment}
             </Text>
           )}
-          {account}
+          {account && <span className={classes.account}>{account}</span>}
         </div>
       </header>
       {children}
