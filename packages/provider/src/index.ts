@@ -7,3 +7,5 @@ export * from "./verified/outputs.js";
 export * from "./verified/prepare.js";
 export { createMinimaxAdapter } from "./verified/minimax/adapter.js";
 export { createMinimaxClient } from "./verified/minimax/client.js";
+export { createVolcengineAdapter } from "./verified/volcengine/adapter.js";
+export { createVolcengineClient } from "./verified/volcengine/client.js";
