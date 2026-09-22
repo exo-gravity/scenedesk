@@ -16,6 +16,7 @@ export function Dock({
   mode,
   onMode,
   onClose,
+  chromeless = false,
   children,
 }: {
   label: string;
@@ -23,12 +24,14 @@ export function Dock({
   mode: DockMode;
   onMode: (mode: DockMode) => void;
   onClose: () => void;
+  /** The content brings its own header; the dock only adds its two controls over it. */
+  chromeless?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className={classes.dock} data-mode={mode} aria-label={label}>
+    <section className={classes.dock} data-mode={mode} data-chromeless={chromeless || undefined} aria-label={label}>
       <header className={classes.header}>
-        <span className={classes.title}>{title}</span>
+        {!chromeless && <span className={classes.title}>{title}</span>}
         <Tooltip label={mode === "docked" ? "改为浮窗" : "停靠到右侧"}>
           <UnstyledButton
             className={classes.control}

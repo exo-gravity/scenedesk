@@ -103,6 +103,7 @@ const ariaLabelConfig = {
   "node.a11yDescription.default": "按方向键移动卡片，按回车选中。",
 };
 const panOnDragButtons = [1, 2];
+const bandOf = (zoom: number) => (zoom < 0.5 ? "small" : "normal");
 const multiSelectionKeys = ["Shift", "Meta", "Control"];
 type ReferenceEdge = CanvasDocument["edges"][number];
 type Purpose = ReferenceEdge["purpose"];
@@ -144,6 +145,7 @@ export function Board({
   selected,
   onSelect,
   projectAspect,
+  docked = false,
   viewport,
   onViewport,
   mediaPath,
@@ -166,6 +168,8 @@ export function Board({
   onSelect: (ids: string[]) => void;
   /** The project's picture shape: the frame of drafts and loading media cards. */
   projectAspect: { width: number; height: number };
+  /** A docked panel takes the right edge; the board yields that width. */
+  docked?: boolean;
   viewport: { x: number; y: number; zoom: number };
   onViewport: (viewport: { x: number; y: number; zoom: number }) => void;
   mediaPath: string;
@@ -219,6 +223,8 @@ export function Board({
     { x: number; y: number; kind: "node" } | { x: number; y: number; kind: "edge"; edgeId: string } | null
   >(null);
   const [connecting, setConnecting] = useState(false);
+  // Far out, 12px labels are noise; the cards themselves say enough.
+  const [zoomBand, setZoomBand] = useState(() => bandOf(viewport.zoom));
   // React Flow needs measured sizes on controlled nodes; they are view state only.
   const [measurements, setMeasurements] = useState<
     Record<string, { width: number; height: number }>
@@ -499,6 +505,8 @@ export function Board({
         target: edge.targetNodeId,
         ariaLabel: `${edge.purpose === "prompt" ? "提示" : referencePurposes[edge.purpose]}${edge.enabled ? "" : " · 已停用"}`,
         ...(edge.enabled ? {} : { className: classes.edgeDisabled! }),
+        type: "smoothstep",
+        pathOptions: { borderRadius: 16 },
         deletable: false,
         selectable: true,
         focusable: true,
@@ -871,7 +879,9 @@ export function Board({
     <div
       ref={boardElement}
       className={classes.board}
+      style={docked ? { right: "var(--ws-studio-dock-width)" } : undefined}
       data-tool={tool}
+      data-zoom={zoomBand}
       data-connecting={connecting || undefined}
       tabIndex={-1}
       onKeyDown={onKeyDown}
@@ -927,6 +937,7 @@ export function Board({
             void flow.setViewport(legal, { duration: 0 });
             return;
           }
+          setZoomBand(bandOf(next.zoom));
           onViewport(next);
         }}
         onNodesChange={onNodesChange}

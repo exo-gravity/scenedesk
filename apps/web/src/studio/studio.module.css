@@ -84,8 +84,10 @@
   background: var(--ws-studio-chrome-border);
 }
 .projectName {
-  font-size: var(--mantine-font-size-sm);
+  flex: 0 1 auto;
+  min-width: 6ch;
   max-width: 240px;
+  font-size: var(--mantine-font-size-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -162,13 +164,17 @@
   display: none;
 }
 /* Save state in the top bar. */
-.status {
+/* The right group is one family: chrome pills of the same height. */
+.status,
+.environment {
   display: inline-flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
   height: var(--ws-studio-tool-size);
   padding-inline: var(--mantine-spacing-sm);
   border-radius: var(--ws-tool-radius);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
   font-size: var(--mantine-font-size-xs);
   color: var(--ws-studio-card-label);
   white-space: nowrap;
@@ -177,10 +183,18 @@
   color: var(--ws-success);
 }
 .status:not(:disabled):hover {
-  background: var(--ws-studio-chrome);
+  background: var(--ws-hover);
 }
-.environment {
-  white-space: nowrap;
+.account :global(button) {
+  width: var(--ws-studio-tool-size);
+  height: var(--ws-studio-tool-size);
+  border-radius: var(--ws-round-radius);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  color: var(--ws-text);
+}
+.account :global(button:hover) {
+  background: var(--ws-hover);
 }
 /* Top bar tools: task and assistant switches. */
 .tool {
@@ -207,11 +221,26 @@
 .brand[aria-haspopup]:hover {
   background: var(--ws-hover);
 }
+/* The canvas switch sits inside the context group; the navigator's own frame goes. */
 .canvasSwitch {
   display: inline-flex;
   align-items: center;
-  height: var(--ws-studio-tool-size);
+  height: 100%;
   min-width: 0;
+  flex: 0 1 auto;
+}
+.canvasSwitch :global(button) {
+  height: 100%;
+  min-height: 0;
+  max-width: 200px;
+  padding-inline: var(--mantine-spacing-xs);
+  gap: var(--mantine-spacing-xs);
+  border: 0;
+  background: transparent;
+  border-radius: var(--ws-radius);
+}
+.canvasSwitch :global(button:hover:not(:disabled)) {
+  background: var(--ws-hover);
 }
 /* The legacy layer clamps every svg to 18px; inside the studio icons keep their own size. */
 .studio svg {

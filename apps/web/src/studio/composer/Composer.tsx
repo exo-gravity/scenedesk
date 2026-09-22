@@ -390,7 +390,7 @@ export function Composer(props: ComposerProps) {
           minRows={props.focused ? 8 : 2}
           maxRows={props.focused ? 24 : 8}
           aria-label="提示词"
-          placeholder={`描述这${kind === "audio" ? "段声音" : "个画面"}，参考与模型在下方`}
+          placeholder={`描述这${kind === "audio" ? "段声音" : "个画面"}`}
           className={classes.promptRoot}
           classNames={{ input: classes.prompt }}
           value={content.prompt}
@@ -458,6 +458,82 @@ export function Composer(props: ComposerProps) {
             )}
           </span>
         )}
+        {(frozen && !record?.execution && draft) || (record?.execution && job && (job.status === "succeeded" || job.status === "archive_failed" || draft?.archiveRequest)) ? (
+          <div className={classes.resultActions} aria-label="本次生成结果">
+            {frozen && !record?.execution && draft && (
+              // A plan is fixed but nothing was submitted (the model refused, or the user paused):
+              // reopening the inputs drops the plan into history and unfreezes the pickers.
+              <UnstyledButton className={classes.action} data-quiet disabled={state.busy} onClick={() => void session.revise(undefined, draft)}>
+                修改输入
+              </UnstyledButton>
+            )}
+            {record?.execution && job && (job.status === "succeeded" || job.status === "archive_failed" || draft?.archiveRequest) && (
+              <>
+                {job.status === "succeeded" && !placement && (
+                  <UnstyledButton className={classes.action} data-quiet disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
+                    添加到创作台
+                  </UnstyledButton>
+                )}
+                {placement?.phase === "review" && (
+                  <UnstyledButton className={classes.action} disabled={disabled} onClick={() => setPlacementOpen(true)}>
+                    确认添加位置
+                  </UnstyledButton>
+                )}
+                {placement?.phase === "unknown" && (
+                  <>
+                    <span className={classes.status}>添加待核对，恢复不会生成新{label}</span>
+                    <UnstyledButton className={classes.action} disabled={disabled || job.status !== "succeeded"} onClick={materialize}>
+                      恢复本次添加
+                    </UnstyledButton>
+                  </>
+                )}
+                {placement?.phase === "conflict" && (
+                  <>
+                    <span className={classes.status}>创作台已有修改，{label}未添加</span>
+                    <UnstyledButton className={classes.action} disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
+                      重新核对添加位置
+                    </UnstyledButton>
+                  </>
+                )}
+                {placement?.phase === "placed" && (
+                  <>
+                    <span className={classes.status}>已添加到创作台</span>
+                    {placement.placed && (
+                      <UnstyledButton
+                        className={classes.action}
+                        data-quiet
+                        onClick={() => props.onFocusNodes(placement.placed!.placements.map((item) => item.nodeId))}
+                      >
+                        定位{label}结果
+                      </UnstyledButton>
+                    )}
+                  </>
+                )}
+                {job.status === "archive_failed" && !draft?.archiveRequest && (
+                  <>
+                    <span className={classes.status}>结果保存未完成，恢复不重呼模型</span>
+                    <UnstyledButton className={classes.action} disabled={disabled} onClick={recoverArchive}>
+                      恢复{label}归档
+                    </UnstyledButton>
+                  </>
+                )}
+                {draft?.archiveRequest && (
+                  <>
+                    <span className={classes.status}>归档恢复待核对</span>
+                    <UnstyledButton className={classes.action} data-quiet disabled={disabled} onClick={checkArchive}>
+                      核对归档恢复
+                    </UnstyledButton>
+                    {draft.archiveRequest.checked && (
+                      <UnstyledButton className={classes.action} disabled={disabled} onClick={recoverArchive}>
+                        继续原归档恢复请求
+                      </UnstyledButton>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        ) : null}
         {record?.execution ? (
           !job ? (
             // Rule 15: the submission receipt is unknown; the only move is to check and resume it.
@@ -519,71 +595,6 @@ export function Composer(props: ComposerProps) {
           </SubmitButton>
         )}
       </div>
-      {record?.execution && job && (job.status === "succeeded" || job.status === "archive_failed" || draft?.archiveRequest) && (
-        <div className={classes.row} data-align="end" aria-label="本次生成结果">
-          {job.status === "succeeded" && !placement && (
-            <UnstyledButton className={classes.action} data-quiet disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
-              添加到创作台
-            </UnstyledButton>
-          )}
-          {placement?.phase === "review" && (
-            <UnstyledButton className={classes.action} disabled={disabled} onClick={() => setPlacementOpen(true)}>
-              确认添加位置
-            </UnstyledButton>
-          )}
-          {placement?.phase === "unknown" && (
-            <>
-              <span className={classes.status}>添加结果待核对：恢复会核对同一次添加，不会生成新{label}</span>
-              <UnstyledButton className={classes.action} disabled={disabled || job.status !== "succeeded"} onClick={materialize}>
-                恢复本次添加
-              </UnstyledButton>
-            </>
-          )}
-          {placement?.phase === "conflict" && (
-            <>
-              <span className={classes.status}>创作台已有修改，{label}尚未添加</span>
-              <UnstyledButton className={classes.action} disabled={disabled || props.awaitingSave} onClick={reviewPlacement}>
-                重新核对添加位置
-              </UnstyledButton>
-            </>
-          )}
-          {placement?.phase === "placed" && (
-            <>
-              <span className={classes.status}>已添加到创作台</span>
-              {placement.placed && (
-                <UnstyledButton
-                  className={classes.action}
-                  data-quiet
-                  onClick={() => props.onFocusNodes(placement.placed!.placements.map((item) => item.nodeId))}
-                >
-                  定位{label}结果
-                </UnstyledButton>
-              )}
-            </>
-          )}
-          {job.status === "archive_failed" && !draft?.archiveRequest && (
-            <>
-              <span className={classes.status}>结果保存未完成，恢复不会重新调用模型</span>
-              <UnstyledButton className={classes.action} disabled={disabled} onClick={recoverArchive}>
-                恢复{label}归档
-              </UnstyledButton>
-            </>
-          )}
-          {draft?.archiveRequest && (
-            <>
-              <span className={classes.status}>归档恢复结果待核对，请先读取原任务</span>
-              <UnstyledButton className={classes.action} data-quiet disabled={disabled} onClick={checkArchive}>
-                核对归档恢复
-              </UnstyledButton>
-              {draft.archiveRequest.checked && (
-                <UnstyledButton className={classes.action} disabled={disabled} onClick={recoverArchive}>
-                  继续原归档恢复请求
-                </UnstyledButton>
-              )}
-            </>
-          )}
-        </div>
-      )}
       <Modal
         opened={placementOpen && placement?.phase === "review" && state.access === "ready" && job?.status === "succeeded"} // rule 21
         onClose={() => {
