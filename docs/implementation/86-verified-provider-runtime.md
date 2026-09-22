@@ -73,6 +73,8 @@
 
 ## 开通流程
 
+能力行的 `enabled` 与 `verifiedAt` 是唯一的付费开关：`PROVIDER_MODE` 只门禁执行器进程，不门禁 API 受理；一条已开启且已验证的能力行在任何环境都会产生 ready 计划和受理任务。单执行器按顺序扫描最多 100 个任务，每次观察最长 120 秒，一个慢下载会推迟其它任务的 5 秒轮询；多实例与并行观察是后续工作。
+
 1. `deploy/runtime/provision.ts --apply`：按 `provision.json` 的 `generationRole` 字段（例如 `scenedesk_generation`）创建执行器登录用的受限数据库角色，只授予 schema `USAGE` 和 `generationFunctions` 列出的 SECURITY DEFINER 函数 `EXECUTE`，不授予任何表的直接读写。
 2. `scripts/provision-verified-capabilities.ts --config generation.json --tenant <id>`：按 `PROFILES` 逐条档案、逐个模式写 `generation_capabilities`。首次写入 `enabled=false`；`definition` 或 `max_inflight` 有变化时发布新的 `revision+1` 行并把旧行 `enabled` 置为 false（`generation_capabilities` 行本身不可变，`guard_generation_immutable` 只放行 `enabled` 列的 UPDATE）；`definition` 与 `max_inflight` 都不变时是 no-op（`unchanged`）。
 3. `scripts/verified-smoke.ts --config generation.json --vendor <minimax|volcengine> --kind <image|video> --out output/verified/<date>`：人工付费冒烟，直接用 vendor client，不经过能力条目，把请求摘要、任务 ID、查询观察、输出尺寸／时长、`usage` 写入 `<out>/record.json`，产物写入 `<out>/result.mp4`／`<out>/result.jpg`。CI 不跑这个脚本。
@@ -107,7 +109,7 @@
 | ID | 必须验证 | 状态 | 预期证据 |
 |---|---|---|---|
 | MV-01 | 最小输入到可播放输出 | 待真实账号 | `output/verified/<date>/record.json`（`scripts/verified-smoke.ts --kind video\|image`）及同目录 `result.mp4`／`result.jpg` |
-| MV-02 | 同人物多参考／所选造型，或该模式替代输入路径 | 待真实账号 | 待定：`verified-smoke.ts` 目前不带参考图输入，需先扩展脚本或走完整能力条目人工验证 |
+| MV-02 | 同人物多参考／所选造型，或该模式替代输入路径 | 待真实账号 | 待定：H3 的 `reference_v1` 模式尚未进档案，要等 MV-02 证实 MiniMax 接受角色名 `reference_image` 与多图输入后才加回（火山 Seedance 的 reference 模式不受影响）；`verified-smoke.ts` 目前也不带参考图输入，需先扩展脚本或走完整能力条目人工验证 |
 | MV-03 | 双人对白与短动作 | 待真实账号 | 待定：需要真实素材与人工听审，非脚本自动产出 |
 | MV-04 | 创建超时、进程中断、租约过期后回执到达 | 待真实账号 | `output/verified/<date>/record.json`（真实超时／限流观察）；"实际调用栈不自动重 POST"半句已由 `tests/integration/verified-runtime.test.ts`（走假方舟服务，`assert.equal(posts.length, 1)`）覆盖，不依赖真实账号 |
 | MV-05 | 已知 ID 查询、限流与暂时错误 | 待真实账号 | `output/verified/<date>/record.json` 的 `observations` 数组（查询轮询记录） |

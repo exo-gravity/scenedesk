@@ -141,7 +141,7 @@ type ModelProfile = {
 1. 由 `capabilitySnapshot` 取档案；`resolveOutput(profile, output.resolution)` 得厂商分辨率与宽高比。
 2. `resolveMedia` 读参考图行，`store.download` 到临时文件，转 data URI；按模式映射角色。总请求体估算超过 60 MiB 直接 `rejected(INPUT_TOO_LARGE)`。
 3. 组装提示词：`resolvedInput.prompt` 原文；`reference_v1` 模式下追加一段说明，按顺序写"图片1：<purpose 中文>；图片2：…"，两家都用同一段文本。回执的 `correlation` 按现有约定等于 `attemptId`；实际请求体的 sha256 只写执行器的结构化日志，密钥与 Base64 内容既不进日志也不进证据。
-4. 视频：调创建，`accepted(providerJobId)`。图片：调生成，`n=1`、`sequential_image_generation=disabled`、`watermark=false`、`response_format=b64_json`、`size` 用显式 `宽x高`；响应里取一张 → `archiveBytes` → `completed(output, usage)`。
+4. 视频：调创建，`accepted(providerJobId)`。图片：调生成，`watermark=false`、`response_format=b64_json`、`output_format=jpeg`、`size` 用显式 `宽x高`；仅 lite 追加 `sequential_image_generation=disabled`（Seedream 没有 `n` 参数；pro／flash 不支持组图参数）；响应里取一张 → `archiveBytes` → `completed(output, usage)`。
 5. 错误分类见 §8。任何抛错交给现有 worker 变成 `unknown`。
 
 **查询（`query`，仅视频）**

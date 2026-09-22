@@ -96,7 +96,7 @@ services:
     environment:
       PROVIDER_MODE: verified
       TMPDIR: /tmp/generation
-    tmpfs: ["/tmp/generation:rw,noexec,nosuid,size=512m,mode=0700,uid=1000"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m", "/tmp/generation:rw,noexec,nosuid,size=512m,mode=0700,uid=1000"]
     secrets:
       - { source: generation_config, target: config.json }
     networks: [application]

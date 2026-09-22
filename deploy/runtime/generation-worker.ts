@@ -105,7 +105,7 @@ try {
     });
     await new Promise<void>((resolve, reject) => {
       server.once("error", reject);
-      server.listen(4314, "0.0.0.0", resolve);
+      server.listen(4314, "127.0.0.1", resolve);
     });
     cleanup.push(
       () => new Promise<void>((resolve) => server.close(() => resolve())),

@@ -72,39 +72,18 @@ test("MiniMax submit sends one v2 request with bearer auth, data URI frame and r
   assert.equal(call.body.content[1].role, "first_frame");
   assert.ok(call.body.content[1].image_url.url.startsWith("data:image/png;base64,"));
 });
-test("MiniMax submit carries reference purposes into the vendor legend for reference_v1", async (t) => {
+test("MiniMax submit rejects reference_v1 locally without a request (H3 keeps only frames_v1 until MV-02)", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
-  const dir = await mkdtemp(join(tmpdir(), "verified-minimax-"));
-  const png = Buffer.from("png-bytes");
-  const d: VerifiedDeps = {
-    fetch, tmpdir: dir,
-    store: {
-      async download(_s: unknown, file: string) { await writeFile(file, png); },
-      async publish(_f: string, data: { bytes: number; sha256: string; mime: string }) { return { key: "originals/00000000-0000-4000-8000-000000000000", versionId: "v1", bytes: data.bytes, sha256: data.sha256 }; },
-    },
-    async resolveMedia() {
-      return [
-        { id: "media-1", kind: "image", mime: "image/png", bytes: png.length, sha256: createHash("sha256").update(png).digest("hex"), width: 1280, height: 720, object: { key: "originals/in", versionId: "v0" } },
-        { id: "media-2", kind: "image", mime: "image/png", bytes: png.length, sha256: createHash("sha256").update(png).digest("hex"), width: 1280, height: 720, object: { key: "originals/in", versionId: "v0" } },
-      ];
-    },
-  };
-  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: d, outputsOverride: { "1366x768": { resolution: "768P", ratio: "16:9" } } });
+  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps(), outputsOverride: { "1366x768": { resolution: "768P", ratio: "16:9" } } });
   const receipt = await adapter.submitOnce(
     submission({
-      references: [
-        { reference: { mediaId: "media-1", purpose: "identity" }, sourceLevel: "shot" },
-        { reference: { mediaId: "media-2", purpose: "location" }, sourceLevel: "shot" },
-      ],
+      references: [{ reference: { mediaId: "media-1", purpose: "identity" }, sourceLevel: "shot" }],
       capabilitySnapshot: { modelVersion: "minimax/MiniMax-H3", mode: "reference_v1" },
     }),
     AbortSignal.timeout(2000),
   );
-  assert.equal(receipt.kind, "accepted");
-  const call = mm.calls[mm.calls.length - 1]!;
-  assert.equal(call.body.content[0].text, "一个女孩推门\n参考素材：图片1为角色形象参考；图片2为场景地点参考。");
-  assert.equal(call.body.content[1].role, "reference_image");
-  assert.equal(call.body.content[2].role, "reference_image");
+  assert.deepEqual(receipt, { kind: "rejected", correlation: "attempt-1", code: "MODE_NOT_CONFIGURED" });
+  assert.equal(mm.calls.length, 0);
 });
 test("MiniMax submit maps 422 to rejected with vendor code, 429 to PROVIDER_RATE_LIMITED, 503 and dropped socket to unknown", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);

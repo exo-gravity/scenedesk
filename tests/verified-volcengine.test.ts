@@ -31,6 +31,11 @@ const imageSubmission = () => ({
   input: { purpose: "image" } as any,
   resolvedInput: { prompt: "海报", references: [], capabilitySnapshot: { modelVersion: "volcengine/doubao-seedream-5-0-flash-260915", mode: "reference_v1" }, output: { resolution: "2048x2048" } } as any,
 });
+const liteImageSubmission = () => ({
+  attemptId: "attempt-2", jobId: "job-2", connectionVersionId: "cv-ark", requestHash: "h", executionMode: "verified_provider" as const,
+  input: { purpose: "image" } as any,
+  resolvedInput: { prompt: "海报", references: [], capabilitySnapshot: { modelVersion: "volcengine/doubao-seedream-5-0-260128", mode: "reference_v1" }, output: { resolution: "2048x2048" } } as any,
+});
 
 test("Seedance submit: reference image, legend appended, mono audio on, watermark off, 6h expiry", async (t) => {
   const ark = await fakeArk(); t.after(ark.close);
@@ -68,9 +73,26 @@ test("Seedream submit: synchronous b64 result is archived and completed; vendor 
   assert.deepEqual((receipt as any).output.images[0].mime, "image/jpeg");
   assert.deepEqual((receipt as any).usage, { generated_images: 1, output_tokens: 16384, total_tokens: 16384 });
   const body = ark.calls[0]!.body;
-  assert.deepEqual([body.model, body.size, body.response_format, body.watermark, body.sequential_image_generation, body.prompt], ["doubao-seedream-5-0-flash-260915", "2048x2048", "b64_json", false, "disabled", "海报"]);
+  assert.deepEqual([body.model, body.size, body.response_format, body.watermark, body.prompt], ["doubao-seedream-5-0-flash-260915", "2048x2048", "b64_json", false, "海报"]);
+  assert.equal("sequential_image_generation" in body, false, "pro/flash do not support sequential_image_generation");
   ark.setImageMode("sensitive");
   assert.deepEqual(await adapter.submitOnce(imageSubmission(), AbortSignal.timeout(2000)), { kind: "rejected", correlation: "attempt-2", code: "ARK_InputImageSensitiveContentDetected" });
   ark.setImageMode("500");
   assert.deepEqual(await adapter.submitOnce(imageSubmission(), AbortSignal.timeout(2000)), { kind: "unknown", correlation: "attempt-2" });
+});
+test("Seedream lite submit includes sequential_image_generation=disabled", async (t) => {
+  const ark = await fakeArk(); t.after(ark.close);
+  const adapter = createVolcengineAdapter({ connectionVersionId: "cv-ark", apiKey: "k", baseUrl: `${ark.origin}/api/v3`, deps: await deps() });
+  const receipt = await adapter.submitOnce(liteImageSubmission(), AbortSignal.timeout(2000));
+  assert.equal(receipt.kind, "completed");
+  assert.equal(ark.calls[0]!.body.sequential_image_generation, "disabled");
+});
+test("Seedream image archive failure returns rejected with ARCHIVE_ code and makes exactly one POST", async (t) => {
+  const ark = await fakeArk(); t.after(ark.close);
+  const d = await deps();
+  d.store.publish = async () => { throw Object.assign(new Error("boom"), { code: "STORAGE_VERSION_REQUIRED" }); };
+  const adapter = createVolcengineAdapter({ connectionVersionId: "cv-ark", apiKey: "k", baseUrl: `${ark.origin}/api/v3`, deps: d });
+  const receipt = await adapter.submitOnce(imageSubmission(), AbortSignal.timeout(2000));
+  assert.deepEqual(receipt, { kind: "rejected", correlation: "attempt-2", code: "ARCHIVE_STORAGE_VERSION_REQUIRED" });
+  assert.equal(ark.calls.filter((c) => c.method === "POST").length, 1);
 });

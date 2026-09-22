@@ -46,7 +46,7 @@ SCENEDESK_GENERATION_CONFIG=/absolute/path/to/generation.json \
 
 执行器在 4314 端口暴露 `/health/ready`，供 Compose 健康检查和外部探针确认数据库连接与对象存储版本化仍然可用。
 
-`stop_grace_period` 设为 200 秒：观察一次生成任务（`claim_generation_observation`）会拿到 180 秒的租约，结果下载必须在租约到期前完成并写回数据库。200 秒覆盖了一次进行中的观察租约再加上少量收尾时间，使 `SIGTERM` 之后的优雅关闭不会在下载途中掐断执行器，同时也不会让容器无限期悬挂。
+`stop_grace_period` 设为 200 秒：200 秒覆盖单个观察租约（180 秒）加余量；一次扫描最多顺序处理 100 个任务，忙时停机会在某次观察中被强制结束，未完成的观察由租约到期后重新领取，不会丢失回执。
 
 The isolated local check creates and removes only its own Compose project and volumes. It requires installed Chrome/Chromium for the original browser contract compiler; set `SCENEDESK_SMOKE_CHROME` to its executable if discovery cannot find it. Missing Chrome fails explicitly rather than skipping that check:
 

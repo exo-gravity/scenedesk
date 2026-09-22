@@ -42,7 +42,7 @@ export function createVolcengineAdapter(options: { connectionVersionId: string; 
       response_format: "b64_json",
       output_format: "jpeg",
       watermark: false,
-      sequential_image_generation: "disabled",
+      ...(prepared.profile.sequentialImages === true ? { sequential_image_generation: "disabled" } : {}),
     };
     const outcome = await client.generateImages(body, signal);
     if (outcome.kind === "rejected") return { kind: "rejected", correlation, code: rejectedCode(outcome) };
@@ -51,7 +51,12 @@ export function createVolcengineAdapter(options: { connectionVersionId: string; 
     if (object(outcome.body) && object(outcome.body.error) && !first) return { kind: "rejected", correlation, code: rejectedCode({ status: 200, body: outcome.body }) };
     if (!object(first) || typeof first.b64_json !== "string") return { kind: "unknown", correlation };
     const mime = first.output_format === "png" ? "image/png" : "image/jpeg";
-    const archived = await archiveBytes({ store: options.deps.store, tmpdir: options.deps.tmpdir, mime, bytes: Buffer.from(first.b64_json, "base64"), signal });
+    let archived;
+    try {
+      archived = await archiveBytes({ store: options.deps.store, tmpdir: options.deps.tmpdir, mime, bytes: Buffer.from(first.b64_json, "base64"), signal });
+    } catch (error) {
+      return { kind: "rejected", correlation, code: `ARCHIVE_${(error as { code?: string }).code ?? "FAILED"}` };
+    }
     const usage = numbers(object(outcome.body) ? outcome.body.usage : undefined);
     return { kind: "completed", correlation, output: { images: [archived] }, ...(usage ? { usage } : {}) };
   }

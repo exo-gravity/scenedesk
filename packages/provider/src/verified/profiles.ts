@@ -21,6 +21,8 @@ export type ModelProfile = {
   referenceImage: { maxCount: number; maxBytes: number; mimeTypes: readonly string[]; minSide: number; maxSide: number };
   pricing: Pricing;
   inflight: number | { personal: number; enterprise: number };
+  /** Seedream lite/4.5/4.0 accept `sequential_image_generation`; pro/flash do not. */
+  sequentialImages?: boolean;
 };
 export type CapabilityDefinition = Omit<Schema<"Capability">, "id" | "connectionId" | "revision" | "enabled" | "createdAt" | "updatedAt">;
 
@@ -64,7 +66,8 @@ const seedance = (id: string, providerModel: string, tiers: ("480p" | "720p" | "
 export const PROFILES: readonly ModelProfile[] = [
   {
     id: "minimax/MiniMax-H3", vendor: "minimax", purpose: "video", providerModel: "MiniMax-H3",
-    modes: ["frames_v1", "reference_v1"], outputs: {}, duration: { min: 4, max: 15 }, audioOutput: true,
+    // reference_v1 stays off until MV-02 proves MiniMax accepts role "reference_image" and >1 images.
+    modes: ["frames_v1"], outputs: {}, duration: { min: 4, max: 15 }, audioOutput: true,
     referenceImage: { maxCount: 9, maxBytes: FOUR_MIB, mimeTypes: IMAGE_MIMES, minSide: 256, maxSide: 5760 },
     pricing: { kind: "per_second", revision: "minimax-cn-2026-09-22", microsPerSecond: { "768P": 500000, "2K": 800000 }, freeImages: 5, extraImageMicros: 200000 },
     inflight: 8,
@@ -87,6 +90,7 @@ export const PROFILES: readonly ModelProfile[] = [
     id: "volcengine/doubao-seedream-5-0-260128", vendor: "volcengine", purpose: "image", providerModel: "doubao-seedream-5-0-260128",
     modes: ["reference_v1"], outputs: seedreamLite, referenceImage: { ...volcRef, maxCount: 14, minSide: 15 },
     pricing: { kind: "per_image", revision: "ark-cn-2026-09-22", microsPerImage: { standard: 220000 } }, inflight: 8,
+    sequentialImages: true,
   },
 ];
 export function findProfile(id: string) { return PROFILES.find((p) => p.id === id); }

@@ -25,7 +25,7 @@ async function finish(bytes: Buffer, mime: string) {
 if (values.vendor === "volcengine") {
   const v = vendors.volcengine!, client = createVolcengineClient({ ...v, fetch });
   if (values.kind === "image") {
-    const body = { model: "doubao-seedream-5-0-flash-260915", prompt: values.prompt, size: "1024x1024", response_format: "b64_json", output_format: "jpeg", watermark: false, sequential_image_generation: "disabled" };
+    const body = { model: "doubao-seedream-5-0-flash-260915", prompt: values.prompt, size: "1024x1024", response_format: "b64_json", output_format: "jpeg", watermark: false };
     record.request = { ...body, digest: digest(body) };
     const r = await client.generateImages(body, AbortSignal.timeout(120000));
     await observe({ outcome: r.kind, status: (r as any).status, body: r.kind === "ok" ? { ...(r.body as any), data: "<omitted>" } : r });
