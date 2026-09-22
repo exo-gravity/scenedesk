@@ -107,3 +107,13 @@ test("unfinished outputs and canvas capacity cannot be bypassed by continued cre
   assert.throws(() => createCanvasDraft(full, intent, "video"), /容量限制/);
   assert.equal(full.nodes.length, 2000);
 });
+
+test("a continued draft is sized for the project's shape; audio keeps its fixed width", () => {
+  const original = fixture(),
+    intent = prepareCanvasCreation(original, [original.nodes[0]!.id]);
+  const portrait = { width: 9, height: 16 };
+  assert.equal(createCanvasDraft(original, intent, "video", portrait).nodes[2]!.width, 270);
+  assert.equal(createCanvasDraft(original, intent, "image", portrait).nodes[2]!.width, 270);
+  assert.equal(createCanvasDraft(original, intent, "audio", portrait).nodes[2]!.width, 360);
+  assert.equal(createCanvasDraft(original, intent, "video").nodes[2]!.width, 360);
+});

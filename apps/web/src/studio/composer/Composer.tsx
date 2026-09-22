@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
 import { Loader, Modal, Text, Textarea, UnstyledButton } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,6 +17,7 @@ import {
   ArrowsOutSimple,
   CircleNotch,
   ClockCounterClockwise,
+  DotsSixVertical,
 } from "@phosphor-icons/react";
 import { editingCanonical, type CanvasDocument, type CanvasNode } from "@drama/domain";
 import { api, ApiError, useList, useSession, type Schema } from "../../business/api";
@@ -40,6 +49,14 @@ type Draft = Extract<CanvasNode, { kind: Kind }> & {
 };
 const labels = { image: "图片", video: "视频", audio: "音频" };
 const nextLabel = { image: "下一张图片", video: "下一段视频", audio: "下一段音频" };
+
+/** Pointer handlers for the grip that moves the panel; the board owns the position. */
+export type ComposerDragHandle = {
+  onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
+  onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
+  onPointerUp: (event: PointerEvent<HTMLButtonElement>) => void;
+  onPointerCancel: (event: PointerEvent<HTMLButtonElement>) => void;
+};
 
 export type ComposerProps = {
   tenantId: string;
@@ -77,6 +94,8 @@ export type ComposerProps = {
   style?: CSSProperties | undefined;
   docked?: boolean | undefined;
   panelRef?: ((element: HTMLElement | null) => void) | undefined;
+  /** Dragging the grip moves the panel; absent when it cannot be moved. */
+  dragHandle?: ComposerDragHandle | undefined;
 };
 
 /**
@@ -352,6 +371,17 @@ export function Composer(props: ComposerProps) {
           <UnstyledButton className={classes.pill} data-quiet onClick={props.onOpenHistory} aria-label="尝试与结果">
             <ClockCounterClockwise size={12} aria-hidden />
             <span>历史 {props.attempts.length}</span>
+          </UnstyledButton>
+        )}
+        {props.dragHandle && !props.focused && !props.docked && (
+          <UnstyledButton
+            className={`${classes.corner} ${classes.grip}`}
+            aria-label="移动面板"
+            title="拖动以移动面板"
+            tabIndex={-1}
+            {...props.dragHandle}
+          >
+            <DotsSixVertical size={16} aria-hidden />
           </UnstyledButton>
         )}
         <UnstyledButton

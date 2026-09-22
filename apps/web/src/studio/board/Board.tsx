@@ -59,10 +59,13 @@ import {
   prepareCanvasCreation,
 } from "../../business/canvas-creation";
 import { ErrorNotice } from "../../business/common";
+import { defaultCardWidth, emptyDraftFrame } from "../../business/canvas-card-frame";
 import { Card, type CardActions, type CardNode } from "./Card";
-import { Composer, type ComposerProps } from "../composer/Composer";
+import { estimateCardHeight, nearestFreeSpot } from "./free-spot";
+import { Composer, type ComposerDragHandle, type ComposerProps } from "../composer/Composer";
 import {
   COMPOSER_SIZE,
+  composerNominalHeight,
   composerSafeArea,
   placeComposer,
   type ComposerPlacement,
@@ -328,20 +331,23 @@ export function Board({
         if (!doc) return;
         try {
           const prepared = prepareCanvasCreation(doc, ids);
-          const created = createCanvasDraft(doc, prepared, kind);
+          const created = createCanvasDraft(doc, prepared, kind, projectAspect);
           // The engine places the draft to the right of its sources without
           // looking at other cards; settle it into the nearest free spot.
           const fresh = created.nodes.find((node) => node.id === prepared.id);
           if (fresh) {
+            const height = estimateCardHeight(fresh.kind, fresh.width, emptyDraftFrame(fresh, projectAspect));
             const spot = freeSpot(
               { ...created, nodes: created.nodes.filter((node) => node.id !== prepared.id) },
               fresh.width,
-              flow.flowToScreenPosition({ x: fresh.position.x + fresh.width / 2, y: fresh.position.y + 100 }),
+              height,
+              flow.flowToScreenPosition({ x: fresh.position.x + fresh.width / 2, y: fresh.position.y + height / 2 }),
               true,
             );
             fresh.position = spot;
             change(created);
-            reveal(prepared.id, spot, fresh.width);
+            // The draft opens its panel at once, with a reference row for its sources.
+            reveal(prepared.id, spot, fresh.width, height, composerNominalHeight(prepared.sources.length));
           } else change(created);
           if (
             controller
@@ -657,61 +663,90 @@ export function Board({
       "move-nodes",
     );
   };
+  /** How tall a card's body is, or would be: measured when React Flow has it, else expected from its frame. */
+  const heightOf = (node: CanvasNode) =>
+    measurements[node.id]?.height ?? estimateCardHeight(node.kind, node.width, emptyDraftFrame(node, projectAspect));
   /**
-   * Where a new card goes: at the given point, or the centre of the view;
-   * from the centre, while the frame would cover another card, it moves to
-   * that card's right, so cards added in a row line up.
+   * Where a new card goes: at the given point as it is, or from the centre of
+   * the view (and when settling) the nearest free spot around it.
    */
-  const freeSpot = (doc: CanvasDocument, width: number, client?: { x: number; y: number }, settle = false) => {
+  const freeSpot = (
+    doc: CanvasDocument,
+    width: number,
+    height: number,
+    client?: { x: number; y: number },
+    settle = false,
+  ) => {
     const box = boardElement.current?.getBoundingClientRect();
-    const height = 200;
     const origin = client
       ? flow.screenToFlowPosition(client)
       : box
         ? flow.screenToFlowPosition({ x: box.left + box.width / 2, y: box.top + box.height / 2 })
         : { x: 80, y: 80 };
-    const position = {
-      x: Math.round(origin.x - width / 2),
-      y: Math.round(origin.y - height / 2),
-    };
-    if (client && !settle) return position;
-    const covered = () =>
-      doc.nodes.find((node) => {
-        const other = measurements[node.id]?.height ?? height;
-        return (
-          position.x < node.position.x + node.width + 24 &&
-          node.position.x < position.x + width + 24 &&
-          position.y < node.position.y + other + 24 &&
-          node.position.y < position.y + height + 24
-        );
-      });
-    if (!covered()) return position;
-    // Search around the origin in growing rings, right and below first, so a
-    // new card lands in the nearest gap rather than walking off the screen.
-    const start = { ...position };
-    const dx = width + 40, dy = height + 40;
-    const ring = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]] as const;
-    for (let step = 1; step <= 6; step++)
-      for (const [ox, oy] of ring) {
-        position.x = start.x + ox * dx * step;
-        position.y = start.y + oy * dy * step;
-        if (!covered()) return position;
-      }
-    position.x = start.x; position.y = start.y;
-    for (let step = 0, hit = covered(); step < 50 && hit; step++, hit = covered())
-      position.x = hit.position.x + hit.width + 48;
-    return position;
+    // The visible board between the top bar and the toolbar, in board coordinates.
+    const within = box
+      ? (() => {
+          const topLeft = flow.screenToFlowPosition({ x: box.left, y: box.top + VISIBLE_BOARD_INSET.top }),
+            bottomRight = flow.screenToFlowPosition({ x: box.right, y: box.bottom - VISIBLE_BOARD_INSET.bottom });
+          return { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y };
+        })()
+      : undefined;
+    return nearestFreeSpot({
+      origin,
+      width,
+      height,
+      others:
+        client && !settle
+          ? []
+          : doc.nodes.map((node) => ({ ...node.position, width: node.width, height: heightOf(node) })),
+      within,
+    });
   };
-  /** Bring a node into view when it sits outside the visible board. */
-  const reveal = (id: string, position: { x: number; y: number }, width: number, height = 200) => {
+  /**
+   * Bring a new card into view, label row included, by the smallest pan at
+   * the same zoom: sideways only as far as puts the card inside the board,
+   * up or down only as far as puts its label under the top bar or leaves
+   * room under it for a panel of `panelHeight` (a draft opens its input
+   * panel below it at once). Only when card and panel cannot both fit at
+   * this zoom is the card fitted into view instead.
+   */
+  const reveal = (
+    id: string,
+    position: { x: number; y: number },
+    width: number,
+    height: number,
+    panelHeight = 0,
+  ) => {
     const box = boardElement.current?.getBoundingClientRect();
     if (!box) return;
+    const viewport = flow.getViewport(),
+      { zoom } = viewport;
     const topLeft = flow.flowToScreenPosition(position),
       bottomRight = flow.flowToScreenPosition({ x: position.x + width, y: position.y + height });
-    const inside =
-      topLeft.x >= box.left && topLeft.y >= box.top + 60 &&
-      bottomRight.x <= box.right && bottomRight.y <= box.bottom - 76;
-    if (!inside) void flow.fitView({ nodes: [{ id }], padding: 0.4, maxZoom: 1, duration: 200 });
+    const labelTop = topLeft.y - LABEL_HEIGHT * zoom,
+      room = panelHeight ? 12 + panelHeight : 0,
+      top = box.top + VISIBLE_BOARD_INSET.top,
+      bottom = box.bottom - VISIBLE_BOARD_INSET.bottom,
+      inset = 12;
+    const dx =
+      topLeft.x < box.left + inset
+        ? box.left + inset - topLeft.x
+        : bottomRight.x > box.right - inset
+          ? box.right - inset - bottomRight.x
+          : 0;
+    const dy =
+      labelTop < top
+        ? top + inset - labelTop
+        : bottomRight.y + room > bottom
+          ? bottom - (bottomRight.y + room)
+          : 0;
+    if (!dx && !dy) return;
+    if (labelTop + dy < top) {
+      // Card and panel do not both fit at this zoom: show the card, at least.
+      void flow.fitView({ nodes: [{ id }], padding: 0.4, maxZoom: 1, duration: 200 });
+      return;
+    }
+    void flow.setViewport({ ...viewport, x: viewport.x + dx, y: viewport.y + dy }, { duration: 200 });
   };
   /** A media card for something from the assets panel: read the record first, never trust the drag. */
   const placeMedia = async (item: AssetDrop, client?: { x: number; y: number }) => {
@@ -724,13 +759,14 @@ export function Board({
         throw new Error("这份素材还不能放到创作台上。");
       const doc = current();
       if (!doc) return;
-      const width = 360;
+      const frame = media.width && media.height ? { width: media.width, height: media.height } : null;
+      const width = defaultCardWidth(media.kind, frame);
       const node: CanvasNode = {
         id: crypto.randomUUID(),
         kind: media.kind,
         title: media.displayName.slice(0, 160) || "素材",
         width,
-        position: freeSpot(doc, width, client),
+        position: freeSpot(doc, width, estimateCardHeight(media.kind, width, frame), client),
         content: {
           type: "media",
           mediaId: media.id,
@@ -746,13 +782,15 @@ export function Board({
   const add = (kind: CanvasNode["kind"]) => {
     const doc = current();
     if (!doc || readOnly) return;
-    const width = kind === "text" ? 320 : 360;
+    const frame = kind === "image" || kind === "video" ? projectAspect : null;
+    const width = defaultCardWidth(kind, frame),
+      height = estimateCardHeight(kind, width, frame);
     const count = doc.nodes.filter((node) => node.kind === kind).length + 1;
     const base = {
       id: crypto.randomUUID(),
       title: `${kindLabel[kind]} ${count}`,
       width,
-      position: freeSpot(doc, width),
+      position: freeSpot(doc, width, height),
     };
     const node: CanvasNode =
       kind === "text"
@@ -762,7 +800,7 @@ export function Board({
     onSelect([node.id]);
     setRenamingId(undefined);
     setEditingTextId(kind === "text" ? node.id : undefined);
-    reveal(node.id, node.position, width);
+    reveal(node.id, node.position, width, height, kind === "text" ? 0 : composerNominalHeight(0));
   };
   const focusBoard = () =>
     boardElement.current?.focus({ preventScroll: true });
@@ -1198,7 +1236,7 @@ export function Board({
             .filter((edge) => edge.targetNodeId === single.id)
             .map((edge) => edge.sourceNodeId)}
         >
-          {(style, docked, panelRef) => (
+          {(style, docked, panelRef, dragHandle) => (
             <Composer
               {...generation}
               node={single as ComposerProps["node"]}
@@ -1217,6 +1255,7 @@ export function Board({
               style={style}
               docked={docked}
               panelRef={panelRef}
+              dragHandle={dragHandle}
             />
           )}
         </ComposerAnchor>
@@ -1249,8 +1288,9 @@ export function Board({
 
 /**
  * Screen placement of the input panel: below the card, left-aligned, or
- * another side when that is taken; docked at the bottom-left when the card is
- * off screen or the board too small. Re-evaluated on every viewport change.
+ * another side when that is taken; docked at the bottom-left when the card is off
+ * screen or the board too small; where the user dragged it, for this card,
+ * once they have. Re-evaluated on every viewport change.
  */
 function ComposerAnchor({
   boardElement,
@@ -1267,13 +1307,61 @@ function ComposerAnchor({
     style: React.CSSProperties | undefined,
     docked: boolean,
     panelRef: (element: HTMLElement | null) => void,
+    dragHandle: ComposerDragHandle,
   ) => React.ReactNode;
 }) {
   const { x, y, zoom } = useViewport();
   const flow = useReactFlow<CardNode>();
-  const [size, setSize] = useState<{ width: number; height: number }>(COMPOSER_SIZE);
+  // The panel's real size, once it has been measured; until then it is placed
+  // by the nominal size and kept invisible, so the first visible position is
+  // the one its true height allows and no guessed side sticks.
+  const [size, setSize] = useState<{ width: number; height: number }>();
   const [board, setBoard] = useState({ width: 0, height: 0 });
   const previous = useRef<ComposerPlacement | undefined>(undefined);
+  // Where the user dragged the panel to, as its offset from the card. Kept for
+  // this card only: the next card selected starts from the algorithm again.
+  const [pinned, setPinned] = useState<{ dx: number; dy: number }>();
+  const latest = useRef<{ anchor: ScreenRect; rect: ScreenRect } | undefined>(undefined);
+  // The card's rectangle at the last render: while it is changing from one
+  // render to the next (a pan, an animation bringing a new card into view),
+  // no placement is recorded as "previous", so a side chosen mid-motion never
+  // sticks; the first still render records the placement the settled position
+  // gets.
+  const lastAnchor = useRef<ScreenRect | undefined>(undefined);
+  const drag = useRef<{ pointerId: number; x: number; y: number; rect: ScreenRect } | undefined>(undefined);
+  const dragHandle = useMemo<ComposerDragHandle>(
+    () => ({
+      onPointerDown: (event) => {
+        if (event.button !== 0 || !latest.current) return;
+        event.preventDefault();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, rect: latest.current.rect };
+      },
+      onPointerMove: (event) => {
+        const start = drag.current;
+        if (!start || start.pointerId !== event.pointerId || !latest.current) return;
+        setPinned({
+          dx: start.rect.x + event.clientX - start.x - latest.current.anchor.x,
+          dy: start.rect.y + event.clientY - start.y - latest.current.anchor.y,
+        });
+      },
+      onPointerUp: (event) => {
+        if (drag.current?.pointerId !== event.pointerId) return;
+        drag.current = undefined;
+        // Keep the offset the panel actually got, not the one the pointer asked
+        // for: after an overshoot at an edge it must move with the card again.
+        if (latest.current)
+          setPinned({
+            dx: latest.current.rect.x - latest.current.anchor.x,
+            dy: latest.current.rect.y - latest.current.anchor.y,
+          });
+      },
+      onPointerCancel: (event) => {
+        if (drag.current?.pointerId === event.pointerId) drag.current = undefined;
+      },
+    }),
+    [],
+  );
   useEffect(() => {
     const element = boardElement.current;
     if (!element) return;
@@ -1291,8 +1379,10 @@ function ComposerAnchor({
     if (!element) return;
     const observer = new ResizeObserver(() => {
       const next = { width: element.offsetWidth, height: element.offsetHeight };
+      // A panel not laid out yet reports 0; that is not a measurement.
+      if (!(next.width > 0 && next.height > 0)) return;
       setSize((current) =>
-        current.width === next.width && current.height === next.height ? current : next,
+        current && current.width === next.width && current.height === next.height ? current : next,
       );
     });
     observer.observe(element);
@@ -1312,6 +1402,13 @@ function ComposerAnchor({
   };
   const anchor = rectOf(nodeId);
   if (!anchor || !board.width) return null;
+  const settled =
+    !!lastAnchor.current &&
+    lastAnchor.current.x === anchor.x &&
+    lastAnchor.current.y === anchor.y &&
+    lastAnchor.current.width === anchor.width &&
+    lastAnchor.current.height === anchor.height;
+  lastAnchor.current = anchor;
   const placement = placeComposer({
     anchor,
     safe: composerSafeArea(board.width, board.height),
@@ -1320,14 +1417,27 @@ function ComposerAnchor({
       node.id === nodeId || references.includes(node.id) ? [] : (rectOf(node.id) ?? []),
     ),
     previous: previous.current,
-    size,
+    pinned,
+    size: size ?? COMPOSER_SIZE,
   });
-  previous.current = placement;
+  if (size) {
+    if (settled) previous.current = placement;
+    latest.current = placement.kind === "local" ? { anchor, rect: placement.rect } : undefined;
+  }
+  const unmeasured = size ? {} : { visibility: "hidden" as const };
   return children(
     placement.kind === "local"
-      ? { left: placement.rect.x, top: placement.rect.y }
-      : undefined,
+      ? { left: placement.rect.x, top: placement.rect.y, ...unmeasured }
+      : size
+        ? undefined
+        : unmeasured,
     placement.kind !== "local",
     panelRef,
+    dragHandle,
   );
 }
+
+/** The board minus the top bar and the bottom toolbar, in screen pixels (see `composerSafeArea`). */
+const VISIBLE_BOARD_INSET = { top: 60, bottom: 76 } as const;
+/** The card's label row: 22px sitting above the body (`.label` in board.module.css) plus its gap. */
+const LABEL_HEIGHT = 24;

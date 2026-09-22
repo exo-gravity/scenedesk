@@ -1,4 +1,5 @@
 import type { CanvasNode } from "@drama/domain";
+import { CANVAS_NODE_WIDTH } from "./canvas-node-actions.js";
 
 export type FrameAspect = { width: number; height: number };
 
@@ -26,4 +27,38 @@ export function draftFrameAspect(
     height = Number(match[2]);
   if (!(width > 0) || !(height > 0)) return fallback;
   return { width, height };
+}
+
+/**
+ * The frame of a draft that has no result yet: its chosen ratio when it has
+ * one, otherwise the project's shape. Audio and text drafts have no frame, so
+ * a portrait project never stretches them.
+ */
+export function emptyDraftFrame(
+  node: Pick<CanvasNode, "kind" | "content">,
+  projectAspect: FrameAspect,
+): FrameAspect | null {
+  if (node.kind === "text" || node.kind === "audio") return null;
+  if (node.content.type !== "draft") return null;
+  return node.content.output.aspectRatio ? draftFrameAspect(node) : projectAspect;
+}
+
+/** The side of the square every new picture card has the area of. */
+const CARD_AREA_SIDE = 360;
+const FIXED_WIDTH = { text: 320, audio: 360 } as const;
+
+/**
+ * The width a new card is created with. Picture cards keep one area whatever
+ * their shape: a 16:9 card is wider than it is tall, a 9:16 card the reverse,
+ * and neither dominates the board. Text and audio have no picture and keep
+ * their fixed widths; a picture card whose shape is unknown keeps the old one.
+ */
+export function defaultCardWidth(
+  kind: CanvasNode["kind"],
+  aspect?: FrameAspect | null,
+): number {
+  if (kind === "text" || kind === "audio") return FIXED_WIDTH[kind];
+  if (!aspect || !(aspect.width > 0) || !(aspect.height > 0)) return CARD_AREA_SIDE;
+  const width = Math.round(CARD_AREA_SIDE * Math.sqrt(aspect.width / aspect.height));
+  return Math.min(CANVAS_NODE_WIDTH.max, Math.max(CANVAS_NODE_WIDTH.min, width));
 }

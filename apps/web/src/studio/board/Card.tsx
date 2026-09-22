@@ -22,7 +22,7 @@ import {
 import type { CanvasDocument, CanvasNode } from "@drama/domain";
 import { useResource, type Schema } from "../../business/api";
 import { MediaPreview } from "../../business/MediaPreview";
-import { draftFrameAspect } from "../../business/canvas-card-frame";
+import { draftFrameAspect, emptyDraftFrame } from "../../business/canvas-card-frame";
 import { CANVAS_NODE_WIDTH } from "../../business/canvas-node-actions";
 import { referenceState } from "../../business/canvas-reference-state";
 import classes from "./board.module.css";
@@ -80,10 +80,8 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
   const named = node.content.type === "draft" && !!node.content.output.aspectRatio;
   const frame = (named ? draftFrameAspect(node) : null) ?? data.projectAspect,
     frameRatio = `${frame.width} / ${frame.height}`;
-  const aspect =
-    node.content.type === "draft" && !data.resultMediaId
-      ? (named ? draftFrameAspect(node) : null) ?? data.projectAspect
-      : null;
+  // An empty draft is a frame of its output ratio; audio has no picture, so no frame.
+  const aspect = data.resultMediaId ? null : emptyDraftFrame(node, data.projectAspect);
   const shownMediaId =
     node.content.type === "media" ? node.content.mediaId : data.resultMediaId;
   const media = useResource<Schema<"Media">>(
@@ -237,7 +235,7 @@ export const Card = memo(function Card({ id, data, selected }: NodeProps<CardNod
           </Menu.Dropdown>
         </Menu>
       </NodeToolbar>
-      {node.kind === "text" && !excerpt && !readOnly && selected && (
+      {!excerpt && !readOnly && selected && (
         <NodeResizeControl
           position="bottom-right"
           minWidth={CANVAS_NODE_WIDTH.min}
