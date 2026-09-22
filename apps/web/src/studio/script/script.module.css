@@ -4,14 +4,20 @@
   inset: 0;
   overflow: auto;
   background: var(--ws-studio-canvas);
-  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-lg)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-xl)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
 }
 .column {
   width: min(880px, 100%);
+  min-height: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-lg);
+}
+/* The import and excerpt components render their entries into the tool row and leave
+   an empty wrapper behind; it must not take a gap of its own. */
+.column > :empty {
+  display: none;
 }
 .center {
   position: absolute;
@@ -126,11 +132,21 @@
   color: var(--ws-studio-card-label);
   font-variant-numeric: tabular-nums;
 }
+/* The paper: page margins around the manuscript, headings spaced like a printed script. */
 .paper {
   background: var(--ws-studio-card);
   border: 1px solid var(--ws-studio-card-border);
   border-radius: var(--ws-card-radius);
-  padding: var(--mantine-spacing-xl);
+  padding: calc(var(--mantine-spacing-xl) + var(--mantine-spacing-lg)) calc(2 * var(--mantine-spacing-xl)) calc(2 * var(--mantine-spacing-xl));
+}
+.paper h2 {
+  margin: 1.25em 0 0.25em;
+}
+.paper h2:first-child {
+  margin-top: 0;
+}
+.paper h2 + h2 {
+  margin-top: 0.5em;
 }
 .empty {
   display: flex;
