@@ -18,6 +18,7 @@ import {
   Text,
 } from "@mantine/core";
 import { inspectCanvasDocument, type CanvasNode } from "@drama/domain";
+import { defaultCardWidth } from "./canvas-card-frame";
 import { api, ApiError, useSession, type Schema } from "./api";
 import type { CanvasController } from "./canvas-controller";
 import {
@@ -272,7 +273,10 @@ export function CanvasUploads({
       id: entry.nodeId,
       title: media.displayName,
       kind: media.kind,
-      width: 360,
+      width: defaultCardWidth(
+        media.kind,
+        media.width && media.height ? { width: media.width, height: media.height } : null,
+      ),
       position: entry.position,
       content: { type: "media", mediaId: media.id },
     };

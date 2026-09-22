@@ -4,6 +4,7 @@ import {
   type CanvasDocument,
   type CanvasNode,
 } from "@drama/domain";
+import { defaultCardWidth, type FrameAspect } from "./canvas-card-frame.js";
 
 export type CanvasCreation = { id: string; sources: CanvasNode[] };
 const sourceIdentity = (node: CanvasNode) =>
@@ -35,6 +36,8 @@ export function createCanvasDraft(
   document: CanvasDocument,
   prepared: CanvasCreation,
   kind: "image" | "video" | "audio",
+  /** The project's picture shape: the new draft's frame, hence its width. */
+  aspect?: FrameAspect,
 ) {
   if (document.nodes.some((node) => node.id === prepared.id))
     throw new Error("这份草稿已创建，请继续编辑现有草稿。");
@@ -52,7 +55,7 @@ export function createCanvasDraft(
     id: prepared.id,
     kind,
     title: `新的${{ image: "图片", video: "视频", audio: "声音" }[kind]}草稿`,
-    width: 360,
+    width: defaultCardWidth(kind, aspect),
     position: {
       x:
         Math.max(

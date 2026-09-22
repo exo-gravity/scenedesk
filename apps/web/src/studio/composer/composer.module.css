@@ -430,6 +430,14 @@
 .corner:hover {
   background: var(--ws-hover);
 }
+/* The grip: the panel moves with it and then keeps that spot beside the card. */
+.grip {
+  cursor: grab;
+  touch-action: none;
+}
+.grip:active {
+  cursor: grabbing;
+}
 /* Focus editing: the same panel, wider, inside a dialog. */
 .panel[data-focus] {
   position: static;
