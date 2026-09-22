@@ -1,5 +1,7 @@
 # 剧本选文、画布切换与场次目录：已确认设计
 
+> **状态（2026-09-22 补记）：历史文档。** 本文的三个页面已被[核心创作区重建](creative-workspace-rebuild-libtv-2026-09-21.md)取代并于 2026-09-22 合入 `main`：剧本页与画布菜单已删除，选文与画布都在创作台内进行；场次目录保留在项目页，行内入口改为「打开创作台」与镜头整理（见 [85 §1i](../implementation/85-studio-rebuild.md)）。旧 `/script`、`/canvas`、`/production`、`/content` 地址一律转向创作台。
+
 2026-09-16，用户在三个效果图后明确要求「好，同意上面的改动，落地吧」。三个页面属于同一方案，细化[创作工作区](creative-workspace-approved-2026-09-16.md)，不重新拆分成多个独立制作台。
 
 参考图：[剧本](canvas-navigation-2026-09-16/script-approved.png)、[画布菜单](canvas-navigation-2026-09-16/canvas-approved.png)、[场次目录](canvas-navigation-2026-09-16/directory-approved.png)。生成图中的媒体和数量是示意，不能替换真实业务内容。沿用既有 Mantine 主题、Phosphor、216px 可折叠左栏和恢复机制，不重做品牌系统。

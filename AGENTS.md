@@ -132,7 +132,7 @@ sh deploy/check.sh  # deploy/ 是独立 tsconfig 项目,npm run check 不覆盖
 - 改公开接口契约。
 - 新增依赖。
 - 改 CI、部署配置或仓库设置。
-- 重新打开已确认的布局或导航(见 `docs/design/`)。
+- 重新打开已确认的布局或导航(现行基线是 `docs/design/creative-workspace-rebuild-libtv-2026-09-21.md` 与 `docs/implementation/85-studio-rebuild.md`;`docs/design/` 里 2026-09-16 及更早的 approved 文档只作历史)。
 
 ### 🚫 绝不
 

@@ -1,16 +1,16 @@
 # 幕序 · SceneDesk
 
-SceneDesk 是独立 Web 的短剧视觉创作工作台。当前主路径是 **导入剧本 → 画布创作 → 比较与明确选用 → 整理镜头 → 交付原片**。项目采用左侧「剧本、画布、项目资产」导航；画布菜单切换项目／场次、添加场次或打开场次目录。没有剧本或场次也可以先在项目画布开始。
+SceneDesk 是独立 Web 的短剧视觉创作工作台。当前主路径是 **导入剧本 → 创作台连续创作 → 比较与明确选用 → 整理镜头 → 交付原片**。项目创作台（`…/p/{id}/studio`）是唯一创作入口：画布式连续创作、剧本视图与镜头整理视图在同一页面内切换，顶栏在项目与场次创作台之间切换。没有剧本或场次也可以先在项目创作台开始。
 
 | 工作区 | 当前能力 |
 |---|---|
-| 剧本 | 本地 `.docx` 或团队授权的飞书文档，预览后确认导入；阅读当前稿、按需查看历史；Word 原件可下载，选文可带入画布 |
-| 画布 | 项目级自由创作、文字与固定参考、图片／视频草稿、结果比较；助手建议和手工编辑作用于同一份草稿 |
+| 剧本视图 | 本地 `.docx` 或团队授权的飞书文档，预览后确认导入；阅读当前稿、按需查看历史；Word 原件可下载，选文可带入创作台 |
+| 创作台 | 项目级与场次级自由创作、文字与固定参考、图片／视频草稿、结果比较；助手建议和手工编辑作用于同一份草稿 |
 | 项目资产 | 管理素材及角色、场景等参考，向创作草稿带入明确版本 |
-| 镜头列表 | 按需整理场次内镜头顺序、比较候选、明确选用，下载单个原片或本场选用 ZIP |
+| 镜头整理 | 按需整理场次内镜头顺序、比较候选、明确选用，下载单个原片或本场选用 ZIP |
 | 保存与恢复 | 未保存输入、冲突、刷新和未决任务保持可找回；导入新剧本不会改变旧创作引用 |
 
-当前交互依据[已确认的创作工作区方向](docs/design/creative-workspace-approved-2026-09-16.md)。画布是主工作区，镜头列表按需打开；原分镜台与旧链接保留兼容。固定输入、任务、结果和明确选用仍是独立事实，但日常导入不要求操作复杂版本流程。
+当前交互依据[核心创作区重建（2026-09-21 已确认，2026-09-22 合入）](docs/design/creative-workspace-rebuild-libtv-2026-09-21.md)，实现记录见[创作区重建分片记录](docs/implementation/85-studio-rebuild.md)。创作台是唯一工作区，镜头整理按需打开；旧画布、场次工作区、剧本页与分镜台地址一律转向创作台。固定输入、任务、结果和明确选用仍是独立事实，但日常导入不要求操作复杂版本流程。
 
 当前先完成真实模型之外的工作区功能和受控验收，真实模型接入放到最后。图像、视频和助手的测试适配器与演示媒体均明确标识，不能视为实际供应商验收；真实飞书应用授权、团队文档和外部部署也需各自环境验证。实际测试、合入记录及剩余条件见[收尾记录](docs/implementation/77-non-provider-workspace-closure.md)与[实施进度](docs/implementation/22-implementation-progress.md)。
 
@@ -18,8 +18,8 @@ SceneDesk 是独立 Web 的短剧视觉创作工作台。当前主路径是 **�
 
 - [当前文档总入口](docs/README.md)及[实施设计包](docs/implementation/README.md)
 - [Word 剧本导入](docs/implementation/72-script-docx-import.md)与[飞书团队应用配置](docs/implementation/75-feishu-script-import.md)
-- [连续创作](docs/implementation/74-canvas-continuous-creation.md)与[镜头列表](docs/implementation/76-shot-list-workspace.md)
-- [端到端验收矩阵](docs/implementation/73-creative-workspace-e2e.md)、[私有部署](deploy/README.md)及[隔离恢复验收](deploy/recovery/smoke/README.md)
+- [创作区重建分片记录（现行界面）](docs/implementation/85-studio-rebuild.md)；引擎来历：[连续创作](docs/implementation/74-canvas-continuous-creation.md)与[镜头列表与原片包](docs/implementation/76-shot-list-workspace.md)
+- [端到端用例清单](tests/e2e/README.md)、[私有部署](deploy/README.md)及[隔离恢复验收](deploy/recovery/smoke/README.md)
 - [UI 执行规范](docs/design/mantine-ui-agent-spec-v0.1.md)与[历史原型索引](docs/history/README.md)。原型中的虚构内容、内存交互和效果图不是生产实现或业务验收。
 
 ## 本地启动
