@@ -12,44 +12,51 @@ const probe = {
   fpsDen: 1,
   hasAudio: true,
 };
-test("generated video preserves actual integer timing and allows no more than one decoded frame of container quantization", () => {
+test("generated video preserves actual integer timing and allows at most one second of real-provider rounding either way", () => {
   validateGeneratedVisual(probe, "video/mp4", output);
+  // Within the ±1 second tolerance (real providers round to whole seconds).
   validateGeneratedVisual(
-    { ...probe, durationUs: 2041666 },
+    { ...probe, durationUs: 3000000 },
+    "video/mp4",
+    output,
+  );
+  validateGeneratedVisual(
+    { ...probe, durationUs: 1000000 },
     "video/mp4",
     output,
   );
   assert.throws(
     () =>
       validateGeneratedVisual(
-        { ...probe, durationUs: 2041667 },
+        { ...probe, durationUs: 3000001 },
         "video/mp4",
         output,
       ),
-    /一帧/,
+    /相差超过 1 秒/,
   );
   assert.throws(
     () =>
       validateGeneratedVisual(
-        { ...probe, durationUs: 1958333 },
+        { ...probe, durationUs: 999999 },
         "video/mp4",
         output,
       ),
-    /一帧/,
+    /相差超过 1 秒/,
   );
+  // Frame rate no longer participates in the tolerance: a fractional fps still uses the flat 1s window.
   validateGeneratedVisual(
-    { ...probe, fpsNum: 30000, fpsDen: 1001, durationUs: 2033366 },
+    { ...probe, fpsNum: 30000, fpsDen: 1001, durationUs: 2900000 },
     "video/mp4",
     output,
   );
   assert.throws(
     () =>
       validateGeneratedVisual(
-        { ...probe, fpsNum: 30000, fpsDen: 1001, durationUs: 2033367 },
+        { ...probe, fpsNum: 30000, fpsDen: 1001, durationUs: 3100000 },
         "video/mp4",
         output,
       ),
-    /一帧/,
+    /相差超过 1 秒/,
   );
   assert.equal(probe.durationUs, 2000000);
 });

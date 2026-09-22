@@ -1,6 +1,7 @@
 export * from "./policy.js";
 export * from "./storage.js";
 export * from "./probe.js";
+export * from "./generated-output.js";
 export { verifyMediaRuntime, verifyProductionRuntime } from "./sandbox.js";
 export { createMediaProcessor } from "./work.js";
 export { repairMediaWork } from "./repair.js";

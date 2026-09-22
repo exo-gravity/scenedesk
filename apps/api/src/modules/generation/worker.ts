@@ -269,7 +269,7 @@ export async function createAssistanceWorker(options: {
     }
     await finish(jobId);
   }
-  async function reconcile(jobId: string, signal = AbortSignal.timeout(30000)) {
+  async function reconcile(jobId: string, signal = AbortSignal.timeout(120000)) {
     await finish(jobId);
     const token = randomUUID();
     const state = (
@@ -286,7 +286,7 @@ export async function createAssistanceWorker(options: {
     const task: AssistanceProviderTask | undefined = state.providerJobId
       ? { ...state, providerJobId: state.providerJobId }
       : undefined;
-    const boundedSignal = AbortSignal.any([signal, AbortSignal.timeout(30000)]);
+    const boundedSignal = AbortSignal.any([signal, AbortSignal.timeout(120000)]);
     let failed = true;
     try {
       if (!["query", "recover", "cancel"].includes(state.action))
