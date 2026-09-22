@@ -18,17 +18,20 @@ test("ST-06: the script view reads the current and a fixed earlier manuscript, a
   const views = page.getByRole("navigation", { name: "创作区视图", exact: true });
   await expect(views.getByRole("link", { name: "剧本", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("article", paper)).toContainText("定稿：林推开咖啡店的门。");
-  await expect(page.getByText("当前稿 · 纯文本", { exact: true })).toBeVisible();
+  const history = page.getByRole("combobox", { name: "查阅历史剧本", exact: true });
+  await expect(history).toHaveValue("第 2 稿 · 当前稿");
+  await expect(page.getByText("纯文本", { exact: true })).toBeVisible();
   const shot = info.outputPath("studio-script-1920.png");
   await page.screenshot({ path: shot, animations: "disabled" });
   await info.attach("studio-script-1920", { path: shot, contentType: "image/png" });
 
   // A fixed earlier revision is read-only and addressed, so a reload keeps it.
-  await page.getByRole("combobox", { name: "查阅历史剧本", exact: true }).click();
+  await history.click();
   await page.getByRole("option", { name: /^第 1 稿/ }).click();
   await expect(page).toHaveURL(new RegExp(`/studio/script\\?revision=${w.first.id}$`));
   await expect(page.getByRole("article", paper)).toContainText("第一稿：林在雨夜发现一封没有署名的信。");
-  await expect(page.getByText("历史稿 · 只读 · 纯文本", { exact: true })).toBeVisible();
+  await expect(history).toHaveValue("第 1 稿");
+  await expect(page.getByText("历史稿 · 只读", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("article", paper)).toContainText("第一稿：林在雨夜发现一封没有署名的信。");
   await page.getByRole("button", { name: "返回当前稿", exact: true }).click();
@@ -43,7 +46,8 @@ test("ST-06: the script view reads the current and a fixed earlier manuscript, a
   await page.getByRole("button", { name: "确认导入", exact: true }).click();
   await expect(preview).toHaveCount(0);
   await expect(page.getByRole("article", paper)).toContainText("林夏：钥匙在哪里？😀");
-  await expect(page.getByText("当前稿 · Word 导入", { exact: true })).toBeVisible();
+  await expect(history).toHaveValue("第 3 稿 · 当前稿");
+  await expect(page.getByText("initial-draft.docx", { exact: true })).toBeVisible();
   const imported = (await w.scripts()).items.find((r) => r.number === 3)!;
   expect(imported.sourceFormat).toBe("docx");
   const downloadPromise = page.waitForEvent("download");

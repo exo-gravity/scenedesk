@@ -23,13 +23,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
   flex-wrap: wrap;
 }
-.meta {
+/* Left: which draft is open and where it came from. Right: what you can do with it.
+   Every control is a 32px pill of one family; the excerpt entry is the one dark one. */
+.meta,
+.actions {
   display: flex;
   align-items: center;
   gap: var(--mantine-spacing-sm);
+  flex-wrap: wrap;
   min-width: 0;
 }
 .badge {
@@ -38,15 +42,11 @@
   height: 24px;
   padding-inline: var(--mantine-spacing-sm);
   border-radius: var(--ws-radius);
-  background: var(--ws-hover);
-  font-size: var(--mantine-font-size-xs);
-  color: var(--ws-text);
-  white-space: nowrap;
-}
-.badge[data-historical] {
-  background: var(--ws-studio-chrome);
   border: 1px solid var(--ws-studio-chrome-border);
+  background: var(--ws-studio-chrome);
+  font-size: var(--mantine-font-size-xs);
   color: var(--ws-studio-card-label);
+  white-space: nowrap;
 }
 .file {
   font-size: var(--mantine-font-size-xs);
@@ -55,14 +55,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--mantine-spacing-sm);
-  flex-wrap: wrap;
-}
 .slot:empty {
   display: none;
+}
+.slot :global(.mantine-Button-root) {
+  height: 32px;
+  border-radius: var(--ws-tool-radius);
+}
+.slot :global(.mantine-Button-root:not([data-variant="filled"])) {
+  background: var(--ws-hover);
+  border-color: transparent;
+  color: var(--ws-text);
+}
+.slot :global(.mantine-Button-root:not([data-variant="filled"]):hover:not(:disabled)) {
+  background: var(--ws-studio-chrome-border);
 }
 .pill {
   display: inline-flex;
@@ -92,7 +98,7 @@
   color: var(--ws-text);
 }
 .historyRoot {
-  width: 300px;
+  width: 200px;
 }
 .history,
 .history:focus,
@@ -105,6 +111,20 @@
   box-shadow: none;
   font-size: var(--mantine-font-size-sm);
   color: var(--ws-text);
+}
+.history:hover {
+  background: var(--ws-studio-chrome-border);
+}
+/* A draft in the history list: its name, then when it was imported. */
+.option {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+}
+.optionTime {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+  font-variant-numeric: tabular-nums;
 }
 .paper {
   background: var(--ws-studio-card);
