@@ -3,3 +3,4 @@ export * from "./assistance.js";
 export * from "./verified/profiles.js";
 export * from "./verified/http.js";
 export * from "./verified/inputs.js";
+export * from "./verified/outputs.js";
