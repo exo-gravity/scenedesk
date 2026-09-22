@@ -29,6 +29,8 @@ import {
   MusicNotes,
   PencilSimple,
   Prohibit,
+  Quotes,
+  Sparkle,
   StackSimple,
   Tag,
   Trash,
@@ -74,6 +76,8 @@ import {
 } from "../../business/CanvasUploads";
 import { CanvasGenerationBatch } from "../../business/CanvasGenerationBatch";
 import { History } from "../results/History";
+import { AssetsPanel, ASSET_DROP_TYPE, type AssetDrop } from "../assets/AssetsPanel";
+import { api } from "../../business/api";
 import type { TaskLabel } from "../results/useNodeResults";
 import { memo } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
@@ -146,6 +150,12 @@ export function Board({
   attempts,
   results,
   tasks,
+  assetPanelOpen,
+  onAssetPanel,
+  focusNodeId,
+  scriptHref,
+  shotsHref,
+  onAssistantContext,
   generation,
 }: {
   controller: CanvasController;
@@ -160,6 +170,16 @@ export function Board({
   attempts: readonly Schema<"CanvasPlanEntry">[];
   results: Record<string, string> | undefined;
   tasks: Record<string, TaskLabel>;
+  assetPanelOpen: boolean;
+  onAssetPanel: (open: boolean) => void;
+  /** A card named in the address: brought into view once it is measured. */
+  focusNodeId?: string | undefined;
+  /** Where a fixed excerpt's source revision can be read. */
+  scriptHref: (revisionId: string) => string;
+  /** Where a board video can be registered as a shot's candidate. */
+  shotsHref: (mediaId: string) => string;
+  /** Hand the selected cards to the assistant as context. */
+  onAssistantContext: (nodeIds: string[]) => void;
   /** What the input panel needs from the session: identity, saving, retention. */
   generation: Pick<
     ComposerProps,
@@ -202,6 +222,13 @@ export function Board({
   >({});
   // A width being dragged, before the document takes it on resize end.
   const [liveWidths, setLiveWidths] = useState<Record<string, number>>({});
+  // A card named in the address is brought into view once it has a size.
+  const broughtIntoView = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!focusNodeId || broughtIntoView.current === focusNodeId || !measurements[focusNodeId]) return;
+    broughtIntoView.current = focusNodeId;
+    void flow.fitView({ nodes: [{ id: focusNodeId }], padding: 0.4, maxZoom: 1, duration: 200 });
+  }, [focusNodeId, measurements, flow]);
   useEffect(() => {
     const ids = new Set([
       ...document.nodes.map((node) => node.id),
@@ -604,25 +631,24 @@ export function Board({
       "move-nodes",
     );
   };
-  const add = (kind: CanvasNode["kind"]) => {
-    const doc = current();
-    if (!doc || readOnly) return;
+  /**
+   * Where a new card goes: at the given point, or the centre of the view;
+   * from the centre, while the frame would cover another card, it moves to
+   * that card's right, so cards added in a row line up.
+   */
+  const freeSpot = (doc: CanvasDocument, width: number, client?: { x: number; y: number }) => {
     const box = boardElement.current?.getBoundingClientRect();
-    const center = box
-      ? flow.screenToFlowPosition({
-          x: box.left + box.width / 2,
-          y: box.top + box.height / 2,
-        })
-      : { x: 80, y: 80 };
-    const width = kind === "text" ? 320 : 360;
-    const count = doc.nodes.filter((node) => node.kind === kind).length + 1;
-    // Start at the centre of the view; while the frame would cover another
-    // card, move to that card's right, so cards added in a row line up.
     const height = 200;
+    const origin = client
+      ? flow.screenToFlowPosition(client)
+      : box
+        ? flow.screenToFlowPosition({ x: box.left + box.width / 2, y: box.top + box.height / 2 })
+        : { x: 80, y: 80 };
     const position = {
-      x: Math.round(center.x - width / 2),
-      y: Math.round(center.y - height / 2),
+      x: Math.round(origin.x - width / 2),
+      y: Math.round(origin.y - height / 2),
     };
+    if (client) return position;
     const covered = () =>
       doc.nodes.find((node) => {
         const other = measurements[node.id]?.height ?? height;
@@ -635,11 +661,48 @@ export function Board({
       });
     for (let step = 0, hit = covered(); step < 50 && hit; step++, hit = covered())
       position.x = hit.position.x + hit.width + 48;
+    return position;
+  };
+  /** A media card for something from the assets panel: read the record first, never trust the drag. */
+  const placeMedia = async (item: AssetDrop, client?: { x: number; y: number }) => {
+    if (readOnly) return;
+    try {
+      const media = await api<Schema<"Media">>(`${mediaPath}/media/${item.mediaId}`, {
+        signal: AbortSignal.timeout(15000),
+      });
+      if (media.kind === "document" || media.status !== "ready")
+        throw new Error("这份素材还不能放到创作台上。");
+      const doc = current();
+      if (!doc) return;
+      const width = 360;
+      const node: CanvasNode = {
+        id: crypto.randomUUID(),
+        kind: media.kind,
+        title: media.displayName.slice(0, 160) || "素材",
+        width,
+        position: freeSpot(doc, width, client),
+        content: {
+          type: "media",
+          mediaId: media.id,
+          ...(item.assetRevisionId ? { assetRevisionId: item.assetRevisionId } : {}),
+        },
+      };
+      change({ ...doc, nodes: [...doc.nodes, node] });
+      onSelect([node.id]);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause : new Error("素材未加入创作台。"));
+    }
+  };
+  const add = (kind: CanvasNode["kind"]) => {
+    const doc = current();
+    if (!doc || readOnly) return;
+    const width = kind === "text" ? 320 : 360;
+    const count = doc.nodes.filter((node) => node.kind === kind).length + 1;
     const base = {
       id: crypto.randomUUID(),
       title: `${kindLabel[kind]} ${count}`,
       width,
-      position,
+      position: freeSpot(doc, width),
     };
     const node: CanvasNode =
       kind === "text"
@@ -770,13 +833,31 @@ export function Board({
       tabIndex={-1}
       onKeyDown={onKeyDown}
       onDragOver={(event) => {
-        if (!event.dataTransfer.types.includes("Files")) return;
+        const types = event.dataTransfer.types;
+        if (types.includes(ASSET_DROP_TYPE)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = readOnly ? "none" : "copy";
+          return;
+        }
+        if (!types.includes("Files")) return;
         event.preventDefault();
         event.dataTransfer.dropEffect =
           readOnly || !uploads || uploads.readOnly || uploads.busy ? "none" : "copy";
       }}
       onDrop={(event) => {
-        if (!event.dataTransfer.types.includes("Files")) return;
+        const types = event.dataTransfer.types;
+        if (types.includes(ASSET_DROP_TYPE)) {
+          event.preventDefault();
+          try {
+            const item = JSON.parse(event.dataTransfer.getData(ASSET_DROP_TYPE)) as AssetDrop;
+            if (typeof item?.mediaId === "string")
+              void placeMedia(item, { x: event.clientX, y: event.clientY });
+          } catch {
+            // Not one of ours: nothing to place.
+          }
+          return;
+        }
+        if (!types.includes("Files")) return;
         event.preventDefault();
         importFiles([...event.dataTransfer.files], { x: event.clientX, y: event.clientY });
       }}
@@ -969,6 +1050,24 @@ export function Board({
                 </Menu.Item>
               </Menu.Sub.Dropdown>
             </Menu.Sub>
+            {single && single.kind === "text" && single.content.sourceExcerpt && (
+              <Menu.Item
+                leftSection={<Quotes size={14} />}
+                component="a"
+                href={scriptHref(single.content.sourceExcerpt.scriptRevisionId)}
+              >
+                回看剧本来源
+              </Menu.Item>
+            )}
+            {single && single.kind === "video" && single.content.type === "media" && (
+              <Menu.Item
+                leftSection={<FilmStrip size={14} />}
+                component="a"
+                href={shotsHref(single.content.mediaId)}
+              >
+                登记为镜头候选
+              </Menu.Item>
+            )}
             {single && single.kind !== "text" && single.content.type === "draft" && (
               <Menu.Item
                 leftSection={<ClockCounterClockwise size={14} />}
@@ -986,6 +1085,13 @@ export function Board({
                 查看 {selected.length} 项的生成计划
               </Menu.Item>
             )}
+            <Menu.Item
+              leftSection={<Sparkle size={14} />}
+              disabled={!selected.length}
+              onClick={() => onAssistantContext(selected)}
+            >
+              交给助手
+            </Menu.Item>
             <Menu.Item
               leftSection={<Copy size={14} />}
               rightSection={<kbd className={classes.kbd} aria-hidden>⌘D</kbd>}
@@ -1017,7 +1123,17 @@ export function Board({
         onRedo={() => controller.redo()}
         onShortcuts={onShortcuts}
       />
-      <ZoomControl />
+      <ZoomControl assetsOpen={assetPanelOpen} onAssets={() => onAssetPanel(!assetPanelOpen)} />
+      {assetPanelOpen && (
+        <AssetsPanel
+          tenantId={generation.tenantId}
+          projectId={generation.projectId}
+          mediaPath={mediaPath}
+          readOnly={readOnly}
+          onAdd={(item) => void placeMedia(item)}
+          onClose={() => onAssetPanel(false)}
+        />
+      )}
       {single && single.kind !== "text" && single.content.type === "draft" && (
         <ComposerAnchor
           key={`${generation.canvasId}:${single.id}`}

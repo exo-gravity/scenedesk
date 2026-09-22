@@ -64,6 +64,21 @@
   box-shadow: var(--ws-studio-shadow);
   z-index: 4;
 }
+.cornerTool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: var(--ws-studio-tool-size);
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-studio-card-label);
+}
+.cornerTool:hover,
+.cornerTool[aria-pressed="true"] {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+}
 .zoom {
   height: var(--ws-studio-tool-size);
   min-width: 56px;

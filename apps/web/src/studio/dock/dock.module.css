@@ -1,0 +1,62 @@
+/* The dock frame: a right column under the top bar, or a floating panel. */
+.dock {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--ws-studio-chrome);
+  color: var(--ws-text);
+  z-index: 6;
+}
+.dock[data-mode="docked"] {
+  top: var(--ws-studio-topbar-height);
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  border-left: 1px solid var(--ws-studio-chrome-border);
+}
+.dock[data-mode="floating"] {
+  right: var(--mantine-spacing-md);
+  bottom: calc(var(--ws-studio-toolbar-height) + 2 * var(--mantine-spacing-md));
+  width: 400px;
+  height: min(640px, calc(100% - var(--ws-studio-topbar-height) - var(--ws-studio-toolbar-height) - 4 * var(--mantine-spacing-md)));
+  border: 1px solid var(--ws-studio-chrome-border);
+  border-radius: var(--ws-floating-radius);
+  box-shadow: var(--ws-studio-shadow);
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: var(--ws-studio-topbar-height);
+  padding: 0 var(--mantine-spacing-sm) 0 var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--ws-studio-chrome-border);
+  flex: none;
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ws-tool-radius);
+  color: var(--ws-studio-card-label);
+}
+.control:hover {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--mantine-spacing-md);
+}

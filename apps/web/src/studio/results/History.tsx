@@ -31,10 +31,6 @@ export function History({
   onClose: () => void;
 }) {
   const [planId, setPlanId] = useState<string>();
-  const sorted = [...attempts].sort((a, b) =>
-    (b.plan.createdAt ?? "").localeCompare(a.plan.createdAt ?? ""),
-  );
-  const entry = sorted.find((item) => item.plan.id === planId);
   return (
     <Modal
       opened={opened}
@@ -42,24 +38,51 @@ export function History({
         setPlanId(undefined);
         onClose();
       }}
-      title={entry ? `固定尝试 · ${title}` : `尝试与结果 · ${title}`}
+      title={planId ? `固定尝试 · ${title}` : `尝试与结果 · ${title}`}
       size="md"
     >
-      {entry ? (
-        <Attempt tenantId={tenantId} entry={entry} back={() => setPlanId(undefined)} />
-      ) : (
-        <div className={classes.list}>
-          {sorted.map((item) => (
-            <AttemptRow key={item.plan.id} tenantId={tenantId} entry={item} open={() => setPlanId(item.plan.id)} />
-          ))}
-          {!sorted.length && (
-            <Text size="sm" c="dimmed">
-              还没有固定尝试。提交一次生成后可从这里找回输入、任务与结果。
-            </Text>
-          )}
-        </div>
-      )}
+      <AttemptBrowser tenantId={tenantId} attempts={attempts} planId={planId} onPlan={setPlanId} />
     </Modal>
+  );
+}
+
+/** The list of attempts and one attempt's inputs and result; the caller owns which one is open. */
+export function AttemptBrowser({
+  tenantId,
+  attempts,
+  titles,
+  planId,
+  onPlan,
+}: {
+  tenantId: string;
+  attempts: readonly Entry[];
+  /** Card titles by node id, shown when attempts of many cards are listed. */
+  titles?: Record<string, string> | undefined;
+  planId: string | undefined;
+  onPlan: (planId: string | undefined) => void;
+}) {
+  const sorted = [...attempts].sort((a, b) =>
+    (b.plan.createdAt ?? "").localeCompare(a.plan.createdAt ?? ""),
+  );
+  const entry = sorted.find((item) => item.plan.id === planId);
+  if (entry) return <Attempt tenantId={tenantId} entry={entry} back={() => onPlan(undefined)} />;
+  return (
+    <div className={classes.list}>
+      {sorted.map((item) => (
+        <AttemptRow
+          key={item.plan.id}
+          tenantId={tenantId}
+          entry={item}
+          title={titles ? (titles[item.origin.nodeId] ?? "已删除的草稿") : undefined}
+          open={() => onPlan(item.plan.id)}
+        />
+      ))}
+      {!sorted.length && (
+        <Text size="sm" c="dimmed">
+          还没有固定尝试。提交一次生成后可从这里找回输入、任务与结果。
+        </Text>
+      )}
+    </div>
   );
 }
 
@@ -78,7 +101,7 @@ function useAttemptMedia(tenantId: string, entry: Entry) {
   return { job, media: valid };
 }
 
-function AttemptRow({ tenantId, entry, open }: { tenantId: string; entry: Entry; open: () => void }) {
+function AttemptRow({ tenantId, entry, title, open }: { tenantId: string; entry: Entry; title?: string | undefined; open: () => void }) {
   const kind = entry.plan.input.purpose as keyof typeof icons;
   const Icon = icons[kind] ?? ImageSquare;
   const { job, media } = useAttemptMedia(tenantId, entry);
@@ -98,7 +121,7 @@ function AttemptRow({ tenantId, entry, open }: { tenantId: string; entry: Entry;
       </span>
       <span className={classes.rowText}>
         <Text component="span" size="sm">
-          {kindLabel[kind] ?? "结果"} · {status}
+          {title ? `${title} · ` : ""}{kindLabel[kind] ?? "结果"} · {status}
         </Text>
         <Text component="span" size="xs" c="dimmed">
           {entry.plan.createdAt ? new Date(entry.plan.createdAt).toLocaleString() : `计划 ${entry.plan.id.slice(0, 8)}`}
