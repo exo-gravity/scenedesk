@@ -148,11 +148,31 @@
 .paper h2 + h2 {
   margin-top: 0.5em;
 }
+/* No manuscript yet: one message and the import entries, centred in the view; Word is the primary. */
 .empty {
+  margin-block: auto;
+  align-self: center;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--mantine-spacing-md);
-  padding: var(--mantine-spacing-xl) 0;
+  gap: var(--mantine-spacing-sm);
   text-align: center;
+}
+.empty .actions {
+  justify-content: center;
+  margin-top: var(--mantine-spacing-sm);
+}
+.slot[data-primary] :global(.mantine-Button-root) {
+  background: var(--ws-studio-submit);
+  border-color: transparent;
+  color: var(--ws-studio-on-submit);
+}
+.slot[data-primary] :global(.mantine-Button-root:hover:not(:disabled)) {
+  background: var(--ws-studio-submit);
+  opacity: 0.9;
+}
+.slot[data-primary] :global(.mantine-Button-root:disabled),
+.slot[data-primary] :global(.mantine-Button-root[data-disabled]) {
+  opacity: 0.5;
 }

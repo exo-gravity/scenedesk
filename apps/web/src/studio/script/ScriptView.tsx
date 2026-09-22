@@ -154,12 +154,14 @@ export function ScriptView({
           </header>
         ) : (
           <div className={classes.empty}>
-            <Text fw={600}>导入你的初稿剧本</Text>
+            <Text size="md" fw={600}>
+              导入你的初稿剧本
+            </Text>
             <Text size="sm" c="dimmed">
               把已确定的剧本带到这里，与项目成员一起阅读，再带着原文进入创作台。
             </Text>
             <div className={classes.actions}>
-              <div ref={setWordAction} className={classes.slot} />
+              <div ref={setWordAction} className={classes.slot} data-primary />
               <div ref={setFeishuAction} className={classes.slot} />
             </div>
             <Text size="xs" c="dimmed">
