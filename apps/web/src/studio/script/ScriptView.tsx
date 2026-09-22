@@ -10,6 +10,10 @@ import { ScriptCanvasExcerpt } from "../../business/ScriptCanvasExcerpt";
 import { selectedDocumentQuote } from "../../business/script-excerpt-selection";
 import classes from "./script.module.css";
 
+/** When a revision was imported, as short as the history list needs. */
+const importedAt = (iso: string) =>
+  new Date(iso).toLocaleString("zh-CN", { hour12: false, month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
 /**
  * The script view: import a manuscript (Word or Feishu), read the current
  * one or a fixed earlier one, and take a selection onto the board as a fixed
@@ -87,27 +91,10 @@ export function ScriptView({
         {selectedId ? (
           <header className={classes.toolbar}>
             <div className={classes.meta}>
-              <span className={classes.badge} data-historical={historical || undefined}>
-                {historical ? "历史稿 · 只读" : "当前稿"}
-                {listed && ` · ${listed.source ? "飞书导入" : listed.sourceFormat === "docx" ? "Word 导入" : "纯文本"}`}
-              </span>
-              {listed?.fileName && (
-                <span className={classes.file}>
-                  {listed.fileName}
-                  {listed.createdAt ? ` · ${new Date(listed.createdAt).toLocaleDateString()}` : ""}
-                </span>
-              )}
-            </div>
-            <div className={classes.actions}>
-              {historical && (
-                <UnstyledButton className={classes.pill} onClick={() => goTo(null)}>
-                  返回当前稿
-                </UnstyledButton>
-              )}
               <Select
                 aria-label="查阅历史剧本"
                 variant="unstyled"
-                classNames={{ input: classes.history!, root: classes.historyRoot! }}
+                classNames={{ input: classes.history!, root: classes.historyRoot!, option: classes.option! }}
                 leftSection={<ClockCounterClockwise size={14} aria-hidden />}
                 value={selectedId}
                 allowDeselect={false}
@@ -116,9 +103,33 @@ export function ScriptView({
                   .sort((a, b) => b.number - a.number)
                   .map((script) => ({
                     value: script.id,
-                    label: `第 ${script.number} 稿 · ${script.createdAt ? new Date(script.createdAt).toLocaleString() : "导入时间未记录"}${script.id === tree.currentScriptRevisionId ? " · 当前稿" : ""}`,
+                    label: `第 ${script.number} 稿${script.id === tree.currentScriptRevisionId ? " · 当前稿" : ""}`,
                   }))}
+                renderOption={({ option }) => {
+                  const script = scripts.data!.find((item) => item.id === option.value);
+                  return (
+                    <>
+                      <span>{option.label}</span>
+                      <span className={classes.optionTime}>{script?.createdAt ? importedAt(script.createdAt) : "导入时间未记录"}</span>
+                    </>
+                  );
+                }}
               />
+              {historical && (
+                <>
+                  <span className={classes.badge}>历史稿 · 只读</span>
+                  <UnstyledButton className={classes.pill} onClick={() => goTo(null)}>
+                    返回当前稿
+                  </UnstyledButton>
+                </>
+              )}
+              {listed && (
+                <span className={classes.file}>
+                  {listed.fileName ?? (listed.source ? "飞书导入" : "纯文本")}
+                </span>
+              )}
+            </div>
+            <div className={classes.actions}>
               <div ref={setWordAction} className={classes.slot} />
               <div ref={setFeishuAction} className={classes.slot} />
               <div ref={setExcerptAction} className={classes.slot} />
@@ -143,12 +154,14 @@ export function ScriptView({
           </header>
         ) : (
           <div className={classes.empty}>
-            <Text fw={600}>导入你的初稿剧本</Text>
+            <Text size="md" fw={600}>
+              导入你的初稿剧本
+            </Text>
             <Text size="sm" c="dimmed">
               把已确定的剧本带到这里，与项目成员一起阅读，再带着原文进入创作台。
             </Text>
             <div className={classes.actions}>
-              <div ref={setWordAction} className={classes.slot} />
+              <div ref={setWordAction} className={classes.slot} data-primary />
               <div ref={setFeishuAction} className={classes.slot} />
             </div>
             <Text size="xs" c="dimmed">

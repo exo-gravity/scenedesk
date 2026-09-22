@@ -3,7 +3,7 @@
   position: absolute;
   inset: 0;
   overflow: auto;
-  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-lg)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-xl)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
   background: var(--ws-studio-canvas);
   display: flex;
   flex-direction: column;

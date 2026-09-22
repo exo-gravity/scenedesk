@@ -4,14 +4,20 @@
   inset: 0;
   overflow: auto;
   background: var(--ws-studio-canvas);
-  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-lg)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+  padding: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-xl)) var(--mantine-spacing-lg) var(--mantine-spacing-xl);
 }
 .column {
   width: min(880px, 100%);
+  min-height: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-lg);
+}
+/* The import and excerpt components render their entries into the tool row and leave
+   an empty wrapper behind; it must not take a gap of its own. */
+.column > :empty {
+  display: none;
 }
 .center {
   position: absolute;
@@ -23,13 +29,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
   flex-wrap: wrap;
 }
-.meta {
+/* Left: which draft is open and where it came from. Right: what you can do with it.
+   Every control is a 32px pill of one family; the excerpt entry is the one dark one. */
+.meta,
+.actions {
   display: flex;
   align-items: center;
   gap: var(--mantine-spacing-sm);
+  flex-wrap: wrap;
   min-width: 0;
 }
 .badge {
@@ -38,15 +48,11 @@
   height: 24px;
   padding-inline: var(--mantine-spacing-sm);
   border-radius: var(--ws-radius);
-  background: var(--ws-hover);
-  font-size: var(--mantine-font-size-xs);
-  color: var(--ws-text);
-  white-space: nowrap;
-}
-.badge[data-historical] {
-  background: var(--ws-studio-chrome);
   border: 1px solid var(--ws-studio-chrome-border);
+  background: var(--ws-studio-chrome);
+  font-size: var(--mantine-font-size-xs);
   color: var(--ws-studio-card-label);
+  white-space: nowrap;
 }
 .file {
   font-size: var(--mantine-font-size-xs);
@@ -55,14 +61,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--mantine-spacing-sm);
-  flex-wrap: wrap;
-}
 .slot:empty {
   display: none;
+}
+.slot :global(.mantine-Button-root) {
+  height: 32px;
+  border-radius: var(--ws-tool-radius);
+}
+.slot :global(.mantine-Button-root:not([data-variant="filled"])) {
+  background: var(--ws-hover);
+  border-color: transparent;
+  color: var(--ws-text);
+}
+.slot :global(.mantine-Button-root:not([data-variant="filled"]):hover:not(:disabled)) {
+  background: var(--ws-studio-chrome-border);
 }
 .pill {
   display: inline-flex;
@@ -92,7 +104,7 @@
   color: var(--ws-text);
 }
 .historyRoot {
-  width: 300px;
+  width: 200px;
 }
 .history,
 .history:focus,
@@ -106,17 +118,61 @@
   font-size: var(--mantine-font-size-sm);
   color: var(--ws-text);
 }
+.history:hover {
+  background: var(--ws-studio-chrome-border);
+}
+/* A draft in the history list: its name, then when it was imported. */
+.option {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+}
+.optionTime {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+  font-variant-numeric: tabular-nums;
+}
+/* The paper: page margins around the manuscript, headings spaced like a printed script. */
 .paper {
   background: var(--ws-studio-card);
   border: 1px solid var(--ws-studio-card-border);
   border-radius: var(--ws-card-radius);
-  padding: var(--mantine-spacing-xl);
+  padding: calc(var(--mantine-spacing-xl) + var(--mantine-spacing-lg)) calc(2 * var(--mantine-spacing-xl)) calc(2 * var(--mantine-spacing-xl));
 }
+.paper h2 {
+  margin: 1.25em 0 0.25em;
+}
+.paper h2:first-child {
+  margin-top: 0;
+}
+.paper h2 + h2 {
+  margin-top: 0.5em;
+}
+/* No manuscript yet: one message and the import entries, centred in the view; Word is the primary. */
 .empty {
+  margin-block: auto;
+  align-self: center;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--mantine-spacing-md);
-  padding: var(--mantine-spacing-xl) 0;
+  gap: var(--mantine-spacing-sm);
   text-align: center;
+}
+.empty .actions {
+  justify-content: center;
+  margin-top: var(--mantine-spacing-sm);
+}
+.slot[data-primary] :global(.mantine-Button-root) {
+  background: var(--ws-studio-submit);
+  border-color: transparent;
+  color: var(--ws-studio-on-submit);
+}
+.slot[data-primary] :global(.mantine-Button-root:hover:not(:disabled)) {
+  background: var(--ws-studio-submit);
+  opacity: 0.9;
+}
+.slot[data-primary] :global(.mantine-Button-root:disabled),
+.slot[data-primary] :global(.mantine-Button-root[data-disabled]) {
+  opacity: 0.5;
 }

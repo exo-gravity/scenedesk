@@ -9,6 +9,9 @@ __pycache__/
 *.py[cod]
 .runtime/
 *.tsbuildinfo
+# Parallel checkouts (git worktree) and local recovery bundles.
+.wt/
+.backups/
 .playwright-cli/
 output/engineering/*.log
 output/playwright/
