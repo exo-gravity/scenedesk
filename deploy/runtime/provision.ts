@@ -4,6 +4,7 @@ import {
   grantRuntimeAccess,
   grantAuthAccess,
   grantMediaWorkerAccess,
+  grantGenerationWorkerAccess,
   sqlIdentifier,
 } from "@drama/database";
 import { installQueue, grantQueueAccess } from "@drama/queue";
@@ -28,6 +29,7 @@ try {
     "authRole",
     "mediaRole",
     "schedulerRole",
+    "generationRole",
     "authorizationOwner",
   ]);
   const roles = [
@@ -35,6 +37,7 @@ try {
     "authRole",
     "mediaRole",
     "schedulerRole",
+    "generationRole",
     "authorizationOwner",
   ].map((key) => field(config, key));
   roles.forEach(sqlIdentifier);
@@ -58,10 +61,12 @@ try {
   const sql = await connection.connect();
   try {
     await sql.query("BEGIN");
-    await hardenAuthorizationFunctions(sql, "drama", roles[4]!);
+    await hardenAuthorizationFunctions(sql, "drama", roles[5]!);
     await grantRuntimeAccess(sql, "drama", roles[0]!);
     await grantAuthAccess(sql, "drama", roles[1]!);
     await grantMediaWorkerAccess(sql, "drama", roles[2]!, roles[3]!);
+    await grantGenerationWorkerAccess(sql, "drama", roles[4]!);
+    await grantQueueAccess(sql, "scenedesk_queue", roles[4]!, roles[3]!);
     await grantQueueAccess(sql, "scenedesk_queue", roles[0]!, roles[3]!);
     await grantQueueAccess(sql, "scenedesk_queue", roles[2]!, roles[3]!);
     await sql.query("COMMIT");

@@ -4,5 +4,6 @@
   "authRole": "scenedesk_auth",
   "mediaRole": "scenedesk_media",
   "schedulerRole": "scenedesk_scheduler",
+  "generationRole": "scenedesk_generation",
   "authorizationOwner": "scenedesk_authorization"
 }
