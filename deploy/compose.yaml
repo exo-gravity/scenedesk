@@ -83,10 +83,34 @@ services:
       timeout: 15s
       start_period: 30s
       retries: 3
+  generation-worker:
+    profiles: [generation]
+    image: scenedesk-private-generation:${SCENEDESK_IMAGE_TAG:-local}
+    build: { context: .., dockerfile: deploy/Dockerfile, target: generation-worker }
+    init: true
+    read_only: true
+    restart: "no"
+    stop_grace_period: 200s
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      PROVIDER_MODE: verified
+      TMPDIR: /tmp/generation
+    tmpfs: ["/tmp/generation:rw,noexec,nosuid,size=512m,mode=0700,uid=1000"]
+    secrets:
+      - { source: generation_config, target: config.json }
+    networks: [application]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4314/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 15s
+      start_period: 30s
+      retries: 3
 secrets:
   provision_config: { file: "${SCENEDESK_PROVISION_CONFIG:-/dev/null}" }
   api_config: { file: "${SCENEDESK_API_CONFIG:?set absolute path to private API JSON}" }
   worker_config: { file: "${SCENEDESK_WORKER_CONFIG:?set absolute path to private worker JSON}" }
+  generation_config: { file: "${SCENEDESK_GENERATION_CONFIG:-/dev/null}" }
   tls_certificate: { file: "${SCENEDESK_TLS_CERTIFICATE:?set certificate chain PEM path}" }
   tls_private_key: { file: "${SCENEDESK_TLS_PRIVATE_KEY:?set private key PEM path}" }
 networks:

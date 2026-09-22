@@ -263,7 +263,7 @@ export function diagnostic(error: unknown, stage: string) {
         error instanceof DeploymentError || error instanceof MediaFailure
           ? error.code
           : "DEPENDENCY_CHECK_FAILED",
-      paidProvidersEnabled: false,
+      paidProvidersEnabled: process.env.PROVIDER_MODE === "verified",
     }),
   );
 }

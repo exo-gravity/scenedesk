@@ -28,10 +28,11 @@ export async function readGenerationAudit(sql: PoolClient, schema = "drama") {
 
 export function requireGenerationAudit(
   report: Awaited<ReturnType<typeof readGenerationAudit>>,
+  options: { executorConfigured?: boolean } = {},
 ) {
   if (report.missing_archive_sources)
     throw new DeploymentError("GENERATION_ARCHIVE_SOURCE_MISSING");
-  if (report.executor_required_jobs)
+  if (report.executor_required_jobs && !options.executorConfigured)
     throw new DeploymentError("GENERATION_EXECUTOR_UNAVAILABLE");
 }
 

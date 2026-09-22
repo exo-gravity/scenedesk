@@ -64,6 +64,12 @@ test("verified runtime: Seedance job with a reference image is accepted, polled,
       capabilityDefinition(findProfile("volcengine/doubao-seedance-2-0-mini-260615")!, "reference_v1", { verifiedAt: new Date().toISOString() }),
     ],
   );
+  // The production executor learns provisioned verified connections through this worker-only
+  // function rather than reading the tenant-scoped generation_capabilities table directly.
+  const verifiedConnections = await f.generationDb.query(
+    `SELECT ${f.scope}.list_verified_connection_versions()::text AS id`,
+  );
+  assert.ok(verifiedConnections.rows.some((row) => row.id === connectionVersionId));
   // Seed one ready reference image, following the upload_intents + media pattern used by
   // tests/integration/canvas-assistance-replies.test.ts, but sized to satisfy the profile's
   // 300px minimum side so read_generation_media_sources' real body actually runs.

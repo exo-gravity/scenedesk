@@ -122,13 +122,15 @@ type ModelProfile = {
 
 `accountTier` 只决定 Seedance 能力行的 `max_inflight`（personal 3，enterprise 8）。
 
-**能力条目**：`scripts/provision-verified-capabilities.ts --config generation.json --tenant <id>`，对每条档案的每个模式，按 `(tenant_id, definition->>'modelVersion', definition->>'mode')` 幂等写入或按 `revision+1` 更新 `definition`，`execution_mode='verified_provider'`，`enabled=false`，`max_inflight` 取档案值且不超过 8，`max_daily_jobs` 默认 200。开启由操作者用同一脚本 `--enable <modelVersion>` 完成，只在 MV 通过后。
+**能力条目**：`scripts/provision-verified-capabilities.ts --config generation.json --tenant <id>`，对每条档案的每个模式，按 `(tenant_id, definition->>'modelVersion', definition->>'mode')` 幂等写入或按 `revision+1` 更新 `definition`，`execution_mode='verified_provider'`，`enabled=false`，`max_inflight` 取档案值且不超过 8，`max_daily_jobs` 默认 200。开启由操作者用同一脚本 `--enable <modelVersion>` 完成，只在 MV 通过后。（Task 14 核实）`generation_capabilities` 行在数据库层是不可变身份，除 `enabled` 外的列不可更新；开通脚本据此在 `definition` 变化时发布新的 `revision+1` 行并把旧行 `enabled` 置为 false，不做原地更新。
 
-**数据库改动（一条迁移 + 角色）**：
+**数据库改动（三条迁移 + 角色）**：
 
 - 替换 `finish_generation_output`：把 `p.execution_mode<>'test_fixture'` 的拒绝改为 `execution_mode NOT IN ('test_fixture','verified_provider')`，其余校验原样保留。
 - 替换 `claim_generation_observation`：租约从 60 秒改为 180 秒，配合 §6 的下载时限。
-- `roles.ts`：生成执行器角色增加 `SELECT (id, tenant_id, kind, status, mime, bytes, sha256, immutable_key, storage_version_id, width, height) ON media`。
+- 新增 SECURITY DEFINER 函数 `read_generation_media_sources(jobId)`：只返回该 job 所属计划已引用、租户匹配、状态为 `ready` 的原始媒体行（id、kind、mime、bytes、sha256、width、height、object），执行器不直接读 `media` 表；`roles.ts` 的 `generationFunctions` 追加该函数签名。
+- （Task 14 核实）`0118_verified_media_plan_source.sql`：计划来源触发器 `guard_generation_plan_source` 放行 `verified_provider` 能力（`mode` 为 `frames_v1` 或 `reference_v1`），任何 verified 计划要到达 `ready` 都依赖这一条。
+- （Task 14 核实）`0119_verified_connection_versions.sql`：新增 SECURITY DEFINER 函数 `list_verified_connection_versions()`，供执行器的启动自检使用；同样注册在 `roles.ts` 的 `generationFunctions`。
 
 **API 改动**：`media-input.ts` 的门禁改为：`test_fixture` 要求 `mode = <kind>_fixture_v1`；`verified_provider` 要求 `mode ∈ {frames_v1, reference_v1}` 且 `modelVersion` 在档案表里。`model.ts` 的估计改为调用 `estimateCost`，找不到档案时按现状返回阻断。
 
@@ -187,7 +189,7 @@ type ModelProfile = {
 - `deploy/compose.yaml` 增加 `generation-worker` 服务，`profiles: [generation]`，镜像目标复用 worker 镜像，入口 `generation-verified`，密钥文件 `generation.json`，与媒体 worker 相同的网络与 TMPDIR 约定。
 - `deploy/runtime/config.ts`：新增 `generationConfiguration()`；`PROVIDER_MODE` 合法值改为 `mock | verified`；`apps/api/src/main.ts` 与 `apps/worker/src/main.ts` 的同名门禁同步。
 - 部署审计 `requireGenerationAudit`：增加参数 `executorConfigured`，为真时 `executor_required_jobs > 0` 不再报错。
-- 生成执行器的启动自检：配置齐全、两家 `baseUrl` 为 HTTPS、`connections` 的 UUID 在能力表里至少出现一次；不做任何厂商调用。
+- 生成执行器的启动自检：配置齐全、两家 `baseUrl` 为 HTTPS、`connections` 的 UUID 在能力表里至少出现一次；不做任何厂商调用。（Task 14 核实）该自检通过 SECURITY DEFINER 函数 `list_verified_connection_versions()` 读取已存在的连接版本 ID 集合，不直接查询 `generation_capabilities` 表。
 
 ## 11. 测试与验收
 

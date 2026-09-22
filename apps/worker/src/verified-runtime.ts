@@ -7,7 +7,7 @@ import { createAssistanceWorker } from "../../api/src/modules/generation/worker.
 
 export async function createVerifiedGenerationRuntime(options: {
   pool: Pool; schema: string; queueSchema?: string; config: GenerationVendors; store: MediaStore; tmpdir: string;
-  fetch?: typeof fetch; onError?: (stage: string) => void;
+  fetch?: typeof fetch; onError?: (stage: string) => void; onScan?: (outcome: "ok" | "failed") => void;
 }) {
   const scope = sqlIdentifier(options.schema);
   const resolveMedia = async (jobId: string): Promise<ResolvedMedia[]> =>
@@ -22,7 +22,10 @@ export async function createVerifiedGenerationRuntime(options: {
   const scanOnce = () => worker.scan().then(() => undefined);
   function tick(intervalMs: number) {
     if (closing) return;
-    active = scanOnce().catch(() => options.onError?.("scan")).finally(() => { if (!closing) timer = setTimeout(() => tick(intervalMs), intervalMs); });
+    active = scanOnce()
+      .then(() => { options.onScan?.("ok"); })
+      .catch(() => { options.onError?.("scan"); options.onScan?.("failed"); })
+      .finally(() => { if (!closing) timer = setTimeout(() => tick(intervalMs), intervalMs); });
   }
   return {
     scanOnce,

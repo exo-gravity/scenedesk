@@ -42,6 +42,16 @@ test("deployment audit preserves existing generation facts and distinguishes exe
         () => requireGenerationAudit(report),
         /GENERATION_EXECUTOR_UNAVAILABLE/,
       );
+      assert.doesNotThrow(() =>
+        requireGenerationAudit(
+          { ...report, executor_required_jobs: 1 },
+          { executorConfigured: true },
+        ),
+      );
+      assert.throws(
+        () => requireGenerationAudit({ ...report, executor_required_jobs: 1 }),
+        /GENERATION_EXECUTOR_UNAVAILABLE/,
+      );
       assert.deepEqual(await f.job(jobId), before);
       assert.equal(f.calls(), 0);
     },
