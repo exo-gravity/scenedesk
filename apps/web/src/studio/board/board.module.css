@@ -1,0 +1,341 @@
+/* The board and its cards. Colours and sizes are `--ws-studio-*` roles; React
+   Flow's own variables are pointed at the same roles so its selection box,
+   edges and handles belong to the same surface. */
+.board {
+  position: absolute;
+  inset: 0;
+  outline: none;
+  --xy-background-pattern-dots-color-default: var(--ws-studio-dot);
+  --xy-selection-background-color-default: color-mix(
+    in srgb,
+    var(--ws-focus) 8%,
+    transparent
+  );
+  --xy-selection-border-default: 1px solid var(--ws-focus);
+  --xy-edge-stroke-default: var(--ws-studio-card-selected);
+  --xy-edge-stroke-selected-default: var(--ws-focus);
+  --xy-edge-stroke-width-default: 1.5;
+  --xy-handle-background-color-default: var(--ws-studio-card);
+}
+.board[data-tool="hand"] :global(.react-flow__pane) {
+  cursor: grab;
+}
+.board :global(.react-flow__pane:active) {
+  cursor: grabbing;
+}
+.dots {
+  background: var(--ws-studio-canvas);
+}
+.error {
+  position: absolute;
+  top: calc(var(--ws-studio-topbar-height) + var(--mantine-spacing-sm));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  width: min(480px, calc(100% - 2 * var(--mantine-spacing-lg)));
+}
+.edgeDisabled {
+  opacity: 0.35;
+}
+/* Keyboard focus is its own ring, distinct from selection. */
+.board :global(.react-flow__node) {
+  outline: none;
+}
+.board :global(.react-flow__node:focus-visible) > .card > .body {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
+}
+.menuAnchor {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.kbd {
+  font-family: inherit;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+}
+
+/* Card: label outside, body below. Width comes from the node; height follows. */
+.card {
+  position: relative;
+  width: 100%;
+}
+.label {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: 22px;
+  padding-bottom: 2px;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+  white-space: nowrap;
+  cursor: default;
+}
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.group {
+  margin-left: auto;
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--ws-radius);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+}
+.renameRoot {
+  flex: 1;
+  min-width: 0;
+}
+.renameInput {
+  min-height: 20px;
+  height: 20px;
+  line-height: 20px;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-text);
+  background: var(--ws-studio-card);
+  border-radius: var(--ws-radius);
+  padding-inline: var(--mantine-spacing-xs);
+}
+.body {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 96px;
+  overflow: hidden;
+  background: var(--ws-studio-card);
+  border: 1px solid var(--ws-studio-card-border);
+  border-radius: var(--ws-card-radius);
+  color: var(--ws-text);
+  transition: border-color 120ms ease;
+}
+.card[data-selected] > .body {
+  border-color: var(--ws-studio-card-selected);
+}
+.card[data-kind="text"] > .body {
+  min-height: 120px;
+}
+.card[data-kind="audio"][data-content="draft"] > .body {
+  min-height: 96px;
+}
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-xs);
+  color: var(--ws-studio-placeholder);
+}
+.card[data-kind="text"] .placeholder {
+  position: static;
+  min-height: 120px;
+}
+.placeholder[data-tone="failed"] {
+  color: var(--ws-danger);
+}
+.text {
+  padding: var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.card[data-content="excerpt"] > .body {
+  background: var(--ws-studio-chrome);
+}
+.textRoot {
+  display: block;
+  min-height: 120px;
+}
+/* The field is the card body itself: no second frame, no second focus ring. */
+.textInput,
+.textInput:focus,
+.textInput:focus-visible,
+.textInput:focus-within {
+  min-height: 120px;
+  padding: var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.6;
+  color: var(--ws-text);
+  background: transparent;
+  border: none;
+  border-radius: inherit;
+  box-shadow: none;
+  outline: none;
+}
+.media {
+  position: relative;
+  width: 100%;
+  background: var(--ws-media);
+}
+.media :global(img),
+.media :global(video) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.playBadge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ws-studio-card);
+  pointer-events: none;
+}
+.audio {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  min-height: 96px;
+  padding: var(--mantine-spacing-md);
+  color: var(--ws-studio-card-label);
+}
+/* Ports: small rings on the side midpoints, shown while the card is selected
+   or hovered, and on every draft while a reference is being dragged. */
+.card .port {
+  width: var(--ws-studio-port-size);
+  height: var(--ws-studio-port-size);
+  border-radius: var(--ws-round-radius);
+  background: var(--ws-studio-card);
+  border: 1.5px solid var(--ws-studio-card-selected);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.card[data-selected] .port,
+.card:hover .port,
+.board[data-connecting] .card[data-content="draft"] .port {
+  opacity: 1;
+}
+.board[data-connecting] .card[data-content="draft"] .port {
+  border-color: var(--ws-focus);
+}
+.board {
+  --xy-connectionline-stroke-default: var(--ws-focus);
+  --xy-connectionline-stroke-width-default: 1.5;
+}
+.board :global(.react-flow__edge.selected .react-flow__edge-path),
+.board :global(.react-flow__edge:focus-visible .react-flow__edge-path) {
+  stroke: var(--ws-focus);
+  stroke-width: 2;
+}
+.edgeDisabled :global(.react-flow__edge-path) {
+  stroke-dasharray: 4 4;
+}
+/* Purpose badges: over the frame of a referenced media card, in the label
+   row of a text card so they never sit on the words. */
+.badges {
+  display: inline-flex;
+  gap: var(--mantine-spacing-xs);
+  pointer-events: none;
+}
+.body > .badges {
+  position: absolute;
+  top: var(--mantine-spacing-xs);
+  left: var(--mantine-spacing-xs);
+  z-index: 1;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--ws-radius);
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1;
+  background: color-mix(in srgb, var(--ws-media) 72%, transparent);
+  color: var(--ws-studio-card);
+}
+.card[data-kind="text"] .badge {
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  color: var(--ws-studio-card-label);
+}
+.badge[data-tone="disabled"] {
+  opacity: 0.6;
+}
+.badge[data-tone="failed"],
+.badge[data-tone="missing"] {
+  background: var(--ws-danger);
+  color: var(--ws-studio-card);
+}
+.badge[data-tone="archived"],
+.badge[data-tone="pending"] {
+  background: var(--ws-warning);
+  color: var(--ws-studio-card);
+}
+/* The ⊕ beside a selected source: continue from it. Screen-sized, not zoomed. */
+.continueToolbar {
+  display: flex;
+  align-items: center;
+}
+.plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ws-round-radius);
+  background: var(--ws-studio-chrome);
+  border: 1.5px solid var(--ws-studio-card-selected);
+  color: var(--ws-text);
+  box-shadow: var(--ws-studio-shadow);
+}
+.plus:hover {
+  background: var(--ws-hover);
+}
+/* Width handle at the text card's corner. */
+.card .resize {
+  width: 18px;
+  height: 18px;
+  right: 2px;
+  bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--ws-studio-card-label);
+  cursor: ew-resize;
+}
+/* The newest attempt's state, bottom-left inside the frame. */
+.task {
+  position: absolute;
+  left: var(--mantine-spacing-xs);
+  bottom: var(--mantine-spacing-xs);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--ws-radius);
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1;
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  color: var(--ws-studio-card-label);
+  pointer-events: none;
+}
+.task[data-tone="failed"] {
+  color: var(--ws-danger);
+  border-color: var(--ws-danger);
+}
+/* A file being imported: a temporary card at its drop point. */
+.upload {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--mantine-spacing-md);
+  background: var(--ws-studio-card);
+  border: 1px dashed var(--ws-studio-card-selected);
+  border-radius: var(--ws-card-radius);
+  color: var(--ws-text);
+}

@@ -522,3 +522,7 @@
   padding: 0;
   overflow: hidden;
 }
+/* The studio owns the viewport; this wrapper only routes link clicks through the leave guard. */
+.studioHost {
+  display: contents;
+}

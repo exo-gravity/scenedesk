@@ -62,6 +62,7 @@ import {
 import { Projects } from "./Projects";
 import { ProjectNavigation, projectSections } from "./ProjectNavigation";
 const ProjectCanvasEntry = lazy(() => import("./ProjectCanvasEntry"));
+const StudioEntry = lazy(() => import("../studio/StudioEntry"));
 import {
   clearUserEditing,
   suspendEditingAccess,
@@ -387,6 +388,7 @@ function Workspace({
   const projectId = segments[4] === "p" ? segments[5] : undefined;
   const production = !!projectId && segments[6] === "production";
   const projectSection = segments[6];
+  const studioView = !!projectId && projectSection === "studio";
   const assetDetail =
     (projectSection === "assets" || (!projectId && segments[4] === "assets")) &&
     new URLSearchParams(hash.split("?")[1]).has("asset");
@@ -491,6 +493,49 @@ function Workspace({
       </Stack>
     );
   if (hash.startsWith("#/invitation")) return <Invitation hash={hash} />;
+  // In-app links go through the active workspace's leave guard, which
+  // retains drafts before the address changes.
+  const guardLinkClick = (event: React.MouseEvent) => {
+    if (
+      !navigationGuard.current ||
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    const anchor = (event.target as Element).closest<HTMLAnchorElement>(
+      'a[href^="#"]',
+    );
+    const destination = anchor?.getAttribute("href");
+    if (
+      !destination ||
+      anchor?.target === "_blank" ||
+      destination === location.hash
+    )
+      return;
+    event.preventDefault();
+    void navigationGuard.current(destination).catch(() => {});
+  };
+  // The rebuilt creative workspace owns the whole viewport: no studio rail,
+  // context header or project navigation (see docs/design/creative-workspace-rebuild-libtv-2026-09-21.md §4).
+  if (tenantId && projectId && studioView)
+    return (
+      <div className={classes.studioHost} onClickCapture={guardLinkClick}>
+        <ProjectUpdates tenantId={tenantId} projectId={projectId}>
+          <TenantArea
+            key={tenantId}
+            tenantId={tenantId}
+            projectId={projectId}
+            projectSection={projectSection}
+            studioView
+            environment={environment}
+          />
+        </ProjectUpdates>
+      </div>
+    );
   return (
     <>
       <div
@@ -500,30 +545,7 @@ function Workspace({
           (production && params.has("scene")) ||
           undefined
         }
-        onClickCapture={(event) => {
-          if (
-            !navigationGuard.current ||
-            event.defaultPrevented ||
-            event.button !== 0 ||
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey
-          )
-            return;
-          const anchor = (event.target as Element).closest<HTMLAnchorElement>(
-            'a[href^="#"]',
-          );
-          const destination = anchor?.getAttribute("href");
-          if (
-            !destination ||
-            anchor?.target === "_blank" ||
-            destination === location.hash
-          )
-            return;
-          event.preventDefault();
-          void navigationGuard.current(destination).catch(() => {});
-        }}
+        onClickCapture={guardLinkClick}
         data-production={production || undefined}
         data-scene-production={(production && params.has("scene")) || undefined}
         data-project={projectDirectory || undefined}
@@ -754,6 +776,8 @@ function TenantArea({
   assetView,
   productionView,
   projectSection,
+  studioView,
+  environment,
 }: {
   tenantId: string;
   section?: string | undefined;
@@ -764,6 +788,8 @@ function TenantArea({
   assetView?: boolean | undefined;
   productionView?: boolean | undefined;
   projectSection?: string | undefined;
+  studioView?: boolean | undefined;
+  environment?: string | undefined;
 }) {
   const session = useSession();
   const members = useList<Schema<"Membership">>(
@@ -777,6 +803,16 @@ function TenantArea({
     );
   if (!own || own.status !== "active")
     return <Empty>你已没有这个工作室的访问权限。</Empty>;
+  if (projectId && studioView)
+    return (
+      <Suspense fallback={<Loader aria-label="正在加载创作台" />}>
+        <StudioEntry
+          tenantId={tenantId}
+          projectId={projectId}
+          environment={environment}
+        />
+      </Suspense>
+    );
   if (projectId && projectSection === "canvas")
     return (
       <Suspense fallback={<Loader aria-label="正在加载画布入口" />}>

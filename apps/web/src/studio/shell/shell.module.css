@@ -1,0 +1,127 @@
+/* Floating chrome of the board: the bottom toolbar and the zoom corner. */
+.toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: var(--mantine-spacing-md);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--ws-studio-toolbar-height);
+  padding-inline: var(--mantine-spacing-xs);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  border-radius: var(--ws-floating-radius);
+  box-shadow: var(--ws-studio-shadow);
+  z-index: 4;
+}
+.tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ws-studio-tool-size);
+  height: var(--ws-studio-tool-size);
+  border-radius: var(--ws-tool-radius);
+  color: var(--ws-text);
+}
+.tool:not(:disabled):hover,
+.tool[aria-pressed="true"] {
+  background: var(--ws-hover);
+}
+.tool:disabled {
+  color: var(--ws-studio-placeholder);
+}
+.add {
+  background: var(--ws-studio-submit);
+  color: var(--ws-studio-on-submit);
+}
+.add:not(:disabled):hover {
+  background: var(--ws-studio-submit);
+  opacity: 0.9;
+}
+.add:disabled {
+  color: var(--ws-studio-on-submit);
+  opacity: 0.4;
+}
+.separator {
+  width: 1px;
+  height: 20px;
+  margin-inline: var(--mantine-spacing-xs);
+  background: var(--ws-studio-chrome-border);
+}
+.corner {
+  position: absolute;
+  left: var(--mantine-spacing-md);
+  bottom: var(--mantine-spacing-md);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--ws-studio-toolbar-height);
+  padding-inline: var(--mantine-spacing-xs);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-studio-chrome-border);
+  border-radius: var(--ws-floating-radius);
+  box-shadow: var(--ws-studio-shadow);
+  z-index: 4;
+}
+.zoom {
+  height: var(--ws-studio-tool-size);
+  min-width: 56px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  font-size: var(--mantine-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.zoom:hover {
+  background: var(--ws-hover);
+}
+.kbd {
+  font-family: inherit;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+}
+/* Shortcuts overview. */
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(200px, 1fr));
+  gap: var(--mantine-spacing-xl);
+}
+.shortcutGroup {
+  min-width: 0;
+}
+.shortcutTitle {
+  margin: 0 0 var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--ws-focus);
+}
+.shortcutList {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+}
+.shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+}
+.shortcut dt {
+  color: var(--ws-text);
+}
+.shortcut dd {
+  margin: 0;
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+}
+.shortcut .kbd {
+  min-width: 24px;
+  padding: 2px var(--mantine-spacing-xs);
+  border-radius: var(--ws-radius);
+  background: var(--ws-hover);
+  color: var(--ws-text);
+  text-align: center;
+}

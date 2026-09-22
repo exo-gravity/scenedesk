@@ -25,7 +25,7 @@ export const tokens = {
   focus: "#B3CDF8",
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
   control: { compact: 28, default: 32, form: 36 },
-  radius: { control: 6, content: 8 },
+  radius: { control: 6, content: 8, round: "50%" },
   font: {
     family:
       '-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif',
@@ -37,6 +37,22 @@ export const tokens = {
     heading: 21,
   },
   shadow: "0 12px 32px rgb(0 0 0 / 28%)",
+} as const;
+
+/**
+ * Structural sizes of the rebuilt creative workspace (`apps/web/src/studio/`).
+ * They follow LibTV's density where the shared scale has no value of its own;
+ * every colour the studio uses comes from the palette (see `theme.ts`).
+ */
+export const studio = {
+  topbarHeight: 48,
+  toolbarHeight: 48,
+  toolSize: 36,
+  composerWidth: 660,
+  referenceSize: 48,
+  portSize: 10,
+  dotSize: 1.5,
+  dotGap: 20,
 } as const;
 
 export const semanticVariables = {
@@ -65,6 +81,7 @@ export const semanticVariables = {
   "--ws-control-form": `${tokens.control.form}px`,
   "--ws-radius": `${tokens.radius.control}px`,
   "--ws-card-radius": `${tokens.radius.content}px`,
+  "--ws-round-radius": tokens.radius.round,
   "--ws-media-radius": sharedSurfaces.mediaRadius,
   "--ws-tool-radius": sharedSurfaces.toolRadius,
   "--ws-floating-radius": sharedSurfaces.floatingRadius,
@@ -72,4 +89,12 @@ export const semanticVariables = {
   "--ws-display-size": `${tokens.font.display}px`,
   "--ws-heading-size": `${tokens.font.heading}px`,
   "--ws-reading-size": `${tokens.font.reading}px`,
+  "--ws-studio-topbar-height": `${studio.topbarHeight}px`,
+  "--ws-studio-toolbar-height": `${studio.toolbarHeight}px`,
+  "--ws-studio-tool-size": `${studio.toolSize}px`,
+  "--ws-studio-composer-width": `${studio.composerWidth}px`,
+  "--ws-studio-reference-size": `${studio.referenceSize}px`,
+  "--ws-studio-port-size": `${studio.portSize}px`,
+  "--ws-studio-dot-size": `${studio.dotSize}px`,
+  "--ws-studio-dot-gap": `${studio.dotGap}px`,
 } as const;

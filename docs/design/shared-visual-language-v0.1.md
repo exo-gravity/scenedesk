@@ -64,3 +64,26 @@
 - LibTV：用户截图，见[既有证据记录](../research/2026-09-09-scene-canvas-interactions.md)。借鉴白灰分层和完整媒体，不照搬长工具栏或常驻空侧栏。
 - [预览页面](../../apps/web/src/pages/SharedLanguagePrototype.tsx)、[隔离色阶](../../apps/web/src/theme/shared-language-study.ts)、[样式](../../apps/web/src/pages/shared-language-prototype.module.css)。
 - [上一轮三方向](visual-directions-review-v0.1.md)保留为历史探索，已确认内容以本稿为准。
+
+## 6. 创作台变量（2026-09-21）
+
+核心创作区重建（[决定](creative-workspace-rebuild-libtv-2026-09-21.md) §8）沿用本文的颜色与字体阶梯，结构、密度与交互照 LibTV。凡共享尺度没有对应值的数值，加 `--ws-studio-*` 变量而不是写死在样式里；颜色角色只是把现有调色板放进 LibTV 的位置，日后若要换一套外观，只改这组值。
+
+| 变量 | 值 | 用途 |
+|---|---|---|
+| `--ws-studio-topbar-height` | 48px | 顶栏 |
+| `--ws-studio-toolbar-height` | 48px | 底部工具条 |
+| `--ws-studio-tool-size` | 36px | 顶栏胶囊与工具按钮高度 |
+| `--ws-studio-composer-width` | 660px | 输入面板宽度 |
+| `--ws-studio-reference-size` | 48px | 参考缩略图 |
+| `--ws-studio-port-size` | 10px | 卡片端口 |
+| `--ws-studio-dot-size`、`--ws-studio-dot-gap` | 1.5px、20px | 点阵背景 |
+| `--ws-studio-canvas`、`--ws-studio-dot` | canvas、dot | 创作台底色与点 |
+| `--ws-studio-chrome`、`--ws-studio-chrome-border` | surface、line | 顶栏胶囊、工具条、面板 |
+| `--ws-studio-card`、`--ws-studio-card-border`、`--ws-studio-card-selected` | surface、line、selection | 卡片本体、细边、选中边 |
+| `--ws-studio-card-label` | secondary | 卡外标题、未选中的视图名 |
+| `--ws-studio-placeholder` | field | 空卡居中的浅灰图标 |
+| `--ws-studio-submit`、`--ws-studio-on-submit` | action、onAction | 圆形提交按钮 |
+| `--ws-studio-shadow` | shadow | 浮层阴影 |
+
+尺寸在 `apps/web/src/theme/tokens.ts` 的 `studio`，颜色映射在 `theme.ts` 的 `scheme()`，浅深各一组；浅色为准，深色只保证可读不坏。分片记录见[85](../implementation/85-studio-rebuild.md)。

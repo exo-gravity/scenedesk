@@ -1,0 +1,340 @@
+/* The input panel under a selected draft: white, one thin edge, a light
+   shadow, screen-sized (it does not zoom with the board). */
+.panel {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  width: var(--ws-studio-composer-width);
+  padding: var(--mantine-spacing-md);
+  background: var(--ws-studio-card);
+  border: 1px solid var(--ws-studio-card-border);
+  border-radius: var(--ws-floating-radius);
+  box-shadow: var(--ws-studio-shadow);
+  color: var(--ws-text);
+}
+.panel[data-docked] {
+  left: var(--mantine-spacing-md);
+  bottom: calc(var(--ws-studio-toolbar-height) + 2 * var(--mantine-spacing-md));
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  min-width: 0;
+}
+.row[data-align="end"] {
+  justify-content: flex-end;
+}
+/* Pills: "＋参考", the model, the specification. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: 28px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-hover);
+  color: var(--ws-text);
+  font-size: var(--mantine-font-size-xs);
+  white-space: nowrap;
+  max-width: 320px;
+}
+.pill > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill:not(:disabled):hover {
+  background: var(--ws-studio-chrome-border);
+}
+.pill:disabled {
+  color: var(--ws-studio-card-label);
+}
+.pill[data-quiet] {
+  background: transparent;
+  border: 1px solid var(--ws-studio-chrome-border);
+}
+/* Reference thumbnails with a purpose tag in the corner. */
+.references {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+}
+.reference {
+  position: relative;
+  width: var(--ws-studio-reference-size);
+  height: var(--ws-studio-reference-size);
+  border-radius: var(--ws-radius);
+  overflow: hidden;
+  background: var(--ws-hover);
+  color: var(--ws-studio-card-label);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reference[data-tone="disabled"] {
+  opacity: 0.5;
+}
+.reference :global(img),
+.reference :global(video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.referenceTag {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  padding: 0 4px;
+  border-radius: var(--ws-radius);
+  font-size: var(--mantine-font-size-xs);
+  line-height: 16px;
+  background: color-mix(in srgb, var(--ws-media) 72%, transparent);
+  color: var(--ws-studio-card);
+  pointer-events: none;
+}
+.referenceTag[data-tone="failed"],
+.referenceTag[data-tone="missing"] {
+  background: var(--ws-danger);
+}
+.referenceTag[data-tone="archived"],
+.referenceTag[data-tone="pending"] {
+  background: var(--ws-warning);
+}
+/* The prompt: large text, no field chrome. */
+.prompt,
+.prompt:focus,
+.prompt:focus-visible,
+.prompt:focus-within {
+  min-height: 56px;
+  padding: 0;
+  font-size: var(--ws-reading-size);
+  line-height: 1.6;
+  color: var(--ws-text);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+.promptRoot {
+  display: block;
+}
+.promptFrozen {
+  min-height: 56px;
+  font-size: var(--ws-reading-size);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* Bottom row: model, specification, status, the round submit. */
+.bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+.status {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status[data-tone="error"] {
+  color: var(--ws-danger);
+}
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ws-round-radius);
+  background: var(--ws-studio-submit);
+  color: var(--ws-studio-on-submit);
+  flex: none;
+}
+.submit:disabled {
+  opacity: 0.35;
+}
+.action {
+  height: 28px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  background: var(--ws-studio-submit);
+  color: var(--ws-studio-on-submit);
+  font-size: var(--mantine-font-size-xs);
+  white-space: nowrap;
+}
+.action:disabled {
+  opacity: 0.35;
+}
+.action[data-quiet] {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+}
+/* Model list rows. */
+.models {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 260px;
+}
+.model {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  height: 40px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-radius: var(--ws-tool-radius);
+  color: var(--ws-text);
+  text-align: left;
+}
+.model:hover,
+.model[aria-selected="true"] {
+  background: var(--ws-hover);
+}
+.modelName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--mantine-font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.modelStatus {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+}
+.empty {
+  padding: var(--mantine-spacing-sm);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--ws-studio-card-label);
+}
+/* Specification popover. */
+.spec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  width: 320px;
+}
+.specTitle {
+  margin: 0 0 var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--mantine-spacing-xs);
+}
+.tiles[data-columns="2"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 48px;
+  padding: var(--mantine-spacing-xs);
+  border: 1px solid var(--ws-studio-chrome-border);
+  border-radius: var(--ws-tool-radius);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-text);
+}
+.tile:hover {
+  background: var(--ws-hover);
+}
+.tile[aria-pressed="true"] {
+  background: var(--ws-hover);
+  border-color: var(--ws-studio-card-selected);
+}
+.tile:disabled {
+  opacity: 0.5;
+}
+.ratioGlyph {
+  display: block;
+  border: 1.5px solid currentColor;
+  border-radius: calc(var(--ws-radius) / 3);
+}
+.duration {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+.durationValue {
+  width: 64px;
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mantine-spacing-xs);
+}
+.kbd {
+  font-family: inherit;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--ws-studio-card-label);
+}
+/* Top-right corner: the history entry and the focus toggle. */
+.row[data-corner] {
+  position: absolute;
+  top: var(--mantine-spacing-sm);
+  right: var(--mantine-spacing-sm);
+  gap: var(--mantine-spacing-xs);
+}
+.corner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ws-tool-radius);
+  color: var(--ws-studio-card-label);
+}
+.corner:hover {
+  background: var(--ws-hover);
+}
+/* Focus editing: the same panel, wider, inside a dialog. */
+.panel[data-focus] {
+  position: static;
+  width: 100%;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+}
+.panel[data-focus] .prompt {
+  min-height: 200px;
+}
+/* The status doubles as the check control while a task exists. */
+.status[data-check] {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  height: 28px;
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--ws-tool-radius);
+}
+.status[data-check]:not(:disabled):hover {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
