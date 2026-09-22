@@ -11,6 +11,7 @@ import {
 } from "./canvas-assistance.js";
 import { discussionScope, resolveDiscussion } from "./discussion.js";
 import { resolveCanvasReply } from "./canvas-replies.js";
+import { estimateCost, findProfile, VerifiedProfileError } from "@drama/provider";
 import { randomUUID } from "node:crypto";
 import type { Transaction } from "../../kernel/database.js";
 import { bindResourceProject } from "../../kernel/database.js";
@@ -66,7 +67,11 @@ function jobRecord(
     reservationStatus: terminal ? "released" : "held",
     inputOutdated,
     connectionVersionId: row.connection_version_id,
-    costStatus: fixture ? "final" : "unavailable",
+    costStatus: fixture
+      ? "final"
+      : row.execution_mode === "verified_provider"
+        ? "pending"
+        : "unavailable",
     confirmedCost: zero,
     reservationRemaining: row.cost_estimate?.totalReservation ?? zero,
     recoveryEpoch: Number(row.recovery_epoch),
@@ -147,8 +152,11 @@ export async function executePlanOnce(tx: Transaction, planId: string) {
     "CAPABILITY_CHANGED",
     "能力版本或启用状态已变化，请重新准备计划。",
   );
+  // A plan can only reach "ready" (checked above) as a fixture or a capability
+  // that was verified and estimated at plan time; either may now submit.
   requireThat(
-    plan.execution_mode === "test_fixture",
+    plan.execution_mode === "test_fixture" ||
+      plan.execution_mode === "verified_provider",
     503,
     "REAL_PROVIDER_ACCEPTANCE_REQUIRED",
     "真实服务尚未完成接入验证，不能提交生成。",
@@ -449,12 +457,19 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
     }
   }
   if (!cap.enabled) reasons.push("MODEL_DISABLED");
-  // No unverified real provider or implicit paid path can become ready.
-  if (cap.execution_mode !== "test_fixture")
+  // Only a fixture or a capability an operator marked verified can become ready.
+  const verifiedProfile =
+    cap.execution_mode === "verified_provider"
+      ? findProfile(String(cap.definition.modelVersion))
+      : undefined;
+  if (cap.execution_mode === "verified_provider") {
+    if (!cap.definition.verifiedAt || !verifiedProfile)
+      reasons.push("REAL_PROVIDER_ACCEPTANCE_REQUIRED");
+  } else if (cap.execution_mode !== "test_fixture")
     reasons.push("REAL_PROVIDER_ACCEPTANCE_REQUIRED");
   if (cap.definition.purpose !== input.purpose)
     reasons.push("CAPABILITY_PURPOSE_MISMATCH");
-  const estimate: Schema<"CostEstimate"> = {
+  let estimate: Schema<"CostEstimate"> = {
     pricingRevision: "explicit-test-fixture/1",
     lines: [],
     baseCost: zero,
@@ -462,6 +477,13 @@ export async function createPlan(tx: Transaction, raw: Schema<"PlanInput">) {
     totalReservation: zero,
     basisNote: "显式本地测试适配器；没有模型调用与费用，不代表真实模型验收。",
   };
+  if (verifiedProfile)
+    try {
+      estimate = estimateCost(verifiedProfile, resolved);
+    } catch (error) {
+      if (!(error instanceof VerifiedProfileError)) throw error;
+      reasons.push("COST_ESTIMATE_UNAVAILABLE");
+    }
   // creative-rework/1 uses the database JSONB canonical representation, shared with
   // its integrity guard. Earlier resolver hashes are deliberately unchanged.
   const rework = input.assistance?.kind === "prepare_rework";

@@ -5,6 +5,7 @@ import { requireThat } from "../../kernel/errors.js";
 import type { Schema } from "../content/model.js";
 import { resolveSelectedInput, assertSelectedCurrent } from "./prompt-input.js";
 import { safeText } from "./input-sources.js";
+import { findProfile } from "@drama/provider";
 
 export async function resolveMedia(
   tx: Transaction,
@@ -22,9 +23,16 @@ export async function resolveMedia(
     "IMAGE_INPUT_UNSUPPORTED",
     "媒体生成只接收明确的镜头或画布输入。",
   );
+  const profile =
+    capability.execution_mode === "verified_provider"
+      ? findProfile(String(capability.definition.modelVersion))
+      : undefined;
   requireThat(
-    capability.execution_mode === "test_fixture" &&
-      capability.definition.mode === `${kind}_fixture_v1`,
+    (capability.execution_mode === "test_fixture" &&
+      capability.definition.mode === `${kind}_fixture_v1`) ||
+      (!!profile &&
+        profile.purpose === kind &&
+        ["frames_v1", "reference_v1"].includes(capability.definition.mode)),
     503,
     "IMAGE_CAPABILITY_NOT_EXECUTABLE",
     "所选能力是提示目标描述或尚未接通的真实模型，不能执行所选媒体生成。",
