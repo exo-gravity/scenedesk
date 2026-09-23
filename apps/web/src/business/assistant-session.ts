@@ -90,6 +90,24 @@ export function canContinueCreation(job?: Schema<"GenerationJob">) {
     )
   );
 }
+/** The server answered and refused, so no job exists for this intent: any 4xx, or
+ * a 5xx whose body named a code. A lost connection or timeout (status 0) and a
+ * 5xx without a readable body (the web transport substitutes "UNAVAILABLE") prove
+ * nothing, and the receipt stays unknown. */
+export function submissionRefused(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const { status, code } = error as { status?: unknown; code?: unknown };
+  if (typeof status !== "number") return false;
+  if (status >= 400 && status < 500) return true;
+  return status >= 500 && typeof code === "string" && code !== "UNAVAILABLE";
+}
+/** A plan that expired unconsumed can never produce a job. */
+function planExpiredUnconsumed(plan: Schema<"GenerationPlan">) {
+  return (
+    plan.status !== "consumed" &&
+    (plan.status === "expired" || Date.parse(plan.expiresAt) <= Date.now())
+  );
+}
 export function selectedRange(text: string, start: number, end: number) {
   // Browser text selection offsets use UTF-16; the API uses Unicode code points.
   const points = Array.from(text),
@@ -293,12 +311,13 @@ export class AssistantSession<
         await this.persist(record, epoch);
         this.hiddenRecord = undefined;
       }
+      let plan: Schema<"GenerationPlan"> | undefined;
       if (record?.planId) {
-        const plan = await this.transport.getPlan(record.planId);
+        plan = await this.transport.getPlan(record.planId);
         this.assertCurrent(epoch);
         this.publish({ plan });
       }
-      if (record?.execution) await this.recoverExecution(epoch);
+      if (record?.execution) await this.recoverExecution(epoch, plan);
     } catch (error) {
       if (epoch !== this.epoch || this.retired) return;
       const status =
@@ -527,9 +546,28 @@ export class AssistantSession<
     if (plan.status !== "ready" || Date.parse(plan.expiresAt) <= Date.now())
       throw new Error("这次生成暂不可执行，请查看详情并核对输入。");
     const execution = { key: crypto.randomUUID(), planId: record.planId };
-    await this.persist({ ...record, execution }, epoch);
-    this.assertCurrent(epoch);
-    const job = await this.transport.execute(record.planId, execution.key);
+    const stored = { ...record, execution };
+    await this.persist(stored, epoch);
+    await this.submitExecution(stored, execution, epoch);
+  }
+  /** POST the stored intent. A definite refusal means the server created no job,
+   * so the intent is released and the reason surfaces; any other failure keeps
+   * the receipt unknown until a check finds the job or proves it never existed. */
+  private async submitExecution(
+    record: AssistantRecord<Draft, Request>,
+    execution: { key: string; planId: string },
+    epoch: number,
+  ) {
+    let job: Schema<"GenerationJob">;
+    try {
+      job = await this.transport.execute(execution.planId, execution.key);
+    } catch (error) {
+      if (epoch === this.epoch && !this.retired && submissionRefused(error)) {
+        const { execution: _refused, ...released } = record;
+        await this.persist(released, epoch);
+      }
+      throw error;
+    }
     this.assertCurrent(epoch);
     this.publish({ job });
     await this.persist(
@@ -544,24 +582,17 @@ export class AssistantSession<
     return this.action(async (epoch) => {
       const record = this.state.record;
       if (!record?.execution || record.execution.jobId) return;
-      await this.recoverExecution(epoch);
-      this.assertCurrent(epoch);
-      if (this.state.record?.execution?.jobId) return;
       const plan = await this.transport.getPlan(record.execution.planId);
       this.assertCurrent(epoch);
       this.publish({ plan });
+      await this.recoverExecution(epoch, plan);
+      this.assertCurrent(epoch);
+      // The check found the job, or proved the intent can never become one.
+      const current = this.state.record?.execution;
+      if (!current || current.jobId) return;
       if (plan.status !== "ready" || Date.parse(plan.expiresAt) <= Date.now())
         throw new Error("原计划尚不能继续提交，请保留本记录并继续核对。");
-      const job = await this.transport.execute(
-        record.execution.planId,
-        record.execution.key,
-      );
-      this.assertCurrent(epoch);
-      this.publish({ job });
-      await this.persist(
-        { ...record, execution: { ...record.execution, jobId: job.id } },
-        epoch,
-      );
+      await this.submitExecution(record, current, epoch);
     });
   }
   requestCancellation(target: CancellationTarget) {
@@ -607,20 +638,38 @@ export class AssistantSession<
       this.publish({ job: result });
     });
   }
-  private async recoverExecution(epoch: number) {
+  /** Read the job for the stored intent. Without one, the fixed plan decides:
+   * while it can still be consumed a late reply may yet arrive, but a plan that
+   * expired unconsumed proves the submission never happened, and the draft is
+   * released for a new preparation. */
+  private async recoverExecution(
+    epoch: number,
+    plan?: Schema<"GenerationPlan">,
+  ) {
     const record = this.state.record;
     if (!record?.execution) return;
     const job = record.execution.jobId
       ? await this.transport.getJob(record.execution.jobId)
       : await this.transport.findJob(record.execution.planId);
     this.assertCurrent(epoch);
-    if (!job) return;
-    this.publish({ job });
-    if (!record.execution.jobId)
-      await this.persist(
-        { ...record, execution: { ...record.execution, jobId: job.id } },
-        epoch,
-      );
+    if (job) {
+      this.publish({ job });
+      if (!record.execution.jobId)
+        await this.persist(
+          { ...record, execution: { ...record.execution, jobId: job.id } },
+          epoch,
+        );
+      return;
+    }
+    const current =
+      plan ?? (await this.transport.getPlan(record.execution.planId));
+    this.assertCurrent(epoch);
+    if (!plan) this.publish({ plan: current });
+    if (!planExpiredUnconsumed(current)) return;
+    await this.archivePlan(record, record.draft, epoch);
+    this.publish({
+      error: "原提交未产生任务，固定计划已过期；输入已重新开放，可再次准备。",
+    });
   }
   refresh() {
     if (this.state.access !== "ready") return this.verify();
@@ -629,12 +678,13 @@ export class AssistantSession<
       this.assertCurrent(epoch);
       const record = this.state.record;
       if (record && !this.state.draftSaved) await this.persist(record, epoch);
+      let plan: Schema<"GenerationPlan"> | undefined;
       if (record?.planId) {
-        const plan = await this.transport.getPlan(record.planId);
+        plan = await this.transport.getPlan(record.planId);
         this.assertCurrent(epoch);
         this.publish({ plan });
       }
-      await this.recoverExecution(epoch);
+      await this.recoverExecution(epoch, plan);
     });
   }
   revise(nextDraft?: Draft, expected?: Draft, continueAccepted = false) {
@@ -660,26 +710,27 @@ export class AssistantSession<
       } else if (record.execution && !jobFinished(this.state.job)) return;
       if (expected && JSON.stringify(record.draft) !== JSON.stringify(expected))
         throw new Error("输入已改变，请重新核对本次操作。");
-      const previous = record.planId
-        ? [
-            ...record.previous,
-            {
-              planId: record.planId,
-              ...(record.execution?.jobId
-                ? { jobId: record.execution.jobId }
-                : {}),
-            },
-          ]
-        : record.previous;
-      await this.persist(
-        {
-          schemaVersion: 1,
-          draft: nextDraft ?? record.draft,
-          previous,
-        },
-        epoch,
-      );
-      this.publish({ plan: undefined, job: undefined });
+      await this.archivePlan(record, nextDraft ?? record.draft, epoch);
     });
+  }
+  /** Move the fixed plan into history; the draft stays and its inputs reopen. */
+  private async archivePlan(
+    record: AssistantRecord<Draft, Request>,
+    draft: Draft,
+    epoch: number,
+  ) {
+    const previous = record.planId
+      ? [
+          ...record.previous,
+          {
+            planId: record.planId,
+            ...(record.execution?.jobId
+              ? { jobId: record.execution.jobId }
+              : {}),
+          },
+        ]
+      : record.previous;
+    await this.persist({ schemaVersion: 1, draft, previous }, epoch);
+    this.publish({ plan: undefined, job: undefined });
   }
 }

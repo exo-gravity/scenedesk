@@ -484,3 +484,103 @@ test("failed or mismatched fresh job reads cannot release the original execution
     assert.ok(session.getSnapshot().error);
   }
 });
+
+test("a definite refusal releases the execution intent, keeps the fixed plan and shows the reason", async () => {
+  for (const refusal of [
+    { status: 503, code: "GENERATION_EXECUTOR_UNAVAILABLE" },
+    { status: 409, code: "PLAN_EXPIRED" },
+    // A 4xx is definite even when the reply body carried no code.
+    { status: 422, code: "UNAVAILABLE" },
+  ]) {
+    const f = fixture();
+    f.transport.findJob = async () => undefined;
+    f.transport.execute = async () => {
+      f.calls.push({ kind: "execute" });
+      throw Object.assign(new Error(`refused ${refusal.code}`), refusal);
+    };
+    const session = f.session();
+    await session.load(draft);
+    await session.prepare(input);
+    await session.execute();
+    assert.equal(f.current()?.execution, undefined);
+    assert.equal(f.current()?.planId, plan.id);
+    assert.equal(session.getSnapshot().record?.execution, undefined);
+    assert.equal(session.getSnapshot().plan?.id, plan.id);
+    assert.match(session.getSnapshot().error!, new RegExp(refusal.code));
+    const reopened = f.session();
+    await reopened.load(draft);
+    await reopened.refresh();
+    assert.equal(reopened.getSnapshot().record?.execution, undefined);
+    assert.equal(reopened.getSnapshot().plan?.id, plan.id);
+    assert.equal(f.calls.filter((c) => c.kind === "execute").length, 1);
+  }
+});
+
+test("a timeout, a lost connection or an unreadable server failure keeps the receipt unknown", async () => {
+  for (const failure of [
+    { status: 0, code: "CONNECTION_LOST" },
+    { status: 502, code: "UNAVAILABLE" },
+    {},
+  ]) {
+    const f = fixture();
+    f.transport.findJob = async () => undefined;
+    f.transport.execute = async () => {
+      f.calls.push({ kind: "execute" });
+      throw Object.assign(new Error("no reply"), failure);
+    };
+    const session = f.session();
+    await session.load(draft);
+    await session.prepare(input);
+    await session.execute();
+    assert.ok(f.current()?.execution);
+    assert.equal(f.current()?.execution?.jobId, undefined);
+    await session.refresh();
+    assert.ok(session.getSnapshot().record?.execution);
+    assert.equal(f.calls.filter((c) => c.kind === "execute").length, 1);
+  }
+});
+
+test("an unknown submission is released for a new preparation once its plan expired without a job", async () => {
+  for (const check of ["refresh", "resumeSubmission"] as const) {
+    const f = fixture();
+    let current = plan;
+    f.transport.getPlan = async () => current;
+    f.transport.findJob = async () => undefined;
+    f.transport.execute = async () => {
+      f.calls.push({ kind: "execute" });
+      throw Object.assign(new Error("timeout"), {
+        status: 0,
+        code: "CONNECTION_LOST",
+      });
+    };
+    const session = f.session();
+    await session.load(draft);
+    await session.prepare(input);
+    await session.execute();
+    await session.refresh();
+    assert.ok(
+      session.getSnapshot().record?.execution,
+      "a plan that can still be consumed keeps the receipt unknown",
+    );
+    current = { ...plan, status: "expired", expiresAt: "2000-01-01T00:00:00Z" };
+    await session[check]();
+    const snapshot = session.getSnapshot();
+    assert.equal(snapshot.record?.execution, undefined);
+    assert.equal(snapshot.record?.planId, undefined);
+    assert.equal(snapshot.record?.planRequest, undefined);
+    assert.deepEqual(snapshot.record?.previous, [{ planId: plan.id }]);
+    assert.equal(snapshot.plan, undefined);
+    assert.equal(snapshot.job, undefined);
+    assert.match(snapshot.error!, /已过期/);
+    assert.equal(f.current()?.execution, undefined);
+    assert.equal(f.calls.filter((c) => c.kind === "execute").length, 1);
+    // The draft is editable again and a new plan can be prepared from it.
+    session.updateDraft({ ...draft, prompt: "重新准备" });
+    await session.settle();
+    assert.equal(f.current()?.draft.prompt, "重新准备");
+    current = plan;
+    await session.prepare({ ...input, prompt: "重新准备" });
+    assert.equal(f.calls.filter((c) => c.kind === "plan").length, 2);
+    assert.equal(session.getSnapshot().plan?.id, plan.id);
+  }
+});
