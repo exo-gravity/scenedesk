@@ -4,7 +4,7 @@
 
 ## 目的
 
-把画布生成流程里的本地测试适配器换成两家厂商（MiniMax、火山方舟）的真实付费适配器：新增一个独立的生成执行器进程、三条数据库迁移、一份配置文件、一个能力开通脚本和一个人工付费冒烟脚本；现有的任务状态机、队列、归档协议、取消与恢复语义不改。首版落地 7 条模型档案（`minimax/MiniMax-H3` 视频；`volcengine/doubao-seedance-2-0-260128`、`-2-0-fast-260128`、`-2-0-mini-260615` 视频；`volcengine/doubao-seedream-5-0-pro-260628`、`-5-0-flash-260915`、`-5-0-260128` 图片）。落地过程中发现两处需要回写设计的偏差：执行器读参考素材不再靠 `roles.ts` 给 `media` 表加列权限，而是新增 SECURITY DEFINER 函数（`media` 表启用了 RLS，直接授权读不到行）；能力条目在数据库层是不可变身份，开通脚本靠发布新 revision 行而不是原地更新 `definition`。两处已回写[设计文档](../superpowers/specs/2026-09-22-verified-provider-integration-design.md)的 §5、§10。真实账号验证（MV-01 至 MV-10）尚未执行，见文末占位表。
+把画布生成流程里的本地测试适配器换成两家厂商（MiniMax、火山方舟）的真实付费适配器：新增一个独立的生成执行器进程、三条数据库迁移、一份配置文件、一个能力开通脚本和一个人工付费冒烟脚本；现有的任务状态机、队列、归档协议、取消与恢复语义不改。首版落地 7 条模型档案（`minimax/MiniMax-H3` 视频；`volcengine/doubao-seedance-2-0-260128`、`-2-0-fast-260128`、`-2-0-mini-260615` 视频；`volcengine/doubao-seedream-5-0-pro-260628`、`-5-0-flash-260915`、`-5-0-260128` 图片）。落地过程中发现两处需要回写设计的偏差：执行器读参考素材不再靠 `roles.ts` 给 `media` 表加列权限，而是新增 SECURITY DEFINER 函数（`media` 表启用了 RLS，直接授权读不到行）；能力条目在数据库层是不可变身份，开通脚本靠发布新 revision 行而不是原地更新 `definition`。两处已回写[设计文档](../superpowers/specs/2026-09-22-verified-provider-integration-design.md)的 §5、§10。真实账号验证见文末表：MV-01 已于 2026-09-23 在演示箱上对三个档案通过，H3 的 768P 16:9 实测 1344x768 已写回档案；其余条目仍待执行。
 
 ## 模块
 
@@ -104,15 +104,15 @@
 
 ## 验证记录（MV-01 至 MV-10）
 
-条目定义见 [07 §5 连接验证清单](07-provider-adapter.md#5-连接验证清单)。首版尚未拿到真实账号与预算，全部标"待真实账号"；每条通过后把实际证据路径填进"预期证据"列并更新状态。
+条目定义见 [07 §5 连接验证清单](07-provider-adapter.md#5-连接验证清单)。2026-09-23 用 `deploy/demo/enable-generation.sh` 在演示箱上跑了首轮付费冒烟（`scripts/verified-smoke.ts`，同一提示词，三个档案各一次），证据在操作者本机 `output/verified/2026-09-23/<档案>/record.json`（已脱敏）与同目录产物，不进仓库。每条通过后把实际证据路径填进"预期证据"列并更新状态。
 
 | ID | 必须验证 | 状态 | 预期证据 |
 |---|---|---|---|
-| MV-01 | 最小输入到可播放输出 | 待真实账号 | `output/verified/<date>/record.json`（`scripts/verified-smoke.ts --kind video\|image`）及同目录 `result.mp4`／`result.jpg` |
+| MV-01 | 最小输入到可播放输出 | 通过（2026-09-23，三个档案） | `output/verified/2026-09-23/{seedream-flash-image,seedance-mini-video,minimax-h3-video}/record.json` 及产物。实测：Seedream 5.0 flash `1024x1024` jpeg，`usage.output_tokens` 4096，同步返回 12 秒；Seedance 2.0 mini 720p 16:9 5 秒 → `1280x720`、24 fps、5.04 秒、h264 + aac，`usage.completion_tokens` 108,900（与文档估算一致），创建到成功 84 秒；MiniMax H3 768P 16:9 5 秒 → **`1344x768`**（非文档推测的 1366x768）、24 fps、5.17 秒、h264 + 立体声 aac，`usage.output_seconds` 5，创建到成功 114 秒。H3 档案的 `outputs` 只登记这一条实测尺寸，其它比例与 2K 各需一次同样的实测；三个 profile 中已开启的是 flash 与 mini，H3 待此尺寸随代码部署后再 `enable` |
 | MV-02 | 同人物多参考／所选造型，或该模式替代输入路径 | 待真实账号 | 待定：H3 的 `reference_v1` 模式尚未进档案，要等 MV-02 证实 MiniMax 接受角色名 `reference_image` 与多图输入后才加回（火山 Seedance 的 reference 模式不受影响）；`verified-smoke.ts` 目前也不带参考图输入，需先扩展脚本或走完整能力条目人工验证 |
 | MV-03 | 双人对白与短动作 | 待真实账号 | 待定：需要真实素材与人工听审，非脚本自动产出 |
 | MV-04 | 创建超时、进程中断、租约过期后回执到达 | 待真实账号 | `output/verified/<date>/record.json`（真实超时／限流观察）；"实际调用栈不自动重 POST"半句已由 `tests/integration/verified-runtime.test.ts`（走假方舟服务，`assert.equal(posts.length, 1)`）覆盖，不依赖真实账号 |
-| MV-05 | 已知 ID 查询、限流与暂时错误 | 待真实账号 | `output/verified/<date>/record.json` 的 `observations` 数组（查询轮询记录） |
+| MV-05 | 已知 ID 查询、限流与暂时错误 | 部分（2026-09-23：已知 ID 轮询） | `output/verified/2026-09-23/*/record.json` 的 `observations`：H3 12 次、Seedance 9 次查询全部 200，状态 queued/running → succeeded；限流与暂时错误尚未观察到 |
 | MV-06 | 输出 URL 过期／下载中断 | 待真实账号 | `output/verified/<date>/record.json`（下载失败或链接过期时的观察记录） |
 | MV-07 | 取消与成功竞态 | 待真实账号 | 待定：需要真实取消请求与成功回执的竞态记录，人工核对消费 |
 | MV-08 | 用量、分笔／乱序账单与终局性核对 | 待真实账号 | 待定：需要真实账单核对，非脚本自动产出 |

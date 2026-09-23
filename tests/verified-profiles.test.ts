@@ -21,9 +21,14 @@ test("every profile derives a contract-valid capability definition per mode", ()
     }
   }
 });
-test("H3 refuses a definition until its pixel table is measured", () => {
+test("H3 exposes only its measured 768P 16:9 output and still refuses an unmeasured size", () => {
   const h3 = findProfile("minimax/MiniMax-H3")!;
-  assert.throws(() => capabilityDefinition(h3, "frames_v1", {}), (e: VerifiedProfileError) => e.code === "OUTPUTS_UNMEASURED");
+  const definition = capabilityDefinition(h3, "frames_v1", {});
+  assert.deepEqual(definition.allowedResolutions, ["1344x768"]);
+  assert.deepEqual(definition.allowedAspectRatios, ["16:9"]);
+  assert.deepEqual(resolveOutput(h3, "1344x768"), { resolution: "768P", ratio: "16:9" });
+  assert.throws(() => resolveOutput(h3, "1366x768"), (e: VerifiedProfileError) => e.code === "OUTPUT_NOT_IN_PROFILE");
+  assert.throws(() => capabilityDefinition({ ...h3, outputs: {} }, "frames_v1", {}), (e: VerifiedProfileError) => e.code === "OUTPUTS_UNMEASURED");
 });
 test("frames_v1 exposes start/end frame purposes; reference_v1 exposes reference purposes", () => {
   const seedance = findProfile("volcengine/doubao-seedance-2-0-260128")!;
