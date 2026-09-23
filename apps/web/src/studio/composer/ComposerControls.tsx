@@ -2,6 +2,7 @@ import { NumberInput, Popover, Slider, Tooltip, UnstyledButton } from "@mantine/
 import {
   CaretDown,
   FilmStrip,
+  FrameCorners,
   ImageSquare,
   MusicNotes,
   SlidersHorizontal,
@@ -12,6 +13,11 @@ import {
   durationControl,
   specificationSummary,
 } from "../../business/generation-specification";
+import {
+  capabilityForModel,
+  modeLabel,
+  type ModelEntry,
+} from "../../business/capability-presentation";
 import { useEscapablePopover } from "../../business/escapable-popover";
 import { CanvasShotSources } from "../../business/CanvasShotSources";
 import type { ShotSource } from "../../business/canvas-shot-sources";
@@ -20,24 +26,24 @@ import classes from "./composer.module.css";
 type Kind = "image" | "video" | "audio";
 type Output = Schema<"OutputOptions">;
 const icons = { image: ImageSquare, video: FilmStrip, audio: MusicNotes };
-const statusLabel = (capability: ImageCapability) =>
-  capability.executionMode === "verified_provider" ? "已接入" : "受控测试";
+/** A controlled fixture never reaches a provider; nothing marks a real model. */
+const fixtureLabel = (entry: ModelEntry) => (entry.fixture ? "受控测试" : undefined);
 
 /**
- * The model pill and its list: icon, name, and whether it is a verified
- * provider or a controlled fixture. Names are the capability records' own;
- * nothing is invented for them, and no time or cost is shown.
+ * The model pill and its list: one row per model, carrying the name the
+ * capability record gives it and nothing else. Records differing only in input
+ * mode are one row here; the mode is chosen in the pill beside this one.
  */
 export function ModelPicker({
   kind,
-  models,
+  entries,
   loading,
   capability,
   disabled,
   onChange,
 }: {
   kind: Kind;
-  models: readonly ImageCapability[];
+  entries: readonly ModelEntry[];
   loading: boolean;
   capability: ImageCapability | undefined;
   disabled: boolean;
@@ -45,6 +51,9 @@ export function ModelPicker({
 }) {
   const popover = useEscapablePopover();
   const Icon = icons[kind];
+  const current = entries.find((entry) =>
+    entry.capabilities.some((c) => c.id === capability?.id),
+  );
   return (
     <Popover
       opened={popover.opened}
@@ -60,40 +69,107 @@ export function ModelPicker({
           className={classes.pill}
           aria-label="生成模型"
           aria-haspopup="listbox"
-          disabled={disabled || (!loading && !models.length)}
+          disabled={disabled || (!loading && !entries.length)}
           {...popover.targetProps}
         >
           <Icon size={14} aria-hidden />
           <span>
-            {capability?.modelVersion ??
-              (loading ? "正在读取模型" : models.length ? "选择模型" : "暂无可用模型")}
+            {current?.name ??
+              (loading ? "正在读取模型" : entries.length ? "选择模型" : "暂无可用模型")}
           </span>
           <CaretDown size={12} aria-hidden />
         </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown>
-        {models.length ? (
+        {entries.length ? (
           <div className={classes.models} role="listbox" aria-label="可用模型">
-            {models.map((model) => (
+            {entries.map((entry) => (
               <UnstyledButton
-                key={model.id}
+                key={entry.modelVersion}
                 className={classes.model}
                 role="option"
-                aria-selected={model.id === capability?.id}
+                aria-selected={entry.modelVersion === current?.modelVersion}
                 onClick={() => {
-                  onChange(model);
+                  // Rule 17 applies to the record, so keep the mode in hand.
+                  onChange(capabilityForModel(entry, capability?.mode) as ImageCapability);
                   popover.onChange(false);
                 }}
               >
                 <Icon size={18} aria-hidden />
-                <span className={classes.modelName}>{model.modelVersion}</span>
-                <span className={classes.modelStatus}>{statusLabel(model)}</span>
+                <span className={classes.modelName}>{entry.name}</span>
+                {fixtureLabel(entry) && (
+                  <span className={classes.modelStatus}>{fixtureLabel(entry)}</span>
+                )}
               </UnstyledButton>
             ))}
           </div>
         ) : (
           <div className={classes.empty}>暂无可用模型</div>
         )}
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
+
+/**
+ * How the request is fed: start and end frames, or reference images. One
+ * record exists per mode, so choosing a mode chooses a record — which is why
+ * it is frozen alongside the model. A model with one mode shows no pill.
+ */
+export function ModePicker({
+  entry,
+  capability,
+  disabled,
+  onChange,
+}: {
+  entry: ModelEntry | undefined;
+  capability: ImageCapability | undefined;
+  disabled: boolean;
+  onChange: (capability: ImageCapability) => void;
+}) {
+  const popover = useEscapablePopover();
+  const choices = (entry?.capabilities ?? []).filter((c) => modeLabel(c));
+  if (choices.length < 2) return null;
+  return (
+    <Popover
+      opened={popover.opened}
+      onChange={popover.onChange}
+      position="top-start"
+      shadow="md"
+      trapFocus
+      returnFocus
+      withinPortal
+    >
+      <Popover.Target>
+        <UnstyledButton
+          className={classes.pill}
+          aria-label="进料方式"
+          aria-haspopup="listbox"
+          disabled={disabled}
+          {...popover.targetProps}
+        >
+          <FrameCorners size={14} aria-hidden />
+          <span>{(capability && modeLabel(capability)) ?? "进料方式"}</span>
+          <CaretDown size={12} aria-hidden />
+        </UnstyledButton>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <div className={classes.models} role="listbox" aria-label="进料方式">
+          {choices.map((choice) => (
+            <UnstyledButton
+              key={choice.id}
+              className={classes.model}
+              role="option"
+              aria-selected={choice.id === capability?.id}
+              onClick={() => {
+                onChange(choice as ImageCapability);
+                popover.onChange(false);
+              }}
+            >
+              <span className={classes.modelName}>{modeLabel(choice)}</span>
+            </UnstyledButton>
+          ))}
+        </div>
       </Popover.Dropdown>
     </Popover>
   );

@@ -39,7 +39,8 @@ import { fixedShotSources } from "../../business/canvas-shot-sources";
 import { reconcileOutputForCapability } from "../../business/generation-specification";
 import { canContinueCreation, jobFinished, jobStatusLabel } from "../../business/assistant-session";
 import { ComposerReferences } from "./ComposerReferences";
-import { ModelPicker, SpecificationPicker, SubmitButton } from "./ComposerControls";
+import { modelEntries } from "../../business/capability-presentation";
+import { ModelPicker, ModePicker, SpecificationPicker, SubmitButton } from "./ComposerControls";
 import classes from "./composer.module.css";
 
 type Kind = "image" | "video" | "audio";
@@ -141,6 +142,11 @@ export function Composer(props: ComposerProps) {
   }, [cache, session_.userId, path, canvasId, state.plan?.id, state.job?.id, state.job?.status]);
   const content = node.content;
   const capability = models.find((c) => c.id === content.capabilityId);
+  // One row per model; the records that differ only in input mode sit inside it.
+  const entries = useMemo(() => modelEntries(models), [models]);
+  const entry = entries.find((e) =>
+    e.capabilities.some((c) => c.id === content.capabilityId),
+  );
   const output = content.output ?? {};
   const frozen = !!record?.planId || !!record?.planRequest; // rule 6
   const disabled = !active || readOnly || state.busy || !draft; // rule 7
@@ -188,12 +194,12 @@ export function Composer(props: ComposerProps) {
       setError(cause instanceof Error ? cause.message : "草稿尚未更新。");
     }
   };
-  // Rule 17: switching models keeps only what the new model accepts and fills in single choices.
-  const chooseModel = (model: ImageCapability) =>
+  // Rule 17: switching the record keeps only what it accepts and fills in single choices.
+  const chooseCapability = (next: ImageCapability) =>
     configure({
-      connectionId: model.connectionId,
-      capabilityId: model.id,
-      output: reconcileOutputForCapability({ kind, output, capability: model }),
+      connectionId: next.connectionId,
+      capabilityId: next.id,
+      output: reconcileOutputForCapability({ kind, output, capability: next }),
     });
   // Rule 8: fixed shot sources first, then save the board, refuse a changed board, then build the request.
   const submit = () => {
@@ -436,11 +442,17 @@ export function Composer(props: ComposerProps) {
       <div className={classes.bottom}>
         <ModelPicker
           kind={kind}
-          models={models}
+          entries={entries}
           loading={capabilities.isLoading}
           capability={capability}
           disabled={disabled || frozen}
-          onChange={chooseModel}
+          onChange={chooseCapability}
+        />
+        <ModePicker
+          entry={entry}
+          capability={capability}
+          disabled={disabled || frozen}
+          onChange={chooseCapability}
         />
         <SpecificationPicker
           kind={kind}
