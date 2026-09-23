@@ -10,9 +10,11 @@
 #
 # Needs the operator's own SSH access to the box (nothing is stored in the repository),
 # plus git, rsync and curl. Steps: fetch → compare with the box's DEPLOYED_REVISION →
-# git archive → rsync → SHA-256 compare of both trees → build the three images on the box
+# git archive → rsync → SHA-256 compare of both trees → build the four images on the box
 # (implementation note 83 §8) → pg_dump, provision --apply, audit, --check, up -d --wait
 # (83 §9) → public acceptance checks (83 §10). Every step stops the run on failure.
+# When the box has secrets/generation.json (written by deploy/demo/enable-generation.sh), the
+# rollout also publishes the capability rows and starts the generation executor (remote.sh).
 set -euo pipefail
 
 HOST=${SCENEDESK_DEMO_HOST:-root@8.210.171.132}
@@ -100,7 +102,7 @@ scp -q "$here/remote.sh" "$HOST:$REMOTE_HOME/bin/demo-remote.sh"
 remote "chmod +x $REMOTE_HOME/bin/demo-remote.sh"
 
 log="$REMOTE_HOME/logs/build-$short.log"
-step "build api / web / media-worker on the box (log: $log)"
+step "build api / web / media-worker / generation-worker on the box (log: $log)"
 # Detached on the box so a dropped ssh session cannot kill a build; followed by polling the log.
 remote "nohup setsid $REMOTE_HOME/bin/demo-remote.sh build $short > $log 2>&1 < /dev/null &"
 seen=0
@@ -126,7 +128,13 @@ done
 rollout_log="$REMOTE_HOME/logs/rollout-$short.log"
 step "rollout on the box (log: $rollout_log)"
 safe_subject=$(printf '%s' "$subject" | tr -d "'\\\\")
-remote "set -o pipefail; $REMOTE_HOME/bin/demo-remote.sh rollout $short $rev '$safe_subject' 2>&1 | tee $rollout_log" \
+# The executor's tenant when the demo database has several active ones (remote.sh generation_tenant).
+tenant_env=""
+if [ -n "${SCENEDESK_GENERATION_TENANT:-}" ]; then
+  [[ $SCENEDESK_GENERATION_TENANT =~ ^[0-9a-f-]{36}$ ]] || { echo "SCENEDESK_GENERATION_TENANT must be a uuid" >&2; exit 2; }
+  tenant_env="SCENEDESK_GENERATION_TENANT=$SCENEDESK_GENERATION_TENANT "
+fi
+remote "set -o pipefail; $tenant_env$REMOTE_HOME/bin/demo-remote.sh rollout $short $rev '$safe_subject' 2>&1 | tee $rollout_log" \
   | grep -vE '^[[:space:]]*$|Container .* (Creating|Created|Waiting|Running|Starting|Started|Recreate|Recreated|Healthy)[[:space:]]*$'
 
 step "acceptance (83 §10)"
@@ -157,8 +165,12 @@ check "TLS chain verifies" "$([ "$tls" = 0 ] && echo 1 || echo 0)" "ssl_verify_r
 modified=$(curl -s -m 20 -D- -o "$tmp.index.html" "$base/" | sed -n 's/^[Ll]ast-[Mm]odified: //p' | tr -d '\r')
 entry=$(grep -oE '/assets/index-[A-Za-z0-9_-]+\.js' "$tmp.index.html" | head -1 || true)
 echo "  web bundle: ${entry:-?} (Last-Modified: ${modified:-?})"
+if remote "test -f $REMOTE_HOME/secrets/generation.json"; then
+  status=$(remote "cd $REMOTE_HOME && docker compose --profile generation ps --format '{{.Status}}' generation-worker" || true)
+  check "generation-worker healthy" "$([[ $status == *healthy* ]] && echo 1 || echo 0)" "$status"
+fi
 if [ "$fail" != 0 ]; then echo "acceptance failed; the box is running $short, investigate or roll back" >&2; exit 1; fi
 
 step "done: $short is live at $base"
-echo "rollback: on the box tag scenedesk-private-{api,web,worker}:previous back to :demo and run"
-echo "          'docker compose --profile media up -d' in $REMOTE_HOME; DEPLOYED_REVISION names the dump taken before provision."
+echo "rollback: on the box tag scenedesk-private-{api,web,worker,generation}:previous back to :demo and run"
+echo "          'docker compose --profile media --profile generation up -d' in $REMOTE_HOME; DEPLOYED_REVISION names the dump taken before provision."

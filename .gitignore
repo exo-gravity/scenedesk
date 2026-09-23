@@ -16,3 +16,4 @@ __pycache__/
 .playwright-cli/
 output/engineering/*.log
 output/playwright/
+output/verified/
