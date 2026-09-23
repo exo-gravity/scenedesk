@@ -108,6 +108,12 @@ case "$cmd" in
     subject=${4:-}
     cd "$HOME_DIR"
 
+    # Before any compose command: the base file mirrors the repository's (note 83 §4), so a
+    # revision that adds a service or secret must land here before the override is parsed.
+    echo "== refresh compose.yaml from the deployed source =="
+    cp "$SRC_DIR/deploy/compose.yaml" compose.yaml
+    docker compose config --quiet
+
     echo "== images =="
     for target in "${TARGETS[@]}"; do
       docker image inspect "$(image_name "$target"):$short" --format "$(image_name "$target"):$short {{.Id}}"

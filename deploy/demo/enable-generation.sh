@@ -60,6 +60,10 @@ existing=$(remote "test -f $REMOTE_HOME/secrets/generation.json && echo yes || e
 remote "mkdir -p $REMOTE_HOME/bin"
 scp -q "$here/remote.sh" "$HOST:$REMOTE_HOME/bin/demo-remote.sh"
 remote "chmod +x $REMOTE_HOME/bin/demo-remote.sh"
+# The box's base compose file mirrors the repository's (note 83 §4). It must already declare the
+# generation-worker service before compose.demo.yaml may reference it; the rollout refreshes it
+# again from the deployed source tree. Only additions, so running services are not recreated.
+scp -q deploy/compose.yaml "$HOST:$REMOTE_HOME/compose.yaml"
 echo "box reachable; generation.json present: $existing"
 
 step "API keys (typed here, not shown, never logged)"
