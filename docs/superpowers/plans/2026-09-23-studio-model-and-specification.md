@@ -31,7 +31,7 @@
 2. **比例白名单与某模型的允许集合交集为空**（视频夹具只允许 `3:5`）。必须退回该模型的完整比例列表，否则比例是必选项却一个都选不了，永远提交不了。→ 任务 3。
 3. **换模型后旧的比例或档位在新模型不存在**。必须丢掉，不能留下与新模型不匹配的 `resolution`——那会一路带到 `imageOutput()` 才抛错。→ 任务 3。
 4. **冻结状态下的模式胶囊**。规则 6 要求有计划或原请求时模型与规格全部冻结；模式换的是能力记录，与换模型同级，必须一起禁用。→ 任务 4。
-5. **某个比例下只有一个档位**（Seedream 5.0 的 `2K`、MiniMax H3 的 `768P`）。档位区收成静态文字，但 `resolution` 仍必须被填上，否则提交被 `imageOutput()` 拒。→ 任务 3、任务 5。
+5. **某个比例下只有一个档位**（Seedream 5.0 的 `2K`、MiniMax H3 两个比例各自的 `768P`）。档位区收成静态文字，但 `resolution` 仍必须被填上，否则提交被 `imageOutput()` 拒。→ 任务 3、任务 5。
 
 ---
 
@@ -81,7 +81,10 @@ test("a capability definition carries the display name and maps every size to it
   );
   const h3 = capabilityDefinition(findProfile("minimax/MiniMax-H3")!, "frames_v1", {});
   assert.equal(h3.displayName, "MiniMax H3");
-  assert.deepEqual(h3.outputs, [{ resolution: "1344x768", aspectRatio: "16:9", quality: "768P" }]);
+  assert.deepEqual(h3.outputs, [
+    { resolution: "1344x768", aspectRatio: "16:9", quality: "768P" },
+    { resolution: "768x1344", aspectRatio: "9:16", quality: "768P" },
+  ]);
 });
 test("every profile has a display name that is not its id", () => {
   for (const profile of PROFILES) {

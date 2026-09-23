@@ -5,7 +5,7 @@
 ## 1. 现状（对着 `packages/provider/src/verified/profiles.ts` 核过）
 
 - **模型名是 profile id。** `capability.modelVersion` 直接上屏：`volcengine/doubao-seedream-5-0-pro-260628`、`minimax/MiniMax-H3`。
-- **同一模型出现两行、字完全相同。** 能力记录按 (profile, mode) 一条；Seedance 的 `modes` 是 `frames_v1` 与 `reference_v1`，列表里看不出差别。视频列表因此有七行，其中六行两两重复。
+- **同一模型出现两行、字完全相同。** 能力记录按 (profile, mode) 一条；Seedance 与 MiniMax H3 的 `modes` 都是 `frames_v1` 与 `reference_v1`，列表里看不出差别。视频列表因此有八行，四四两两重复。
 - **清晰度是像素串全集。** Seedream Pro／Flash 有 3 档 × 8 比例 = 24 个格子，2 列排成 12 行。
 - **比例与清晰度不联动。** 可以选出 `16:9` + `1024x1024`，点提交才被 `imageOutput()` 拒绝。
 
@@ -59,13 +59,14 @@ outputs: [
 **按 `modelVersion` 去重**，一个模型一行。行 = 类型图标 + 展示名。不分组，不写厂商，不写「已接入」，不写耗时、费用、说明句。
 
 ```
-今天（视频，七行）                              改后（四行）
+今天（视频，八行）                              改后（四行）
 volcengine/doubao-seedance-2-0-260128          Seedance 2.0
 volcengine/doubao-seedance-2-0-260128          Seedance 2.0 Fast
 volcengine/doubao-seedance-2-0-fast-260128     Seedance 2.0 Mini
 volcengine/doubao-seedance-2-0-fast-260128     MiniMax H3
 volcengine/doubao-seedance-2-0-mini-260615
 volcengine/doubao-seedance-2-0-mini-260615
+minimax/MiniMax-H3
 minimax/MiniMax-H3
 ```
 
@@ -81,7 +82,7 @@ minimax/MiniMax-H3
 | `frames_v1` | 首尾帧 | 挂一张首帧、一张尾帧，模型在两张之间补运动；最多 2 张 |
 | `reference_v1` | 参考图 | 挂参考图（人物、造型、风格、场景、道具、构图），最多 9–14 张 |
 
-- **该模型只有一种模式时，胶囊不出现**（MiniMax H3 只有首尾帧，Seedream 只有参考图）。
+- **该模型只有一种模式时，胶囊不出现**。眼下三个 Seedream 都只有参考图，所以图片面板里从不出现这个胶囊；四个视频模型两种模式都有，都出现。
 - 换模式和换模型走同一条路：都是换一条能力记录，`reconcileOutputForCapability()` 照旧保留／补齐输出项。
 - 换模式会改变可挂参考的用途与张数，参考区按新能力记录的 `inputRules` 渲染，这部分逻辑已有，不动。
 - 两个界面名是我们自己 `ProfileMode` 枚举的中文写法，不是供应商事实，因此留在前端，不进契约。
@@ -98,10 +99,10 @@ minimax/MiniMax-H3
 | Seedream 5.0 | 8 + 8 | `16:9` `9:16` `1:1` | `2K` |
 | Seedance 2.0 | 6 + 18 | `16:9` `9:16` `1:1` | `480p` `720p` `1080p` |
 | Seedance 2.0 Fast／Mini | 6 + 12 | `16:9` `9:16` `1:1` | `480p` `720p` |
-| MiniMax H3 | 1 + 1 | `16:9` | `768P` |
+| MiniMax H3 | 2 + 2 | `16:9` `9:16` | `768P` |
 
 - **比例 × 档位唯一确定 `resolution`**，由面板填入，用户不再直接选像素尺寸。今天那个提交才报错的非法组合就此不存在。
-- 比例因此是必选项；只有一个比例的模型（MiniMax H3）自动填好。
+- 比例因此是必选项；只允许一个比例的模型自动填好（眼下没有这样的模型，规则仍要成立）。
 - 唯一档位（Seedream 5.0、MiniMax H3）收成一行静态文字，不摆一个只能点自己的格子。
 - 比例仍是带图形的方块 tile，清晰度仍是两列格子——样式不动。
 - 时长滑杆、生成音频开关、固定镜头来源照旧。仍然没有生成数量。
@@ -125,7 +126,7 @@ demo 箱要重跑一次 `scripts/provision-verified-capabilities.ts` 新字段�
 ## 5. 验收
 
 1. 视频列表里 Seedance 2.0 Mini 只有一行；选中后模式胶囊出现，可在首尾帧与参考图之间切换，两种都能提交。
-2. 选中 MiniMax H3 时模式胶囊不出现。
+2. 图片列表里任何模型都不出模式胶囊（三个 Seedream 都只有参考图）。
 3. 选中 Seedream 5.0 Flash 时比例只有三个、清晰度只有三个，选 `16:9` + `2K` 提交，请求里的 `resolution` 是 `2816x1584`。
 4. 只允许白名单外比例的能力记录仍能选出比例并提交（退回完整列表的分支）。
 5. 去掉新字段的能力记录（模拟未重跑 provision 的箱子）仍按今天的拍平列表可用，不报错。
