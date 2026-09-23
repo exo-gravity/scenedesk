@@ -3806,6 +3806,8 @@ export interface components {
             cancelSupported?: boolean;
             recoverySupported?: boolean;
             notes?: string;
+            displayName?: string;
+            outputs?: components["schemas"]["CapabilityOutput"][];
             /** @enum {string} */
             executionMode?: "test_fixture" | "verified_provider";
         };
@@ -4450,6 +4452,11 @@ export interface components {
             scriptRevisionId: string;
             range: components["schemas"]["TextRange"];
             quote: string;
+        };
+        CapabilityOutput: {
+            resolution: string;
+            aspectRatio: string;
+            quality: string;
         };
         ImportShotList: {
             csvText: string;

@@ -174,6 +174,8 @@ extend("ShotSpec", {"entryState": ref("ContinuityState"), "exitState": ref("Cont
 extend("Reference", {"subjectAssetId": ID})
 S["Reference"]["properties"]["purpose"]["enum"].append("prop")
 S["Capability"]["properties"]["supportedPurposes"]["items"]["enum"].append("prop")
+schema("CapabilityOutput", {"resolution": string(), "aspectRatio": string(), "quality": string()}, ["resolution", "aspectRatio", "quality"])
+extend("Capability", {"displayName": NAME, "outputs": arr(ref("CapabilityOutput"))})
 remove("CharacterLookDefinition", "voiceAssetRevisionId")
 extend("AssetDefinition", {"defaultVoiceAssetRevisionId": ID})
 

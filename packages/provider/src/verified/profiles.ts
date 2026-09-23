@@ -10,6 +10,8 @@ export type Pricing =
   | { kind: "per_image"; revision: string; microsPerImage: { standard: number; large?: number }; largeThresholdPixels?: number; freeInputImages?: number; extraInputImageMicros?: number };
 export type ModelProfile = {
   id: string;
+  /** The vendor's own name for the model, as the panel shows it. */
+  displayName: string;
   vendor: Vendor;
   purpose: "video" | "image";
   providerModel: string;
@@ -58,14 +60,14 @@ const seedreamLite = seedreamOutputs({
   "2K": { "1:1": "2048x2048", "16:9": "2848x1600", "9:16": "1600x2848", "4:3": "2304x1728", "3:4": "1728x2304", "3:2": "2496x1664", "2:3": "1664x2496", "21:9": "3136x1344" },
 });
 const volcRef = { maxCount: 9, maxBytes: FOUR_MIB, mimeTypes: IMAGE_MIMES, minSide: 300, maxSide: 6000 };
-const seedance = (id: string, providerModel: string, tiers: ("480p" | "720p" | "1080p")[], microsPerMillion: Record<string, number>, revision: string): ModelProfile => ({
-  id, vendor: "volcengine", purpose: "video", providerModel, modes: ["frames_v1", "reference_v1"],
+const seedance = (id: string, displayName: string, providerModel: string, tiers: ("480p" | "720p" | "1080p")[], microsPerMillion: Record<string, number>, revision: string): ModelProfile => ({
+  id, displayName, vendor: "volcengine", purpose: "video", providerModel, modes: ["frames_v1", "reference_v1"],
   outputs: seedanceOutputs(tiers), duration: { min: 4, max: 15 }, audioOutput: true, referenceImage: volcRef,
   pricing: { kind: "per_token", revision, microsPerMillion }, inflight: { personal: 3, enterprise: 8 },
 });
 export const PROFILES: readonly ModelProfile[] = [
   {
-    id: "minimax/MiniMax-H3", vendor: "minimax", purpose: "video", providerModel: "MiniMax-H3",
+    id: "minimax/MiniMax-H3", displayName: "MiniMax H3", vendor: "minimax", purpose: "video", providerModel: "MiniMax-H3",
     // Measured entries only (note 86 MV-01, 2026-09-23): 768P 16:9 came back as 1344x768 and 768P 9:16 as
     // 768x1344, both 24 fps, h264 + stereo aac. The other ratios and 2K stay out until each is measured the
     // same way; a guessed size would fail the archive check in packages/media/src/generated-output.ts after
@@ -76,22 +78,22 @@ export const PROFILES: readonly ModelProfile[] = [
     pricing: { kind: "per_second", revision: "minimax-cn-2026-09-22", microsPerSecond: { "768P": 500000, "2K": 800000 }, freeImages: 5, extraImageMicros: 200000 },
     inflight: 8,
   },
-  seedance("volcengine/doubao-seedance-2-0-260128", "doubao-seedance-2-0-260128", ["480p", "720p", "1080p"], { "480p": 46000000, "720p": 46000000, "1080p": 51000000 }, "ark-cn-2026-09-22"),
-  seedance("volcengine/doubao-seedance-2-0-fast-260128", "doubao-seedance-2-0-fast-260128", ["480p", "720p"], { "480p": 37000000, "720p": 37000000 }, "ark-cn-2026-09-22"),
-  seedance("volcengine/doubao-seedance-2-0-mini-260615", "doubao-seedance-2-0-mini-260615", ["480p", "720p"], { "480p": 23000000, "720p": 23000000 }, "ark-cn-2026-09-22"),
+  seedance("volcengine/doubao-seedance-2-0-260128", "Seedance 2.0", "doubao-seedance-2-0-260128", ["480p", "720p", "1080p"], { "480p": 46000000, "720p": 46000000, "1080p": 51000000 }, "ark-cn-2026-09-22"),
+  seedance("volcengine/doubao-seedance-2-0-fast-260128", "Seedance 2.0 Fast", "doubao-seedance-2-0-fast-260128", ["480p", "720p"], { "480p": 37000000, "720p": 37000000 }, "ark-cn-2026-09-22"),
+  seedance("volcengine/doubao-seedance-2-0-mini-260615", "Seedance 2.0 Mini", "doubao-seedance-2-0-mini-260615", ["480p", "720p"], { "480p": 23000000, "720p": 23000000 }, "ark-cn-2026-09-22"),
   {
-    id: "volcengine/doubao-seedream-5-0-pro-260628", vendor: "volcengine", purpose: "image", providerModel: "doubao-seedream-5-0-pro-260628",
+    id: "volcengine/doubao-seedream-5-0-pro-260628", displayName: "Seedream 5.0 Pro", vendor: "volcengine", purpose: "image", providerModel: "doubao-seedream-5-0-pro-260628",
     modes: ["reference_v1"], outputs: seedreamPro, referenceImage: { ...volcRef, maxCount: 10, minSide: 15 },
     pricing: { kind: "per_image", revision: "ark-cn-2026-09-22", microsPerImage: { standard: 300000, large: 600000 }, largeThresholdPixels: 2610000, freeInputImages: 1, extraInputImageMicros: 20000 },
     inflight: 8,
   },
   {
-    id: "volcengine/doubao-seedream-5-0-flash-260915", vendor: "volcengine", purpose: "image", providerModel: "doubao-seedream-5-0-flash-260915",
+    id: "volcengine/doubao-seedream-5-0-flash-260915", displayName: "Seedream 5.0 Flash", vendor: "volcengine", purpose: "image", providerModel: "doubao-seedream-5-0-flash-260915",
     modes: ["reference_v1"], outputs: seedreamPro, referenceImage: { ...volcRef, maxCount: 10, minSide: 15 },
     pricing: { kind: "per_image", revision: "ark-cn-2026-09-22", microsPerImage: { standard: 120000 } }, inflight: 8,
   },
   {
-    id: "volcengine/doubao-seedream-5-0-260128", vendor: "volcengine", purpose: "image", providerModel: "doubao-seedream-5-0-260128",
+    id: "volcengine/doubao-seedream-5-0-260128", displayName: "Seedream 5.0", vendor: "volcengine", purpose: "image", providerModel: "doubao-seedream-5-0-260128",
     modes: ["reference_v1"], outputs: seedreamLite, referenceImage: { ...volcRef, maxCount: 14, minSide: 15 },
     pricing: { kind: "per_image", revision: "ark-cn-2026-09-22", microsPerImage: { standard: 220000 } }, inflight: 8,
     sequentialImages: true,
@@ -117,6 +119,8 @@ export function capabilityDefinition(profile: ModelProfile, mode: ProfileMode, o
     purpose: profile.purpose,
     mode,
     modelVersion: profile.id,
+    displayName: profile.displayName,
+    outputs: sizes.map((size) => ({ resolution: size, aspectRatio: profile.outputs[size]!.ratio, quality: profile.outputs[size]!.resolution })),
     supportedPurposes: frames ? ["start_frame", "end_frame"] : [...REFERENCE_PURPOSES],
     inputRules: frames ? [rule(["start_frame"], 1), rule(["end_frame"], 1)] : [rule([...REFERENCE_PURPOSES], ref.maxCount)],
     allowedResolutions: sizes,

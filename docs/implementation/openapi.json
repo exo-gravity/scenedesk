@@ -19712,6 +19712,17 @@
             "type": "string",
             "maxLength": 20000
           },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CapabilityOutput"
+            }
+          },
           "executionMode": {
             "type": "string",
             "enum": [
@@ -22983,6 +22994,26 @@
           "scriptRevisionId",
           "range",
           "quote"
+        ],
+        "additionalProperties": false
+      },
+      "CapabilityOutput": {
+        "type": "object",
+        "properties": {
+          "resolution": {
+            "type": "string"
+          },
+          "aspectRatio": {
+            "type": "string"
+          },
+          "quality": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "resolution",
+          "aspectRatio",
+          "quality"
         ],
         "additionalProperties": false
       },
