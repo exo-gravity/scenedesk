@@ -102,6 +102,19 @@
 
 复制自[设计 §12](../superpowers/specs/2026-09-22-verified-provider-integration-design.md#12-明确不做)：租户自带密钥与 connections 表；回调端点；参考视频、参考音频、MiniMax 文件上传；组图、图层拆分、再生成 2K、H3-Context-IR；确认费用入账、预算扣减与 K 预留；丢失提交自动找回；多执行器实例与租约续期；界面里的原型占位文案（`Seedance · 待接入`）属于原型页，不在生产路径。
 
+## 现状更新（2026-09-23 晚，演示箱联调之后）
+
+首版落地之后，演示箱上的真实调用与产品内联调发现并修复了四处问题，均已合并到 `main` 并重新部署（最终修订 `4812ccc`）：
+
+- **执行器门禁曾经挡在网关，不是 API**（[PR #79](https://github.com/exo-gravity/scenedesk/pull/79)）：`deploy/nginx.conf` 里一条继承自生成执行器上线之前的规则，对所有 `POST .../generation-jobs` 无条件返回 503，与执行器是否配置无关——第一次在产品里提交任务时就被它拦下。门禁改到 `executePlanOnce`，按 `api.json` 的 `generationExecutor` 声明只拦 `verified_provider` 计划；详见 [52 的更新说明](52-private-deployment-integration.md)。
+- **厂商拒绝码没有保留**（[PR #80](https://github.com/exo-gravity/scenedesk/pull/80)）：`errorCode` 曾优先取火山错误体里泛化的 `error.type`（如 `BadRequest`），现在优先取具体的 `error.code`（如 `InvalidParameter`），worker 也把回执里的码转发到 job 上，不再被数据库的通用 `PROVIDER_REJECTED` 替换。
+- **前端把明确拒绝误判为「待核对」**（[PR #81](https://github.com/exo-gravity/scenedesk/pull/81)、[#83](https://github.com/exo-gravity/scenedesk/pull/83)）：`assistant-session.ts` 的状态机曾把任何非 2xx 都当作提交结果未知，持续轮询；现在区分携带具体错误码的明确拒绝与真正的超时/网络失败，复核后独立会话又发现明确拒绝分支曾经也接住了 API 兜底的 500，同样修复。
+- **真实视频的归档容差太严**（[PR #82](https://github.com/exo-gravity/scenedesk/pull/82)，迁移 `0120`）：`finish_generated_media` 只容许一帧的时长误差，而真实供应商按自己的帧数取整交付（Seedance 4 秒请求实收 4.04–4.10 秒，H3 5 秒请求实收 5.17 秒），首个真实视频卡在归档循环里被判定为 `MEDIA_SERVICE_UNAVAILABLE` 反复重试。容差放宽到 ±1 秒，与 `packages/media/src/generated-output.ts` 早先的校验一致；数据库校验异常（PostgreSQL 23514）现在归为不可重试的 `ARCHIVE_EVIDENCE_REJECTED`，不再无限重启 worker。
+
+此外 [PR #84](https://github.com/exo-gravity/scenedesk/pull/84) 给模型档案加了 `displayName` 字段并改版了创作台底栏的模型/模式/规格选择——**改档案定义的部署会让所有能力行重新发布为关闭状态**（`generation_capabilities` 不可变身份的既有设计），部署后必须重新执行[开通流程](#开通流程)第 4 步的 `--enable`。
+
+产品内联调按上面顺序走通了图片文生图、带参考图生图、视频首尾帧（含执行器中途重启与取消）与归档恢复，详见 MV-01/02/05 的记录列；尚未解决、留作后续的体验问题：取消请求在厂商任务已开始后仍会成功完成，`cancelStatus` 停留在 `unknown` 不再收敛；480p 的 16:9／9:16 规格因像素比不是精确整数比而在前端选不中；页头「未连接真实模型」徽标只读 API 的 `PROVIDER_MODE=mock` 健康字段，与执行器是否配置无关，是纯显示问题。
+
 ## 验证记录（MV-01 至 MV-10）
 
 条目定义见 [07 §5 连接验证清单](07-provider-adapter.md#5-连接验证清单)。2026-09-23 用 `deploy/demo/enable-generation.sh` 在演示箱上跑了首轮付费冒烟（`scripts/verified-smoke.ts`，同一提示词，三个档案各一次），证据在操作者本机 `output/verified/2026-09-23/<档案>/record.json`（已脱敏）与同目录产物，不进仓库。每条通过后把实际证据路径填进"预期证据"列并更新状态。

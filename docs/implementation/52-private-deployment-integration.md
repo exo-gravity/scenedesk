@@ -2,6 +2,8 @@
 
 状态：本地无人干预容器 smoke 与修复后的部署专项 CI 均已通过。基于图片主线 `f3b7433f036261db8e36b01249fee5e242ed3886` 与首片部署提交 `a09cf873ba4ebb7528f71844ec9007cebdf164e9`。当前交付是可检查的阶段部署包，不代表真实 AI、身份接入或外部部署已完成。
 
+本文保留生成执行缺口阶段（网关级 503）的验收历史。2026-09-23 真实供应商接入并在演示箱开通后，[86 真实供应商执行器落地记录](86-verified-provider-runtime.md) 更新了这一状态：下文「网关对精确的 `POST .../generation-jobs` 返回 503」的门禁已从 nginx 网关规则移到 API 内部（`executePlanOnce` 依据 `api.json` 的 `generationExecutor` 声明），只对 `verified_provider` 计划生效，fixture 计划不受影响；已声明执行器的部署会真正调用付费模型。仍未声明执行器的部署行为与下文一致。
+
 ## 1. 已交付能力与生成执行边界
 
 静态 Web、同源 HTTPS API、独立媒体 worker、迁移入口和只读审计继续使用 [47 的配置及凭据隔离](47-private-deployment-package.md)。没有新增生成执行进程，未把只允许 `APP_ENV=local` 的 `apps/worker/src/generation.ts` fixture 入口移除限制或包装成真实模型。
