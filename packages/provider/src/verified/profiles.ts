@@ -66,11 +66,12 @@ const seedance = (id: string, providerModel: string, tiers: ("480p" | "720p" | "
 export const PROFILES: readonly ModelProfile[] = [
   {
     id: "minimax/MiniMax-H3", vendor: "minimax", purpose: "video", providerModel: "MiniMax-H3",
-    // reference_v1 stays off until MV-02 proves MiniMax accepts role "reference_image" and >1 images.
-    // Only the measured entry: MV-01 on 2026-09-23 (768P, 16:9, 5 s) came back as 1344x768, 24 fps, h264 +
-    // stereo aac (note 86). The other ratios and 2K stay out until each is measured the same way; a guessed
-    // size would fail the archive check in packages/media/src/generated-output.ts after paying for the task.
-    modes: ["frames_v1"], outputs: { "1344x768": { resolution: "768P", ratio: "16:9" } }, duration: { min: 4, max: 15 }, audioOutput: true,
+    // Measured entries only (note 86 MV-01, 2026-09-23): 768P 16:9 came back as 1344x768 and 768P 9:16 as
+    // 768x1344, both 24 fps, h264 + stereo aac. The other ratios and 2K stay out until each is measured the
+    // same way; a guessed size would fail the archive check in packages/media/src/generated-output.ts after
+    // paying for the task. reference_v1 is on since MV-02 (2026-09-23): MiniMax accepted two images with role
+    // "reference_image" in one task (usage.input_image_count 2); counts above two are still untested.
+    modes: ["frames_v1", "reference_v1"], outputs: { "1344x768": { resolution: "768P", ratio: "16:9" }, "768x1344": { resolution: "768P", ratio: "9:16" } }, duration: { min: 4, max: 15 }, audioOutput: true,
     referenceImage: { maxCount: 9, maxBytes: FOUR_MIB, mimeTypes: IMAGE_MIMES, minSide: 256, maxSide: 5760 },
     pricing: { kind: "per_second", revision: "minimax-cn-2026-09-22", microsPerSecond: { "768P": 500000, "2K": 800000 }, freeImages: 5, extraImageMicros: 200000 },
     inflight: 8,

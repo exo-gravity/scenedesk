@@ -21,12 +21,14 @@ test("every profile derives a contract-valid capability definition per mode", ()
     }
   }
 });
-test("H3 exposes only its measured 768P 16:9 output and still refuses an unmeasured size", () => {
+test("H3 exposes only its measured 768P outputs in both modes and still refuses an unmeasured size", () => {
   const h3 = findProfile("minimax/MiniMax-H3")!;
   const definition = capabilityDefinition(h3, "frames_v1", {});
-  assert.deepEqual(definition.allowedResolutions, ["1344x768"]);
-  assert.deepEqual(definition.allowedAspectRatios, ["16:9"]);
+  assert.deepEqual(definition.allowedResolutions, ["1344x768", "768x1344"]);
+  assert.deepEqual(definition.allowedAspectRatios, ["16:9", "9:16"]);
   assert.deepEqual(resolveOutput(h3, "1344x768"), { resolution: "768P", ratio: "16:9" });
+  assert.deepEqual(resolveOutput(h3, "768x1344"), { resolution: "768P", ratio: "9:16" });
+  assert.deepEqual(capabilityDefinition(h3, "reference_v1", {}).supportedPurposes, ["identity", "look", "style", "location", "prop", "composition"]);
   assert.throws(() => resolveOutput(h3, "1366x768"), (e: VerifiedProfileError) => e.code === "OUTPUT_NOT_IN_PROFILE");
   assert.throws(() => capabilityDefinition({ ...h3, outputs: {} }, "frames_v1", {}), (e: VerifiedProfileError) => e.code === "OUTPUTS_UNMEASURED");
 });

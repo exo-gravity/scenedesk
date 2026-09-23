@@ -72,18 +72,35 @@ test("MiniMax submit sends one v2 request with bearer auth, data URI frame and r
   assert.equal(call.body.content[1].role, "first_frame");
   assert.ok(call.body.content[1].image_url.url.startsWith("data:image/png;base64,"));
 });
-test("MiniMax submit rejects reference_v1 locally without a request (H3 keeps only frames_v1 until MV-02)", async (t) => {
+test("MiniMax submit sends reference_v1 images with role reference_image and the measured 9:16 target (MV-02, 2026-09-23)", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
-  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps() });
+  const d = await deps();
+  const png = Buffer.from("png-bytes");
+  const media = (id: string) => ({ id, kind: "image", mime: "image/png", bytes: png.length, sha256: createHash("sha256").update(png).digest("hex"), width: 1280, height: 720, object: { key: `originals/${id}`, versionId: "v0" } });
+  d.resolveMedia = async () => [media("media-1"), media("media-2")] as any;
+  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: d });
   const receipt = await adapter.submitOnce(
     submission({
-      references: [{ reference: { mediaId: "media-1", purpose: "identity" }, sourceLevel: "shot" }],
+      references: [
+        { reference: { mediaId: "media-1", purpose: "identity" }, sourceLevel: "shot" },
+        { reference: { mediaId: "media-2", purpose: "look" }, sourceLevel: "shot" },
+      ],
       capabilitySnapshot: { modelVersion: "minimax/MiniMax-H3", mode: "reference_v1" },
+      output: { resolution: "768x1344", durationSeconds: 4, withAudio: true },
     }),
     AbortSignal.timeout(2000),
   );
-  assert.deepEqual(receipt, { kind: "rejected", correlation: "attempt-1", code: "MODE_NOT_CONFIGURED" });
-  assert.equal(mm.calls.length, 0);
+  assert.deepEqual(receipt, { kind: "accepted", correlation: "attempt-1", providerJobId: "mm-task-1" });
+  const call = mm.calls.find((c) => c.method === "POST")!;
+  assert.equal(call.body.model, "MiniMax-H3");
+  assert.equal(call.body.resolution, "768P");
+  assert.equal(call.body.ratio, "9:16");
+  assert.equal(call.body.duration, 4);
+  assert.ok(call.body.content[0].text.startsWith("一个女孩推门"));
+  assert.deepEqual(
+    call.body.content.slice(1).map((c: any) => [c.type, c.role, c.image_url.url.slice(0, 22)]),
+    [["image_url", "reference_image", "data:image/png;base64,"], ["image_url", "reference_image", "data:image/png;base64,"]],
+  );
 });
 test("MiniMax submit maps 422 to rejected with vendor code, 429 to PROVIDER_RATE_LIMITED, 503 and dropped socket to unknown", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
