@@ -49,7 +49,10 @@ export async function startCanvasGenerationRuntime(
       );
   }
   try {
-    fixture = await imageGenerationFixture(lifecycle, undefined, { origin });
+    fixture = await imageGenerationFixture(lifecycle, undefined, {
+      origin,
+      dualModeModel: true,
+    });
     // Keep the proxy upstream on IPv4 even when a manual browser session uses
     // IPv6 to isolate cookies from existing local workspaces.
     const apiOrigin = await fixture.app.listen({ host: "127.0.0.1", port: 0 });

@@ -30,6 +30,8 @@ export async function imageGenerationFixture(
     purpose?: "image" | "video" | "audio";
     origin?: string;
     generationExecutor?: boolean;
+    /** Adds the synthetic two-mode model the composer's browser cases need. */
+    dualModeModel?: boolean;
   } = {},
 ) {
   const kind = options.purpose ?? "image";
@@ -172,11 +174,12 @@ export async function imageGenerationFixture(
   );
   // A synthetic model offering two input modes across three ratios and two
   // tiers. The panel's grouping, its mode pill and its tier list have nothing
-  // else to exercise them: the fixture above is one mode at one size. Image
-  // only, because only the image composer has a case for it, and never
-  // submitted, so no provider is reached.
+  // else to exercise them: the fixture above is one mode at one size. It is
+  // never submitted, so no provider is reached. Off unless a caller asks for
+  // it — every other consumer of this fixture counts the capabilities it
+  // provisions, and two more would be two too many.
   const dualMode: { id: string; mode: string }[] = [];
-  if (kind === "image") {
+  if (kind === "image" && options.dualModeModel) {
     const dualModeVersionId = randomUUID();
     for (const mode of ["frames_v1", "reference_v1"]) {
       const id = randomUUID();
