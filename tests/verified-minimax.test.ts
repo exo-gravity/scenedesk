@@ -52,7 +52,7 @@ const submission = (overrides: Record<string, unknown> = {}) => ({
   input: { purpose: "video" } as any,
   resolvedInput: {
     prompt: "一个女孩推门", references: [{ reference: { mediaId: "media-1", purpose: "start_frame" }, sourceLevel: "shot" }],
-    capabilitySnapshot: { modelVersion: "minimax/MiniMax-H3", mode: "frames_v1" }, output: { resolution: "1366x768", durationSeconds: 5, withAudio: true },
+    capabilitySnapshot: { modelVersion: "minimax/MiniMax-H3", mode: "frames_v1" }, output: { resolution: "1344x768", durationSeconds: 5, withAudio: true },
     ...overrides,
   } as any,
 });
@@ -60,7 +60,7 @@ const submission = (overrides: Record<string, unknown> = {}) => ({
 test("MiniMax submit sends one v2 request with bearer auth, data URI frame and returns accepted", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
   const d = await deps();
-  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: d, outputsOverride: { "1366x768": { resolution: "768P", ratio: "16:9" } } });
+  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: d });
   const receipt = await adapter.submitOnce(submission(), AbortSignal.timeout(2000));
   assert.deepEqual(receipt, { kind: "accepted", correlation: "attempt-1", providerJobId: "mm-task-1" });
   assert.equal(mm.calls.length, 1);
@@ -74,7 +74,7 @@ test("MiniMax submit sends one v2 request with bearer auth, data URI frame and r
 });
 test("MiniMax submit rejects reference_v1 locally without a request (H3 keeps only frames_v1 until MV-02)", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
-  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps(), outputsOverride: { "1366x768": { resolution: "768P", ratio: "16:9" } } });
+  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps() });
   const receipt = await adapter.submitOnce(
     submission({
       references: [{ reference: { mediaId: "media-1", purpose: "identity" }, sourceLevel: "shot" }],
@@ -87,7 +87,7 @@ test("MiniMax submit rejects reference_v1 locally without a request (H3 keeps on
 });
 test("MiniMax submit maps 422 to rejected with vendor code, 429 to PROVIDER_RATE_LIMITED, 503 and dropped socket to unknown", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
-  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps(), outputsOverride: { "1366x768": { resolution: "768P", ratio: "16:9" } } });
+  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps() });
   mm.setMode("422");
   assert.deepEqual(await adapter.submitOnce(submission(), AbortSignal.timeout(2000)), { kind: "rejected", correlation: "attempt-1", code: "MINIMAX_unprocessable_entity_error" });
   mm.setMode("429");
@@ -101,7 +101,8 @@ test("MiniMax submit maps 422 to rejected with vendor code, 429 to PROVIDER_RATE
 test("MiniMax submit rejects locally without a request when the profile or output is not configured", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
   const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps() });
-  const receipt = await adapter.submitOnce(submission(), AbortSignal.timeout(2000));
+  // 1366x768 is the size the documentation suggested before MV-01 measured 1344x768; it is not in the profile.
+  const receipt = await adapter.submitOnce(submission({ output: { resolution: "1366x768", durationSeconds: 5, withAudio: true } }), AbortSignal.timeout(2000));
   assert.deepEqual(receipt, { kind: "rejected", correlation: "attempt-1", code: "OUTPUT_NOT_IN_PROFILE" });
   const wrongVendor = await adapter.submitOnce(submission({ capabilitySnapshot: { modelVersion: "volcengine/doubao-seedance-2-0-260128", mode: "frames_v1" } }), AbortSignal.timeout(2000));
   assert.equal((wrongVendor as any).code, "VENDOR_MISMATCH");
@@ -110,7 +111,7 @@ test("MiniMax submit rejects locally without a request when the profile or outpu
 test("MiniMax query maps statuses, downloads and archives on success, cancels only queued", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);
   const d = await deps();
-  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: d, outputsOverride: { "1366x768": { resolution: "768P", ratio: "16:9" } } });
+  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: d });
   const task = { ...submission(), providerJobId: "mm-task-1" };
   assert.equal((await adapter.query!(task, AbortSignal.timeout(2000))).kind, "pending");
   mm.setStatus("running");
