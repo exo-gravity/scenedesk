@@ -137,6 +137,39 @@ test(
       },
     );
     await t.test(
+      "a clip a few frames longer than requested archives (real providers round to their own frame count); beyond one second is a final refusal",
+      async () => {
+        // Seedance returned 4.0417 s and 4.096 s for 4 s requests on 2026-09-23; migration 0120 widened
+        // the database rule from one frame to one second, matching validateGeneratedOutput.
+        const publishClip = async (name: string, seconds: number) => {
+          const file = join(directory, name);
+          await writeVideoFixture(file, false, "32x32", seconds);
+          const bytes = await readFile(file),
+            sha256 = createHash("sha256").update(bytes).digest("hex");
+          const object = await storage.processing.publish(file, { bytes: bytes.length, sha256, mime: "video/mp4" }, "originals");
+          return { videos: [{ kind: "fixture_object", object: { key: object.key, versionId: object.versionId, bytes: object.bytes }, sha256, mime: "video/mp4" }] };
+        };
+        f.setOutput(await publishClip("longer.mp4", 2.125));
+        const accepted = await f.execute((await f.plan({ output: { ...f.input.output, withAudio: false } })).id);
+        await f.worker.process(accepted.id);
+        await run(await f.envelope(accepted.id));
+        const m = await media(accepted.id);
+        assert.equal(m.status, "ready", JSON.stringify(m.issue));
+        assert.ok(m.durationUs > 2_000_000 && m.durationUs <= 2_200_000, String(m.durationUs));
+        assert.equal((await f.job(accepted.id)).status, "succeeded");
+
+        f.setOutput(await publishClip("too-long.mp4", 3.5));
+        const refused = await f.execute((await f.plan({ output: { ...f.input.output, withAudio: false } })).id);
+        await f.worker.process(refused.id);
+        // A final refusal is recorded on the media row and does not propagate to the queue (no retry loop).
+        await run(await f.envelope(refused.id));
+        const m2 = await media(refused.id);
+        assert.equal(m2.status, "rejected");
+        assert.equal(m2.issue?.code, "VIDEO_OUTPUT_MISMATCH");
+        assert.equal((await f.job(refused.id)).status, "archive_failed");
+      },
+    );
+    await t.test(
       "declared audio mismatch rejects actual MP4 and never triggers a new generation",
       async () => {
         const j = await submit(true, false),
