@@ -40,8 +40,10 @@ test("single video fixed sources, actual timing and stable explicit canvas resul
       },
     };
     if (verifyBoundary) {
+      // Migration 0120: a real provider's extra frames (2041667 for a 2 s request) are accepted;
+      // more than one second off still is not.
       for (const probe of [
-        { ...result.probe, durationUs: 2041667 },
+        { ...result.probe, durationUs: 3100000 },
         { ...result.probe, hasAudio: !result.probe.hasAudio },
         { ...result.probe, fpsNum: null },
       ])
