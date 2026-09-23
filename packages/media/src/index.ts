@@ -1,4 +1,5 @@
 export * from "./policy.js";
+export * from "./issues.js";
 export * from "./storage.js";
 export * from "./probe.js";
 export * from "./generated-output.js";

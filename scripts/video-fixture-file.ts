@@ -4,7 +4,10 @@ export async function writeVideoFixture(
   file: string,
   withAudio: boolean,
   resolution = "256x144",
+  seconds = 2,
 ) {
+  if (!(seconds > 0 && seconds <= 30))
+    throw new Error("Technical fixture duration must be within 30 seconds");
   if (
     !/^[1-9][0-9]*x[1-9][0-9]*$/.test(resolution) ||
     resolution.split("x").some((n) => Number(n) > 8192 || Number(n) % 2 !== 0)
@@ -25,7 +28,7 @@ export async function writeVideoFixture(
         ? ["-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000"]
         : []),
       "-t",
-      "2",
+      String(seconds),
       "-map",
       "0:v:0",
       ...(withAudio
