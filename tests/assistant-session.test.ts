@@ -516,10 +516,13 @@ test("a definite refusal releases the execution intent, keeps the fixed plan and
   }
 });
 
-test("a timeout, a lost connection or an unreadable server failure keeps the receipt unknown", async () => {
+test("a server failure that does not prove the job was never created keeps the receipt unknown", async () => {
   for (const failure of [
     { status: 0, code: "CONNECTION_LOST" },
     { status: 502, code: "UNAVAILABLE" },
+    // The API's catch-all for any unmapped failure, including one thrown while
+    // committing: the job may already exist, so this is not a refusal.
+    { status: 500, code: "INTERNAL_ERROR" },
     {},
   ]) {
     const f = fixture();
@@ -561,6 +564,14 @@ test("an unknown submission is released for a new preparation once its plan expi
     assert.ok(
       session.getSnapshot().record?.execution,
       "a plan that can still be consumed keeps the receipt unknown",
+    );
+    // A consumed plan past its expiry means a job exists that this check has
+    // not read yet; only an unconsumed expiry proves no submission happened.
+    current = { ...plan, status: "consumed", expiresAt: "2000-01-01T00:00:00Z" };
+    await session.refresh();
+    assert.ok(
+      session.getSnapshot().record?.execution,
+      "a consumed plan keeps the receipt unknown however old it is",
     );
     current = { ...plan, status: "expired", expiresAt: "2000-01-01T00:00:00Z" };
     await session[check]();
