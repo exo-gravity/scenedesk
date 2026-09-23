@@ -132,6 +132,36 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   await expect(board.getByRole("article", { name: "图片 1 · 图片", exact: true })).toBeVisible();
 });
 
+test("ST-03: a draft carrying a ratio but no size can still choose its only tier", async ({ page, generation: f }) => {
+  // Drafts saved while the ratio was an independent optional toggle can hold a
+  // ratio and no size. A ratio with one tier states that tier rather than
+  // offering a button, so such a draft must still be able to take it — or the
+  // size can never be set and the submission is refused.
+  const project = await f.createProject("单档位补齐 · 创作台");
+  const path = `${f.base}/projects/${project.id}`;
+  const canvas = (await f.request("POST", `${path}/canvas`)).json().canvas;
+  const reference = f.dualMode.find((c) => c.mode === "reference_v1")!;
+  const node = {
+    id: crypto.randomUUID(), kind: "image", title: "旧草稿", width: 360, position: { x: 240, y: 200 },
+    content: {
+      type: "draft", prompt: "竖幅的门。",
+      connectionId: f.input.connectionId, capabilityId: reference.id,
+      output: { aspectRatio: "9:16" },
+    },
+  };
+  await f.ok("PUT", `${path}/canvases/${canvas.id}`, { schemaVersion: 1, document: { nodes: [node], edges: [], groups: [] } }, canvas.revision);
+  await openStudio(page, f, project.id);
+  await page.getByRole("main", { name: "创作台", exact: true })
+    .getByRole("article", { name: "旧草稿 · 图片", exact: true }).click();
+  const panel = page.getByRole("region", { name: "生成图片", exact: true });
+  await panel.getByRole("button", { name: "生成规格", exact: true }).click();
+  const spec = page.getByRole("group", { name: "生成规格", exact: true });
+  await expect(spec.getByRole("button", { name: "9:16", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await spec.getByRole("button", { name: "720p", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("9:16 · 720p");
+});
+
 test("ST-03: a lost execution reply is recovered by reading the original job; the unknown submission is never repeated", async ({ page, generation: f }) => {
   const project = await f.createProject("原提交核对 · 创作台");
   const path = `${f.base}/projects/${project.id}`;

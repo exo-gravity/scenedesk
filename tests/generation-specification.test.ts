@@ -243,3 +243,21 @@ test("a summary names the tier, not the pixel size, and writes seconds as s", ()
     "16:9 · 2K · 5s · 有声",
   );
 });
+
+test("without an output table the sizes stand on their own, ratio or no ratio", () => {
+  // Every record on a deployment that has not been re-provisioned looks like
+  // this, and a draft saved before the ratio became required has no ratio.
+  const legacy = { allowedAspectRatios: ["16:9", "9:16"], allowedResolutions: ["2816x1584", "1424x800"] };
+  assert.deepEqual(qualityOptions(legacy, undefined), [
+    { quality: "2816x1584", resolution: "2816x1584" },
+    { quality: "1424x800", resolution: "1424x800" },
+  ]);
+  assert.deepEqual(
+    reconcileOutputForCapability({
+      kind: "image",
+      output: { resolution: "2816x1584" },
+      capability: legacy,
+    }),
+    { resolution: "2816x1584" },
+  );
+});

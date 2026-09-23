@@ -71,13 +71,17 @@ export function qualityOptions(
   capability: SpecificationCapability | undefined,
   aspectRatio: string | undefined,
 ): { quality: string; resolution: string }[] {
-  if (!capability || !aspectRatio) return [];
+  if (!capability) return [];
   const outputs = capability.outputs;
+  // Without the table nothing ties a size to a ratio, so the flat list stands
+  // on its own — including before a ratio is chosen. A draft saved when the
+  // ratio was still optional would otherwise lose the size it already has.
   if (!outputs?.length)
     return (capability.allowedResolutions ?? []).map((resolution) => ({
       quality: resolution,
       resolution,
     }));
+  if (!aspectRatio) return [];
   return outputs
     .filter((output) => output.aspectRatio === aspectRatio)
     .map(({ quality, resolution }) => ({ quality, resolution }));

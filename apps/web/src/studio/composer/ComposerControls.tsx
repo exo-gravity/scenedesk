@@ -303,8 +303,12 @@ export function SpecificationPicker({
           {qualities.length > 0 && (
             <section>
               <h4 className={classes.specTitle}>清晰度</h4>
-              {qualities.length === 1 ? (
-                // One tier is not a choice; it reads as the fact it is.
+              {qualities.length === 1 &&
+              output.resolution === qualities[0]!.resolution ? (
+                // One tier is not a choice, so once it is the chosen size it
+                // reads as the fact it is. Until then it stays a control: a
+                // draft saved when the ratio was optional can arrive with a
+                // ratio and no size, and would otherwise never take one.
                 <div className={classes.duration}>{qualities[0]!.quality}</div>
               ) : (
                 <div className={classes.tiles} data-columns="2">
