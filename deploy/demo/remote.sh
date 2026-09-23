@@ -4,7 +4,7 @@
 #
 #   demo-remote.sh build   <short-sha>
 #   demo-remote.sh rollout <short-sha> <full-sha> "<subject>"
-#   demo-remote.sh smoke   <minimax|volcengine> <image|video> <out-subdir>
+#   demo-remote.sh smoke   <minimax|volcengine> <image|video> <out-subdir> [smoke script options]
 #   demo-remote.sh enable  <profileId>...
 #
 # build   — implementation note 83 §8: pause the co-hosted platform's worker and scheduler,
@@ -19,6 +19,10 @@
 #           starts the `generation` profile; without that file nothing about generation changes.
 # smoke   — PAID: scripts/verified-smoke.ts inside the operations image, one vendor task,
 #           evidence under $SCENEDESK_HOME/output/verified/<out-subdir>/ (record.json is redacted).
+#           Extra arguments go to the script (--ratio, --resolution, --duration, --image, --role,
+#           --model, --prompt); --image paths are container paths under /workspace/output/verified.
+#           When $SCENEDESK_HOME/bin/verified-smoke.ts exists (deploy/demo/smoke.sh uploads the
+#           checkout's copy) it is mounted over the image's script, so a tooling change needs no rebuild.
 # enable  — scripts/provision-verified-capabilities.ts --enable for the named profiles: the only
 #           step that lets a paid model produce ready plans. Run it after the smoke passed.
 set -euo pipefail
@@ -198,11 +202,16 @@ EOF
     cd "$HOME_DIR"
     # The operations image runs as uid 1000; the evidence directory must be writable by it.
     mkdir -p output/verified && chown 1000:1000 output/verified
+    script_mount=()
+    if [ -f "$HOME_DIR/bin/verified-smoke.ts" ]; then
+      script_mount=(-v "$HOME_DIR/bin/verified-smoke.ts:/workspace/scripts/verified-smoke.ts:ro")
+    fi
     docker compose --profile operations run --rm --no-deps \
       -v "$GENERATION_CONFIG:/run/generation.json:ro" \
       -v "$HOME_DIR/output/verified:/workspace/output/verified" \
+      ${script_mount[@]+"${script_mount[@]}"} \
       operations node --import tsx scripts/verified-smoke.ts \
-        --config /run/generation.json --vendor "$vendor" --kind "$kind" --out "/workspace/output/verified/$out"
+        --config /run/generation.json --vendor "$vendor" --kind "$kind" --out "/workspace/output/verified/$out" "${@:5}"
     echo "SMOKE_DONE $vendor $kind $out"
     ;;
 
