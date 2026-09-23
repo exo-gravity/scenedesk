@@ -1,0 +1,17 @@
+{
+  "databaseUrl": "postgresql://scenedesk_generation:REPLACE_WITH_GENERATION_SECRET@database.example.invalid/scenedesk?sslmode=verify-full",
+  "media": {
+    "region": "YOUR_STORAGE_REGION",
+    "bucket": "your-private-versioned-media-bucket",
+    "accessKeyId": "REPLACE_WITH_WORKER_STORAGE_KEY",
+    "secretAccessKey": "REPLACE_WITH_WORKER_STORAGE_SECRET"
+  },
+  "vendors": {
+    "minimax": { "apiKey": "REPLACE_WITH_MINIMAX_API_KEY", "baseUrl": "https://api.minimax.cn" },
+    "volcengine": { "apiKey": "REPLACE_WITH_ARK_API_KEY", "baseUrl": "https://ark.cn-beijing.volces.com/api/v3", "accountTier": "personal" }
+  },
+  "connections": [
+    { "vendor": "minimax", "connectionId": "REPLACE_WITH_UUID", "connectionVersionId": "REPLACE_WITH_UUID", "accountIdentityLabel": "MiniMax account <masked>" },
+    { "vendor": "volcengine", "connectionId": "REPLACE_WITH_UUID", "connectionVersionId": "REPLACE_WITH_UUID", "accountIdentityLabel": "Volcengine account <masked>" }
+  ]
+}

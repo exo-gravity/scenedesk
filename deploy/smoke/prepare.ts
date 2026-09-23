@@ -40,7 +40,7 @@ SmokeContract.browserContractCompiler().then(compiler => {
 </script>`,
 );
 const passwords = Object.fromEntries(
-  ["postgres", "api", "auth", "media", "scheduler"].map((role) => [
+  ["postgres", "api", "auth", "media", "scheduler", "generation"].map((role) => [
     role,
     random(),
   ]),
@@ -82,11 +82,12 @@ json("provision.json", {
   authRole: "auth",
   mediaRole: "media",
   schedulerRole: "scheduler",
+  generationRole: "generation",
   authorizationOwner: "authorization_owner",
 });
 write(
   "roles.sql",
-  ["api", "auth", "media", "scheduler"]
+  ["api", "auth", "media", "scheduler", "generation"]
     .map(
       (role) =>
         `CREATE ROLE ${role} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB PASSWORD '${passwords[role]}';`,

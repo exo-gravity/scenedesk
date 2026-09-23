@@ -63,13 +63,11 @@ export function validateGeneratedOutput(
       );
     const delta =
       BigInt(probe.durationUs!) - BigInt(output.durationSeconds!) * 1000000n;
-    if (
-      (delta < 0n ? -delta : delta) * BigInt(probe.fpsNum!) >
-      1000000n * BigInt(probe.fpsDen!)
-    )
+    // Real providers round to whole seconds (floor(frames/24)); allow one second either way.
+    if ((delta < 0n ? -delta : delta) > 1000000n)
       throw new MediaFailure(
         "VIDEO_OUTPUT_MISMATCH",
-        "原视频时长超出固定请求允许的一帧容器量化范围。",
+        "原视频时长与固定请求相差超过 1 秒。",
       );
   }
 }

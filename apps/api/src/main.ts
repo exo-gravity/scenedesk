@@ -10,8 +10,11 @@ import { mediaStoreFromEnvironment } from "@drama/media";
 import { createScheduler } from "@drama/queue";
 if (process.env.APP_ENV && process.env.APP_ENV !== "local")
   throw new Error("S0 scaffold supports APP_ENV=local only");
-if (process.env.PROVIDER_MODE && process.env.PROVIDER_MODE !== "mock")
-  throw new Error("Real providers are not implemented or enabled");
+if (
+  process.env.PROVIDER_MODE &&
+  !["mock", "verified"].includes(process.env.PROVIDER_MODE)
+)
+  throw new Error("PROVIDER_MODE must be mock or verified");
 const host = process.env.HOST ?? "127.0.0.1";
 if (host !== "127.0.0.1" && host !== "::1")
   throw new Error("S0 scaffold binds loopback only");

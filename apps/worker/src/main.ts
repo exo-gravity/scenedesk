@@ -10,10 +10,11 @@ import {
 
 if (
   process.env.APP_ENV !== "local" ||
-  (process.env.PROVIDER_MODE && process.env.PROVIDER_MODE !== "mock")
+  (process.env.PROVIDER_MODE &&
+    !["mock", "verified"].includes(process.env.PROVIDER_MODE))
 )
   throw new Error(
-    "This local worker supports imported media and mock mode only",
+    "This local worker requires APP_ENV=local and PROVIDER_MODE mock or verified",
   );
 if (
   process.env.DATABASE_URL ||

@@ -3,6 +3,8 @@ import { test } from "node:test";
 import {
   apiConfiguration,
   workerConfiguration,
+  generationConfiguration,
+  configuration,
   DeploymentError,
 } from "../runtime/config.js";
 const connection = (role: string) =>
@@ -112,5 +114,66 @@ test("Feishu is optional and accepts only explicit tenant/project source binding
         error.code === "CONFIG_FEISHU_INVALID" &&
         !error.message.includes(feishu.appSecret),
     );
+  }
+});
+const generationExample = {
+  databaseUrl:
+    "postgresql://scenedesk_generation:secret@db.example.invalid/scenedesk?sslmode=verify-full",
+  media: { region: "cn", bucket: "b", accessKeyId: "k", secretAccessKey: "s" },
+  vendors: {
+    volcengine: {
+      apiKey: "a",
+      baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
+      accountTier: "personal",
+    },
+  },
+  connections: [
+    {
+      vendor: "volcengine",
+      connectionId: "33333333-3333-4333-8333-333333333333",
+      connectionVersionId: "44444444-4444-4444-8444-444444444444",
+      accountIdentityLabel: "ark",
+    },
+  ],
+};
+test("generation configuration accepts the documented shape and rejects unknown keys and http vendors", () => {
+  const parsed = generationConfiguration(generationExample);
+  assert.equal(parsed.vendors.connections.length, 1);
+  assert.throws(
+    () => generationConfiguration({ ...generationExample, extra: 1 }),
+    /CONFIG_UNKNOWN_FIELD/,
+  );
+  assert.throws(
+    () =>
+      generationConfiguration({
+        ...generationExample,
+        vendors: {
+          volcengine: {
+            apiKey: "a",
+            baseUrl: "http://ark.cn-beijing.volces.com",
+          },
+        },
+      }),
+    /GENERATION_BASE_URL_HTTPS_REQUIRED/,
+  );
+});
+test("PROVIDER_MODE=verified is accepted and other values still fail", async () => {
+  const previousMode = process.env.PROVIDER_MODE;
+  const previousConfigFile = process.env.SCENEDESK_CONFIG_FILE;
+  try {
+    process.env.PROVIDER_MODE = "verified";
+    process.env.SCENEDESK_CONFIG_FILE = "/nonexistent.json";
+    await assert.rejects(
+      configuration(),
+      /CONFIG_FILE_UNREADABLE_OR_INVALID_JSON/,
+    );
+    process.env.PROVIDER_MODE = "real";
+    await assert.rejects(configuration(), /PROVIDER_MODE_INVALID/);
+  } finally {
+    if (previousMode === undefined) delete process.env.PROVIDER_MODE;
+    else process.env.PROVIDER_MODE = previousMode;
+    if (previousConfigFile === undefined)
+      delete process.env.SCENEDESK_CONFIG_FILE;
+    else process.env.SCENEDESK_CONFIG_FILE = previousConfigFile;
   }
 });

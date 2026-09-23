@@ -21,6 +21,9 @@ FROM application AS media-worker
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 CMD ["node", "--import", "tsx", "deploy/runtime/media-worker.ts"]
 
+FROM application AS generation-worker
+CMD ["node", "--import", "tsx", "deploy/runtime/generation-worker.ts"]
+
 FROM nginx:alpine@sha256:b0f7830b6bfaa1258f45d94c240ab668ced1b3651c8a222aefe6683447c7bf55 AS web
 COPY --from=application /workspace/apps/web/dist /usr/share/nginx/html
 COPY deploy/nginx.conf /etc/nginx/nginx.conf

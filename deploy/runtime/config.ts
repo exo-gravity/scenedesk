@@ -6,6 +6,7 @@ import {
   MediaStore,
   type StoreConfiguration,
 } from "@drama/media";
+import { parseGenerationVendors } from "@drama/provider";
 
 export class DeploymentError extends Error {
   constructor(readonly code: string) {
@@ -136,8 +137,11 @@ export async function configuration() {
   ]) {
     if (process.env[key]) fail("AMBIENT_CREDENTIALS_FORBIDDEN");
   }
-  if (process.env.PROVIDER_MODE && process.env.PROVIDER_MODE !== "mock")
-    fail("REAL_PROVIDER_NOT_IMPLEMENTED");
+  if (
+    process.env.PROVIDER_MODE &&
+    !["mock", "verified"].includes(process.env.PROVIDER_MODE)
+  )
+    fail("PROVIDER_MODE_INVALID");
   if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0")
     fail("TLS_VERIFICATION_REQUIRED");
   let raw: unknown;
@@ -223,6 +227,23 @@ export function workerConfiguration(input: unknown) {
   distinctConnections([databaseUrl, schedulerDatabaseUrl]);
   return { databaseUrl, schedulerDatabaseUrl, media: storage(value.media) };
 }
+export function generationConfiguration(input: unknown) {
+  const value = record(input);
+  keys(value, ["databaseUrl", "media", "vendors", "connections"]);
+  const databaseUrl = database(field(value, "databaseUrl"));
+  let vendors;
+  try {
+    vendors = parseGenerationVendors({
+      vendors: value.vendors,
+      connections: value.connections,
+    });
+  } catch (error) {
+    return fail((error as Error).message);
+  }
+  for (const vendor of Object.values(vendors.vendors))
+    httpsAddress(vendor!.baseUrl);
+  return { databaseUrl, media: storage(value.media), vendors };
+}
 export const pool = (connectionString: string, max = 4) =>
   new Pool({
     connectionString,
@@ -242,7 +263,7 @@ export function diagnostic(error: unknown, stage: string) {
         error instanceof DeploymentError || error instanceof MediaFailure
           ? error.code
           : "DEPENDENCY_CHECK_FAILED",
-      paidProvidersEnabled: false,
+      paidProvidersEnabled: process.env.PROVIDER_MODE === "verified",
     }),
   );
 }

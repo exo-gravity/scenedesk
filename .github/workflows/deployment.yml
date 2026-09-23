@@ -81,6 +81,8 @@ jobs:
         run: docker build -f deploy/Dockerfile --target web -t scenedesk-private-web:ci .
       - name: Build isolated media worker image
         run: docker build -f deploy/Dockerfile --target media-worker -t scenedesk-private-worker:ci .
+      - name: Build generation executor image
+        run: docker build -f deploy/Dockerfile --target generation-worker -t scenedesk-private-generation:ci .
       - name: Check same-origin API, supported media queue and browser contract
         env:
           SCENEDESK_IMAGE_TAG: ci

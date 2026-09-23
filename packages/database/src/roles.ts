@@ -58,6 +58,8 @@ const generationFunctions = [
   "release_generation_observation(uuid,uuid,integer,boolean)",
   "finish_generation_job(uuid,uuid,jsonb,text)",
   "read_generation_archive_envelope(uuid)",
+  "read_generation_media_sources(uuid)",
+  "list_verified_connection_versions()",
 ] as const;
 const productionTables = [
   "media_production_copies",

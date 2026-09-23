@@ -41,7 +41,8 @@
     "test:media:prepare": "node --import tsx scripts/prepare-media-tests.ts",
     "test:media": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 tests/media/*.test.ts",
     "setup:media": "node --env-file=.env --env-file=.env.business --env-file=.env.queue --import tsx scripts/setup-local-media.ts",
-    "dev:media-worker": "node --env-file=.env.media-worker --env-file=.env.queue --import tsx apps/worker/src/main.ts"
+    "dev:media-worker": "node --env-file=.env.media-worker --env-file=.env.queue --import tsx apps/worker/src/main.ts",
+    "dev:generation-worker": "node --env-file=.env.generation-verified --import tsx apps/worker/src/generation-verified.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
