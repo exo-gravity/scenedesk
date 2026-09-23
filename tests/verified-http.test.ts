@@ -42,6 +42,8 @@ test("connection refused is a network unavailable outcome", async () => {
 });
 test("errorCode extracts vendor codes and sanitizes", () => {
   assert.equal(errorCode({ error: { type: "insufficient_balance_error" } }, "X"), "insufficient_balance_error");
+  // Ark puts the specific code next to a generic type; the type alone (ARK_BadRequest) explained nothing on 2026-09-23.
+  assert.equal(errorCode({ error: { code: "InvalidParameter", type: "BadRequest", message: "x" } }, "X"), "InvalidParameter");
   assert.equal(errorCode({ code: "ModelNotOpen" }, "X"), "ModelNotOpen");
   assert.equal(errorCode({ base_resp: { status_code: 1026 } }, "X"), "1026");
   assert.equal(errorCode({ error: { code: "bad code!! <script>" } }, "X"), "badcodescript");

@@ -179,6 +179,12 @@ export async function createAssistanceWorker(options: {
         | AudioOutput
         | null = null,
       failure: string | null = null;
+    // A rejected receipt names the vendor's code (MINIMAX_… / ARK_…); without it the job only
+    // shows the generic PROVIDER_REJECTED that the database substitutes.
+    if (selected.body.kind === "rejected" && typeof selected.body.code === "string") {
+      const code = selected.body.code.replace(/[^A-Za-z0-9_.-]/g, "").slice(0, 80);
+      if (code) failure = code;
+    }
     if (selected.body.kind === "completed")
       try {
         ops =
