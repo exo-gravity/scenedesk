@@ -30,6 +30,8 @@ export async function imageGenerationFixture(
     purpose?: "image" | "video" | "audio";
     origin?: string;
     generationExecutor?: boolean;
+    /** Adds the synthetic two-mode model the composer's browser cases need. */
+    dualModeModel?: boolean;
   } = {},
 ) {
   const kind = options.purpose ?? "image";
@@ -170,6 +172,43 @@ export async function imageGenerationFixture(
     `INSERT INTO ${scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'test_fixture',true,2,100)`,
     [capabilityId, f.tenant.id, connectionId, connectionVersionId, definition],
   );
+  // A synthetic model offering two input modes across three ratios and two
+  // tiers. The panel's grouping, its mode pill and its tier list have nothing
+  // else to exercise them: the fixture above is one mode at one size. It is
+  // never submitted, so no provider is reached. Off unless a caller asks for
+  // it — every other consumer of this fixture counts the capabilities it
+  // provisions, and two more would be two too many.
+  const dualMode: { id: string; mode: string }[] = [];
+  if (kind === "image" && options.dualModeModel) {
+    const dualModeVersionId = randomUUID();
+    for (const mode of ["frames_v1", "reference_v1"]) {
+      const id = randomUUID();
+      await f.admin.query(
+        `INSERT INTO ${scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'verified_provider',true,2,100)`,
+        [
+          id,
+          f.tenant.id,
+          connectionId,
+          dualModeVersionId,
+          {
+            ...definition,
+            mode,
+            modelVersion: "fixture/dual-mode",
+            displayName: "双模式 fixture",
+            allowedAspectRatios: ["16:9", "9:16", "21:9"],
+            allowedResolutions: ["864x496", "1280x720", "720x1280", "1470x630"],
+            outputs: [
+              { resolution: "864x496", aspectRatio: "16:9", quality: "480p" },
+              { resolution: "1280x720", aspectRatio: "16:9", quality: "720p" },
+              { resolution: "720x1280", aspectRatio: "9:16", quality: "720p" },
+              { resolution: "1470x630", aspectRatio: "21:9", quality: "720p" },
+            ],
+          },
+        ],
+      );
+      dualMode.push({ id, mode });
+    }
+  }
   const input = {
     scope: "project",
     projectId: f.project.id,
@@ -262,6 +301,7 @@ export async function imageGenerationFixture(
     scene,
     shot,
     input,
+    dualMode,
     definition,
     roles,
     queueSchema,

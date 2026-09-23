@@ -55,12 +55,46 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   const spec = page.getByRole("group", { name: "生成规格", exact: true });
   await expect(spec).toBeVisible();
   await expect(spec.getByRole("button", { name: "1:1", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(spec.getByRole("button", { name: "32x32", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // One size is the only tier this fixture has, so the panel states it.
+  await expect(spec.getByRole("button", { name: "32x32", exact: true })).toHaveCount(0);
+  await expect(spec).toContainText("32x32");
   const specShot = info.outputPath("studio-spec-picker-1920.png");
   await page.screenshot({ path: specShot, animations: "disabled" });
   await info.attach("studio-spec-picker-1920", { path: specShot, contentType: "image/png" });
   await page.keyboard.press("Escape");
   await expect(spec).toHaveCount(0);
+
+  // One row per model: two records differing only in mode collapse into one.
+  await panel.getByRole("button", { name: "生成模型", exact: true }).click();
+  const list = page.getByRole("listbox", { name: "可用模型", exact: true });
+  await expect(list.getByRole("option", { name: /双模式 fixture/ })).toHaveCount(1);
+  await list.getByRole("option", { name: /双模式 fixture/ }).click();
+  // The mode is chosen beside the model, not inside its row.
+  const modePill = panel.getByRole("button", { name: "进料方式", exact: true });
+  await expect(modePill).toContainText("首尾帧");
+  await modePill.click();
+  await page.getByRole("option", { name: "参考图", exact: true }).click();
+  await expect(modePill).toContainText("参考图");
+  // Three ratios on offer; 21:9 is the model's, not the panel's.
+  await panel.getByRole("button", { name: "生成规格", exact: true }).click();
+  await expect(spec.getByRole("button", { name: "21:9", exact: true })).toHaveCount(0);
+  await spec.getByRole("button", { name: "16:9", exact: true }).click();
+  await spec.getByRole("button", { name: "720p", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("16:9 · 720p");
+  // 9:16 has one tier here, so the panel states it — and still fills the size in.
+  await panel.getByRole("button", { name: "生成规格", exact: true }).click();
+  await spec.getByRole("button", { name: "9:16", exact: true }).click();
+  await expect(spec.getByRole("button", { name: "720p", exact: true })).toHaveCount(0);
+  await expect(spec).toContainText("720p");
+  await page.keyboard.press("Escape");
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("9:16 · 720p");
+  // Back to the fixture: a model with one mode shows no pill, and only a
+  // fixture may be submitted in this suite.
+  await panel.getByRole("button", { name: "生成模型", exact: true }).click();
+  await page.getByRole("option", { name: /显式文件 fixture/ }).click();
+  await expect(panel.getByRole("button", { name: "进料方式", exact: true })).toHaveCount(0);
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("1:1 · 32x32");
 
   // Rule 8: one click prepares and executes once.
   let plans = 0, jobs = 0;
@@ -79,6 +113,7 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   const jobId = entries.items[0].jobId;
   // Rule 6: with a fixed plan the model and specification are frozen; the prompt is read-only.
   await expect(panel.getByRole("button", { name: "生成模型", exact: true })).toBeDisabled();
+  await expect(panel.getByRole("button", { name: "进料方式", exact: true })).toHaveCount(0);
   await expect(panel.getByRole("textbox", { name: "提示词", exact: true })).toHaveCount(0);
 
   // Rule 14: keep the original task and prepare the next draft.
@@ -95,6 +130,36 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   expect(plans).toBe(1);
   expect(jobs).toBe(1);
   await expect(board.getByRole("article", { name: "图片 1 · 图片", exact: true })).toBeVisible();
+});
+
+test("ST-03: a draft carrying a ratio but no size can still choose its only tier", async ({ page, generation: f }) => {
+  // Drafts saved while the ratio was an independent optional toggle can hold a
+  // ratio and no size. A ratio with one tier states that tier rather than
+  // offering a button, so such a draft must still be able to take it — or the
+  // size can never be set and the submission is refused.
+  const project = await f.createProject("单档位补齐 · 创作台");
+  const path = `${f.base}/projects/${project.id}`;
+  const canvas = (await f.request("POST", `${path}/canvas`)).json().canvas;
+  const reference = f.dualMode.find((c) => c.mode === "reference_v1")!;
+  const node = {
+    id: crypto.randomUUID(), kind: "image", title: "旧草稿", width: 360, position: { x: 240, y: 200 },
+    content: {
+      type: "draft", prompt: "竖幅的门。",
+      connectionId: f.input.connectionId, capabilityId: reference.id,
+      output: { aspectRatio: "9:16" },
+    },
+  };
+  await f.ok("PUT", `${path}/canvases/${canvas.id}`, { schemaVersion: 1, document: { nodes: [node], edges: [], groups: [] } }, canvas.revision);
+  await openStudio(page, f, project.id);
+  await page.getByRole("main", { name: "创作台", exact: true })
+    .getByRole("article", { name: "旧草稿 · 图片", exact: true }).click();
+  const panel = page.getByRole("region", { name: "生成图片", exact: true });
+  await panel.getByRole("button", { name: "生成规格", exact: true }).click();
+  const spec = page.getByRole("group", { name: "生成规格", exact: true });
+  await expect(spec.getByRole("button", { name: "9:16", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await spec.getByRole("button", { name: "720p", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("9:16 · 720p");
 });
 
 test("ST-03: a lost execution reply is recovered by reading the original job; the unknown submission is never repeated", async ({ page, generation: f }) => {

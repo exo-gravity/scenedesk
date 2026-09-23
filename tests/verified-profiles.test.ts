@@ -64,3 +64,25 @@ test("estimateCost: MiniMax per-second with 7 reference images charges 2 extra",
   const estimate = estimateCost(h3, { references: refs, output: { resolution: "768P", durationSeconds: 6, withAudio: true } } as any);
   assert.equal(estimate.baseCost.amountMicros, String(6 * 500000 + 2 * 200000));
 });
+test("a capability definition carries the display name and maps every size to its ratio and tier", () => {
+  const flash = findProfile("volcengine/doubao-seedream-5-0-flash-260915")!;
+  const definition = capabilityDefinition(flash, "reference_v1", {});
+  assert.equal(definition.displayName, "Seedream 5.0 Flash");
+  assert.equal(definition.outputs!.length, definition.allowedResolutions!.length);
+  assert.deepEqual(
+    definition.outputs!.find((o) => o.resolution === "2816x1584"),
+    { resolution: "2816x1584", aspectRatio: "16:9", quality: "2K" },
+  );
+  const h3 = capabilityDefinition(findProfile("minimax/MiniMax-H3")!, "frames_v1", {});
+  assert.equal(h3.displayName, "MiniMax H3");
+  assert.deepEqual(h3.outputs, [
+    { resolution: "1344x768", aspectRatio: "16:9", quality: "768P" },
+    { resolution: "768x1344", aspectRatio: "9:16", quality: "768P" },
+  ]);
+});
+test("every profile has a display name that is not its id", () => {
+  for (const profile of PROFILES) {
+    assert.ok(profile.displayName.length > 0, profile.id);
+    assert.notEqual(profile.displayName, profile.id);
+  }
+});

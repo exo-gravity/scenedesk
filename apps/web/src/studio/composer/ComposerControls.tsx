@@ -2,6 +2,7 @@ import { NumberInput, Popover, Slider, Tooltip, UnstyledButton } from "@mantine/
 import {
   CaretDown,
   FilmStrip,
+  FrameCorners,
   ImageSquare,
   MusicNotes,
   SlidersHorizontal,
@@ -9,9 +10,17 @@ import {
 import type { Schema } from "../../business/api";
 import type { ImageCapability } from "../../business/image-generation";
 import {
+  aspectRatioOptions,
   durationControl,
+  qualityOptions,
+  resolutionFor,
   specificationSummary,
 } from "../../business/generation-specification";
+import {
+  capabilityForModel,
+  modeLabel,
+  type ModelEntry,
+} from "../../business/capability-presentation";
 import { useEscapablePopover } from "../../business/escapable-popover";
 import { CanvasShotSources } from "../../business/CanvasShotSources";
 import type { ShotSource } from "../../business/canvas-shot-sources";
@@ -20,24 +29,24 @@ import classes from "./composer.module.css";
 type Kind = "image" | "video" | "audio";
 type Output = Schema<"OutputOptions">;
 const icons = { image: ImageSquare, video: FilmStrip, audio: MusicNotes };
-const statusLabel = (capability: ImageCapability) =>
-  capability.executionMode === "verified_provider" ? "已接入" : "受控测试";
+/** A controlled fixture never reaches a provider; nothing marks a real model. */
+const fixtureLabel = (entry: ModelEntry) => (entry.fixture ? "受控测试" : undefined);
 
 /**
- * The model pill and its list: icon, name, and whether it is a verified
- * provider or a controlled fixture. Names are the capability records' own;
- * nothing is invented for them, and no time or cost is shown.
+ * The model pill and its list: one row per model, carrying the name the
+ * capability record gives it and nothing else. Records differing only in input
+ * mode are one row here; the mode is chosen in the pill beside this one.
  */
 export function ModelPicker({
   kind,
-  models,
+  entries,
   loading,
   capability,
   disabled,
   onChange,
 }: {
   kind: Kind;
-  models: readonly ImageCapability[];
+  entries: readonly ModelEntry[];
   loading: boolean;
   capability: ImageCapability | undefined;
   disabled: boolean;
@@ -45,6 +54,9 @@ export function ModelPicker({
 }) {
   const popover = useEscapablePopover();
   const Icon = icons[kind];
+  const current = entries.find((entry) =>
+    entry.capabilities.some((c) => c.id === capability?.id),
+  );
   return (
     <Popover
       opened={popover.opened}
@@ -60,40 +72,107 @@ export function ModelPicker({
           className={classes.pill}
           aria-label="生成模型"
           aria-haspopup="listbox"
-          disabled={disabled || (!loading && !models.length)}
+          disabled={disabled || (!loading && !entries.length)}
           {...popover.targetProps}
         >
           <Icon size={14} aria-hidden />
           <span>
-            {capability?.modelVersion ??
-              (loading ? "正在读取模型" : models.length ? "选择模型" : "暂无可用模型")}
+            {current?.name ??
+              (loading ? "正在读取模型" : entries.length ? "选择模型" : "暂无可用模型")}
           </span>
           <CaretDown size={12} aria-hidden />
         </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown>
-        {models.length ? (
+        {entries.length ? (
           <div className={classes.models} role="listbox" aria-label="可用模型">
-            {models.map((model) => (
+            {entries.map((entry) => (
               <UnstyledButton
-                key={model.id}
+                key={entry.modelVersion}
                 className={classes.model}
                 role="option"
-                aria-selected={model.id === capability?.id}
+                aria-selected={entry.modelVersion === current?.modelVersion}
                 onClick={() => {
-                  onChange(model);
+                  // Rule 17 applies to the record, so keep the mode in hand.
+                  onChange(capabilityForModel(entry, capability?.mode) as ImageCapability);
                   popover.onChange(false);
                 }}
               >
                 <Icon size={18} aria-hidden />
-                <span className={classes.modelName}>{model.modelVersion}</span>
-                <span className={classes.modelStatus}>{statusLabel(model)}</span>
+                <span className={classes.modelName}>{entry.name}</span>
+                {fixtureLabel(entry) && (
+                  <span className={classes.modelStatus}>{fixtureLabel(entry)}</span>
+                )}
               </UnstyledButton>
             ))}
           </div>
         ) : (
           <div className={classes.empty}>暂无可用模型</div>
         )}
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
+
+/**
+ * How the request is fed: start and end frames, or reference images. One
+ * record exists per mode, so choosing a mode chooses a record — which is why
+ * it is frozen alongside the model. A model with one mode shows no pill.
+ */
+export function ModePicker({
+  entry,
+  capability,
+  disabled,
+  onChange,
+}: {
+  entry: ModelEntry | undefined;
+  capability: ImageCapability | undefined;
+  disabled: boolean;
+  onChange: (capability: ImageCapability) => void;
+}) {
+  const popover = useEscapablePopover();
+  const choices = (entry?.capabilities ?? []).filter((c) => modeLabel(c));
+  if (choices.length < 2) return null;
+  return (
+    <Popover
+      opened={popover.opened}
+      onChange={popover.onChange}
+      position="top-start"
+      shadow="md"
+      trapFocus
+      returnFocus
+      withinPortal
+    >
+      <Popover.Target>
+        <UnstyledButton
+          className={classes.pill}
+          aria-label="进料方式"
+          aria-haspopup="listbox"
+          disabled={disabled}
+          {...popover.targetProps}
+        >
+          <FrameCorners size={14} aria-hidden />
+          <span>{(capability && modeLabel(capability)) ?? "进料方式"}</span>
+          <CaretDown size={12} aria-hidden />
+        </UnstyledButton>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <div className={classes.models} role="listbox" aria-label="进料方式">
+          {choices.map((choice) => (
+            <UnstyledButton
+              key={choice.id}
+              className={classes.model}
+              role="option"
+              aria-selected={choice.id === capability?.id}
+              onClick={() => {
+                onChange(choice as ImageCapability);
+                popover.onChange(false);
+              }}
+            >
+              <span className={classes.modelName}>{modeLabel(choice)}</span>
+            </UnstyledButton>
+          ))}
+        </div>
       </Popover.Dropdown>
     </Popover>
   );
@@ -146,10 +225,12 @@ export function SpecificationPicker({
   const summary = specificationSummary({
     kind,
     output,
+    capability,
     shotSourceCount: shotSources?.length ?? 0,
   });
-  const ratios = kind !== "audio" ? (capability?.allowedAspectRatios ?? []) : [];
-  const resolutions = kind !== "audio" ? (capability?.allowedResolutions ?? []) : [];
+  const ratios = kind !== "audio" ? aspectRatioOptions(capability) : [];
+  const qualities =
+    kind !== "audio" ? qualityOptions(capability, output.aspectRatio) : [];
   const duration = durationControl(kind, capability);
   const audio = kind === "video" && capability?.audioOutput === true;
   const locked = disabled || frozen || !capability;
@@ -193,11 +274,24 @@ export function SpecificationPicker({
                     className={classes.tile}
                     aria-pressed={output.aspectRatio === ratio}
                     disabled={locked}
-                    onClick={() =>
-                      output.aspectRatio === ratio
-                        ? set({}, ["aspectRatio"])
-                        : set({ aspectRatio: ratio })
-                    }
+                    onClick={() => {
+                      // A ratio and a tier name one size; keep the tier if the
+                      // new ratio has it, and take its only size when that is
+                      // all it has.
+                      const quality = qualities.find(
+                        (q) => q.resolution === output.resolution,
+                      )?.quality;
+                      const next = qualityOptions(capability, ratio);
+                      const resolution =
+                        resolutionFor(capability, ratio, quality) ??
+                        (next.length === 1 ? next[0]!.resolution : undefined);
+                      set(
+                        resolution
+                          ? { aspectRatio: ratio, resolution }
+                          : { aspectRatio: ratio },
+                        resolution ? [] : ["resolution"],
+                      );
+                    }}
                   >
                     <RatioGlyph ratio={ratio} />
                     {ratio}
@@ -206,22 +300,31 @@ export function SpecificationPicker({
               </div>
             </section>
           )}
-          {resolutions.length > 0 && (
+          {qualities.length > 0 && (
             <section>
               <h4 className={classes.specTitle}>清晰度</h4>
-              <div className={classes.tiles} data-columns="2">
-                {resolutions.map((resolution) => (
-                  <UnstyledButton
-                    key={resolution}
-                    className={classes.tile}
-                    aria-pressed={output.resolution === resolution}
-                    disabled={locked}
-                    onClick={() => set({ resolution })}
-                  >
-                    {resolution}
-                  </UnstyledButton>
-                ))}
-              </div>
+              {qualities.length === 1 &&
+              output.resolution === qualities[0]!.resolution ? (
+                // One tier is not a choice, so once it is the chosen size it
+                // reads as the fact it is. Until then it stays a control: a
+                // draft saved when the ratio was optional can arrive with a
+                // ratio and no size, and would otherwise never take one.
+                <div className={classes.duration}>{qualities[0]!.quality}</div>
+              ) : (
+                <div className={classes.tiles} data-columns="2">
+                  {qualities.map(({ quality, resolution }) => (
+                    <UnstyledButton
+                      key={resolution}
+                      className={classes.tile}
+                      aria-pressed={output.resolution === resolution}
+                      disabled={locked}
+                      onClick={() => set({ resolution })}
+                    >
+                      {quality}
+                    </UnstyledButton>
+                  ))}
+                </div>
+              )}
             </section>
           )}
           {duration && (
