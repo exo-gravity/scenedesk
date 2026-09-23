@@ -5,7 +5,7 @@ import { capabilityDefinition, findProfile } from "@drama/provider";
 import { imageGenerationFixture } from "../support/image-generation.js";
 
 test("verified capability: blocked until verifiedAt, then ready with a real Seedance estimate", async (t) => {
-  const f = await imageGenerationFixture(t, undefined, { purpose: "video" });
+  const f = await imageGenerationFixture(t, undefined, { purpose: "video", generationExecutor: true });
   const profile = findProfile("volcengine/doubao-seedance-2-0-260128")!;
   const insert = (id: string, definition: unknown) =>
     f.admin.query(
@@ -29,4 +29,21 @@ test("verified capability: blocked until verifiedAt, then ready with a real Seed
   const job = await f.request("POST", `${f.base}/generation-jobs`, { planId: ready.id });
   assert.equal(job.statusCode, 202, job.body);
   assert.equal(job.json().costStatus, "pending");
+});
+test("without a declared executor the API refuses a verified-provider job with 503 and keeps the plan ready", async (t) => {
+  const f = await imageGenerationFixture(t, undefined, { purpose: "video" });
+  const profile = findProfile("volcengine/doubao-seedance-2-0-mini-260615")!;
+  const verified = randomUUID();
+  await f.admin.query(
+    `INSERT INTO ${f.scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'verified_provider',true,2,20)`,
+    [verified, f.tenant.id, f.input.connectionId, randomUUID(), capabilityDefinition(profile, "frames_v1", { verifiedAt: new Date().toISOString() })],
+  );
+  const ready = await f.ok("POST", `${f.base}/generation-plans`, { ...f.input, capabilityId: verified, output: { resolution: "1280x720", aspectRatio: "16:9", durationSeconds: 4, withAudio: true } });
+  assert.equal(ready.status, "ready");
+  const refused = await f.request("POST", `${f.base}/generation-jobs`, { planId: ready.id });
+  assert.equal(refused.statusCode, 503, refused.body);
+  assert.equal(refused.json().code, "GENERATION_EXECUTOR_UNAVAILABLE");
+  const again = await f.ok("GET", `${f.base}/generation-plans/${ready.id}`);
+  assert.equal(again.status, "ready");
+  assert.deepEqual((await f.ok("GET", `${f.base}/generation-jobs?scope=project&projectId=${f.project.id}&planId=${ready.id}`)).items, []);
 });

@@ -86,10 +86,10 @@ status=$(curl --max-time 20 --silent --show-error --cacert "$directory/certs/ca.
 [[ "$status" == 404 ]]
 status=$(curl --max-time 20 --silent --show-error --cacert "$directory/certs/ca.crt" -X POST -o /dev/null -w '%{http_code}' https://localhost:4338/v1/tenants/00000000-0000-0000-0000-000000000001/projects/00000000-0000-0000-0000-000000000002/cut-normalizations)
 [[ "$status" == 503 ]]
-status=$(curl --max-time 20 --silent --show-error --cacert "$directory/certs/ca.crt" -X POST -o "$directory/generation-unavailable.json" -w '%{http_code}' https://localhost:4338/v1/tenants/00000000-0000-0000-0000-000000000001/generation-jobs)
-[[ "$status" == 503 ]]
-node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); if(r.code!=="GENERATION_EXECUTOR_UNAVAILABLE") process.exit(1)' "$directory/generation-unavailable.json"
-for suffix in generation-plans generation-jobs/00000000-0000-0000-0000-000000000002/recover-archive; do
+# Job submission is no longer a gateway rule: the API itself answers 503 GENERATION_EXECUTOR_UNAVAILABLE
+# for verified-provider plans unless api.json sets generationExecutor (tests/integration/verified-plan.test.ts);
+# unauthenticated it reaches authentication like every other business route.
+for suffix in generation-jobs generation-plans generation-jobs/00000000-0000-0000-0000-000000000002/recover-archive; do
   status=$(curl --max-time 20 --silent --show-error --cacert "$directory/certs/ca.crt" -H 'Content-Type: application/json' -d '{}' -o /dev/null -w '%{http_code}' "https://localhost:4338/v1/tenants/00000000-0000-0000-0000-000000000001/$suffix")
   [[ "$status" == 401 ]]
 done
@@ -117,4 +117,4 @@ after=$("${compose[@]}" exec -T database psql -At -U postgres -d scenedesk -c "S
 [[ "$before" == 'created:0' && "$after" == "$before" ]]
 node -e 'const s=require("fs").readFileSync(process.argv[1],"utf8"); if(!s.includes("QUEUE_CONTAINS_UNSUPPORTED_WORK")) process.exit(1)' "$directory/queue-rejection.log"
 stage completed
-printf '%s\n' '{"status":"passed","staticHttps":200,"sameOriginBusinessReady":true,"unauthenticatedBusinessRequest":401,"oidcHandshakeSecureRedirect":302,"creativeMediaWorkerReady":true,"generatedMediaGrants":true,"staleGeneratedHintState":"completed:0","prototypeBlocked":404,"publicCanvasSchema":200,"canvasSchemaMatchesBuildAndCompiles":true,"postProductionWriteBlocked":503,"generationSubmissionBlocked":503,"generationSubmissionCode":"GENERATION_EXECUTOR_UNAVAILABLE","planAndArchiveRecoveryReachAuthentication":true,"unsupportedQueueRejectedBeforeClaim":true,"queueStateUnchanged":"created:0","runtimeMalformedHintStopsWorker":true,"runtimeMalformedHintState":"retry:0","identity":"discovery_only_no_login","paidProvidersEnabled":false,"productionReady":false}'
+printf '%s\n' '{"status":"passed","staticHttps":200,"sameOriginBusinessReady":true,"unauthenticatedBusinessRequest":401,"oidcHandshakeSecureRedirect":302,"creativeMediaWorkerReady":true,"generatedMediaGrants":true,"staleGeneratedHintState":"completed:0","prototypeBlocked":404,"publicCanvasSchema":200,"canvasSchemaMatchesBuildAndCompiles":true,"postProductionWriteBlocked":503,"generationSubmissionReachesAuthentication":401,"planAndArchiveRecoveryReachAuthentication":true,"unsupportedQueueRejectedBeforeClaim":true,"queueStateUnchanged":"created:0","runtimeMalformedHintStopsWorker":true,"runtimeMalformedHintState":"retry:0","identity":"discovery_only_no_login","paidProvidersEnabled":false,"productionReady":false}'

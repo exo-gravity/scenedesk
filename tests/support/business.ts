@@ -12,7 +12,7 @@ export async function businessFixture(
   configure?: (
     database: Awaited<ReturnType<typeof databaseFixture>>,
   ) => Promise<Pick<BusinessOptions, "media" | "feishu">>,
-  options: { origin?: string } = {},
+  options: { origin?: string; generationExecutor?: boolean } = {},
 ) {
   const db = await databaseFixture(t);
   const secret = randomBytes(32).toString("base64url"),
@@ -23,6 +23,9 @@ export async function businessFixture(
     schema: db.schema,
     secret,
     origin,
+    ...(options.generationExecutor === undefined
+      ? {}
+      : { generationExecutor: options.generationExecutor }),
     ...extra,
   });
   t.after(() => app.close());

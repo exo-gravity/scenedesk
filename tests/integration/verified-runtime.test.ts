@@ -50,7 +50,7 @@ test("verified runtime: Seedance job with a reference image is accepted, polled,
     },
     close() {},
   } as any;
-  const f = await imageGenerationFixture(t, store, { purpose: "video" });
+  const f = await imageGenerationFixture(t, store, { purpose: "video", generationExecutor: true });
   const ark = await fakeArk();
   t.after(ark.close);
   const connectionVersionId = randomUUID(), capabilityId = randomUUID();

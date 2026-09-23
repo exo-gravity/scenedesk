@@ -13,5 +13,6 @@
     "bucket": "your-private-versioned-media-bucket",
     "accessKeyId": "REPLACE_WITH_API_STORAGE_KEY",
     "secretAccessKey": "REPLACE_WITH_API_STORAGE_SECRET"
-  }
+  },
+  "generationExecutor": false
 }

@@ -117,7 +117,11 @@ export async function getJob(tx: Transaction, id: string) {
  * each of its items through this function so per-item guards, the plan-to-job
  * uniqueness and the queue hint cannot drift between the two entry points.
  */
-export async function executePlanOnce(tx: Transaction, planId: string) {
+export async function executePlanOnce(
+  tx: Transaction,
+  planId: string,
+  options: { generationExecutor?: boolean } = {},
+) {
   const plan = await getPlan(tx, planId);
   const existing = (
     await tx.sql.query(`${jobSelect} WHERE j.tenant_id=$1 AND j.plan_id=$2`, [
@@ -160,6 +164,15 @@ export async function executePlanOnce(tx: Transaction, planId: string) {
     503,
     "REAL_PROVIDER_ACCEPTANCE_REQUIRED",
     "真实服务尚未完成接入验证，不能提交生成。",
+  );
+  // Formerly a gateway rule in deploy/nginx.conf; the deployment now declares its executor
+  // through api.json `generationExecutor`, and only paid (verified-provider) plans need one.
+  requireThat(
+    plan.execution_mode !== "verified_provider" ||
+      options.generationExecutor === true,
+    503,
+    "GENERATION_EXECUTOR_UNAVAILABLE",
+    "当前部署尚未配置生成执行服务，请保留已准备的计划，完成配置后再试。",
   );
   await assertAnalysisCurrent(tx, plan);
   const allowed = (

@@ -15,7 +15,11 @@ export type MediaServices = {
   store: MediaStore;
   schedule(sql: PoolClient, envelope: StepEnvelope): Promise<unknown>;
 };
-export type MediaContext = ApiContext & { media?: MediaServices };
+export type MediaContext = ApiContext & {
+  media?: MediaServices;
+  /** The deployment runs a generation executor; verified-provider jobs are refused otherwise. */
+  generationExecutor?: boolean;
+};
 export function services(context: MediaContext) {
   requireThat(
     context.media,

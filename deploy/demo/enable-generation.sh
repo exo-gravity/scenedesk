@@ -8,7 +8,7 @@
 #   1. asks for the MiniMax and Volcengine Ark API keys without echo. They travel to the box on
 #      the ssh channel's stdin — never on a command line, in a log, or in the repository.
 #   2. on the box, idempotently: database role scenedesk_generation (password generated there),
-#      provision.json generationRole, roles.sql, secrets/generation.json (0400, uid 1000),
+#      provision.json generationRole, api.json generationExecutor, roles.sql, secrets/generation.json (0400, uid 1000),
 #      SCENEDESK_GENERATION_CONFIG in .env and the generation-worker override in compose.demo.yaml
 #      (implementation note 83 §5 shape), then `docker compose config --quiet`.
 #   3. deploy/demo/deploy.sh --force origin/main: the four images, migrations, the capability rows
@@ -146,6 +146,14 @@ else:
     changes.append("database role " + role + " created (password only in roles.sql and generation.json)")
     changes.append("secrets/generation.json written (0400, uid 1000)")
 
+api_path = os.path.join(secrets_dir, "api.json")
+api = load(api_path)
+if api.get("generationExecutor") is not True:
+    api["generationExecutor"] = True
+    st = os.stat(api_path)
+    write_private(api_path, api, st.st_uid, st.st_gid)
+    changes.append("api.json generationExecutor enabled (api container must be recreated)")
+
 provision_path = os.path.join(secrets_dir, "provision.json")
 provision = load(provision_path)
 if provision.get("generationRole") != role:
@@ -198,9 +206,11 @@ PY
 prep_b64=$(printf '%s' "$prep" | base64 | tr -d '\n')
 rotated=0
 if [ "$existing" = yes ] && [ -n "$minimax_key$ark_key" ]; then rotated=1; fi
-printf '%s\n%s\n' "$minimax_key" "$ark_key" \
-  | remote "python3 -c \"\$(printf %s $prep_b64 | base64 -d)\" $REMOTE_HOME $GENERATION_ROLE"
+prep_out=$(printf '%s\n%s\n' "$minimax_key" "$ark_key" \
+  | remote "python3 -c \"\$(printf %s $prep_b64 | base64 -d)\" $REMOTE_HOME $GENERATION_ROLE")
 unset minimax_key ark_key
+printf '%s\n' "$prep_out"
+case "$prep_out" in *"api.json generationExecutor"*) rotated=1 ;; esac
 
 if [ "$deploy" = 1 ]; then
   step "deploy origin/main (four images, migrations, capability rows, executor)"
@@ -208,9 +218,10 @@ if [ "$deploy" = 1 ]; then
 fi
 
 if [ "$rotated" = 1 ]; then
-  # Compose does not notice a replaced secret file; a running executor keeps the old key otherwise.
-  step "recreate the executor so it reads the replaced key"
-  remote "cd $REMOTE_HOME && docker compose --profile generation up -d --force-recreate --wait --wait-timeout 300 generation-worker"
+  # Compose does not notice a replaced secret file: a running executor keeps the old key and a
+  # running api keeps the old generationExecutor flag. Recreate both, then web (nginx caches api's address).
+  step "recreate api, executor and web so they read the replaced secret files"
+  remote "cd $REMOTE_HOME && docker compose --profile media --profile generation up -d --force-recreate --wait --wait-timeout 300 api generation-worker && docker compose --profile media --profile generation up -d --force-recreate --wait --wait-timeout 300 web"
 fi
 
 if [ "$smoke" = 0 ]; then

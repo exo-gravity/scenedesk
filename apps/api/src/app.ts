@@ -41,6 +41,12 @@ export type BusinessOptions = {
   media?: MediaServices;
   feishu?: FeishuServices;
   auth?: { pool: Pool; config: Configuration };
+  /**
+   * A generation executor (deploy/runtime/generation-worker.ts) serves this deployment.
+   * Off by default: new verified-provider jobs answer 503 GENERATION_EXECUTOR_UNAVAILABLE
+   * so an enabled capability alone never accepts a paid submission nobody will run.
+   */
+  generationExecutor?: boolean;
 };
 
 export function buildApp(pool?: Pool, business?: BusinessOptions) {
@@ -79,11 +85,12 @@ export function buildApp(pool?: Pool, business?: BusinessOptions) {
     const generationContext = {
       ...context,
       ...(business.media ? { media: business.media } : {}),
+      generationExecutor: business.generationExecutor === true,
     };
     generationRoutes(app, generationContext);
     assistanceArtifactRoutes(app, context);
     canvasGenerationRoutes(app, generationContext);
-    canvasGenerationBatchRoutes(app, context);
+    canvasGenerationBatchRoutes(app, generationContext);
     canvasApplicationRoutes(app, context);
     proposalRoutes(app, context);
     creativeRoutes(app, context);

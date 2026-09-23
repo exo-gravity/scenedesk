@@ -6,7 +6,7 @@ The original package procedure and credential contract are recorded in [implemen
 
 For the first workspace owner after a trusted login, follow [the private operator bootstrap](../docs/implementation/55-private-owner-bootstrap.md). It uses the existing authenticated API, defaults to read-only preflight and requires an explicit apply. An unknown creation is never resent; selecting an existing workspace verifies current ownership without claiming it is the original request result.
 
-Enabled model capability records do not mean this deployment can execute them. The gateway returns `503 GENERATION_EXECUTOR_UNAVAILABLE` for new generation jobs, preserving plan preparation, history and original-file archive recovery. The read-only audit refuses unresolved submissions or archive states without a fixed `generation_media_outputs` record; it never disables capabilities or clears jobs to pass a check.
+Enabled model capability records do not mean this deployment can execute them. Until `api.json` sets `"generationExecutor": true` (together with the `generation` profile below), the API returns `503 GENERATION_EXECUTOR_UNAVAILABLE` for new verified-provider generation jobs, preserving plan preparation, history and original-file archive recovery. The read-only audit refuses unresolved submissions or archive states without a fixed `generation_media_outputs` record; it never disables capabilities or clears jobs to pass a check.
 
 Check the deployment entrypoints, configuration boundaries and private operator files after `npm ci`:
 
@@ -35,7 +35,7 @@ Configuration examples deliberately cannot start unchanged. Copy them outside th
 
 启动前，数据库必须已用 `deploy/runtime/provision.ts --apply` 供给：迁移期 `provision.json` 里的 `generationRole` 字段（例如 `scenedesk_generation`）就是执行器登录用的受限角色，供给脚本会把它写入 `generation_runtime_identity`，只授予该角色 schema 的 `USAGE` 和一组固定 `SECURITY DEFINER` 生成函数（包括判断连接是否已供给的 `list_verified_connection_versions()`）的 `EXECUTE` 权限，不授予对任何表的直接读写。执行器进程启动时用这个角色执行 `SELECT drama.generation_worker_login()` 自检；返回不是 `true` 就以 `GENERATION_ROLE_REQUIRED` 失败退出，不会把连接误当作已授权。
 
-启动执行器：把 `SCENEDESK_GENERATION_CONFIG` 指到本机上那份私有 `generation.json`（Compose 的 `generation_config` secret 会把它挂载为容器内的 `config.json`），再用 `generation` profile 拉起服务：
+执行器上线的同时，把 `api.json` 加上 `"generationExecutor": true` 并重建 `api` 容器；否则网关后的 API 仍以 `503 GENERATION_EXECUTOR_UNAVAILABLE` 拒绝真实模型的新任务（fixture 任务不受影响）。启动执行器：把 `SCENEDESK_GENERATION_CONFIG` 指到本机上那份私有 `generation.json`（Compose 的 `generation_config` secret 会把它挂载为容器内的 `config.json`），再用 `generation` profile 拉起服务：
 
 ```sh
 SCENEDESK_GENERATION_CONFIG=/absolute/path/to/generation.json \
