@@ -90,16 +90,20 @@ export function canContinueCreation(job?: Schema<"GenerationJob">) {
     )
   );
 }
+/** Codes on a 5xx that carry no decision, so the submission stays unknown: the
+ * transport's placeholder for a body it could not read, and the API's catch-all
+ * for any unmapped failure. The catch-all covers a failure thrown while
+ * committing, where the job may already exist. */
+const undecided = ["UNAVAILABLE", "INTERNAL_ERROR"];
 /** The server answered and refused, so no job exists for this intent: any 4xx, or
- * a 5xx whose body named a code. A lost connection or timeout (status 0) and a
- * 5xx without a readable body (the web transport substitutes "UNAVAILABLE") prove
- * nothing, and the receipt stays unknown. */
+ * a 5xx naming a deliberate refusal. A lost connection or timeout (status 0) and
+ * the undecided codes above prove nothing, and the receipt stays unknown. */
 export function submissionRefused(error: unknown) {
   if (!error || typeof error !== "object") return false;
   const { status, code } = error as { status?: unknown; code?: unknown };
   if (typeof status !== "number") return false;
   if (status >= 400 && status < 500) return true;
-  return status >= 500 && typeof code === "string" && code !== "UNAVAILABLE";
+  return status >= 500 && typeof code === "string" && !undecided.includes(code);
 }
 /** A plan that expired unconsumed can never produce a job. */
 function planExpiredUnconsumed(plan: Schema<"GenerationPlan">) {
