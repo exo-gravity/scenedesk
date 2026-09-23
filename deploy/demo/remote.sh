@@ -168,6 +168,10 @@ case "$cmd" in
 
     echo "== up -d --wait =="
     docker compose "${profiles[@]}" up -d --wait --wait-timeout 300
+    # nginx in the web image resolves `api` once at start (deploy/nginx.conf proxy_pass http://api:4310),
+    # so a recreated api container leaves an untouched web container answering 502. Recreating the
+    # static web service is instant and safe, so do it on every rollout (seen on the ae58be5 rollout).
+    docker compose "${profiles[@]}" up -d --force-recreate --wait --wait-timeout 300 web
     docker compose "${profiles[@]}" ps --format "table {{.Name}}\t{{.Image}}\t{{.Status}}"
 
     schema=$(docker compose exec -T database psql -U postgres -d scenedesk -Atc \
