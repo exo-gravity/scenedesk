@@ -78,7 +78,9 @@ export function generationRoutes(app: FastifyInstance, context: MediaContext) {
     context,
     "executeGenerationPlan",
     async (tx, input) => ({
-      body: await executePlanOnce(tx, input.body.planId),
+      body: await executePlanOnce(tx, input.body.planId, {
+        generationExecutor: context.generationExecutor === true,
+      }),
     }),
     { authorizeScope: generationScope("plan", true) },
   );

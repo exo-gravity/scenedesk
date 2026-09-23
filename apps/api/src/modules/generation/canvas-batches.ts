@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { Problem, requireThat, versionMatches } from "../../kernel/errors.js";
 import { registerAction, type ApiContext, type Input } from "../../kernel/routes.js";
+import type { MediaContext } from "../media/model.js";
 import { activeParent } from "../content/model.js";
 import { canvasRoot, readCanvas, sceneCanvasId } from "../canvas/model.js";
 import type { Transaction } from "../../kernel/database.js";
@@ -292,7 +293,7 @@ async function authoriseCanvas(tx: Transaction, input: Input) {
 }
 export function canvasGenerationBatchRoutes(
   app: FastifyInstance,
-  context: ApiContext,
+  context: ApiContext & Pick<MediaContext, "generationExecutor">,
 ) {
   for (const operation of [
     "prepareCanvasGenerationBatch",
@@ -527,7 +528,9 @@ export function canvasGenerationBatchRoutes(
         const savepoint = `batch_run_${(sequence += 1)}`;
         await tx.sql.query(`SAVEPOINT ${savepoint}`);
         try {
-          await executePlanOnce(tx, item.plan_id);
+          await executePlanOnce(tx, item.plan_id, {
+            generationExecutor: context.generationExecutor === true,
+          });
           await tx.sql.query(`RELEASE SAVEPOINT ${savepoint}`);
           // The plan verdict never changes; only the last attempt's outcome does.
           await tx.sql.query(

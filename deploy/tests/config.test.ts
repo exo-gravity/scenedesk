@@ -35,6 +35,12 @@ test("private runtime configuration permits isolated roles, TLS services and exp
   assert.equal(apiConfiguration(api()).oidc.localIssuer, false);
   assert.equal(workerConfiguration(worker()).media.local, false);
 });
+test("the API declares its generation executor explicitly and refuses anything but a boolean", () => {
+  assert.equal(apiConfiguration(api()).generationExecutor, false);
+  assert.equal(apiConfiguration({ ...api(), generationExecutor: true }).generationExecutor, true);
+  assert.equal(apiConfiguration({ ...api(), generationExecutor: false }).generationExecutor, false);
+  assert.throws(() => apiConfiguration({ ...api(), generationExecutor: "yes" }), DeploymentError);
+});
 test("deployment rejects developer identity and insecure identity, origin, storage and database transports", () => {
   for (const value of [
     { ...api(), origin: "http://127.0.0.1:4311" },

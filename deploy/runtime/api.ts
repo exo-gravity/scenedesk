@@ -43,6 +43,7 @@ try {
     origin: config.origin,
     secret: config.secret,
     localIdentity: false,
+    generationExecutor: config.generationExecutor,
     auth: { pool: auth, config: issuer },
     media: { store, schedule: queue.schedule },
   });

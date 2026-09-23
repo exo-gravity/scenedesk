@@ -26,7 +26,11 @@ import { createAssistanceWorker } from "../../apps/api/src/modules/generation/wo
 export async function imageGenerationFixture(
   t: TestContext,
   store = { verify: async () => undefined } as unknown as MediaStore,
-  options: { purpose?: "image" | "video" | "audio"; origin?: string } = {},
+  options: {
+    purpose?: "image" | "video" | "audio";
+    origin?: string;
+    generationExecutor?: boolean;
+  } = {},
 ) {
   const kind = options.purpose ?? "image";
   const queueErrors: Error[] = [];
@@ -86,7 +90,12 @@ export async function imageGenerationFixture(
       stops.push(producer.close);
       return { media: { store, schedule: producer.schedule } };
     },
-    { ...(options.origin ? { origin: options.origin } : {}) },
+    {
+      ...(options.origin ? { origin: options.origin } : {}),
+      ...(options.generationExecutor === undefined
+        ? {}
+        : { generationExecutor: options.generationExecutor }),
+    },
   );
   const [generationDb, mediaDb, schedulerDb] = pools as [Pool, Pool, Pool];
   const producer = await createScheduler(generationDb, {

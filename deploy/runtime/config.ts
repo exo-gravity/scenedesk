@@ -167,7 +167,13 @@ export function apiConfiguration(input: unknown) {
     "appSecret",
     "oidc",
     "media",
+    "generationExecutor",
   ]);
+  if (
+    value.generationExecutor !== undefined &&
+    typeof value.generationExecutor !== "boolean"
+  )
+    fail("CONFIG_GENERATION_EXECUTOR_BOOLEAN_REQUIRED");
   const oidc = record(value.oidc);
   keys(oidc, ["issuer", "clientId", "clientSecret"]);
   const secret = field(value, "appSecret");
@@ -196,6 +202,9 @@ export function apiConfiguration(input: unknown) {
       localIssuer: false,
     },
     media: storage(value.media),
+    // Declares that deploy/runtime/generation-worker.ts runs for this deployment; until then the
+    // API refuses new verified-provider jobs with 503 GENERATION_EXECUTOR_UNAVAILABLE.
+    generationExecutor: value.generationExecutor === true,
     ...(value.feishu === undefined
       ? {}
       : {
