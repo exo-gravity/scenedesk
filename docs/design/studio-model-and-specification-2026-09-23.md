@@ -88,15 +88,17 @@ minimax/MiniMax-H3
 
 ### 3.4 规格面板
 
-**清晰度显示档位名，不再显示像素串。** 档位名照能力记录原样取（`480p`／`768P`／`2K` 各按各家写法），不统一大小写、不改写。
+**比例只摆三个：`16:9` `9:16` `1:1`。** 竖屏短剧、横屏、方图，一行放得下。这是前端的白名单，不是能力的上限——能力记录照旧声明 8 个（Seedream）或 6 个（Seedance）比例，接口照旧接受 `21:9`，只是面板不摆出来。砍进 `profiles.ts` 等于把真实能力删掉。白名单与某个模型的允许集合交集为空时，退回该模型的完整列表，不出现一个都选不了的面板。
 
-| 模型 | 现在的格子数 | 改后 |
-| --- | --- | --- |
-| Seedream 5.0 Pro／Flash | 24 | `1K` `1.5K` `2K` |
-| Seedream 5.0 | 8 | `2K` |
-| Seedance 2.0 | 18 | `480p` `720p` `1080p` |
-| Seedance 2.0 Fast／Mini | 12 | `480p` `720p` |
-| MiniMax H3 | 1 | `768P` |
+**清晰度一个不砍，档位名照能力记录原样取**（`480p`／`768P`／`2K` 各按各家写法），不统一大小写、不改写。换成档位名之后每个模型最多三个，本来就是一行；再砍要写「藏掉 `1.5K`」这类特例，省不出空间反而多一条规矩。`480p` 尤其要留：Seedance 按 token 计费，它是便宜的草稿档。
+
+| 模型 | 今天的格子数 | 比例 | 清晰度 |
+| --- | --- | --- | --- |
+| Seedream 5.0 Pro／Flash | 8 + 24 | `16:9` `9:16` `1:1` | `1K` `1.5K` `2K` |
+| Seedream 5.0 | 8 + 8 | `16:9` `9:16` `1:1` | `2K` |
+| Seedance 2.0 | 6 + 18 | `16:9` `9:16` `1:1` | `480p` `720p` `1080p` |
+| Seedance 2.0 Fast／Mini | 6 + 12 | `16:9` `9:16` `1:1` | `480p` `720p` |
+| MiniMax H3 | 1 + 1 | `16:9` | `768P` |
 
 - **比例 × 档位唯一确定 `resolution`**，由面板填入，用户不再直接选像素尺寸。今天那个提交才报错的非法组合就此不存在。
 - 比例因此是必选项；只有一个比例的模型（MiniMax H3）自动填好。
@@ -112,7 +114,7 @@ minimax/MiniMax-H3
 | `packages/provider/src/verified/profiles.ts` | `ModelProfile` 加 `displayName`，七个 profile 填上；`capabilityDefinition()` 输出 `outputs` |
 | `docs/implementation/` 契约 | `Capability` 加两个可选字段，重跑 `build_contract.py` 与 `check_design.py` |
 | `apps/web/src/business/generation-specification.ts` | 比例 × 档位 → `resolution` 的归一；摘要改档位名与 `s` |
-| 新增 `apps/web/src/business/capability-presentation.ts` | 按 `modelVersion` 归并能力记录、展示名回退、模式中文名 |
+| 新增 `apps/web/src/business/capability-presentation.ts` | 按 `modelVersion` 归并能力记录、展示名回退、模式中文名、比例白名单 |
 | `apps/web/src/studio/composer/ComposerControls.tsx` | 模型行只留名字；新增模式胶囊；清晰度改档位 |
 | `apps/web/src/studio/composer/Composer.tsx` | 底栏多一个胶囊；选模型与选模式分别解析到能力记录 |
 | `apps/web/src/studio/composer/composer.module.css` | 模式胶囊沿用 `.pill`，无新类 |
@@ -124,8 +126,9 @@ demo 箱要重跑一次 `scripts/provision-verified-capabilities.ts` 新字段�
 
 1. 视频列表里 Seedance 2.0 Mini 只有一行；选中后模式胶囊出现，可在首尾帧与参考图之间切换，两种都能提交。
 2. 选中 MiniMax H3 时模式胶囊不出现。
-3. 选中 Seedream 5.0 Flash 时清晰度只有三个格子，选 `16:9` + `2K` 提交，请求里的 `resolution` 是 `2816x1584`。
-4. 去掉新字段的能力记录（模拟未重跑 provision 的箱子）仍按今天的拍平列表可用，不报错。
+3. 选中 Seedream 5.0 Flash 时比例只有三个、清晰度只有三个，选 `16:9` + `2K` 提交，请求里的 `resolution` 是 `2816x1584`。
+4. 只允许白名单外比例的能力记录仍能选出比例并提交（退回完整列表的分支）。
+5. 去掉新字段的能力记录（模拟未重跑 provision 的箱子）仍按今天的拍平列表可用，不报错。
 
 ## 6. 主动不做并记录
 
@@ -135,6 +138,7 @@ demo 箱要重跑一次 `scripts/provision-verified-capabilities.ts` 新字段�
 - **「已接入」状态字**。真实模型全部接入后它每行一遍，不区分任何东西。
 - **像素尺寸不上屏**（档位格子里不写第二行 `2816×1584`）。代价：`1K` 的 16:9 是 1424×800 而非 1920×1080，按交付尺寸倒推的用户看不到确切值；需要时再加。
 - **日期版本号**（`260628`）。代价：供应商换快照版本时界面上看不出来。
+- **比例只留 `16:9` `9:16` `1:1`**，砍掉 `4:3` `3:4` `3:2` `2:3` `21:9`（用户 2026-09-23 确认 `21:9` 不需要）。`3:2`／`2:3` 是摄影比例，`4:3`／`3:4` 在短剧里基本不用，`21:9` 是宽银幕。代价：要宽银幕的导演走不通；加回来是白名单加一项。
 
 另外主动不做：
 
