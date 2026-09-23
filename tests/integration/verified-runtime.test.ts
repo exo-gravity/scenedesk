@@ -122,4 +122,20 @@ test("verified runtime: Seedance job with a reference image is accepted, polled,
   assert.equal(done.providerJobId, "cgt-1");
   assert.equal(published.length, 1);
   assert.equal((published[0] as { mime: string }).mime, "video/mp4");
+
+  // A vendor rejection keeps its specific code on the job: ARK_InvalidParameter, not the
+  // generic type (ARK_BadRequest) and not the database's PROVIDER_REJECTED substitute.
+  ark.setTaskMode("reject");
+  const plan2 = await f.ok("POST", `${f.base}/generation-plans`, {
+    ...f.input,
+    capabilityId,
+    output: { resolution: "720x1280", aspectRatio: "9:16", durationSeconds: 4, withAudio: false },
+  });
+  assert.equal(plan2.status, "ready");
+  const job2 = (await f.request("POST", `${f.base}/generation-jobs`, { planId: plan2.id })).json();
+  await runtime.scanOnce();
+  const rejected = await f.job(job2.id);
+  assert.equal(rejected.status, "failed");
+  assert.equal(rejected.errorCode, "ARK_InvalidParameter");
+  assert.equal(ark.calls.filter((c) => c.method === "POST").length, 2);
 });

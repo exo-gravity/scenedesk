@@ -50,7 +50,9 @@ const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v ===
 export function errorCode(body: unknown, fallback: string): string {
   const candidates: unknown[] = [];
   if (object(body)) {
-    if (object(body.error)) candidates.push(body.error.type, body.error.code);
+    // Ark: { error: { code: "InvalidParameter", type: "BadRequest" } } — the code is specific, the type is
+    // the HTTP class. MiniMax: { error: { type: "insufficient_balance_error" } } with no code. So code first.
+    if (object(body.error)) candidates.push(body.error.code, body.error.type);
     candidates.push(body.code);
     if (object(body.base_resp)) candidates.push(body.base_resp.status_code);
   }

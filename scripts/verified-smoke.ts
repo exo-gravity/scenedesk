@@ -7,31 +7,39 @@ import { createMinimaxClient, createVolcengineClient, dataUri, downloadBytes, er
 
 // PAID. Creates exactly one vendor task and records the evidence MV-01/02/04/05/06 need.
 // Optional measurement parameters: --ratio 9:16 --resolution 768P|720p|1024x1024 --duration 4
-// --image <file> (repeatable; sent as data URIs with --role, default reference_image) --model <id>.
+// --image <file> (repeatable; sent as data URIs with --role per image, default reference_image) --model <id>
+// --audio true|false and --expires <seconds> (Ark video tasks only).
 // The defaults reproduce the first smoke of 2026-09-23 (note 86).
 const { values } = parseArgs({ options: {
   config: { type: "string" }, vendor: { type: "string" }, kind: { type: "string" }, out: { type: "string" },
   prompt: { type: "string", default: "一只橘猫在窗台上晒太阳，午后柔光。" },
   ratio: { type: "string", default: "16:9" }, resolution: { type: "string" }, duration: { type: "string", default: "5" },
-  image: { type: "string", multiple: true, default: [] }, role: { type: "string", default: "reference_image" }, model: { type: "string" },
+  image: { type: "string", multiple: true, default: [] }, role: { type: "string", multiple: true, default: [] }, model: { type: "string" },
+  audio: { type: "string", default: "true" }, expires: { type: "string", default: "3600" },
 } });
 if (!values.config || !values.vendor || !values.kind || !values.out) throw new Error("Usage: --config generation.json --vendor minimax|volcengine --kind image|video --out <dir> [--ratio 16:9] [--resolution 768P] [--duration 5] [--image file]... [--role reference_image] [--model id]");
 const duration = Number(values.duration);
+const generateAudio = values.audio !== "false";
+const expiresAfter = Number(values.expires);
+if (!Number.isInteger(expiresAfter) || expiresAfter < 3600 || expiresAfter > 259200) throw new Error("--expires must be an integer 3600..259200 seconds");
 if (!Number.isInteger(duration) || duration < 4 || duration > 15) throw new Error("--duration must be an integer 4..15 (both vendors reject shorter clips)");
-if (!["reference_image", "first_frame", "last_frame"].includes(values.role)) throw new Error("--role must be reference_image, first_frame or last_frame");
+// One --role per --image (in order); a single --role applies to every image; none means reference_image.
+const roles = values.image.map((_, i) => values.role[values.role.length === 1 ? 0 : i] ?? "reference_image");
+if (values.role.length > 1 && values.role.length !== values.image.length) throw new Error("--role must be given once, or once per --image");
+if (roles.some((r) => !["reference_image", "first_frame", "last_frame"].includes(r))) throw new Error("--role must be reference_image, first_frame or last_frame");
 const raw = JSON.parse(await readFile(values.config, "utf8"));
 const vendors = parseGenerationVendors({ vendors: raw.vendors, connections: raw.connections }).vendors;
 const MIME: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp" };
-const images = await Promise.all(values.image.map(async (file) => {
+const images = await Promise.all(values.image.map(async (file, i) => {
   const mime = MIME[extname(file).toLowerCase()];
   if (!mime) throw new Error(`unsupported image type: ${file}`);
   const bytes = await readFile(file);
-  return { name: basename(file), bytes: bytes.length, sha256: createHash("sha256").update(bytes).digest("hex"), role: values.role, uri: dataUri(mime, bytes) };
+  return { name: basename(file), bytes: bytes.length, sha256: createHash("sha256").update(bytes).digest("hex"), role: roles[i]!, uri: dataUri(mime, bytes) };
 }));
 const imageContent = images.map((i) => ({ type: "image_url", image_url: { url: i.uri }, role: i.role }));
 const record: Record<string, unknown> = {
   startedAt: new Date().toISOString(), vendor: values.vendor, kind: values.kind,
-  parameters: { ratio: values.ratio, resolution: values.resolution, duration, model: values.model, role: values.role },
+  parameters: { ratio: values.ratio, resolution: values.resolution, duration, model: values.model, roles, generateAudio, expiresAfter },
   images: images.map(({ uri: _uri, ...rest }) => rest), observations: [] as unknown[],
 };
 const redacted = (body: Record<string, unknown>) => ({ ...body, ...("content" in body ? { content: (body.content as any[]).map((c) => (c.type === "image_url" ? { type: "image_url", role: c.role, image_url: "<data uri omitted>" } : c)) } : {}), ...("image" in body ? { image: "<data uris omitted>" } : {}) });
@@ -59,7 +67,7 @@ if (values.vendor === "volcengine") {
     record.output = { size: first.size, output_format: first.output_format, usage: (r.body as any).usage };
     await finish(Buffer.from(first.b64_json, "base64"), "image/jpeg");
   } else {
-    const body = { model: values.model ?? "doubao-seedance-2-0-mini-260615", content: [{ type: "text", text: values.prompt }, ...imageContent], resolution: values.resolution ?? "720p", ratio: values.ratio, duration, generate_audio: true, watermark: false, execution_expires_after: 3600 };
+    const body = { model: values.model ?? "doubao-seedance-2-0-mini-260615", content: [{ type: "text", text: values.prompt }, ...imageContent], resolution: values.resolution ?? "720p", ratio: values.ratio, duration, generate_audio: generateAudio, watermark: false, execution_expires_after: expiresAfter };
     record.request = { ...redacted(body), digest: digest(body) };
     const created = await client.createContentTask(body, AbortSignal.timeout(120000));
     await observe({ phase: "create", outcome: created.kind, status: (created as any).status, reason: (created as any).reason, body: (created as any).body });
