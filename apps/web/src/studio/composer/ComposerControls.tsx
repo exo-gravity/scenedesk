@@ -10,7 +10,10 @@ import {
 import type { Schema } from "../../business/api";
 import type { ImageCapability } from "../../business/image-generation";
 import {
+  aspectRatioOptions,
   durationControl,
+  qualityOptions,
+  resolutionFor,
   specificationSummary,
 } from "../../business/generation-specification";
 import {
@@ -222,10 +225,12 @@ export function SpecificationPicker({
   const summary = specificationSummary({
     kind,
     output,
+    capability,
     shotSourceCount: shotSources?.length ?? 0,
   });
-  const ratios = kind !== "audio" ? (capability?.allowedAspectRatios ?? []) : [];
-  const resolutions = kind !== "audio" ? (capability?.allowedResolutions ?? []) : [];
+  const ratios = kind !== "audio" ? aspectRatioOptions(capability) : [];
+  const qualities =
+    kind !== "audio" ? qualityOptions(capability, output.aspectRatio) : [];
   const duration = durationControl(kind, capability);
   const audio = kind === "video" && capability?.audioOutput === true;
   const locked = disabled || frozen || !capability;
@@ -269,11 +274,24 @@ export function SpecificationPicker({
                     className={classes.tile}
                     aria-pressed={output.aspectRatio === ratio}
                     disabled={locked}
-                    onClick={() =>
-                      output.aspectRatio === ratio
-                        ? set({}, ["aspectRatio"])
-                        : set({ aspectRatio: ratio })
-                    }
+                    onClick={() => {
+                      // A ratio and a tier name one size; keep the tier if the
+                      // new ratio has it, and take its only size when that is
+                      // all it has.
+                      const quality = qualities.find(
+                        (q) => q.resolution === output.resolution,
+                      )?.quality;
+                      const next = qualityOptions(capability, ratio);
+                      const resolution =
+                        resolutionFor(capability, ratio, quality) ??
+                        (next.length === 1 ? next[0]!.resolution : undefined);
+                      set(
+                        resolution
+                          ? { aspectRatio: ratio, resolution }
+                          : { aspectRatio: ratio },
+                        resolution ? [] : ["resolution"],
+                      );
+                    }}
                   >
                     <RatioGlyph ratio={ratio} />
                     {ratio}
@@ -282,22 +300,27 @@ export function SpecificationPicker({
               </div>
             </section>
           )}
-          {resolutions.length > 0 && (
+          {qualities.length > 0 && (
             <section>
               <h4 className={classes.specTitle}>清晰度</h4>
-              <div className={classes.tiles} data-columns="2">
-                {resolutions.map((resolution) => (
-                  <UnstyledButton
-                    key={resolution}
-                    className={classes.tile}
-                    aria-pressed={output.resolution === resolution}
-                    disabled={locked}
-                    onClick={() => set({ resolution })}
-                  >
-                    {resolution}
-                  </UnstyledButton>
-                ))}
-              </div>
+              {qualities.length === 1 ? (
+                // One tier is not a choice; it reads as the fact it is.
+                <div className={classes.duration}>{qualities[0]!.quality}</div>
+              ) : (
+                <div className={classes.tiles} data-columns="2">
+                  {qualities.map(({ quality, resolution }) => (
+                    <UnstyledButton
+                      key={resolution}
+                      className={classes.tile}
+                      aria-pressed={output.resolution === resolution}
+                      disabled={locked}
+                      onClick={() => set({ resolution })}
+                    >
+                      {quality}
+                    </UnstyledButton>
+                  ))}
+                </div>
+              )}
             </section>
           )}
           {duration && (

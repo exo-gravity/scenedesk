@@ -55,7 +55,9 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   const spec = page.getByRole("group", { name: "生成规格", exact: true });
   await expect(spec).toBeVisible();
   await expect(spec.getByRole("button", { name: "1:1", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(spec.getByRole("button", { name: "32x32", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // One size is the only tier this fixture has, so the panel states it.
+  await expect(spec.getByRole("button", { name: "32x32", exact: true })).toHaveCount(0);
+  await expect(spec).toContainText("32x32");
   const specShot = info.outputPath("studio-spec-picker-1920.png");
   await page.screenshot({ path: specShot, animations: "disabled" });
   await info.attach("studio-spec-picker-1920", { path: specShot, contentType: "image/png" });

@@ -22,7 +22,7 @@ async function produceVideo(page: Page, f: Continuous) {
   await panel.getByRole("textbox", { name: "提示词", exact: true }).fill("第一段：雨夜窗边，缓慢推近。");
   await panel.getByRole("button", { name: "生成模型", exact: true }).click();
   await page.getByRole("option", { name: /Local Video Demo/ }).click();
-  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("4 秒");
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("4s");
   let jobPosts = 0;
   page.on("request", (request) => {
     if (request.method() === "POST" && request.url().endsWith("/generation-jobs")) jobPosts++;
