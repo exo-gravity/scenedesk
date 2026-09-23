@@ -64,6 +64,38 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   await page.keyboard.press("Escape");
   await expect(spec).toHaveCount(0);
 
+  // One row per model: two records differing only in mode collapse into one.
+  await panel.getByRole("button", { name: "生成模型", exact: true }).click();
+  const list = page.getByRole("listbox", { name: "可用模型", exact: true });
+  await expect(list.getByRole("option", { name: /双模式 fixture/ })).toHaveCount(1);
+  await list.getByRole("option", { name: /双模式 fixture/ }).click();
+  // The mode is chosen beside the model, not inside its row.
+  const modePill = panel.getByRole("button", { name: "进料方式", exact: true });
+  await expect(modePill).toContainText("首尾帧");
+  await modePill.click();
+  await page.getByRole("option", { name: "参考图", exact: true }).click();
+  await expect(modePill).toContainText("参考图");
+  // Three ratios on offer; 21:9 is the model's, not the panel's.
+  await panel.getByRole("button", { name: "生成规格", exact: true }).click();
+  await expect(spec.getByRole("button", { name: "21:9", exact: true })).toHaveCount(0);
+  await spec.getByRole("button", { name: "16:9", exact: true }).click();
+  await spec.getByRole("button", { name: "720p", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("16:9 · 720p");
+  // 9:16 has one tier here, so the panel states it — and still fills the size in.
+  await panel.getByRole("button", { name: "生成规格", exact: true }).click();
+  await spec.getByRole("button", { name: "9:16", exact: true }).click();
+  await expect(spec.getByRole("button", { name: "720p", exact: true })).toHaveCount(0);
+  await expect(spec).toContainText("720p");
+  await page.keyboard.press("Escape");
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("9:16 · 720p");
+  // Back to the fixture: a model with one mode shows no pill, and only a
+  // fixture may be submitted in this suite.
+  await panel.getByRole("button", { name: "生成模型", exact: true }).click();
+  await page.getByRole("option", { name: /显式文件 fixture/ }).click();
+  await expect(panel.getByRole("button", { name: "进料方式", exact: true })).toHaveCount(0);
+  await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("1:1 · 32x32");
+
   // Rule 8: one click prepares and executes once.
   let plans = 0, jobs = 0;
   page.on("request", (request) => {
@@ -81,6 +113,7 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   const jobId = entries.items[0].jobId;
   // Rule 6: with a fixed plan the model and specification are frozen; the prompt is read-only.
   await expect(panel.getByRole("button", { name: "生成模型", exact: true })).toBeDisabled();
+  await expect(panel.getByRole("button", { name: "进料方式", exact: true })).toHaveCount(0);
   await expect(panel.getByRole("textbox", { name: "提示词", exact: true })).toHaveCount(0);
 
   // Rule 14: keep the original task and prepare the next draft.
