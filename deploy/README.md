@@ -46,6 +46,8 @@ SCENEDESK_GENERATION_CONFIG=/absolute/path/to/generation.json \
 
 执行器在 4314 端口暴露 `/health/ready`，供 Compose 健康检查和外部探针确认数据库连接与对象存储版本化仍然可用。
 
+演示箱（实现记录 83 的那台）一条命令完成开通：`deploy/demo/enable-generation.sh` 会在本机不回显地读入两家 API key、经 ssh 标准输入写成箱子上的 `secrets/generation.json`，顺带创建 `scenedesk_generation` 角色、补 `provision.json` 的 `generationRole`、`.env` 与 `compose.demo.yaml` 的执行器叠加层，然后调用 `deploy/demo/deploy.sh --force` 完成构建、迁移、能力行发布与执行器启动；最后在明确输入 `yes` 之后跑付费冒烟并只开启冒烟通过的档案。箱子上存在 `generation.json` 时，`deploy/demo/remote.sh` 的每次 rollout 都会带上 `--generation-executor` 审计并拉起 `generation` profile。
+
 `stop_grace_period` 设为 200 秒：200 秒覆盖单个观察租约（180 秒）加余量；一次扫描最多顺序处理 100 个任务，忙时停机会在某次观察中被强制结束，未完成的观察由租约到期后重新领取，不会丢失回执。
 
 The isolated local check creates and removes only its own Compose project and volumes. It requires installed Chrome/Chromium for the original browser contract compiler; set `SCENEDESK_SMOKE_CHROME` to its executable if discovery cannot find it. Missing Chrome fails explicitly rather than skipping that check:
