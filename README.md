@@ -12,7 +12,7 @@ SceneDesk 是独立 Web 的短剧视觉创作工作台。当前主路径是 **�
 
 当前交互依据[核心创作区重建（2026-09-21 已确认，2026-09-22 合入）](docs/design/creative-workspace-rebuild-libtv-2026-09-21.md)，实现记录见[创作区重建分片记录](docs/implementation/85-studio-rebuild.md)。创作台是唯一工作区，镜头整理按需打开；旧画布、场次工作区、剧本页与分镜台地址一律转向创作台。固定输入、任务、结果和明确选用仍是独立事实，但日常导入不要求操作复杂版本流程。
 
-当前先完成真实模型之外的工作区功能和受控验收，真实模型接入放到最后。图像、视频和助手的测试适配器与演示媒体均明确标识，不能视为实际供应商验收；真实飞书应用授权、团队文档和外部部署也需各自环境验证。实际测试、合入记录及剩余条件见[收尾记录](docs/implementation/77-non-provider-workspace-closure.md)与[实施进度](docs/implementation/22-implementation-progress.md)。
+MiniMax 与火山方舟的图像／视频适配器及独立生成执行器已实现，真实账号验证的范围见[供应商运行记录](docs/implementation/86-verified-provider-runtime.md)。测试适配器与演示媒体保持明确标识；供应商、真实飞书授权、团队文档和外部部署分别验收，当前交付与剩余工作统一见[实施进度](docs/implementation/22-implementation-progress.md)。
 
 后期剪辑／渲染、完整团队管理、开放注册、公共 API 产品及商业运营继续后置，依据[当前首发范围](docs/implementation/38-first-release-scope-review.md)。已实现的后期代码与历史设计保留，不作为本次创作工作区的使用前提。
 
@@ -40,7 +40,7 @@ npm run dev:business
 
 需要实际导入和处理素材时，按[素材运行说明](docs/implementation/30-media-import-service.md)初始化队列与私有存储，并另行运行 `npm run dev:media-worker`。
 
-仅查看视觉原型时执行 `npm run dev:web` 并打开[核心流程原型](http://127.0.0.1:4311/#/journey/?variant=core-flow&screen=script)。原型使用内存演示数据，与持久化业务入口分开。原 S0 `npm run dev` 保留为工程骨架入口；未启用业务配置时，业务接口仍明确返回未实现状态。
+仅查看视觉原型时执行 `VITE_ENABLE_DESIGN_PREVIEWS=true npm run dev:web` 并打开[核心流程原型](http://127.0.0.1:4311/#/journey/?variant=core-flow&screen=script)。原型使用内存演示数据，与持久化业务入口分开。原 S0 `npm run dev` 保留为工程骨架入口；未启用业务配置时，业务接口仍明确返回未实现状态。
 
 `npm run dev:business` 的 Ctrl-C 停止三个本地服务；`npm run db:stop` 停止本项目数据库并保留卷。不要使用 `down -v` 清除希望保留的数据。
 
@@ -71,14 +71,14 @@ python3 -m venv .venv
 |---|---|
 | `apps/web` | React/Vite 与 Mantine；剧本阅读导入、项目与场次画布、资产、镜头列表及 IndexedDB 草稿恢复 |
 | `apps/api` | Fastify 业务 API、OIDC、项目授权、文档导入、画布保存、固定生成计划、结果与选用、原片交付 |
-| `apps/worker` | 素材处理与受控生成执行入口；受限角色、队列消费及遗漏任务补偿，真实供应商另行接入 |
+| `apps/worker` | 素材处理、受控测试生成及独立真实供应商执行器；受限角色、任务消费与恢复 |
 | `packages/contracts` | 由 OpenAPI 生成的 TypeScript 与 Ajv 2020-12 校验器 |
-| `packages/domain` | 精确帧／采样整数运算起点，不是完整媒体归一器 |
-| `packages/provider` | 生成与助手的测试适配器、故障模拟；当前不提供真实供应商 Adapter |
+| `packages/domain` | 画布文档、固定引用、生成输出配对及精确帧／采样等纯规则 |
+| `packages/provider` | 生成与助手测试适配器，以及 MiniMax／火山方舟真实适配器、能力档案与输入输出处理 |
 | `packages/queue` | [内部调度](docs/implementation/28-durable-queue.md)：事务入队、受限角色、注册 handler 及中断恢复验证 |
 | `packages/media` | [媒体运行基础](docs/implementation/29-media-runtime.md)与[导入服务](docs/implementation/30-media-import-service.md)：固定对象、受限解码、原文件验收和独立预览恢复 |
 | `packages/database` | 校验值不可变迁移、身份／项目表、RLS、约束与独立角色授权 |
 | `docs/implementation` | 生产行为、数据、接口、验收及工程任务的权威设计 |
 | `deploy` | 私有部署镜像、配置审查、隔离部署与恢复检查 |
 
-`.env` 中的数据库示例账号只用于迁移与测试，业务 API 使用 `.env.business` 中受限的运行账户。正式部署仍需真实 OIDC、密钥管理、媒体存储、恢复与容量验收；当前启动器限制本机访问，真实模型模式不可启用。
+`.env` 中的数据库示例账号只用于迁移与测试，业务 API 使用 `.env.business` 中受限的运行账户。正式部署仍需真实 OIDC、密钥管理、媒体存储、恢复与容量验收。本地业务启动器限制本机访问；真实生成须按[执行器运行说明](docs/implementation/86-verified-provider-runtime.md)单独配置、验证并取得花费授权。

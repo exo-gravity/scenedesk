@@ -73,7 +73,7 @@
 
 ## 开通流程
 
-能力行的 `enabled` 与 `verifiedAt` 是唯一的付费开关：`PROVIDER_MODE` 只门禁执行器进程，不门禁 API 受理；一条已开启且已验证的能力行在任何环境都会产生 ready 计划和受理任务。单执行器按顺序扫描最多 100 个任务，每次观察最长 120 秒，一个慢下载会推迟其它任务的 5 秒轮询；多实例与并行观察是后续工作。
+能力行的 `enabled` 与 `verifiedAt` 是准备 ready 计划的必要条件；提交还须通过当前权限、限额和 API 的 `generationExecutor` 配置检查。未声明真实执行器时 API 返回 503，计划仍保持 ready。`PROVIDER_MODE` 门禁执行器进程，不能单独代表整条付费执行链已开通。单执行器按顺序扫描最多 100 个任务，每次观察最长 120 秒，一个慢下载会推迟其它任务的 5 秒轮询；多实例与并行观察是后续工作。
 
 1. `deploy/runtime/provision.ts --apply`：按 `provision.json` 的 `generationRole` 字段（例如 `scenedesk_generation`）创建执行器登录用的受限数据库角色，只授予 schema `USAGE` 和 `generationFunctions` 列出的 SECURITY DEFINER 函数 `EXECUTE`，不授予任何表的直接读写。
 2. `scripts/provision-verified-capabilities.ts --config generation.json --tenant <id>`：按 `PROFILES` 逐条档案、逐个模式写 `generation_capabilities`。首次写入 `enabled=false`；`definition` 或 `max_inflight` 有变化时发布新的 `revision+1` 行并把旧行 `enabled` 置为 false（`generation_capabilities` 行本身不可变，`guard_generation_immutable` 只放行 `enabled` 列的 UPDATE）；`definition` 与 `max_inflight` 都不变时是 no-op（`unchanged`）。
@@ -81,6 +81,12 @@
 4. 冒烟通过、MV 证据保存后，`scripts/provision-verified-capabilities.ts --config generation.json --tenant <id> --enable <profileId>`：只在该 profile 最新一行还没有 `verifiedAt` 时写入（重复运行仍是 no-op）。
 5. 起执行器：`SCENEDESK_GENERATION_CONFIG=/绝对路径/generation.json docker compose -f deploy/compose.yaml --profile generation up generation-worker`，健康检查在 4314 端口的 `/health/ready`；命令行加 `--check` 只跑启动自检不常驻。完整参数与 `stop_grace_period` 依据见 [deploy/README.md「生成执行器」](../../deploy/README.md#生成执行器)，不在此重复。
 6. 部署审计需要显式加 `--generation-executor`（`node deploy/runtime/audit.ts --generation-executor`）才会把执行器视为已配置、放行 `executor_required_jobs` 非零；不带该参数时任何未终结的生成任务都会让审计失败。
+
+## 输出规格规则
+
+尺寸、名义画幅与厂商档位沿用能力行已有的 `outputs` 配对；前端和 API 共用 `supportsVisualOutput`，不再用像素宽高的精确比值否定显式配对。没有配对表的旧能力仍按精确几何校验；`aspectRatio` 仍可省略，不新增字段或配置开关。资源上限、时长和音轨继续由原校验负责。
+
+计划固定能力快照后，适配器在读取参考或发出请求前核对当前尺寸映射与快照中的画幅、档位；不兼容则明确拒绝 `OUTPUT_PROFILE_CHANGED`。缺少配对表的旧计划保留现有映射路径，但已声明的画幅仍须一致。实际产物继续按真实像素和媒体验收规则检查，不用名义画幅放宽归档。
 
 ## 状态映射
 
