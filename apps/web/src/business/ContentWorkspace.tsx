@@ -725,8 +725,8 @@ export function ContentWorkspace({
       <Modal
         opened={!!editing}
         onClose={() => setEditing(undefined)}
-        title={`${editing?.id ? "编辑" : "新建"}${editing?.kind === "episode" ? "单集" : editing?.kind === "scene" ? "场次" : "镜头"}`}
-        size="lg"
+        title={`${editing?.id ? "编辑" : editing?.kind === "shot" ? "新增" : "新建"}${editing?.kind === "episode" ? "单集" : editing?.kind === "scene" ? "场次" : "镜头"}`}
+        size={!editing?.id && editing?.kind === "shot" ? "md" : "lg"}
       >
         {editing && (
           <StructureEditor

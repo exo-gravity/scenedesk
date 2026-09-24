@@ -80,6 +80,9 @@ export function ShotsView({
   const focused = shots.find((s) => s.id === selection.focused);
   const active = projectActive && scene?.status === "active" && episode?.status === "active";
   const goToScene = (id: string | null) => {
+    setCreating(false);
+    setOrdering(false);
+    setSelection(emptySelection);
     location.hash = `${base}/shots${id ? `?scene=${id}` : ""}`;
   };
   if (content.isError)
@@ -176,13 +179,13 @@ export function ShotsView({
           </>
         )}
         <Drawer
-          opened={!!focused}
+          opened={!!selection.focused}
           onClose={() => void transition(() => setSelection(emptySelection))}
           position="right"
           size="min(720px, 100%)"
-          title={focused ? `镜头 ${focused.label}` : ""}
+          title={focused ? `镜头 ${focused.label}` : "镜头"}
         >
-          {focused && scene && (
+          {focused && scene ? (
             <section aria-label="镜头专注预览">
               <ShotResultFocus
                 key={focused.id}
@@ -194,7 +197,16 @@ export function ShotsView({
                 transition={transition}
               />
             </section>
-          )}
+          ) : selection.focused ? (
+            <section aria-label="镜头专注预览">
+              {content.isFetching && <Loader aria-label="正在读取镜头" />}
+              <Text c="dimmed">
+                {content.isFetching
+                  ? "正在读取镜头…"
+                  : "未找到指定镜头，请关闭后重新选择镜头。"}
+              </Text>
+            </section>
+          ) : null}
         </Drawer>
         <Modal opened={ordering && !!scene} onClose={() => void transition(() => setOrdering(false))} title="调整镜头顺序">
           {scene && (
@@ -211,14 +223,21 @@ export function ShotsView({
           )}
         </Modal>
         <Modal opened={creating && !!scene} onClose={() => void transition(() => setCreating(false))} title="新增镜头">
-          {scene && (
+          {creating && scene && (
             <StructureEditor
               key={scene.id}
               editing={{ kind: "shot", parentId: scene.id }}
               tree={tree}
               path={path}
               scripts={scripts.data ?? []}
-              done={() => void transition(() => { setCreating(false); void content.refetch(); })}
+              done={(created) => void transition(() => {
+                setCreating(false);
+                if (created && "sceneId" in created) {
+                  if (created.sceneId !== scene.id) goToScene(created.sceneId);
+                  setSelection({ focused: created.id });
+                }
+                void content.refetch();
+              })}
             />
           )}
         </Modal>
