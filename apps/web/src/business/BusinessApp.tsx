@@ -68,7 +68,7 @@ import {
   suspendEditingAccess,
   refreshEditingAccess,
   retireEditingSession,
-} from "./use-cut-work";
+} from "./editing-lifecycle";
 import { notifyEditingAccess, subscribeEditingAccess } from "./editing-access";
 import "./assistant-lifecycle";
 const MyWork = lazy(() => import("./MyWork"));

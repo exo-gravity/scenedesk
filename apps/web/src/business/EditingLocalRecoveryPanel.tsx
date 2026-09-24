@@ -9,9 +9,12 @@ import {
   inspectEditingLocal,
   listEditingLocal,
   type EditingLocalInspection,
+  type EditingPartition,
 } from "./editing-local";
-import type { CutWorkController } from "./cut-work-controller";
-type RecoveryOwner = Pick<CutWorkController, "partition" | "retryLocal">;
+type RecoveryOwner = {
+  readonly partition: EditingPartition;
+  retryLocal(): Promise<void>;
+};
 
 async function inactiveTab<T>(
   clientSessionId: string,
@@ -31,7 +34,7 @@ async function inactiveTab<T>(
     },
   );
 }
-export function CutLocalRecoveryPanel({
+export function EditingLocalRecoveryPanel({
   controller,
   close,
 }: {

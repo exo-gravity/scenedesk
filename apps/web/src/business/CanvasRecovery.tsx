@@ -4,7 +4,7 @@ import { ErrorNotice } from "./common";
 import type { CanvasController, CanvasEditorState } from "./canvas-controller";
 import { canvasChanges, replayCanvasChanges } from "./canvas-reconcile";
 import { CanvasEntryDetails } from "./CanvasEntryDetails";
-import { CutLocalRecoveryPanel } from "./CutLocalRecoveryPanel";
+import { EditingLocalRecoveryPanel } from "./EditingLocalRecoveryPanel";
 
 export function canvasSaveLabel(state: CanvasEditorState) {
   if (state.accessChecking) return "正在核对权限";
@@ -129,7 +129,7 @@ export function CanvasRecovery({
         </Alert>
       )}
       {catalog && (
-        <CutLocalRecoveryPanel
+        <EditingLocalRecoveryPanel
           controller={controller}
           close={() => setCatalog(false)}
         />

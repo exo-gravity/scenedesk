@@ -5,7 +5,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { createMinimaxAdapter, type VerifiedDeps } from "@drama/provider";
+import { capabilityDefinition, findProfile, createMinimaxAdapter, type VerifiedDeps } from "@drama/provider";
 
 const read = (req: IncomingMessage) => new Promise<any>((resolve) => { let s = ""; req.on("data", (c) => (s += c)); req.on("end", () => resolve(s ? JSON.parse(s) : undefined)); });
 async function fakeMinimax() {
@@ -124,6 +124,32 @@ test("MiniMax submit rejects locally without a request when the profile or outpu
   const wrongVendor = await adapter.submitOnce(submission({ capabilitySnapshot: { modelVersion: "volcengine/doubao-seedance-2-0-260128", mode: "frames_v1" } }), AbortSignal.timeout(2000));
   assert.equal((wrongVendor as any).code, "VENDOR_MISMATCH");
   assert.equal(mm.calls.length, 0);
+});
+test("MiniMax submission keeps a fixed output pair and rejects a changed mapping before sending", async (t) => {
+  const mm = await fakeMinimax(); t.after(mm.close);
+  const adapter = createMinimaxAdapter({ connectionVersionId: "cv-minimax", apiKey: "k", baseUrl: mm.origin, deps: await deps() });
+  const snapshot = capabilityDefinition(findProfile("minimax/MiniMax-H3")!, "frames_v1", {});
+  const fixed = submission({
+    capabilitySnapshot: snapshot,
+    output: { resolution: "1344x768", aspectRatio: "16:9", durationSeconds: 5, withAudio: true },
+  });
+  assert.equal((await adapter.submitOnce(fixed, AbortSignal.timeout(2000))).kind, "accepted");
+  assert.equal(mm.calls[0]!.body.resolution, "768P");
+  assert.equal(mm.calls[0]!.body.ratio, "16:9");
+  for (const change of [{ quality: "2K" }, { aspectRatio: "9:16" }]) {
+    const stale = structuredClone(fixed);
+    Object.assign(stale.resolvedInput.capabilitySnapshot.outputs[0], change);
+    const before = structuredClone(stale);
+    assert.deepEqual(await adapter.submitOnce(stale, AbortSignal.timeout(2000)), {
+      kind: "rejected", correlation: "attempt-1", code: "OUTPUT_PROFILE_CHANGED",
+    });
+    assert.deepEqual(stale, before);
+  }
+  const contradictory = submission({ output: { resolution: "1344x768", aspectRatio: "9:16", durationSeconds: 5, withAudio: true } });
+  assert.deepEqual(await adapter.submitOnce(contradictory, AbortSignal.timeout(2000)), {
+    kind: "rejected", correlation: "attempt-1", code: "OUTPUT_PROFILE_CHANGED",
+  });
+  assert.equal(mm.calls.length, 1);
 });
 test("MiniMax query maps statuses, downloads and archives on success, cancels only queued", async (t) => {
   const mm = await fakeMinimax(); t.after(mm.close);

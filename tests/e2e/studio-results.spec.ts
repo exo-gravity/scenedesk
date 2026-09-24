@@ -23,6 +23,7 @@ async function produceVideo(page: Page, f: Continuous) {
   await panel.getByRole("button", { name: "生成模型", exact: true }).click();
   await page.getByRole("option", { name: /Local Video Demo/ }).click();
   await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("4s");
+  await expect(status).toBeVisible();
   let jobPosts = 0;
   page.on("request", (request) => {
     if (request.method() === "POST" && request.url().endsWith("/generation-jobs")) jobPosts++;
@@ -135,6 +136,7 @@ test("ST-04: a placement whose reply is lost is recovered after a reload through
   await dialog.getByRole("button", { name: "确认添加到创作台", exact: true }).click();
   // Rule 12: only "恢复本次添加" is offered; the board already holds the card on the server.
   await expect(panel.getByRole("button", { name: "恢复本次添加", exact: true })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "恢复本次添加", exact: true })).toBeEnabled();
   const placed = await f.ok("GET", `${f.path}/canvases/${f.canvas.id}`);
   expect(placed.document.nodes.filter((node: any) => node.content.mediaId === first.jobId)).toHaveLength(1);
   await page.unroute("**/canvases/*/results");
