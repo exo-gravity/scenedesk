@@ -1,17 +1,17 @@
 # 05 技术架构、媒体处理与运行维护
 
-状态：实施默认设计，尚未部署或压测。先交付一个可维护的模块化服务和独立 Worker，按实际负载拆分。数据库约束见 [03](03-domain-data-model.md)，执行事实与费用规则见 [04](04-state-execution-and-budget.md)。
+状态：模块化服务与独立 Worker 的架构设计，包含后置能力；已交付模块、部署验证与剩余条件统一见[22](22-implementation-progress.md)。先交付一个可维护的模块化服务和独立 Worker，按实际负载拆分。数据库约束见 [03](03-domain-data-model.md)，执行事实与费用规则见 [04](04-state-execution-and-budget.md)。
 
-2026-09-10 更新：[技术方向已确认](../design/technical-direction-confirmation-2026-09-10.md)。协议已与03／04／06／11／18同步，具体规则见[21](21-technical-baseline-closure.md)；候选队列仍待集成验证。
+2026-09-10 更新：[技术方向已确认](../design/technical-direction-confirmation-2026-09-10.md)。协议已与03／04／06／11／18同步，具体规则见[21](21-technical-baseline-closure.md)；内部队列的实际实现和验证见[28](28-durable-queue.md)。
 
 ## 1. 技术选型与部署单元
 
 | 部分 | 首版默认选择 | 选择理由与边界 |
 |---|---|---|
-| 浏览器 | TypeScript、React、Vite；Mantine 为唯一通用 UI，表单优先 Form、多面板优先 Splitter；服务端状态与本地草稿分离 | Mantine 已确认并接入本地场次/组件样板；真实业务继续逐步实现，核心创作界面自主设计。专业组件最终选择与具体版本见 [17](17-frontend-component-selection.md)；画布复用已有素材与执行服务，新增保存、业务绑定及模式互通接口见18，仍待业务实现 |
+| 浏览器 | TypeScript、React、Vite；Mantine 为唯一通用 UI，表单优先 Form、多面板优先 Splitter；服务端状态与本地草稿分离 | 当前业务界面采用 Mantine，创作台实现见[85](85-studio-rebuild.md)；画布复用已有素材、执行、保存与恢复服务。组件选型见[17](17-frontend-component-selection.md) |
 | API | TypeScript、Node.js、Fastify；OpenAPI 与请求校验共用契约 | 同一团队维护端到端类型；模块服务负责规则，路由不直接更新跨模块表 |
-| 数据库 | PostgreSQL，迁移文件纳入版本管理 | 事务、唯一约束、预算锁、RLS 和 JSON 快照由一个事实源承载 |
-| 异步执行 | 优先复用成熟队列，pg-boss 为首个集成验证候选；独立 Node Worker | 平台保留业务 job／attempt、费用与未知提交保护；验证同事务入队和最小权限后锁定组件。原自研worker_tasks实现安排已取消；事件 outbox 保留，内部任务投递机制避免重复建设 |
+| 数据库 | PostgreSQL，迁移文件纳入版本管理 | 事务、唯一约束、执行限额、RLS 和 JSON 快照由一个事实源承载 |
+| 异步执行 | PostgreSQL 持久队列与独立 Node Worker，见[28](28-durable-queue.md) | 业务效果与队列提示同事务持久化；业务 job／attempt 决定执行与未知提交事实，队列回执不建立业务成功 |
 | 媒体存储 | 私有对象存储，按具体供应商核验接口 | 业务只依赖上传意图、不可变对象、短时读取和删除受控接口；不假设所有 S3 兼容实现等价 |
 | 媒体处理 | 隔离容器中的 FFprobe／FFmpeg | 支持验收、代理、拼接渲染、音频与字幕；不自研编解码 |
 | 身份 | 一个选定 OIDC 提供方、服务端会话、邀请加入工作室 | 登录身份与工作室权限分离；首发身份供应商在 S0 确定 |
@@ -45,24 +45,24 @@ flowchart LR
 |---|---|---|
 | IdentityAccess | 建立会话、授权范围、变更成员、交接负责人 | OIDC、邀请、权限撤销；用户、成员、项目访问关系 |
 | DramaPlanning | 保存剧本、修改集场镜、确认差异、解析场次制作依据 | 稳定身份、内容 CAS、造型与状态语义；短剧业务表 |
-| CanvasWorkspace（新增设计，待实现） | 保存与读取画布、编辑节点／连接／分组／草稿、恢复工作内容 | 画布持久化与冲突保护；引用统一媒体和任务。场次／镜头关联由短剧接入层校验，画布不拥有采用、剪辑和批准事实 |
+| CanvasWorkspace | 保存与读取画布、编辑节点／连接／分组／草稿、恢复工作内容 | 画布持久化与冲突保护；引用统一媒体和任务。场次／镜头关联由短剧接入层校验，画布不拥有采用、剪辑和批准事实 |
 | AssetMedia | 固定资产版本、共享发布、验收媒体、维护检索与来源信息、检查引用、签发访问 | 上传存储、不可变内容、共享授权、制作副本与派生文件 |
 | Generation | 准备计划、执行计划、取消／查询／核对作业 | 模型映射、输入快照、供应商不确定性；plan/job/attempt |
-| Budget | 预占、登记部分费用、按完整性证据结清、追加更正、查询用量 | 账户锁顺序、共享／项目预算分支、未知敞口和账单去重；reservation/ledger |
+| Budget（后置设计） | 预占、登记部分费用、按完整性证据结清、追加更正、查询用量 | 账户锁顺序、共享／项目预算分支、未知敞口和账单去重；reservation/ledger |
 | Editing | 规范化草稿、保存已确认边界、固定版本、请求渲染、登记外部成片 | 时间映射、归一结果与 CAS 绑定、引用检查、渲染规格和结果一致性 |
 | ReviewDelivery | 发起审阅、记录时间码意见、形成决定、制作交付包 | 审阅粒度、版本批准、固定交付清单 |
 | TaskTracking | 创建、分配、更新人工任务 | 不将任务角色当作权限，也不复制生成状态机 |
 | Runtime | 领取内部任务、发出资源变更、健康检查 | 租约、退避、幂等投递、运行配置；不决定业务是否批准 |
 
-业务事务可在同一个数据库事务中调用相关模块，事务上下文由应用层注入；Generation.execute 调用 Budget.reserve 后统一提交，不在模块间发送 RPC 模拟分布式事务。模块只能通过明确操作改变另一模块拥有的数据。跨模块读模型可集中查询，但写入规则只有一份。
+业务事务可在同一个数据库事务中调用相关模块，事务上下文由应用层注入；原完整费用方案设计为 Generation.execute 调用 Budget.reserve 后统一提交；当前实现使用执行限额，不把后置的预算账本作为现有能力，不在模块间发送 RPC 模拟分布式事务。模块只能通过明确操作改变另一模块拥有的数据。跨模块读模型可集中查询，但写入规则只有一份。
 
-当前已创建 apps/web、apps/api、apps/worker、packages/contracts、packages/domain、packages/provider、packages/database 和 tests，实际范围见[工程记录](15-engineering-readiness.md)与[仓库说明](../../README.md)。packages/provider 当前仅有无网络模拟；media／infra 等是未来模块组织建议，尚未作为完整生产模块创建。通用包不得反向依赖 drama；长期广告通过独立业务模块调用 CanvasWorkspace、Generation、AssetMedia、Editing 和 ReviewDelivery。首版按场次双模式的实际需求实现通用画布与短剧接入，广告业务实体和通用可编程流程按后续需求建设。
+当前代码包含 apps/web、apps/api、apps/worker，以及 contracts、domain、provider、database、queue、media 包；部署代码位于 deploy。模块职责见[仓库说明](../../README.md)，交付状态见[22](22-implementation-progress.md)。packages/provider 同时包含测试适配器和真实供应商适配器，接入边界见[86](86-verified-provider-runtime.md)。通用包不得反向依赖 drama；长期广告通过独立业务模块调用 CanvasWorkspace、Generation、AssetMedia、Editing 和 ReviewDelivery。首版按项目／场次创作台的实际需求维护通用画布与短剧接入，广告业务实体和通用可编程流程按后续需求建设。
 
 ### 已确认的画布复用边界
 
 用户已确认当前短剧场次双模式、长期广告优先评估“画布＋助手”主空间。画布的身份与保存模型保持通用；“每场一张画布”以及镜头／候选关联由短剧模块提供，不成为画布模块的硬依赖。未来广告画布可绑定广告制作任务，营销人员可以从目标和材料进入，制作团队可以直接组织节点与分支。详细产品边界见[场次画布设计第 9 节](../design/scene-canvas-interaction-v0.1.md#9-已确认通用画布与广告演进方向)。
 
-通用性不放松授权：画布资源归属于可信租户／项目，业务关联必须解析真实对象并验证所属项目，不能仅凭客户端传来的类型和 ID 访问上下文。画布保存、短剧绑定、跨模式定位及冲突保护已纳入[18](18-canvas-workspace-contract.md)及OpenAPI 1.3.0，真实服务端行为待实现；当前通用生成计划可无镜头，不代表现有 Take／Selection 或全部剪辑、审阅接口已经适用于广告。后续广告模块先定义制作目标与审核语义，再扩展相应接口。
+通用性不放松授权：画布资源归属于可信租户／项目，业务关联必须解析真实对象并验证所属项目，不能仅凭客户端传来的类型和 ID 访问上下文。画布保存、短剧绑定、跨模式定位及冲突保护已纳入[18](18-canvas-workspace-contract.md)及OpenAPI 1.3.0，实际实现见[22](22-implementation-progress.md)与[85](85-studio-rebuild.md)；当前通用生成计划可无镜头，不代表现有 Take／Selection 或全部剪辑、审阅接口已经适用于广告。后续广告模块先定义制作目标与审核语义，再扩展相应接口。
 
 ## 3. 访问与数据隔离
 

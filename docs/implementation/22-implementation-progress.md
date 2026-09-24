@@ -1,16 +1,62 @@
 # 实施进度与验收证据
 
+## 当前状态（2026-09-24）
+
+当前代码基线：`main` 的 `628f74c8267c22ecef31b461967c351e01a8d3c4`（PR #87）；本轮精简审查起点为 PR #84 的 `4812ccc`。Studio 已合入，创作台是唯一创作入口；当前范围见[38](38-first-release-scope-review.md)，界面及分片证据见[85](85-studio-rebuild.md)。下方日期记录保留当时状态，其中“未推送”“待实现”等不能代替本节当前结论。
+
+MiniMax／火山方舟适配器、独立生成执行器、能力开通、API 执行器门禁及新的模型规格面板已在基线中。真实账号证据统一见[86](86-verified-provider-runtime.md)：已有三个档案的 MV-01 与部分参考输入、查询验证，其他规格及异常恢复按该表继续验收。代码实现、受控回归和真实供应商验收分别记账。
+
+剩余重点：补齐真实模型模式／规格与异常恢复验证、真实身份和团队飞书条件、外部部署验收及已记录的画布容量问题。完整后期、商业运营、复杂组织管理继续后置；本轮不据旧接口数量新增实现任务。历史媒体套件的环境失败仍按原记录保留。
+
+### 本轮精简
+
+核心代码经 [PR #86](https://github.com/exo-gravity/scenedesk/pull/86) 合入，代码 head 为 `66935623ee6bfe30642440c05aba22d814701922`，合并提交为 `a7580d8efe906e43ee740a7ddf0f1d9cf76742e0`。本轮落实[精简审查](../reviews/2026-09-24-architecture-simplification.md)的 A1、A5，并同步 A2 的文档纠错：
+
+- 前端与 API 共用一个纯配对判断，沿用现有能力 `outputs`；名义画幅不再被像素精确除法误拒绝。无配对表的旧能力维持精确几何和省略画幅的兼容行为，时长、音轨、资源上限仍按原规则校验。
+- 适配器提交前核对计划固定的画幅／档位和当前尺寸映射；不兼容时返回 `OUTPUT_PROFILE_CHANGED`，固定快照不被改写，实际输出仍按真实像素验收。
+- 删除两层无调用的生成输入转发、未使用的剪辑 hook／控制器／会话注册；通用生命周期直接导入，恢复面板改为通用命名及最小接口。旧本机副本的识别、授权检查与明确清理保持原样。
+- 校正入口、范围和供应商说明，保留历史需求与验收证据；未新增数据库表、公开契约、依赖、配置开关或规格框架。
+
+首轮实现验证使用锁定的 Node 22.23.2／npm 10.9.8；数据库与浏览器均指向单独创建的回环 `drama_e2e_simplify`，没有使用开发数据或发起付费请求。每行结果来自该命令的一次完整运行：
+
+| 实际执行 | 结果与覆盖 |
+|---|---|
+| `npm run check` | 通过：生成契约检查、UI 规则、类型检查、生产构建及 358/358 单元；新增回归逐一验证七个档案所有输入模式提供的 67 个规格组合 |
+| `node --import tsx --test --test-concurrency=1 tests/integration/verified-plan.test.ts tests/integration/image-generation.test.ts tests/integration/video-generation.test.ts` | 18/18 通过；67 个组合经真实 API 与数据库创建固定计划，错误配对拒绝；图片／视频的执行、归档与恢复原有行为通过 |
+| `node --import tsx --test --test-concurrency=1 tests/integration/verified-runtime.test.ts tests/integration/async-generation.test.ts tests/integration/canvas-generation-batches.test.ts` | 30/30 通过；受限执行器、未知提交、取消和批次行为 |
+| `npm run test:e2e`（`PROVIDER_MODE=mock`） | 27/27 完整生产浏览器回归通过；保存、刷新恢复、撤权、生成、剧本与原片交付；检查了本次生成面板截图，受控身份和模型标识保留 |
+| `sh deploy/check.sh` | 类型检查及 11/11 部署单元通过 |
+| `.venv/bin/python docs/implementation/check_design.py` | 通过：180 个操作、262 个 schema、178 个样例与全部本地链接；生成契约无变化 |
+
+上述表格记录首轮实现验证。交付阶段另建回环 `drama_e2e_delivery`，运行 `bash scenedesk-preflight.sh --all`：契约与文档、358 项单元、359 项数据库及 worker 检查通过，完整媒体为 77/80 通过、3 个失败计数（包含失败父用例），不将整个 preflight 记为成功。最终代码 `66935623ee6bfe30642440c05aba22d814701922` 的 `npm run test:e2e` 独立完整运行 27/27 通过；部署类型及 11 项单元、12 项数据库集成检查通过。
+
+交付中补齐结果恢复用例的两项前置断言：生成前画布已保存，以及故障注入后“恢复本次添加”按钮已经可操作。未改动前的 `4812ccc` 复现了保存尚未完成时生成被拒绝；原测试还可能在按钮仍禁用、请求未结束时提前读取结果。保留原有结果和幂等断言，补强后同一恢复用例连续 3 次通过，最终类型检查通过。
+
+本机媒体失败与验证环境单列：`production-worker.test.ts` 等待制作副本就绪超时，在改动前的 `4812ccc` 同项复现。并行执行其他分支的数据库门禁时，共用临时 PostgreSQL 又触发 `out of shared memory`；CSS 的 `--skip-heavy --e2e` 与文档的 `--skip-heavy` 两条 preflight 在数据库阶段中止，不能算完整通过。后续停止并行重型检查，未放宽断言、超时或资源限制。API、Web、media-worker 三镜像构建与 HTTPS smoke 均已独立通过，12 个设计预览页面检查通过；隔离成对恢复与 GitHub CI 的交付结果分别见下文，不以此前阶段的通过计数代替。
+
+针对失败项，另建回环 `drama_e2e_media_serial`，串行执行 `node --import tsx --test --test-concurrency=1 tests/media/production-worker.test.ts tests/media/video-generation.test.ts`，一次完整运行 6/6 通过。此复测不覆盖此前失败记录；核心切片的 GitHub 通用检查（含完整媒体）、部署、浏览器与隔离恢复四项 CI 均通过。
+
+PR #86 的[通用 CI](https://github.com/exo-gravity/scenedesk/actions/runs/35969668408)完整通过 358 项单元、359 项数据库和 80 项媒体检查；[生产浏览器 CI](https://github.com/exo-gravity/scenedesk/actions/runs/35969668531)与[部署及隔离成对恢复 CI](https://github.com/exo-gravity/scenedesk/actions/runs/35969668548)通过。本轮没有发起真实付费调用、使用业务数据库或宣称完成外部部署验收。
+
+### 旧全局图标尺寸的定点清理
+
+经 [PR #87](https://github.com/exo-gravity/scenedesk/pull/87) 合入，代码 head 为 `7a88c1c43544ecc16825ce9c346ec1c8bf27c9e4`，合并提交为 `628f74c8267c22ecef31b461967c351e01a8d3c4`。[通用 CI](https://github.com/exo-gravity/scenedesk/actions/runs/35970702562)、[生产浏览器 CI](https://github.com/exo-gravity/scenedesk/actions/runs/35970702654)和[部署及隔离恢复 CI](https://github.com/exo-gravity/scenedesk/actions/runs/35970702592)全部通过。
+
+移除旧 `svg` 全局宽高和 Studio 的补偿覆盖；只在设计预览入口通过已有 Phosphor `IconContext` 保留 18px 默认值。业务图标沿用显式尺寸，不新增样式框架或改变布局。浏览器实际复现项目弹出菜单声明 14px、计算为 18px；修正后核对为 14px，ST-00 加入该行为的回归断言。UI 规则、类型、生产构建、358 项单元与 12 个设计预览页面检查通过。该分支首次完整 E2E 为 26/27，失败是上述恢复用例的前置时序问题；修正后另建回环 `drama_e2e_css_final`，一次完整 `npm run test:e2e` 为 27/27 通过，不拼接不同轮次的结果。
+
+## 历史方向与阶段依据
+
 2026-09-11 发布顺序调整：按用户最新决定，**画布与 AI 保持原计划**；后期剪辑、字幕、固定渲染、完整团队管理、开放注册和运营不进入当前 MVP。商业计费与费用运营后置，模型实际执行仍需要必要限制与重复提交保护。以下工作包表同时保留既有成果和旧完整路线的状态；当前首发依赖以[38 当前 MVP](38-first-release-scope-review.md)为准。暂停继续扩展 E05／E06，优先推进 CX01–06、原定 AI 流程及真实部署；未完成画布／AI时不将素材工作台试用切片算作 MVP 完成。
 
 2026-09-10：用户明确授权完整实施项目并将验收后的功能合入 GitHub，取代此前正式业务工程暂停的要求。依据仍为产品设计 v1.3、核心体验 v0.3、专项 v0.4 和技术协议 v1.3。
 
-当前先使用导入素材及模拟供应商实现和验证业务，不执行真实模型付费调用。真实模型服务与质量验收单列，不以模拟通过代替。部署环境与真实试点条件尚待落实。
+2026-09-10 阶段策略（历史）：先使用导入素材及模拟供应商实现和验证业务，当时不执行真实模型付费调用。真实模型服务与质量验收单列，不以模拟通过代替。部署环境与真实试点条件尚待落实。
 
 2026-09-12 设计验收纠正：用户指出真实业务的视觉、页面结构与布局未遵循已确认方案。此前功能、UI规则和无溢出检查不能替代视觉还原；这项遗漏已补入，[按批准设计还原](62-approved-layout-restoration.md)已完成保留页面的整合实现与生产浏览器验收，交付 PR #33。画布容量、真实模型执行恢复和外部部署等既有缺口仍按各专项记录保留。
 
 2026-09-13—14 创作体验升级：在拉取最新 `main`（585eb10）后，按用户要求重新审查视觉、信息组织及交互，落实阅读式剧本与设定、真实参考图库、按需创作输入和就近画布工具。本机 144 项检查与生产构建通过，隔离真实业务端到端验收和合入记录见[63](63-creative-experience-refinement.md)及[PR #34](https://github.com/exo-gravity/scenedesk/pull/34)。该片不关闭真实模型、外部部署和既有大画布性能缺口。
 
-## 当前工作
+## 历史工作记录
 
 2026-09-21 核心创作区重建阶段 0（分支 `feat/studio-rebuild`，未推送）：按[重建决定](../design/creative-workspace-rebuild-libtv-2026-09-21.md)开出 `apps/web/src/studio/` 与新入口 `…/p/{id}/studio`（旧入口不变），加入 `--ws-studio-*` 主题变量与 `ui:check` 对新目录的边界门禁，从封存分支带入 8 个纯逻辑模块与 6 组单测，并定稿附录 A 的 21 条流程对照表。本机：`ui:check`、`typecheck`、303/303 单元、生产构建与 ST-00 生产浏览器用例通过；并排图与对照表见 [85](85-studio-rebuild.md)。后端、契约与迁移未改，未发起付费生成。同日第 ① 片：页面壳（顶栏、底部工具条、缩放、快捷键总览）、创作台本体（平移缩放框选拖动删除复制撤销、右键菜单、改名，接旧控制器的保存与恢复）与四类卡片（文字就地编辑、草稿按画幅定高、媒体铺满、选中态端口）；ST-01 两例通过，三张并排图见 85 §1a。第 ② 片：端口与拖连（接 `appendCanvasReference`）、连线菜单（用途、停用、删除）、⊕ 继续创作（接 `canvas-creation`）、引用角标（接 `canvas-reference-state`）；ST-02 通过，并排图见 85 §1b。第 ③ 片：输入面板、模型列表、规格浮层，提交接 `use-generation-session`，附录 A 第 1–9、16–20 条落地；ST-03 三例（一次提交、刷新恢复、丢回执只核对、撤权）通过，并排图见 85 §1c。第 ④ 片：卡内状态标签与结果铺满、放置评审与归档恢复（附录 A 第 10–15、21 条）、专注编辑、历史入口、上传与批次入口整体接入；ST-04 两例通过。至此阶段 1 完成，作为第一个 PR；阶段 2、3 在叠加分支上继续（85 §6）。阶段 2 第 ⑤ 片（分支 `feat/studio-rebuild-views`）：左下「资产」拉出侧面板，项目资产与素材可搜索、拖到创作台或一键加入；ST-05 通过，并排图见 85 §1e。第 ⑥ 片：`…/studio/script` 剧本视图（阅读、历史、Word／飞书导入、选文带入创作台、固定摘录卡回看来源），Word 导入逻辑原样搬入 `ScriptWordImport.tsx` 供新旧两处复用；ST-06 两例通过，并排图见 85 §1f。第 ⑦ 片：`…/studio/shots` 表格式镜头整理（镜号、时长、画面描述、来源、候选、选用），抽屉整体接入候选／选用／下载，交付、顺序、新增整体接入，行内定位回创作台，创作台视频右键登记为候选；ST-07 两例通过，并排图见 85 §1g。第 ⑧ 片：助手与任务的停靠／浮窗容器（`CanvasAssistant`、`SceneTaskPanel` 原样接入，尝试列表只读检视），顶栏「切换画布」接入场次创作台（`…/studio?scene=`，可创建），项目菜单与旧账号菜单进顶栏；ST-08 通过、全部 55 例生产浏览器用例通过，并排图见 85 §1h。至此阶段 2 完成，作为第二个 PR。阶段 3 第 ⑨ 片（分支 `feat/studio-rebuild-switch`）：创作台成为唯一创作入口，旧的 `canvas`、`production`、`script` 地址由 `legacy-routes.ts` 转过来，项目卡与场次目录直达创作台，剧目设定移到项目页；删除旧画布、场次工作区、旧剧本页、旧镜头列表与孤儿共 59 个源文件、14 个旧 e2e 规格，红线用例搬进 `studio-*.spec.ts`，撤权时创作区整体关门；`npm run check`、全套 24 例生产浏览器用例、文档门禁通过，并排图见 85 §1i。重建完成，三个 PR 待评审合入。
 
