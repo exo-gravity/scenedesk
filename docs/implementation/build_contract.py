@@ -78,6 +78,8 @@ schema("SceneInput", {"episodeId": ID, "title": NAME, "position": INT, "timeLabe
 entity("Shot", {"projectId": ID, "sceneId": ID, "label": NAME, "position": INT, "specRevisionId": ID, "spec": ref("ShotSpec"), "status": enum("active", "archived"), "currentTakeId": ID}, ["projectId", "sceneId", "label", "position", "specRevisionId", "spec", "status"])
 entity("ShotRevision", {"projectId": ID, "shotId": ID, "number": POS, "spec": ref("ShotSpec"), "sourceScriptRevisionId": ID}, ["projectId", "shotId", "number", "spec"])
 schema("ShotInput", {"sceneId": ID, "label": NAME, "position": INT, "spec": ref("ShotSpec"), "status": enum("active", "archived")}, ["sceneId", "label", "position", "spec", "status"])
+for name in ("SceneInput", "ShotInput"):
+    S[name]["properties"]["position"] = {**INT, "description": "创建或同父级更新时使用此位置；更新时若所属集／场次改变，服务端在目标完整子集合（含归档项）末尾追加，返回实际位置。"}
 schema("Reorder", {"kind": enum("episode", "scene", "shot"), "parentId": ID, "orderedIds": arr(ID, minItems=1, uniqueItems=True)}, ["kind", "parentId", "orderedIds"])
 entity("ContentTree", {"projectId": ID, "currentScriptRevisionId": ID, "episodes": arr(ref("Episode")), "scenes": arr(ref("Scene")), "shots": arr(ref("Shot"))}, ["projectId", "episodes", "scenes", "shots"])
 schema("ProposalOperation", {"opId": ID, "action": enum("create", "update", "archive"), "kind": enum("episode", "scene", "shot", "asset_suggestion"), "existingId": ID, "temporaryId": ID, "summary": TEXT, "proposed": {"oneOf": [ref("EpisodeInput"), ref("SceneInput"), ref("ShotInput"), ref("AssetInput")]}}, ["opId", "action", "kind", "summary"])

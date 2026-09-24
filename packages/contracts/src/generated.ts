@@ -3398,6 +3398,7 @@ export interface components {
             /** Format: uuid */
             episodeId: string;
             title: string;
+            /** @description 创建或同父级更新时使用此位置；更新时若所属集／场次改变，服务端在目标完整子集合（含归档项）末尾追加，返回实际位置。 */
             position: number;
             timeLabel?: string;
             locationLabel?: string;
@@ -3450,6 +3451,7 @@ export interface components {
             /** Format: uuid */
             sceneId: string;
             label: string;
+            /** @description 创建或同父级更新时使用此位置；更新时若所属集／场次改变，服务端在目标完整子集合（含归档项）末尾追加，返回实际位置。 */
             position: number;
             spec: components["schemas"]["ShotSpec"];
             /** @enum {string} */

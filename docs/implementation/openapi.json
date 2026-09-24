@@ -17843,7 +17843,8 @@
           "position": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "创建或同父级更新时使用此位置；更新时若所属集／场次改变，服务端在目标完整子集合（含归档项）末尾追加，返回实际位置。"
           },
           "timeLabel": {
             "type": "string",
@@ -18023,7 +18024,8 @@
           "position": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "创建或同父级更新时使用此位置；更新时若所属集／场次改变，服务端在目标完整子集合（含归档项）末尾追加，返回实际位置。"
           },
           "spec": {
             "$ref": "#/components/schemas/ShotSpec"

@@ -509,6 +509,11 @@ export function StructureEditor({
               <Select
                 required
                 label={editing.kind === "scene" ? "所属单集" : "所属场次"}
+                description={
+                  entity && values.parentId !== sourceFields.parentId
+                    ? "保存后排在目标末尾，可再调整顺序。"
+                    : undefined
+                }
                 data={parents}
                 value={values.parentId}
                 onChange={(v) => {

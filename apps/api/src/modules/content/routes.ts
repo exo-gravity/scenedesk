@@ -8,6 +8,7 @@ import { page } from "../../kernel/pages.js";
 import { requireThat, versionMatches } from "../../kernel/errors.js";
 import {
   activeParent,
+  appendPosition,
   appendShotRevision,
   bumpContent,
   contentRecord,
@@ -107,11 +108,13 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
   registerAction(app, context, "updateScene", async (tx, input) => {
     const body = input.body as Schema<"SceneInput">,
       id = input.params.objectId!;
-    versionMatches(
-      Number((await findContent(tx, "scenes", id)).revision),
-      input.version,
-    );
+    const previous = await findContent(tx, "scenes", id);
+    versionMatches(Number(previous.revision), input.version);
     await activeParent(tx, "episodes", body.episodeId);
+    const position =
+      body.episodeId.toLowerCase() !== previous.episode_id
+        ? await appendPosition(tx, "scenes", body.episodeId)
+        : body.position;
     const result = await tx.sql.query(
       "UPDATE scenes SET episode_id=$4,title=$5,position=$6,time_label=$7,location_label=$8,summary=$9,state=$10,default_asset_revision_ids=$11,status=$12,revision=revision+1,updated_at=now() WHERE id=$1 AND tenant_id=$2 AND project_id=$3 RETURNING *",
       [
@@ -120,7 +123,7 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
         tx.projectId,
         body.episodeId,
         body.title,
-        body.position,
+        position,
         body.timeLabel ?? null,
         body.locationLabel ?? null,
         body.summary,
@@ -138,7 +141,8 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
       id = input.params.objectId!;
     const previous = await findContent(tx, "shots", id);
     versionMatches(Number(previous.revision), input.version);
-    if (body.sceneId.toLowerCase() !== previous.scene_id) {
+    const moving = body.sceneId.toLowerCase() !== previous.scene_id;
+    if (moving) {
       const bound = await tx.sql.query(
         "SELECT id FROM production_tasks WHERE tenant_id=$1 AND project_id=$2 AND shot_id=$3 AND scene_id IS NOT NULL LIMIT 1",
         [tx.tenantId, tx.projectId, id],
@@ -149,8 +153,21 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
         "TASK_SCOPE_WOULD_CHANGE",
         "此镜头有绑定原场次的任务，请负责人先调整任务范围，再移动镜头。",
       );
+      const bindings = await tx.sql.query(
+        "SELECT 1 FROM node_shot_bindings WHERE tenant_id=$1 AND project_id=$2 AND shot_id=$3 LIMIT 1",
+        [tx.tenantId, tx.projectId, id],
+      );
+      requireThat(
+        !bindings.rows[0],
+        409,
+        "CANVAS_BINDING_WOULD_CHANGE",
+        "此镜头仍有关联的画布节点，请先在原场次解除关联，再移动镜头。候选和已选用原片会保留。",
+      );
     }
     await activeParent(tx, "scenes", body.sceneId);
+    const position = moving
+      ? await appendPosition(tx, "shots", body.sceneId)
+      : body.position;
     const old = await tx.sql.query(
       "SELECT number,spec FROM shot_revisions WHERE tenant_id=$1 AND project_id=$2 AND id=$3",
       [tx.tenantId, tx.projectId, previous.current_revision_id],
@@ -171,7 +188,7 @@ export function contentRoutes(app: FastifyInstance, context: ApiContext) {
         tx.projectId,
         body.sceneId,
         body.label,
-        body.position,
+        position,
         revisionId,
         body.status,
       ],
