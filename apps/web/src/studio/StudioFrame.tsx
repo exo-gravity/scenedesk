@@ -48,7 +48,7 @@ export function StudioFrame({
   children: ReactNode;
 }) {
   return (
-    <div className={classes.studio}>
+    <div className={classes.studio} data-view={view}>
       <header className={classes.topBar}>
         <div className={classes.barGroup}>
           <div className={classes.context}>
