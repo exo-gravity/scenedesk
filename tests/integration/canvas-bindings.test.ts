@@ -595,4 +595,51 @@ test("canvas shot bindings keep fixed candidates, CAS and presentation independe
       assert.ok((await read()).bindings.some((b) => b.shotId === shot2.id));
     },
   );
+  await t.test("moving a shot requires explicit unlinking, including removed nodes, and preserves its take and selection", async () => {
+    const latest = (await f.tree()).shots.find((s: Schema<"Shot">) => s.id === shot2.id);
+    const restored = await f.ok("PUT", `${f.path}/shots/${shot2.id}`, {
+      ...shotInput, label: shot2.label, position: latest.position,
+    }, latest.revision);
+    const candidate = await f.ok("POST", `${f.path}/takes`, {
+      shotId: shot2.id, shotRevisionId: restored.specRevisionId, mediaId: video,
+      range: { inUs: 0, outUs: 4000000 },
+    });
+    const selectionPath = `${f.path}/shots/${shot2.id}/selection`;
+    const selection = await f.ok("PUT", selectionPath, { takeId: candidate.id }, restored.revision);
+    const tree = await f.tree();
+    const current = tree.shots.find((s: Schema<"Shot">) => s.id === shot2.id);
+    const move = () => f.request("PUT", `${f.path}/shots/${shot2.id}`, {
+      ...shotInput, label: shot2.label, sceneId: elsewhere.id,
+      spec: { intent: "移动被拒绝时不得保存", references: [] },
+    }, current.revision);
+    const before = await read();
+    const blocked = await move();
+    assert.equal(blocked.statusCode, 409, blocked.body);
+    assert.equal(blocked.json().code, "CANVAS_BINDING_WOULD_CHANGE");
+    assert.deepEqual(await f.tree(), tree);
+    assert.deepEqual(await read(), before);
+    await save({ nodes: [], edges: [], groups: [] });
+    const inactive = await read();
+    assert.ok(inactive.bindings.some((b) => b.shotId === shot2.id && !b.nodeActive));
+    const blockedInactive = await move();
+    assert.equal(blockedInactive.statusCode, 409, blockedInactive.body);
+    assert.equal(blockedInactive.json().code, "CANVAS_BINDING_WOULD_CHANGE");
+    assert.deepEqual(await read(), inactive);
+    assert.deepEqual(await f.tree(), tree);
+    for (const binding of inactive.bindings.filter((b) => b.shotId === shot2.id)) {
+      const unlinked = await f.request("DELETE", `${bindPath(binding.nodeId)}/${binding.id}`, undefined, canvas.revision);
+      assert.equal(unlinked.statusCode, 200, unlinked.body);
+      await read();
+    }
+    const moved = await f.ok("PUT", `${f.path}/shots/${shot2.id}`, {
+      ...shotInput, label: shot2.label, sceneId: elsewhere.id,
+    }, current.revision);
+    assert.equal(moved.position, foreignShot.position + 1);
+    assert.equal(moved.specRevisionId, current.specRevisionId);
+    assert.equal(moved.currentTakeId, candidate.id);
+    assert.equal((await f.ok("GET", `${f.path}/shots/${shot2.id}/revisions`)).items.length, 1);
+    assert.deepEqual(await f.ok("GET", `${f.path}/takes/${candidate.id}`), candidate);
+    assert.deepEqual((await f.ok("GET", selectionPath)).currentSelection, selection);
+    assert.ok(!(await read()).bindings.some((b) => b.shotId === shot2.id));
+  });
 });

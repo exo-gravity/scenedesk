@@ -94,6 +94,26 @@ export async function activeParent(
   if (kind === "scenes") await activeParent(tx, "episodes", found.episode_id);
   return found;
 }
+/** The caller holds the project write lock, including while updating the parent. */
+export async function appendPosition(
+  tx: Transaction,
+  kind: "scenes" | "shots",
+  parentId: string,
+) {
+  const parent = kind === "scenes" ? "episode_id" : "scene_id";
+  const { rows } = await tx.sql.query(
+    `SELECT coalesce(max(position),-1)+1 AS position FROM ${kind} WHERE tenant_id=$1 AND project_id=$2 AND ${parent}=$3`,
+    [tx.tenantId, tx.projectId, parentId],
+  );
+  const position = Number(rows[0].position);
+  requireThat(
+    Number.isSafeInteger(position),
+    409,
+    "CONTENT_POSITION_EXHAUSTED",
+    "目标位置的排序已达上限，请先重新整理顺序，再移动。",
+  );
+  return position;
+}
 export async function validateShotSpec(
   tx: Transaction,
   shotId: string,
