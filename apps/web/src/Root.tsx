@@ -1,5 +1,6 @@
 import { lazy, Suspense, useSyncExternalStore } from "react";
 import { MantineProvider } from "@mantine/core";
+import { IconContext } from "@phosphor-icons/react";
 import { theme, cssVariablesResolver } from "./theme/theme";
 // Design studies stay available for an explicit review build. Normal builds
 // never route visitors into in-memory prototype production facts.
@@ -32,7 +33,9 @@ export default function Root() {
         </Suspense>
       ) : (
         <Suspense fallback={<p>正在打开设计评审…</p>}>
-          {DesignApp && <DesignApp />}
+          <IconContext.Provider value={{ size: 18 }}>
+            {DesignApp && <DesignApp />}
+          </IconContext.Provider>
         </Suspense>
       )}
     </MantineProvider>

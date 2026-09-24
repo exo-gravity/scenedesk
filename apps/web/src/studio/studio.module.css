@@ -242,8 +242,3 @@
 .canvasSwitch :global(button:hover:not(:disabled)) {
   background: var(--ws-hover);
 }
-/* The legacy layer clamps every svg to 18px; inside the studio icons keep their own size. */
-.studio svg {
-  width: auto;
-  height: auto;
-}

@@ -27,4 +27,9 @@ test("ST-00: the studio entry opens as a full-screen frame, and the old canvas a
   await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/studio`);
   await expect(page).toHaveTitle(`${w.project.name} · 创作台 · SceneDesk`);
   await expect(page.getByRole("navigation", { name: "项目导航", exact: true })).toHaveCount(0);
+  // Portaled menus must honor the declared icon size outside the studio root.
+  await page.getByRole("button", { name: "项目菜单", exact: true }).click();
+  const backIcon = page.getByRole("menuitem", { name: "返回项目列表", exact: true }).locator("svg");
+  await expect(backIcon).toHaveCSS("width", "14px");
+  await expect(backIcon).toHaveCSS("height", "14px");
 });
