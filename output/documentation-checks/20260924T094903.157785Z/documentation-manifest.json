@@ -1,0 +1,1165 @@
+{
+  "date": "2026-09-24",
+  "generatedAt": "2026-09-24T09:49:06.887327+00:00",
+  "productDesignVersion": "1.3",
+  "implementationDesignVersion": "1.3",
+  "scope": "Static documentation and contract validation snapshot. Includes current and historical documents; inclusion is not approval or execution authority. No business, visual, provider or production acceptance is implied.",
+  "baselineSnapshot": "docs/reviews/2026-09-07/baseline/",
+  "files": [
+    {
+      "path": "CONTEXT.md",
+      "bytes": 11024,
+      "sha256": "bf8539a130bb32cd84f2970d405263a1d1f7312960d87239070ec7ac6c95b2c5"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7939,
+      "sha256": "8a53ee05d1026092d19a9ba931a4fc97f8ae43ac61c7898117b3ea454ad93a7f"
+    },
+    {
+      "path": "apps/web/AGENTS.md",
+      "bytes": 5283,
+      "sha256": "f7c7a845bf818548566b25efa506c936537b53e57216deac47576366a5872ac8"
+    },
+    {
+      "path": "docs/README.md",
+      "bytes": 4291,
+      "sha256": "a21d0347a577bc585098f947994c927064cefb6fca6874db7520599671806984"
+    },
+    {
+      "path": "docs/adr/0001-production-records-independent-of-views.md",
+      "bytes": 774,
+      "sha256": "e7d530799ed608c5af6d852c036315e02516ed0ca0cd620eed7d8e78dcd74033"
+    },
+    {
+      "path": "docs/adr/0002-freeze-review-and-explicit-adoption.md",
+      "bytes": 555,
+      "sha256": "7cc1a5eea86cbbcb20ce0181d832f5de11196dcbb72f96061bcdfa22c43e1b7b"
+    },
+    {
+      "path": "docs/adr/0003-uncertain-provider-submission.md",
+      "bytes": 686,
+      "sha256": "c81179c7bfdc426b1d900da10ba879857cb68e6086ebcae25bf600640908e01f"
+    },
+    {
+      "path": "docs/adr/0004-scene-production-and-explicit-assistance.md",
+      "bytes": 821,
+      "sha256": "13a81f0c9784202d87d508f10a587b4afe78c7f54b377c9385f13d9124634ae3"
+    },
+    {
+      "path": "docs/adr/0005-frontend-free-component-stack.md",
+      "bytes": 2230,
+      "sha256": "d96f5e1df91f029bb988fefbdbe3647ece16e3e0323ad6091cc3d38216e252bb"
+    },
+    {
+      "path": "docs/adr/0006-scene-canvas-and-versioned-drafts.md",
+      "bytes": 1177,
+      "sha256": "5761ab389066add028676a4b72b2bea3c8f531a06cf8c72669f47332359ca96d"
+    },
+    {
+      "path": "docs/adr/0007-durable-editing-work-before-renderable-cut.md",
+      "bytes": 796,
+      "sha256": "e46c02c1fe414a9350ac872a433045280bb228920f61012e4477a6fc412ee46a"
+    },
+    {
+      "path": "docs/adr/0008-reuse-queue-keep-business-execution-authority.md",
+      "bytes": 848,
+      "sha256": "005fb7ca5fc92ca22711fb63331d9b971aa396a46bb85fc27bd4cfea7b6639f4"
+    },
+    {
+      "path": "docs/adr/0009-project-creation-identity-outlives-http-receipts.md",
+      "bytes": 662,
+      "sha256": "3d6d0e63561016dc64942e6a1aa31dea097ba8363e5a1fdf1c42e4d879a715ad"
+    },
+    {
+      "path": "docs/ai-drama-product-core-decision-questions-v0.1.md",
+      "bytes": 99938,
+      "sha256": "78f7d66e5410780a5c7532e659f73adb1e7e0375a3635eac366fd13d8d0530b8"
+    },
+    {
+      "path": "docs/ai-drama-scene-mvp-interaction-v0.1.md",
+      "bytes": 20003,
+      "sha256": "d8887f6024bbe84ece5b9688a0cdb3583955c6f2d29816d7969370d694cb7aad"
+    },
+    {
+      "path": "docs/ai-drama-workbench-assets-v0.1.md",
+      "bytes": 15737,
+      "sha256": "cdeae19bd92b449a3438bb01be8fc9394e282a55a32ce64b1e3480a7d75b7b18"
+    },
+    {
+      "path": "docs/ai-drama-workbench-core-design-v0.1.md",
+      "bytes": 26809,
+      "sha256": "f3b2c65863a64b2c0959814164c9470e518ae851208db0838a5886fde4da2ea6"
+    },
+    {
+      "path": "docs/ai-drama-workbench-core-design-v0.2.md",
+      "bytes": 38318,
+      "sha256": "64a1c327b5c8a1d988cc0eff456a56ddf8cea00d0eaf6bf1cb3964fc03370591"
+    },
+    {
+      "path": "docs/ai-drama-workbench-product-design-v1.0.md",
+      "bytes": 41742,
+      "sha256": "8d51fe2c7ff76ccce378dca0b09d7b770258ea10a24a204d0518a68c8a638e24"
+    },
+    {
+      "path": "docs/ai-drama-workbench-product-design-v1.1.md",
+      "bytes": 25368,
+      "sha256": "5ac0a53f46cb14c88b34639c7c3a382dab809aa749f57dee4c39cc5fd9052c2b"
+    },
+    {
+      "path": "docs/ai-drama-workbench-tenancy-v0.1.md",
+      "bytes": 22639,
+      "sha256": "b91302d9b004f1c3448160f7e3efd009c32cb48bb30f99334504533d1fb04c02"
+    },
+    {
+      "path": "docs/ai-drama-workspace-decision-and-validation-v0.1.md",
+      "bytes": 19542,
+      "sha256": "75d7fced2fa487ee7d3436c2a125e2d121fffc44d4f9f9edfd53719eb1ffef96"
+    },
+    {
+      "path": "docs/ai-marketing-video-mvp-v0.1.md",
+      "bytes": 13041,
+      "sha256": "3755687872e680c8a8281370d19ce4e1632cfd55509afd83b100f06484eea2f4"
+    },
+    {
+      "path": "docs/ai-video-platform-mvp-plan-v0.1.md",
+      "bytes": 7993,
+      "sha256": "4c6a74131c55f4991f01e0df1cde6d39e9b14287a9e7d238519772c330d62140"
+    },
+    {
+      "path": "docs/ai-video-platform-mvp-plan-v0.2.md",
+      "bytes": 11148,
+      "sha256": "e2082f6111f56812f5b516bc3149f35a986e41dcaaa51b3c932ab565c7a704a1"
+    },
+    {
+      "path": "docs/ai-video-platform-review-2026-09-07.md",
+      "bytes": 14874,
+      "sha256": "a44aafb32924a5bd0a37fd5385b07ad6ba03bd4efe941a5e4bec63840db90e22"
+    },
+    {
+      "path": "docs/ai-video-product-lines-v0.1.md",
+      "bytes": 12857,
+      "sha256": "7f1b792c33d9caa9955ba7db1a06864f465da5f6d6add8416a31a58e7c1167bf"
+    },
+    {
+      "path": "docs/ai-video-product-lines-v0.2.md",
+      "bytes": 11234,
+      "sha256": "f677a9c30d8db8ad2c54a06b0d388a933518abbe491728f94794f701378a7381"
+    },
+    {
+      "path": "docs/design/approved-baseline-2026-09-10.md",
+      "bytes": 3679,
+      "sha256": "f12ff3d0e693fd068efa7c5a1823edb4810ae116f9533b844bae5edec298cd64"
+    },
+    {
+      "path": "docs/design/canvas-navigation-approved-2026-09-16.md",
+      "bytes": 2651,
+      "sha256": "1aac6f63961800afd6dbff2c51e220a4e02dedcc4c43f40f3a35000c26125b9a"
+    },
+    {
+      "path": "docs/design/canvas-redesign-v0.5-2026-09-14.md",
+      "bytes": 31825,
+      "sha256": "0ca283b1cba04a807dff809ac3d47eba5bcbb16523b9b762c512614b2255d80c"
+    },
+    {
+      "path": "docs/design/core-workspace-recommendation-v0.2.md",
+      "bytes": 23274,
+      "sha256": "0b6df481e752164e56ae454c29635603c632418804bf1ec777852b5bb25c0829"
+    },
+    {
+      "path": "docs/design/creative-experience-refinement-2026-09-13.md",
+      "bytes": 3383,
+      "sha256": "ca1f95e6aa1b602a281d84d16a83279b9ce3bf823d876f56ab40e74ac84c82c7"
+    },
+    {
+      "path": "docs/design/creative-workspace-approved-2026-09-16.md",
+      "bytes": 4374,
+      "sha256": "c5d6fa7a767c312a2607c50aa7c6399c53a4907312eb1bef0f9f31e8bf26dd82"
+    },
+    {
+      "path": "docs/design/journey-independent-review-2026-09-10.md",
+      "bytes": 12568,
+      "sha256": "314a7d6ce92c865f03b4efaac3b05ba3af1a38a0df7ce3e3682b856e28d8acad"
+    },
+    {
+      "path": "docs/design/layout-concepts-v0.3.md",
+      "bytes": 6670,
+      "sha256": "88d670afc3178f4dcb5ef780b1afd146b4e161b50de8f10a6c1e8a1ccc0ec445"
+    },
+    {
+      "path": "docs/design/mantine-ui-agent-spec-v0.1.md",
+      "bytes": 13242,
+      "sha256": "8b1d24670dea62feaaba78c1696d6c4765efeaba8edda313b83d7fe16ce05cd4"
+    },
+    {
+      "path": "docs/design/mantine-visual-sample-v0.2.md",
+      "bytes": 7865,
+      "sha256": "a9dc706186342aad109f74adacc9d6d29625f90129e213a704ad9f0f0d2563c7"
+    },
+    {
+      "path": "docs/design/mvp-visual-prototype-v0.1.md",
+      "bytes": 8209,
+      "sha256": "08baf2792764fe95903592a1b39d82cbaa3403959706d75257c9f26914e16de2"
+    },
+    {
+      "path": "docs/design/navigation-and-core-flow-v0.1.md",
+      "bytes": 10946,
+      "sha256": "a6c100240ab991489a792bf79dda7711c90c32be4531bc2c2adf188b1631a764"
+    },
+    {
+      "path": "docs/design/previews/2026-09-18-script-refactor-a/README.md",
+      "bytes": 2669,
+      "sha256": "cf13ef5203017db196d70a40d1aa84efb4c2aadb2192041c9d44cedac38839da"
+    },
+    {
+      "path": "docs/design/primary-canvas-approved-2026-09-14.md",
+      "bytes": 6978,
+      "sha256": "a0625503d432e2f1bbcf68f78a8253c077f349128fb36e6afb995a1cc8b6a27b"
+    },
+    {
+      "path": "docs/design/production-detail-design-v0.4.md",
+      "bytes": 18497,
+      "sha256": "360aa36f8856fad34dabda3daa65db3074cf56d709da3993078c644d2d537024"
+    },
+    {
+      "path": "docs/design/research/2026-09-14-libtv-canvas.md",
+      "bytes": 16691,
+      "sha256": "751caebcb41e62a85b6fbeb6a884a9ab12b806b330142c975176e24a12c2b4f5"
+    },
+    {
+      "path": "docs/design/research/2026-09-14-libtv-primary-workspace-review.md",
+      "bytes": 16288,
+      "sha256": "bac7f772cfa8a2975440a50c505338f5cf330f99f34a4d11b83424ba49cc418c"
+    },
+    {
+      "path": "docs/design/research/2026-09-14-scenedesk-canvas-audit.md",
+      "bytes": 24233,
+      "sha256": "5ac847a91b3850c843c3b264de4c5fdfa72c1caa317a458ce9af6fe0d701da5c"
+    },
+    {
+      "path": "docs/design/research/2026-09-14-tapnow-canvas.md",
+      "bytes": 18655,
+      "sha256": "0ab673fe4c7f26cd9761ad2fe91bacdcffd24c254e176870464cb555b1642997"
+    },
+    {
+      "path": "docs/design/reviews/2026-09-13-acceptance-review.md",
+      "bytes": 14557,
+      "sha256": "a7e13e3310807b94677895c6480a4f35645e38431a46ad49c406850ac6f7b0f6"
+    },
+    {
+      "path": "docs/design/reviews/2026-09-13-canvas-review.md",
+      "bytes": 18401,
+      "sha256": "30da5b2ce41358e7abf452628661f6da5b52e182a37a174306a1032019fb5cd8"
+    },
+    {
+      "path": "docs/design/reviews/2026-09-13-structure-review.md",
+      "bytes": 15899,
+      "sha256": "3a355ac05509ae01bf00a16a9ed18a7b2ee6ecaa7b81caaf7f1803d6dbcf9fe4"
+    },
+    {
+      "path": "docs/design/reviews/2026-09-14-primary-canvas-architecture-review.md",
+      "bytes": 18891,
+      "sha256": "cd7789a54c4ff35c3aeb5f88ccb16c1098b595ca838abeabbcf746c73f714b30"
+    },
+    {
+      "path": "docs/design/scene-canvas-interaction-v0.1.md",
+      "bytes": 14558,
+      "sha256": "000ce42da42ed81e615d5f51f583a927e58483f8a7431cb4814a716c0e2446e6"
+    },
+    {
+      "path": "docs/design/scene-dual-mode-visuals-v0.4.md",
+      "bytes": 7580,
+      "sha256": "522069c3ce52a99d5f38a633623f4fe4e9c4af37c9474174914b539f80a82b88"
+    },
+    {
+      "path": "docs/design/scene-walkthrough-review-v0.3.md",
+      "bytes": 15786,
+      "sha256": "17115d7f3790ff148575b31b4de9d823a3a9e33ca355f88a7ed422a51c065233"
+    },
+    {
+      "path": "docs/design/shared-visual-language-v0.1.md",
+      "bytes": 6162,
+      "sha256": "4faace77acbcb28c63a656213d93abab6ca1bfd08ca0829fe61e7d2f25743d7b"
+    },
+    {
+      "path": "docs/design/state-and-notice-spec-v0.1.md",
+      "bytes": 8041,
+      "sha256": "6d000bdc397a9ad05636addac10afa631a1074a11993feacd8623b48cc99f1f3"
+    },
+    {
+      "path": "docs/design/technical-direction-confirmation-2026-09-10.md",
+      "bytes": 4769,
+      "sha256": "71b46920523bfa6408bf6c16eedce75bf2dca2acab010e507f85e99851692c59"
+    },
+    {
+      "path": "docs/design/unified-asset-library-2026-09-15.md",
+      "bytes": 2362,
+      "sha256": "ef1b7b2e11d46adcfa4a96a50cecc72d2e73bdc3e5b4c635e8043d2a015b2106"
+    },
+    {
+      "path": "docs/design/visual-assets.md",
+      "bytes": 3020,
+      "sha256": "81a81bf2bde0b36908d0af8928a2d36674b943cc37d4ca110d195c18a734fbd6"
+    },
+    {
+      "path": "docs/design/visual-design-discussion-v0.1.md",
+      "bytes": 10643,
+      "sha256": "a29ccb820cd0832d7cf31952a917a8174798d4d35a80e3045037a2a588898027"
+    },
+    {
+      "path": "docs/design/visual-directions-review-v0.1.md",
+      "bytes": 6286,
+      "sha256": "b2d6e1555d61f6af9d66a8ead0afa4a69dcd7dea923ea21b3ffa25ad05d1f62c"
+    },
+    {
+      "path": "docs/design/workspace-recommendation-visuals-v0.2.md",
+      "bytes": 4683,
+      "sha256": "576e20a5aac28cd7b13c7f43304f17f8f0c88a0cf60faefa7421eb370d2ab864"
+    },
+    {
+      "path": "docs/documentation-audit-2026-09-10.md",
+      "bytes": 5276,
+      "sha256": "87d8593c492b2e675a0520971f496f2f5f91fc76063a80214ad288a5afab2ed9"
+    },
+    {
+      "path": "docs/history/README.md",
+      "bytes": 5326,
+      "sha256": "2a86ffce6f7f18f0823f4c56fdcb338a35ebdc3447805874370a0b310ce51b31"
+    },
+    {
+      "path": "docs/history/agent-instruction-decision-log.md",
+      "bytes": 8454,
+      "sha256": "32eab34b693265c29a68854cde6c8dea1be8e53fa970f9a6037964fc50667e17"
+    },
+    {
+      "path": "docs/implementation/01-product-requirements.md",
+      "bytes": 14881,
+      "sha256": "b1a5c6684fed3ebd124bca9cadcd954c0bae4ff5d2af6e90f135923b26f7a71a"
+    },
+    {
+      "path": "docs/implementation/02-interaction-spec.md",
+      "bytes": 23478,
+      "sha256": "f58c277f4d34b84b093e6a403891885209e464386d17bca715fd734ddb874c5a"
+    },
+    {
+      "path": "docs/implementation/03-domain-data-model.md",
+      "bytes": 35528,
+      "sha256": "507f4106465efe563837fc13989d08d43242e31691ee3a36b720f4b8a4a6a4ff"
+    },
+    {
+      "path": "docs/implementation/04-state-execution-and-budget.md",
+      "bytes": 15719,
+      "sha256": "4e5a984a6d915250fea94e07c68e6197f936d2c2880bef53b0ac6c73172ae533"
+    },
+    {
+      "path": "docs/implementation/05-architecture-and-operations.md",
+      "bytes": 21790,
+      "sha256": "4055ac612383b03edf917f5999f5d7861185b2b9975af9cea66750828b6b84a8"
+    },
+    {
+      "path": "docs/implementation/06-api-contract.md",
+      "bytes": 37473,
+      "sha256": "3682e8ff92426525e65a1ce77ba1d98da112db11d99347dac769cd64c7f1e0e1"
+    },
+    {
+      "path": "docs/implementation/07-provider-adapter.md",
+      "bytes": 15517,
+      "sha256": "4933ccc61266cdc6618d9f1678a2101e2c9bf5e72ca06af95a1b3fd741041154"
+    },
+    {
+      "path": "docs/implementation/08-verification-and-delivery-plan.md",
+      "bytes": 27637,
+      "sha256": "33847ee51238f08926958246fa8ba7cd0ce33c385594cc2e6595d2ecd2b0ffbb"
+    },
+    {
+      "path": "docs/implementation/09-decisions-and-open-items.md",
+      "bytes": 9794,
+      "sha256": "5a4cc5e3161d17e1fff724e3b8483f6219be2864a3e1c0b7022dfe87c1985c85"
+    },
+    {
+      "path": "docs/implementation/10-production-fixture.md",
+      "bytes": 16193,
+      "sha256": "ce9f6e62406e68afc45ef115d287db2539ac054abf5ab33984322d6a29ddad87"
+    },
+    {
+      "path": "docs/implementation/11-transaction-and-implementation-blueprint.md",
+      "bytes": 30165,
+      "sha256": "543aad58586793a40c8971cd4d3185e46c074e6932a22cdf0bfab1db22072a2c"
+    },
+    {
+      "path": "docs/implementation/12-mvp-workflows-and-pilot.md",
+      "bytes": 8926,
+      "sha256": "befabb9f7f81d0879442f76b30dccd422445e8e82a4c6b85a0ab242b542b32fe"
+    },
+    {
+      "path": "docs/implementation/13-production-quality-and-handoff.md",
+      "bytes": 17920,
+      "sha256": "625a45b82c69509a18d183fe6f418b666021710ff6e586a9e708e21ce3e2ec7d"
+    },
+    {
+      "path": "docs/implementation/14-scene-mvp-closure.md",
+      "bytes": 16319,
+      "sha256": "60ab214dace075f9f4398df3f0d7b04b9a8fb4a15e62b8914646efa9bba880fa"
+    },
+    {
+      "path": "docs/implementation/15-engineering-readiness.md",
+      "bytes": 9319,
+      "sha256": "50b2ec17d7b91f800525994f55eef690dddc5cc466ab1963b73e0611c06b049b"
+    },
+    {
+      "path": "docs/implementation/16-implementation-backlog.md",
+      "bytes": 8516,
+      "sha256": "eba817cac93194bb058b462b8218d87f44de05ce74fcb33f038870d8a90e48d0"
+    },
+    {
+      "path": "docs/implementation/17-frontend-component-selection.md",
+      "bytes": 21762,
+      "sha256": "138665366dc7e01257b49778fdf44223791134b790fa0a8964e6a92556ebfffc"
+    },
+    {
+      "path": "docs/implementation/18-canvas-workspace-contract.md",
+      "bytes": 28958,
+      "sha256": "26339e4a269de12ed13f61f97be6fe0ab0679483f2046a7e7806b4baf646d3d6"
+    },
+    {
+      "path": "docs/implementation/19-design-closure-and-implementation-entry.md",
+      "bytes": 8932,
+      "sha256": "17fe536aa9e4a76ccb7841599b7ccb54cfefb58f2a4c6e1487e9fdb775116ef5"
+    },
+    {
+      "path": "docs/implementation/20-external-validation-and-launch-plan.md",
+      "bytes": 29189,
+      "sha256": "b85ed82154701887bffca1e487e8d61aeba73e51d6836a685300130746a9179f"
+    },
+    {
+      "path": "docs/implementation/21-technical-baseline-closure.md",
+      "bytes": 25750,
+      "sha256": "2194efa1ad3fee3ece8eb6a80ecce0381379a0bb78a1787157fe36427e6d40b2"
+    },
+    {
+      "path": "docs/implementation/22-implementation-progress.md",
+      "bytes": 33999,
+      "sha256": "4ddceb4641be8e1280b114a48b22343793cb00bcdf34a6deeb697f0bf42fe6b1"
+    },
+    {
+      "path": "docs/implementation/23-identity-project-foundation.md",
+      "bytes": 4986,
+      "sha256": "d8de9abba103183b1b6f3e672691e76f8963edc6b283b36b9fc15174c5d67c68"
+    },
+    {
+      "path": "docs/implementation/24-content-structure.md",
+      "bytes": 3071,
+      "sha256": "1981e3ebc75fb7ec2b05d0d63c306233ef4452fc1ecd82dfec855048462a3b9e"
+    },
+    {
+      "path": "docs/implementation/25-csv-proposals.md",
+      "bytes": 5289,
+      "sha256": "c8f37e4f83d3e80898d9b840892d0f0e9342ad400ab83072e9865fa225085e44"
+    },
+    {
+      "path": "docs/implementation/26-creative-bases.md",
+      "bytes": 5235,
+      "sha256": "96ab69abb35aefa4fc38b5624021e29061471382afc5a835d3c87fdffa8f5777"
+    },
+    {
+      "path": "docs/implementation/27-scene-tasks.md",
+      "bytes": 4026,
+      "sha256": "2a29dadc785098679a07de2339538cf0a092c2c83ef0875fc8005b54eacfb6b2"
+    },
+    {
+      "path": "docs/implementation/28-durable-queue.md",
+      "bytes": 6162,
+      "sha256": "df3057f4cfb33728683ee9bd48fc9dede3b1ede5687375948a1aa5dce03463ce"
+    },
+    {
+      "path": "docs/implementation/29-media-runtime.md",
+      "bytes": 6626,
+      "sha256": "08f2e2a33a17f402f9d6b70483042a3727d8d23df921e1b766c2197de3c91e63"
+    },
+    {
+      "path": "docs/implementation/30-media-import-service.md",
+      "bytes": 6681,
+      "sha256": "699202b62f8c8ea3d7e7a679c37a1fe4942035ac180de38789791ed9b33a81fc"
+    },
+    {
+      "path": "docs/implementation/31-media-workspace.md",
+      "bytes": 6078,
+      "sha256": "b5868d877a2e0c89842f64ab58515afdbd37497afc7a3b4c3927e457465c36c3"
+    },
+    {
+      "path": "docs/implementation/32-asset-versions.md",
+      "bytes": 6874,
+      "sha256": "e2e252640e96935eee3f26d56414b69db1800dd163d6a763597427df62bb39fd"
+    },
+    {
+      "path": "docs/implementation/33-creative-asset-bindings.md",
+      "bytes": 6597,
+      "sha256": "4058a565490e101ae9637ea0d3f7bb383fe0460238c2b50fb0ef6195602f4138"
+    },
+    {
+      "path": "docs/implementation/34-editor-completion-recovery.md",
+      "bytes": 3878,
+      "sha256": "7b171db97da72119688e27133c3371e5bdb97de27ed595d7c3b2b2f76de27561"
+    },
+    {
+      "path": "docs/implementation/35-candidates-and-adoption.md",
+      "bytes": 5170,
+      "sha256": "9af8b3276f010b8d1e3dba055b68eb5fc97f98a7c4a639f667cef869b3427344"
+    },
+    {
+      "path": "docs/implementation/36-cut-work-drafts.md",
+      "bytes": 15537,
+      "sha256": "417561d322c5ef0588ecb85aa447d002cc67ed4329f88797715ece29acb904f5"
+    },
+    {
+      "path": "docs/implementation/37-production-copies.md",
+      "bytes": 23291,
+      "sha256": "20a88a7c8e855164cc72524a1ee601580a7c7ef2920fb56778fb217dfb11e17d"
+    },
+    {
+      "path": "docs/implementation/38-first-release-scope-review.md",
+      "bytes": 7640,
+      "sha256": "333eb8e03cef247e6a59f0960c06b68f025f2557ffad48c1127fa61817117368"
+    },
+    {
+      "path": "docs/implementation/39-scene-canvas.md",
+      "bytes": 24974,
+      "sha256": "c1fbb69f08a80215c4524dc535e36d4372b6e20d62aeef9661ee1c9f2af0eca9"
+    },
+    {
+      "path": "docs/implementation/40-private-mvp-entry.md",
+      "bytes": 3623,
+      "sha256": "33bbf74288538699b3901083ed9e618b8c70b0f9571083b45e2652078555fef7"
+    },
+    {
+      "path": "docs/implementation/41-generation-assistance.md",
+      "bytes": 8874,
+      "sha256": "e82bab2834994d5f7ded9d8b41518f688c3ca5c1117ae3839f3e2ff58663e342"
+    },
+    {
+      "path": "docs/implementation/42-canvas-browser-capacity.md",
+      "bytes": 12475,
+      "sha256": "84982c6aba93c94b128da3ab16872b819a488352b7071e33575d632a4e3b1710"
+    },
+    {
+      "path": "docs/implementation/43-prompt-assistance.md",
+      "bytes": 8694,
+      "sha256": "a3d6528fe451dd0af8a5ed824015c9d1e5693114ad4a40c3c6b6e700cbd1048d"
+    },
+    {
+      "path": "docs/implementation/44-image-generation-runtime.md",
+      "bytes": 9377,
+      "sha256": "acda6716f2fe14891699727713f4a3b78bfb568e080613dea9cf54805efb6827"
+    },
+    {
+      "path": "docs/implementation/45-prompt-workspace-ui.md",
+      "bytes": 5394,
+      "sha256": "1cc51f127faf4444b3378348b5b4ca0931fd1b21a90ad9cdc0b38bcadba21b8f"
+    },
+    {
+      "path": "docs/implementation/46-image-generation-workspace.md",
+      "bytes": 6180,
+      "sha256": "265131a914b3b985a17dafcc1f9cbf5ad401803634f64d45f29f21782679ac2f"
+    },
+    {
+      "path": "docs/implementation/47-private-deployment-package.md",
+      "bytes": 17688,
+      "sha256": "87887526221d2b8e0fdc859370a1ca54077f74bfcab9684e1c3fd874f5bc9393"
+    },
+    {
+      "path": "docs/implementation/48-video-generation-runtime.md",
+      "bytes": 9990,
+      "sha256": "3c8cc6f3f5bb9bcf974abf2e7503022173b6f55026994d231b055e5d204acd4d"
+    },
+    {
+      "path": "docs/implementation/49-video-generation-workspace.md",
+      "bytes": 5607,
+      "sha256": "d14f28a15ba8745645ecd651a06077fd12817c2994f4db442f383dd038907151"
+    },
+    {
+      "path": "docs/implementation/50-audio-generation-runtime.md",
+      "bytes": 10717,
+      "sha256": "4b5a385071b0f25301309151228ae3c48a0ea80058f3720911c156f2fdb8f14b"
+    },
+    {
+      "path": "docs/implementation/51-audio-generation-workspace.md",
+      "bytes": 5048,
+      "sha256": "c52a6fed96af22f830c7eb298de8d8177dbf37ee75560458c1b47792b45362e9"
+    },
+    {
+      "path": "docs/implementation/52-private-deployment-integration.md",
+      "bytes": 12013,
+      "sha256": "69195fe80c8deec981ef066b1d71859cc7ad8580d85f1d65b1264a125f38e0ba"
+    },
+    {
+      "path": "docs/implementation/53-creative-workflow-recovery.md",
+      "bytes": 6121,
+      "sha256": "3ec0abbc0a363d83f326bf28d5e1663474bb023cb64e10906ce667515e7eb269"
+    },
+    {
+      "path": "docs/implementation/54-content-creation-recovery.md",
+      "bytes": 6664,
+      "sha256": "c56fb8392fd979a95d36f5f9e65bfffd7e5a231e2f5b83d32b044552e6998b60"
+    },
+    {
+      "path": "docs/implementation/55-private-owner-bootstrap.md",
+      "bytes": 11264,
+      "sha256": "b0c6769aaa7bb2c1776933a18b605be6e164b54d147bb01dedad982e4a472f9b"
+    },
+    {
+      "path": "docs/implementation/56-project-creation-recovery.md",
+      "bytes": 5601,
+      "sha256": "31571a258fcb19271050d2b3308f264e11550823d5d677c489a6a97cbbdd05a9"
+    },
+    {
+      "path": "docs/implementation/57-take-feedback-rework.md",
+      "bytes": 6923,
+      "sha256": "49ad89b389e805198fc3a7e297374a060618a3906611430286c8ec4f4271f7e3"
+    },
+    {
+      "path": "docs/implementation/58-async-generation-lifecycle.md",
+      "bytes": 6134,
+      "sha256": "6c88d69e9535c9d3a23b4b726647cc6e8e9695f5e5eee3d9f9bac9d8b6146a42"
+    },
+    {
+      "path": "docs/implementation/59-canvas-fixed-shot-sources.md",
+      "bytes": 3952,
+      "sha256": "044b6c4c7a157d0b04323e94031f5e546524ec74c16554b4d82aa924685f3e0d"
+    },
+    {
+      "path": "docs/implementation/60-canvas-complete-fit.md",
+      "bytes": 2495,
+      "sha256": "0ea6d855a8dda009e111b96d5dbbd926968bd9265d6398052555eda4e9b52312"
+    },
+    {
+      "path": "docs/implementation/61-private-paired-recovery.md",
+      "bytes": 3055,
+      "sha256": "bdadbc4215ee1bf140168c5e774b53ce0729ff43113545f2039307dcbd3df7b1"
+    },
+    {
+      "path": "docs/implementation/62-approved-layout-restoration.md",
+      "bytes": 5054,
+      "sha256": "515546bddc308e925cc5b7231c8bf2c256d1376419362a9822d043650ce863dc"
+    },
+    {
+      "path": "docs/implementation/63-creative-experience-refinement.md",
+      "bytes": 5851,
+      "sha256": "7743c182309472c899b2dd6ab819516d441456b4f7ffa82874c2c078338e33ee"
+    },
+    {
+      "path": "docs/implementation/64-contextual-canvas-workspace.md",
+      "bytes": 4857,
+      "sha256": "27eb484645db7b82f938a4dae01ba61643f06dd3c25b562a54b69174ce02598f"
+    },
+    {
+      "path": "docs/implementation/65-primary-canvas-and-discussion.md",
+      "bytes": 3200,
+      "sha256": "ac9b02d9f0d84fee0fcf31b0cb71fcbcb90660d4cd882f84f88432927e9dce24"
+    },
+    {
+      "path": "docs/implementation/66-storyboard-workbench.md",
+      "bytes": 3238,
+      "sha256": "af748a966196dcfe7823ffb1594050c972ed3df61a929b3b292a7d8977324465"
+    },
+    {
+      "path": "docs/implementation/67-canvas-node-drag-and-navigation.md",
+      "bytes": 4624,
+      "sha256": "f061e81926e3fbcfe275c8c6b14a79ed0b929cd990c7a7822600cdb3e726f911"
+    },
+    {
+      "path": "docs/implementation/68-assistant-conversation-sidebar.md",
+      "bytes": 12933,
+      "sha256": "7ac74a2d18b6f2e3ac3b21c9f6465611176837e7dfbbfac3869c688be513d0c7"
+    },
+    {
+      "path": "docs/implementation/69-unified-asset-library.md",
+      "bytes": 2498,
+      "sha256": "f86eae06a275679ac810ef4313381968090441b707eaf51d4976564360041386"
+    },
+    {
+      "path": "docs/implementation/70-creative-workspace-refactor.md",
+      "bytes": 18422,
+      "sha256": "d51c36309f776a6bc6a5a78cf9d4525021db4c424e0f5bc52e37b17050eb9fcd"
+    },
+    {
+      "path": "docs/implementation/71-project-canvas-workspace.md",
+      "bytes": 6843,
+      "sha256": "ebf28563c448c30bd89558b4dc8a5b31b95f304239df02a80347700e5c178add"
+    },
+    {
+      "path": "docs/implementation/72-script-docx-import.md",
+      "bytes": 14453,
+      "sha256": "bd22f9c2c2ae789213f84d154be9200b071825b481da836d0641a04eab996b89"
+    },
+    {
+      "path": "docs/implementation/73-creative-workspace-e2e.md",
+      "bytes": 14567,
+      "sha256": "85520ac97c8087e68943ad6193bbe5f84fcaca948b28a6d3f794e57271afb2ea"
+    },
+    {
+      "path": "docs/implementation/74-canvas-continuous-creation.md",
+      "bytes": 11401,
+      "sha256": "a82a52dce5f28db422496d6e23fc47f10c1e078a68a536d2f2e196a0588de76f"
+    },
+    {
+      "path": "docs/implementation/75-feishu-script-import.md",
+      "bytes": 9603,
+      "sha256": "9a788217bd2c587e10add7163f225e7a5e6f598ed37d5a600f2342ffe092781d"
+    },
+    {
+      "path": "docs/implementation/76-shot-list-workspace.md",
+      "bytes": 10116,
+      "sha256": "167e077e933b878573ac504246105cb5297b6315f200b818ace540431e9516ae"
+    },
+    {
+      "path": "docs/implementation/77-non-provider-workspace-closure.md",
+      "bytes": 11187,
+      "sha256": "bab29388aebe7d34408981c17b179fd351f340b993a9e791d106d47d37c064d4"
+    },
+    {
+      "path": "docs/implementation/78-canvas-navigation-directory.md",
+      "bytes": 5489,
+      "sha256": "ed9ead962a2877e535ea6049bf300d618cc914cd0381d34f3d51f22debe3fbb2"
+    },
+    {
+      "path": "docs/implementation/79-workspace-shell-cleanup.md",
+      "bytes": 1855,
+      "sha256": "3058970bd3f9658e2822c3a7ffb15b857eb6808d8c0d9c138bdd13428228fc0f"
+    },
+    {
+      "path": "docs/implementation/80-shot-list-stable-viewer.md",
+      "bytes": 4013,
+      "sha256": "c7653da061392fd02cefd7ef5f25c26532e411d0616341373ac00d0b8a15904c"
+    },
+    {
+      "path": "docs/implementation/81-workspace-chrome-refactor.md",
+      "bytes": 16876,
+      "sha256": "32a08ed802f228f42fdfebd879ae602d6a4f369722f06c5fa6030541dd5a0997"
+    },
+    {
+      "path": "docs/implementation/README.md",
+      "bytes": 15677,
+      "sha256": "32885355c16c1164638a4b92063691a021661e3ab78be05bee8eef31aed08063"
+    },
+    {
+      "path": "docs/implementation/api-operations.md",
+      "bytes": 22112,
+      "sha256": "915cdf6e2da15a0241c388d825da8c6844b09f275045d107185dbff69eb5a836"
+    },
+    {
+      "path": "docs/implementation/build_contract.py",
+      "bytes": 93593,
+      "sha256": "f4dd933c2337973a08062e0870327815385c733ce3ff2b3ff913407e5a05e44f"
+    },
+    {
+      "path": "docs/implementation/canvas_contract.py",
+      "bytes": 18234,
+      "sha256": "2073d76ae46b55f10edc5b04a459e42df2007531841b469ed5675596553df46d"
+    },
+    {
+      "path": "docs/implementation/check_design.py",
+      "bytes": 17080,
+      "sha256": "c871727f149418b665da5d28861f61fe6675fa04d001014ffa7880d4dea1dd76"
+    },
+    {
+      "path": "docs/implementation/editing_contract.py",
+      "bytes": 9365,
+      "sha256": "73fe69eb5fc1b2a47586e0092b37cfd98d398fd29299780dc4ef2d2f59fc79f5"
+    },
+    {
+      "path": "docs/implementation/openapi.json",
+      "bytes": 749879,
+      "sha256": "b8eeb02ce9acaad2b46c8610055cd21be85901ab7b2e52e4eb40e1aba4302470"
+    },
+    {
+      "path": "docs/implementation/sample-payloads.json",
+      "bytes": 207431,
+      "sha256": "ec60bbc0d50085a4db5ee0ba5a694c3df09fa338f4e869a55a8977d84b704756"
+    },
+    {
+      "path": "docs/implementation/templates/README.md",
+      "bytes": 2434,
+      "sha256": "e26c6edecbe2d6d971225c473156320188b7da23f3e5333dfbdc5589b8f7ad55"
+    },
+    {
+      "path": "docs/implementation/templates/continuity-sheet.csv",
+      "bytes": 346,
+      "sha256": "0c19f332251f91dfba5930de177ae8c223cc0517d371697a3918e4351aed5be9"
+    },
+    {
+      "path": "docs/implementation/templates/dialogue-sound-subtitle.csv",
+      "bytes": 498,
+      "sha256": "8518fe6c21b4c577a7a480acbe19d4fbd2393732508d5b4daf8f87c4c03733df"
+    },
+    {
+      "path": "docs/implementation/templates/experiment-plan-and-result.md",
+      "bytes": 3587,
+      "sha256": "f297eba6ff6e7ba94396e8232846fe643868faa764c3371d2facd9e2fd9a3239"
+    },
+    {
+      "path": "docs/implementation/templates/handoff-receipt.md",
+      "bytes": 2103,
+      "sha256": "0282d6a128f6f7ed1d64fb4fb3ba95d1d6fdb348e1ad41eb76d3e3c935bfeb2c"
+    },
+    {
+      "path": "docs/implementation/templates/job-cost-register.csv",
+      "bytes": 397,
+      "sha256": "2816f73b18ec5d9b72d5605ddfa67f8222f00ae956a41ecec5294db532c21677"
+    },
+    {
+      "path": "docs/implementation/templates/labor-log.csv",
+      "bytes": 314,
+      "sha256": "cdf8fd36cdd01013883b5e17ed513c7167a4db18642c8d5b5aed2e5a661286ae"
+    },
+    {
+      "path": "docs/implementation/templates/non-job-costs.csv",
+      "bytes": 279,
+      "sha256": "ede16490f6e348c920e4cf2c328aab68281ec0ba989b1210a0ba81a972aa8258"
+    },
+    {
+      "path": "docs/implementation/templates/quality-and-rework.csv",
+      "bytes": 418,
+      "sha256": "126bafa77f03279debb90387ba887005417710a57dc2a7c1d08e143a83a241ff"
+    },
+    {
+      "path": "docs/implementation/templates/shot-handoff.csv",
+      "bytes": 496,
+      "sha256": "cf3c44e5791396796db03daabd1b1c7f2d4d5956d88d8e736c41831ceb2f65e9"
+    },
+    {
+      "path": "docs/implementation/templates/shot-list-import.csv",
+      "bytes": 1069,
+      "sha256": "27015ae08060276b6d8f6f3c61579ff66d8f76c1b4e92683548ca8dace978b43"
+    },
+    {
+      "path": "docs/implementation/validation-report.md",
+      "bytes": 2483,
+      "sha256": "cc5178f083ed44e95b18ab81d40c7bb14eaee9361981c5585d22e2e2415c85d2"
+    },
+    {
+      "path": "docs/implementation/validation-requirements.txt",
+      "bytes": 445,
+      "sha256": "a1b2f7202ed11c8408d2c6c2a360b4749253d8df08bcfb1cf8c02e5dc4fcfee5"
+    },
+    {
+      "path": "docs/research/2026-09-07-advertising-product-workflows.md",
+      "bytes": 7423,
+      "sha256": "bb701e87d5b8caba7f0012fa17dce1e71bb89270765231ba7eed21b1248056d2"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-china-research-v2.md",
+      "bytes": 19986,
+      "sha256": "c49ac5598a86790ed81f22fe68ec823fda5eeb6ddaf853057a57327844e29c97"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-cinematic-workbenches-v2.md",
+      "bytes": 11948,
+      "sha256": "50bcc7b175d6eff6950571a6247491b8104f16a105ed94f2cc193491ebe1695e"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-flora-weavy.md",
+      "bytes": 8796,
+      "sha256": "74a27700e1da3d576978e1d3e85d582030ef48e5b730e25977527179f7229397"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-international-workflows-v2.md",
+      "bytes": 22421,
+      "sha256": "d6ce1ced49aeb593f5ed00b481e1249aa5595b91ec5e3f43e945416ed8e8cb31"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-jimeng-research-v2.md",
+      "bytes": 14812,
+      "sha256": "eeaf39b23a7175859dc175807864c18d242bffbb78e68d8a6b12b5a391310ba4"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-market-review-v2.md",
+      "bytes": 20666,
+      "sha256": "7371edc1198313f716e710dbbd2543a855745392c4a71245d795dd6adea69035"
+    },
+    {
+      "path": "docs/research/2026-09-07-canvas-value-review.md",
+      "bytes": 12025,
+      "sha256": "21fc0bb651414839b93a5d07dd968c106f12bd47777ea247e09e408d0f4f63b6"
+    },
+    {
+      "path": "docs/research/2026-09-07-china-drama-workbenches.md",
+      "bytes": 15256,
+      "sha256": "d973c84fa54fd96f2d1566b0310bbaacf76426318ab95c4da4cd2868f93e9dc1"
+    },
+    {
+      "path": "docs/research/2026-09-07-global-workbenches.md",
+      "bytes": 27934,
+      "sha256": "4fa784cdf1649bcd119ac8ad97723b2b1489d5861fa748f8b24d0e2cc24d53f0"
+    },
+    {
+      "path": "docs/research/2026-09-07-implementation-infra-evidence.md",
+      "bytes": 17473,
+      "sha256": "c7cba7618fb96d5bcfe879dd12818b22d3605ddc84916fc3b7c0d98eb398e482"
+    },
+    {
+      "path": "docs/research/2026-09-07-implementation-model-evidence.md",
+      "bytes": 14364,
+      "sha256": "89131a67aeb87ab2725c73657add6bd0d619913ab06710852597339894cc9b04"
+    },
+    {
+      "path": "docs/research/2026-09-07-jimeng-canvas-official.md",
+      "bytes": 5685,
+      "sha256": "c4744af7a1b96c57a761a3ea4ada15f685d21a9cbbe46b4e38a42e8cb80eb7f3"
+    },
+    {
+      "path": "docs/research/2026-09-07-kling-wan-workflows.md",
+      "bytes": 7513,
+      "sha256": "c2be9b81468b1b609cd042bc37f379e1c2c2d4d192d1119a7da284d5b4c40586"
+    },
+    {
+      "path": "docs/research/2026-09-07-libtv-and-review.md",
+      "bytes": 4276,
+      "sha256": "bb801d48f1cb1a916203a7c946a4b8ccc697708622e319b48b24c2c443c564be"
+    },
+    {
+      "path": "docs/research/2026-09-07-libtv-higgsfield-runway-review.md",
+      "bytes": 6950,
+      "sha256": "93d8ceb5f86900c906e79da483d134bcdf8363a89ba226e89a5c43c24072ded6"
+    },
+    {
+      "path": "docs/research/2026-09-07-libtv-jimeng-canvas-review.md",
+      "bytes": 7214,
+      "sha256": "c8b788633bd7a2f851727f090185bcb14a1de95def41f180e3edc1cb17c36ce8"
+    },
+    {
+      "path": "docs/research/2026-09-07-model-production-workflows.md",
+      "bytes": 11184,
+      "sha256": "caf95eb75dc29813e8ffa02427764091fbd95281b93e9be7e9d6a7f4819ed93a"
+    },
+    {
+      "path": "docs/research/2026-09-07-production-apis.md",
+      "bytes": 12471,
+      "sha256": "fead820d7e803e3ce5da338c7545bb171c5ac30bba52399ceae202b8d08221fe"
+    },
+    {
+      "path": "docs/research/2026-09-07-runway-veo-workflows.md",
+      "bytes": 9670,
+      "sha256": "76ca423365671fd7ac44e1d21740acf5cc152f5bafef123723c4a858bb19d5db"
+    },
+    {
+      "path": "docs/research/2026-09-07-seedance-priority.md",
+      "bytes": 5567,
+      "sha256": "fee23dd19d15f1a6428291c3c88130d592c78ae3710a6f2ca8719452412f761f"
+    },
+    {
+      "path": "docs/research/2026-09-07-tenant-isolation.md",
+      "bytes": 5782,
+      "sha256": "d03a67f28b3a3371ef9e66bd8ab3c04de07b40c06c3acb5b9076d7dbb1ffd64a"
+    },
+    {
+      "path": "docs/research/2026-09-07-workbench-market-review.md",
+      "bytes": 13538,
+      "sha256": "8b5c5e6f512f6a96723a7c40e1c220cfc1e92f409fa5634e6040029876d0dee8"
+    },
+    {
+      "path": "docs/research/2026-09-08-agent-mechanism-deep-dive.md",
+      "bytes": 17357,
+      "sha256": "c2d95012ec91bd6967cded4607d21027fc2cf34e46f2a90852a8fcefa54d8f6e"
+    },
+    {
+      "path": "docs/research/2026-09-08-creative-context-mechanism-deep-dive.md",
+      "bytes": 9544,
+      "sha256": "73f011b10aad4eab99b20204ea0aa4c725c8d4c5ce9fedcaaffb049362a943f7"
+    },
+    {
+      "path": "docs/research/2026-09-08-narrative-mechanism-deep-dive.md",
+      "bytes": 16830,
+      "sha256": "48886b9c157a0e5ec9da1aad4e1ff429e0b370cff651def1b3c390391a1db171"
+    },
+    {
+      "path": "docs/research/2026-09-08-recipe-mechanism-deep-dive.md",
+      "bytes": 17233,
+      "sha256": "dda55af9d061b2322e443999c12eac2ab0ab3bbdc9920d63d42cfb1542f9a2f1"
+    },
+    {
+      "path": "docs/research/2026-09-09-engineering-stack-evidence.md",
+      "bytes": 13019,
+      "sha256": "7ff413c44ee73acea02a4d8538b3cb7daa73ac8c911fa26e08faf472e5ac3b02"
+    },
+    {
+      "path": "docs/research/2026-09-09-frontend-media-evaluation.md",
+      "bytes": 19492,
+      "sha256": "59411965948e1bd4676f9feca2030abf92d178f2482089eaec526f7ceb285bc3"
+    },
+    {
+      "path": "docs/research/2026-09-09-frontend-ui-evaluation.md",
+      "bytes": 14053,
+      "sha256": "9a6fdadacf0d834c660eff829ae598119830600f427180c82d049a8eba580bae"
+    },
+    {
+      "path": "docs/research/2026-09-09-review-handoff-patterns.md",
+      "bytes": 4113,
+      "sha256": "4bc4eb03bf0f976c3e190e17e9b83db7ac1f1049db7b45239c143e25e669da1c"
+    },
+    {
+      "path": "docs/research/2026-09-09-scene-canvas-interactions.md",
+      "bytes": 6456,
+      "sha256": "77aaca07db3abfa04db0eaf0db666e07ef5c4cd1d713ac6d51c28f268334d19c"
+    },
+    {
+      "path": "docs/research/2026-09-09-specialized-stack-closure.md",
+      "bytes": 13222,
+      "sha256": "1ab1338fd309b662fd678b1f92342e74edb1e16b4a071d3687dd7dc6fe445c0c"
+    },
+    {
+      "path": "docs/research/2026-09-10-task-execution-review.md",
+      "bytes": 12891,
+      "sha256": "dfe59eb7dfdf896315cfbb3909de051a8bd3a3f7da8a3996de1cfac6c89ccc6a"
+    },
+    {
+      "path": "docs/research/2026-09-18-CANVAS-HANDOFF.md",
+      "bytes": 5158,
+      "sha256": "93bf8e0fc6f372aaeb3cf25ac2782c518f42d919e327c29bda84a1357d657d96"
+    },
+    {
+      "path": "docs/research/2026-09-18-canvas-capability-inventory.md",
+      "bytes": 44464,
+      "sha256": "03f250762286c1e4c4691f9b8edf5aacd392ad4e4930cebebf8eaa39723899c5"
+    },
+    {
+      "path": "docs/research/2026-09-18-canvas-next-capabilities-review.md",
+      "bytes": 15355,
+      "sha256": "604efcfd39626670b367d243cd3aa10b864bfff9499aec40c92886d0976aef8a"
+    },
+    {
+      "path": "docs/research/2026-09-18-scenedesk-canvas-gap-analysis.md",
+      "bytes": 12679,
+      "sha256": "c2d52d94d4db5d8156b0d91bb5a03e373ccf43000cac5b46670a4b973f38f893"
+    },
+    {
+      "path": "docs/research/2026-09-18-script-journey-and-states.md",
+      "bytes": 12327,
+      "sha256": "8f42c49540392986e4ebca86f147fabc5dfca5f590110ec5764c745c9a63ab5d"
+    },
+    {
+      "path": "docs/research/2026-09-18-script-page-refactor-a.md",
+      "bytes": 7550,
+      "sha256": "4232753e6bff587beb0c2fd8fff1c62e371a8e86f5909968f6619ac532258d24"
+    },
+    {
+      "path": "docs/research/2026-09-18-script-page-ux-redesign.md",
+      "bytes": 6414,
+      "sha256": "1623b1d8320637668bc22bc7e6594f9d439d61d89683d1d402b442ab1cde6473"
+    },
+    {
+      "path": "docs/research/2026-09-18-script-status-consistency-rules.md",
+      "bytes": 13233,
+      "sha256": "f35a20fa112f9ca9e474bb9d5164afe26d9ccdd6d6eeace669b91facc419da2c"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/README.md",
+      "bytes": 2777,
+      "sha256": "db276098c9d004b974c83bf4685a71526440d1c8199d94c3612590c016953004"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/baseline-manifest.json",
+      "bytes": 4085,
+      "sha256": "4fc66e25954f1ce842e33759a654d9d474398cd65fe67e1ae49b5044640938aa"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/decision-log.json",
+      "bytes": 22894,
+      "sha256": "c4ec7288c486d2e3d88d47851f83f74228d16e1072b8cf4ea55d7583f774f17e"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/decision-log.md",
+      "bytes": 15835,
+      "sha256": "6ab8a026b2cb06c08df1116ec6157cfc628d755844dc9bb899333c7ac9def37d"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/drama-recheck.md",
+      "bytes": 11890,
+      "sha256": "19eacfdff2b09cb87c6829ffa2f9ec1de0551ef11775f8f1389c52b74a39f897"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/drama-review.md",
+      "bytes": 28725,
+      "sha256": "58727202d1f055c558c0dc19c0894f85cf0f4fde15d657be75055c0a9bbca30d"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/product-recheck.md",
+      "bytes": 13360,
+      "sha256": "7528fb7eb1897c1b1b8b67fa25e6f7ea819b3cea772802eb87494c966e3d7661"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/product-review.md",
+      "bytes": 27743,
+      "sha256": "2d5a2b821bd78101f46ba777b6e96cd96eecee09fa660ee23ac508fa51daafdc"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/technical-recheck.md",
+      "bytes": 15358,
+      "sha256": "8e9a3e365da6643c92806538938a52836c2d3350f8951cfa5a47294f9329e59b"
+    },
+    {
+      "path": "docs/reviews/2026-09-07/technical-review.md",
+      "bytes": 26143,
+      "sha256": "f99177e1c73471e44fc2a58d7ac250d1904718da19899375d0acdaea7f0fa268"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/canvas-closure-review.md",
+      "bytes": 2708,
+      "sha256": "7e155d922e61adf6eaa48a0aa651114179d712142b7af93b66319d455ae444f9"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/closure-decisions.md",
+      "bytes": 1933,
+      "sha256": "6dfca00516e0e23a0137832136f2e968f7dbbe403e095f518abc8d4a42ebcbdd"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/closure-product-review.md",
+      "bytes": 7991,
+      "sha256": "7684bf75c1151b164a43de14d853bf9ce893f22aac0dea7d4ac7b4dcd2af8aac"
+    },
+    {
+      "path": "docs/reviews/2026-09-09/closure-recheck.md",
+      "bytes": 3225,
+      "sha256": "b9256567a536bf4e404cd1237ef97bb58dada35a0b1ca5f2dce3f2406855e0c6"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-technical-options-review.md",
+      "bytes": 23659,
+      "sha256": "4fd61988fd795c2b5a785dc445c1ee4a5e718fcaaddfd49fdd169b37b2b10e05"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/README.md",
+      "bytes": 3592,
+      "sha256": "301ebfbe56c6e6f47454e313503f2cc906d4227bcd66316fafaef5e081d72197"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/creation-workflow-review.md",
+      "bytes": 26176,
+      "sha256": "5fb50d34964358ec2c69362d54096876cfda95dbdb63b5193aac49f0a4ce1dbb"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/information-architecture-review.md",
+      "bytes": 23395,
+      "sha256": "b5b5d160b92d79f4fcc97b2c70a1f02090c4967da397441dac47fcd20464a415"
+    },
+    {
+      "path": "docs/reviews/2026-09-10-workspace/visual-interaction-review.md",
+      "bytes": 24094,
+      "sha256": "413e3f88d68417e6e4f0f60c9b781f5c60902fa0f5297969d1ec191c4423e7e3"
+    },
+    {
+      "path": "docs/reviews/2026-09-16-workspace-regression-execution.md",
+      "bytes": 5124,
+      "sha256": "87a6a8a7b90a2f04ce24ce19de30f65eb4315cd396aa203ec0f3452233c1d8df"
+    },
+    {
+      "path": "output/documentation-checks/20260924T094903.157785Z/validation-report.md",
+      "bytes": 2749,
+      "sha256": "5d6a6298d06d2e10332b869801236fbcb1c88e060d8ed89c62f7b296bbc9b4d6"
+    },
+    {
+      "path": "packages/contracts/src/generated.ts",
+      "bytes": 432200,
+      "sha256": "b6213c1c4bc39c3cf7e80dae1899cbc1373a2e56f0250bd0d6885e04af4b905e"
+    }
+  ]
+}
