@@ -50,6 +50,8 @@ scope=project 必须有 projectId；scope=shared 必须省略。路径、正文�
 
 **分镜建议与导入。** AI 与 CSV 首版只产生 create 提案。CSV 模板见 [13](13-production-quality-and-handoff.md) 的相关交接模板与 [分镜导入样例](templates/shot-list-import.csv)；解析不调用付费模型。API 预分配 temporaryId，子操作父 ID 可以指向同提案身份，勾选时必须包含尚未创建的依赖父项。一次采纳事务按父子顺序应用，重复请求回原结果。重复导入的源摘要＋目标内容基线应返回原提案；相同标签不是身份，遇已有同名结构显示冲突说明，用户需明确确认新增独立结构或取消；target=new_structure 时按提案内父子关系创建；target=append_to_scene 时只新增 shot，proposed.sceneId 必须等于保存的 target.sceneId，并校验同项目、episodeId、sceneRevision。CSV 此模式须确认所有行归同一场，跨场输入不静默合并。复杂 AI update/archive 后置，人工结构编辑可用；人工拆合镜保留 sourceShotIds／sourceExcerpts，检查句子新去向和既有剪辑影响。
 
+**结构移动。** 场次换集、镜头换场继续使用现有更新接口和对象 If-Match。所属父级改变时，服务端在项目写锁内按目标完整子集合（含归档项）的最大 position 加一追加，忽略请求中的旧位置；空集合从 0 开始，返回实际位置，同父级更新仍使用请求位置。源集合允许保留位置空隙，进一步调整使用已有完整集合排序。镜头有场次绑定任务时返回 `409 TASK_SCOPE_WOULD_CHANGE`；有任何画布节点关联时返回 `409 CANVAS_BINDING_WOULD_CHANGE`，即使节点已移出当前画布也须明确解除。拒绝不产生镜头修订或改变画布、候选、选用，编辑器保留草稿。解除关联后单纯移动（未修改 spec）保留镜头身份、当前要求版本及既有候选／选用；同时修改 spec 则按既有规则追加要求修订。场次换集保留场次画布和镜头身份。目标位置超出安全整数范围返回 `409 CONTENT_POSITION_EXHAUSTED`，先重排目标集合后再移动。当前不引入新父级、迁移工作流或独立集合版本；剧本仍为项目级单一当前稿，不支持按集独立当前稿。
+
 **状态。** Scene.state 是场次默认入口；ShotSpec.entryState 是本镜覆盖，exitState 是期望出口。每层 characters 按 characterAssetId、props 按 propAssetId 合并；同层重复对象拒绝。未提供字段继承，明确 holderCharacterAssetId=null 表示无人持有，不能把缺字段当清除。人物造型的 lookId／lookAssetRevisionId 必须成对，属于指定角色。不同造型并存；角色默认声音在 AssetDefinition.defaultVoiceAssetRevisionId，单句或状态可覆盖。模型 succeeded 不写回剧情事实，不自动把前镜期望出口当下一镜已确认入口。
 
 **参考和一次性修改。** GenerationPlan.input 保存完整原始请求，resolvedInput 保存实际可执行结果，两者不混用。每次准备按固定 resolver 版本执行下表，结果逐项回显来源、所属对象、用途和固定媒体／版本。
