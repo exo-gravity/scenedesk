@@ -2,6 +2,10 @@
 .content {
   min-width: 0;
 }
+.compactShot {
+  width: 100%;
+  max-width: 520px;
+}
 .catalog[hidden],
 .content[hidden] {
   display: none;

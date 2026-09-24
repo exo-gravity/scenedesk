@@ -95,7 +95,7 @@ export function StructureEditor({
   path: string;
   scripts: Schema<"ScriptRevision">[];
   onCreateEpisode?: (() => void) | undefined;
-  done: () => void;
+  done: (entity?: ContentEntity) => void;
 }) {
   const collection =
     editing.kind === "episode"
@@ -156,6 +156,36 @@ export function StructureEditor({
   const values = { ...sourceFields, ...draft.value },
     set = <K extends keyof Fields>(key: K, value: Fields[K]) =>
       draft.setValue((v) => ({ ...v, [key]: value }));
+  const newShot = editing.kind === "shot" && !editing.id;
+  const [showShotDetails, setShowShotDetails] = useState(false);
+  const hasDetailedShotDraft = !!(
+    values.action ||
+    values.camera ||
+    values.duration ||
+    values.notes ||
+    values.entry ||
+    values.exit ||
+    values.references.length ||
+    values.dialogue.length ||
+    values.excerpts.length ||
+    Object.keys(values.entryState).length ||
+    Object.keys(values.exitState).length ||
+    values.parentId !== editing.parentId
+  );
+  useEffect(() => {
+    if (newShot && hasDetailedShotDraft) setShowShotDetails(true);
+  }, [newShot, hasDetailedShotDraft]);
+  const compactShot = newShot && !showShotDetails;
+  const nameInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (
+      compactShot &&
+      draft.ready &&
+      !draft.recovered &&
+      !draft.value.creationIntent
+    )
+      nameInput.current?.focus();
+  }, [compactShot, draft.ready, draft.recovered, draft.value.creationIntent]);
   const parents =
     editing.kind === "scene"
       ? tree.episodes
@@ -194,7 +224,10 @@ export function StructureEditor({
         (request) =>
           command.mutateAsync({
             ...request,
-            onCommitted: () => void draft.complete(done),
+            onCommitted: (result) =>
+              void draft.complete(() => {
+                if (current.current) done(result);
+              }),
           }),
         { initialSend, isCurrent: () => current.current },
       );
@@ -317,7 +350,10 @@ export function StructureEditor({
         version: draft.baseVersion,
       },
       {
-        onCommitted: () => void draft.complete(done),
+        onCommitted: (result) =>
+          void draft.complete(() => {
+            if (current.current) done(result);
+          }),
       },
     );
   }
@@ -330,15 +366,26 @@ export function StructureEditor({
       </Stack>
     );
   return (
-    <form onSubmit={submit}>
+    <form
+      onSubmit={submit}
+      aria-label={newShot ? "新增镜头" : undefined}
+      className={compactShot ? layout.compactShot : undefined}
+    >
       <Stack gap="lg">
-        <DraftNotice
-          draft={draft}
-          pendingCreation={
-            !!(creationIntent ?? recoveredCreation) &&
-            !(creationIntent ?? recoveredCreation)?.rejected
-          }
-        />
+        {(!compactShot || draft.recovered || draft.error) && (
+          <DraftNotice
+            draft={draft}
+            pendingCreation={
+              !!(creationIntent ?? recoveredCreation) &&
+              !(creationIntent ?? recoveredCreation)?.rejected
+            }
+          />
+        )}
+        {newShot && showShotDetails && (
+          <Text size="sm" c="dimmed">
+            这份草稿包含完整镜头要求，已保留在下方供核对。
+          </Text>
+        )}
         {creationIntent && !draft.recovered && (
           <Alert
             title={
@@ -498,14 +545,28 @@ export function StructureEditor({
           variant="unstyled"
         >
           <Stack gap="lg">
+            {compactShot && (
+              <Text size="sm" c="dimmed">
+                {parents.find((parent) => parent.value === values.parentId)?.label ??
+                  "原所属场次已不可用，请关闭后选择可编辑的场次。"}
+              </Text>
+            )}
             <TextInput
+              ref={nameInput}
+              data-autofocus={compactShot || undefined}
               required
-              label={editing.kind === "shot" ? "镜头编号" : "标题"}
+              label={
+                editing.kind === "shot"
+                  ? compactShot
+                    ? "镜头名称"
+                    : "镜头编号"
+                  : "标题"
+              }
               maxLength={160}
               value={values.name}
               onChange={(e) => set("name", e.currentTarget.value)}
             />
-            {editing.kind !== "episode" && (
+            {editing.kind !== "episode" && !compactShot && (
               <Select
                 required
                 label={editing.kind === "scene" ? "所属单集" : "所属场次"}
@@ -581,324 +642,363 @@ export function StructureEditor({
             {editing.kind === "shot" && (
               <>
                 <Textarea
-                  label="叙事意图"
-                  placeholder="这一镜让观众知道什么？"
+                  label={compactShot ? "镜头说明（选填）" : "叙事意图"}
+                  placeholder={
+                    compactShot
+                      ? "简单描述这一镜想表达什么"
+                      : "这一镜让观众知道什么？"
+                  }
                   autosize
-                  minRows={3}
+                  minRows={compactShot ? 2 : 3}
+                  {...(compactShot ? { maxRows: 4 } : {})}
                   value={values.intent}
                   onChange={(e) => set("intent", e.currentTarget.value)}
                 />
-                <Textarea
-                  label="动作与表演"
-                  autosize
-                  minRows={2}
-                  value={values.action}
-                  onChange={(e) => set("action", e.currentTarget.value)}
-                />
-                <div className={classes.grid}>
-                  <TextInput
-                    label="镜头与机位"
-                    value={values.camera}
-                    onChange={(e) => set("camera", e.currentTarget.value)}
-                  />
-                  <TextInput
-                    label="计划时长（秒）"
-                    inputMode="decimal"
-                    placeholder="可暂不填写"
-                    value={values.duration}
-                    onChange={(e) => set("duration", e.currentTarget.value)}
-                  />
-                </div>
-                <Text fw={600}>镜头参考素材</Text>
-                <ShotReferenceFields
-                  path={tenantPath}
-                  projectId={projectId}
-                  value={values.references}
-                  onChange={(refs) => set("references", refs)}
-                />
-                <ContinuityFields
-                  path={tenantPath}
-                  projectId={projectId}
-                  label="入口状态"
-                  value={{ ...values.entryState, spatialNotes: values.entry }}
-                  onChange={(state) =>
-                    draft.setValue((v) => ({
-                      ...v,
-                      entryState: state,
-                      entry: state.spatialNotes ?? "",
-                    }))
-                  }
-                />
-                <ContinuityFields
-                  path={tenantPath}
-                  projectId={projectId}
-                  label="出口状态"
-                  value={{ ...values.exitState, spatialNotes: values.exit }}
-                  onChange={(state) =>
-                    draft.setValue((v) => ({
-                      ...v,
-                      exitState: state,
-                      exit: state.spatialNotes ?? "",
-                    }))
-                  }
-                />
-                <Group justify="space-between">
-                  <Text fw={600}>台词</Text>
-                  <Button
-                    size="xs"
-                    leftSection={<Plus size={16} />}
-                    onClick={() =>
-                      set("dialogue", [
-                        ...values.dialogue,
-                        { id: crypto.randomUUID(), text: "" },
-                      ])
-                    }
-                  >
-                    添加台词
-                  </Button>
-                </Group>
-                {values.dialogue.map((line, index) => (
-                  <Stack key={line.id} gap="xs">
+                {!compactShot && (
+                  <>
+                    <Textarea
+                      label="动作与表演"
+                      autosize
+                      minRows={2}
+                      value={values.action}
+                      onChange={(e) => set("action", e.currentTarget.value)}
+                    />
+                    <div className={classes.grid}>
+                      <TextInput
+                        label="镜头与机位"
+                        value={values.camera}
+                        onChange={(e) => set("camera", e.currentTarget.value)}
+                      />
+                      <TextInput
+                        label="计划时长（秒）"
+                        inputMode="decimal"
+                        placeholder="可暂不填写"
+                        value={values.duration}
+                        onChange={(e) => set("duration", e.currentTarget.value)}
+                      />
+                    </div>
+                    <Text fw={600}>镜头参考素材</Text>
+                    <ShotReferenceFields
+                      path={tenantPath}
+                      projectId={projectId}
+                      value={values.references}
+                      onChange={(refs) => set("references", refs)}
+                    />
+                    <ContinuityFields
+                      path={tenantPath}
+                      projectId={projectId}
+                      label="入口状态"
+                      value={{ ...values.entryState, spatialNotes: values.entry }}
+                      onChange={(state) =>
+                        draft.setValue((v) => ({
+                          ...v,
+                          entryState: state,
+                          entry: state.spatialNotes ?? "",
+                        }))
+                      }
+                    />
+                    <ContinuityFields
+                      path={tenantPath}
+                      projectId={projectId}
+                      label="出口状态"
+                      value={{ ...values.exitState, spatialNotes: values.exit }}
+                      onChange={(state) =>
+                        draft.setValue((v) => ({
+                          ...v,
+                          exitState: state,
+                          exit: state.spatialNotes ?? "",
+                        }))
+                      }
+                    />
                     <Group justify="space-between">
-                      <Text size="sm">第 {index + 1} 句</Text>
+                      <Text fw={600}>台词</Text>
                       <Button
-                        variant="subtle"
                         size="xs"
-                        aria-label={`删除第 ${index + 1} 句台词`}
+                        leftSection={<Plus size={16} />}
                         onClick={() =>
-                          set(
-                            "dialogue",
-                            values.dialogue.filter((d) => d.id !== line.id),
-                          )
+                          set("dialogue", [
+                            ...values.dialogue,
+                            { id: crypto.randomUUID(), text: "" },
+                          ])
                         }
                       >
-                        <Trash size={16} />
+                        添加台词
                       </Button>
                     </Group>
-                    <Text size="sm" fw={500}>
-                      第 {index + 1} 句说话人
-                    </Text>
-                    {line.characterAssetId ? (
-                      <AssetIdentityLabel
-                        path={tenantPath}
-                        id={line.characterAssetId}
-                      />
-                    ) : (
-                      <Text size="sm" c="dimmed">
-                        未指定说话人
-                      </Text>
-                    )}
-                    <Group>
-                      <AssetPicker
-                        path={tenantPath}
-                        projectId={projectId}
-                        mode="identity"
-                        kind="character"
-                        label={`选择第 ${index + 1} 句说话人`}
-                        onChoose={({ asset }) =>
-                          set(
-                            "dialogue",
-                            values.dialogue.map((d) =>
-                              d.id === line.id
-                                ? { ...d, characterAssetId: asset.id }
-                                : d,
-                            ),
-                          )
-                        }
-                      />
-                      {line.characterAssetId && (
+                    {values.dialogue.map((line, index) => (
+                      <Stack key={line.id} gap="xs">
+                        <Group justify="space-between">
+                          <Text size="sm">第 {index + 1} 句</Text>
+                          <Button
+                            variant="subtle"
+                            size="xs"
+                            aria-label={`删除第 ${index + 1} 句台词`}
+                            onClick={() =>
+                              set(
+                                "dialogue",
+                                values.dialogue.filter((d) => d.id !== line.id),
+                              )
+                            }
+                          >
+                            <Trash size={16} />
+                          </Button>
+                        </Group>
+                        <Text size="sm" fw={500}>
+                          第 {index + 1} 句说话人
+                        </Text>
+                        {line.characterAssetId ? (
+                          <AssetIdentityLabel
+                            path={tenantPath}
+                            id={line.characterAssetId}
+                          />
+                        ) : (
+                          <Text size="sm" c="dimmed">
+                            未指定说话人
+                          </Text>
+                        )}
+                        <Group>
+                          <AssetPicker
+                            path={tenantPath}
+                            projectId={projectId}
+                            mode="identity"
+                            kind="character"
+                            label={`选择第 ${index + 1} 句说话人`}
+                            onChoose={({ asset }) =>
+                              set(
+                                "dialogue",
+                                values.dialogue.map((d) =>
+                                  d.id === line.id
+                                    ? { ...d, characterAssetId: asset.id }
+                                    : d,
+                                ),
+                              )
+                            }
+                          />
+                          {line.characterAssetId && (
+                            <Button
+                              size="xs"
+                              variant="subtle"
+                              onClick={() =>
+                                set(
+                                  "dialogue",
+                                  values.dialogue.map((d) => {
+                                    if (d.id !== line.id) return d;
+                                    const { characterAssetId: _, ...rest } = d;
+                                    return rest;
+                                  }),
+                                )
+                              }
+                            >
+                              移除此句说话人
+                            </Button>
+                          )}
+                        </Group>
+                        <VoiceBinding
+                          path={tenantPath}
+                          projectId={projectId}
+                          label={`第 ${index + 1} 句声音覆盖`}
+                          value={line.voiceAssetRevisionId}
+                          onChange={(id) =>
+                            set(
+                              "dialogue",
+                              values.dialogue.map((d) => {
+                                if (d.id !== line.id) return d;
+                                const { voiceAssetRevisionId: _, ...rest } = d;
+                                return id
+                                  ? { ...rest, voiceAssetRevisionId: id }
+                                  : rest;
+                              }),
+                            )
+                          }
+                        />
+                        <Textarea
+                          label={`第 ${index + 1} 句台词`}
+                          autosize
+                          value={line.text}
+                          onChange={(e) =>
+                            set(
+                              "dialogue",
+                              values.dialogue.map((d) =>
+                                d.id === line.id
+                                  ? { ...d, text: e.currentTarget.value }
+                                  : d,
+                              ),
+                            )
+                          }
+                        />
+                        <TextInput
+                          label={`第 ${index + 1} 句表演要求`}
+                          value={line.performance ?? ""}
+                          onChange={(e) =>
+                            set(
+                              "dialogue",
+                              values.dialogue.map((d) =>
+                                d.id === line.id
+                                  ? { ...d, performance: e.currentTarget.value }
+                                  : d,
+                              ),
+                            )
+                          }
+                        />
+                      </Stack>
+                    ))}
+                    <Textarea
+                      label="备注"
+                      autosize
+                      minRows={2}
+                      value={values.notes}
+                      onChange={(e) => set("notes", e.currentTarget.value)}
+                    />
+                    <Text fw={600}>剧本原文依据</Text>
+                    {values.excerpts.map((ex, index) => (
+                      <div
+                        key={`${ex.scriptRevisionId}:${index}`}
+                        className={classes.notice}
+                      >
+                        <Text size="xs" c="dimmed">
+                          剧本第{" "}
+                          {scripts.find((s) => s.id === ex.scriptRevisionId)
+                            ?.number ?? "历史"}{" "}
+                          版
+                        </Text>
+                        <Text>{ex.quote}</Text>
                         <Button
                           size="xs"
                           variant="subtle"
                           onClick={() =>
                             set(
-                              "dialogue",
-                              values.dialogue.map((d) => {
-                                if (d.id !== line.id) return d;
-                                const { characterAssetId: _, ...rest } = d;
-                                return rest;
-                              }),
+                              "excerpts",
+                              values.excerpts.filter((_, i) => i !== index),
                             )
                           }
                         >
-                          移除此句说话人
+                          移除此处引用
                         </Button>
-                      )}
-                    </Group>
-                    <VoiceBinding
-                      path={tenantPath}
-                      projectId={projectId}
-                      label={`第 ${index + 1} 句声音覆盖`}
-                      value={line.voiceAssetRevisionId}
-                      onChange={(id) =>
-                        set(
-                          "dialogue",
-                          values.dialogue.map((d) => {
-                            if (d.id !== line.id) return d;
-                            const { voiceAssetRevisionId: _, ...rest } = d;
-                            return id
-                              ? { ...rest, voiceAssetRevisionId: id }
-                              : rest;
-                          }),
-                        )
-                      }
-                    />
-                    <Textarea
-                      label={`第 ${index + 1} 句台词`}
-                      autosize
-                      value={line.text}
-                      onChange={(e) =>
-                        set(
-                          "dialogue",
-                          values.dialogue.map((d) =>
-                            d.id === line.id
-                              ? { ...d, text: e.currentTarget.value }
-                              : d,
-                          ),
-                        )
-                      }
-                    />
-                    <TextInput
-                      label={`第 ${index + 1} 句表演要求`}
-                      value={line.performance ?? ""}
-                      onChange={(e) =>
-                        set(
-                          "dialogue",
-                          values.dialogue.map((d) =>
-                            d.id === line.id
-                              ? { ...d, performance: e.currentTarget.value }
-                              : d,
-                          ),
-                        )
-                      }
-                    />
-                  </Stack>
-                ))}
-                <Textarea
-                  label="备注"
-                  autosize
-                  minRows={2}
-                  value={values.notes}
-                  onChange={(e) => set("notes", e.currentTarget.value)}
-                />
-                <Text fw={600}>剧本原文依据</Text>
-                {values.excerpts.map((ex, index) => (
-                  <div
-                    key={`${ex.scriptRevisionId}:${index}`}
-                    className={classes.notice}
-                  >
-                    <Text size="xs" c="dimmed">
-                      剧本第{" "}
-                      {scripts.find((s) => s.id === ex.scriptRevisionId)
-                        ?.number ?? "历史"}{" "}
-                      版
-                    </Text>
-                    <Text>{ex.quote}</Text>
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={() =>
-                        set(
-                          "excerpts",
-                          values.excerpts.filter((_, i) => i !== index),
-                        )
-                      }
-                    >
-                      移除此处引用
-                    </Button>
-                  </div>
-                ))}
-                {scripts.length > 0 ? (
-                  <>
-                    <Select
-                      label="从剧本版本选取原文"
-                      data={[...scripts]
-                        .sort((a, b) => b.number - a.number)
-                        .map((s) => ({
-                          value: s.id,
-                          label: `第 ${s.number} 版${s.id === tree.currentScriptRevisionId ? " · 当前" : ""}`,
-                        }))}
-                      value={scriptId}
-                      onChange={(id) => {
-                        setScriptId(id);
-                        setSelected(undefined);
-                      }}
-                    />
-                    {source && (
-                      <Textarea
-                        label="选中需要引用的文字"
-                        readOnly
-                        minRows={4}
-                        maxRows={10}
-                        autosize
-                        value={source.text}
-                        onSelect={(e) => {
-                          const el = e.currentTarget,
-                            start = Array.from(
-                              el.value.slice(0, el.selectionStart),
-                            ).length,
-                            end = Array.from(
-                              el.value.slice(0, el.selectionEnd),
-                            ).length;
-                          setSelected(
-                            end > start
-                              ? {
-                                  scriptRevisionId: source.id,
-                                  range: { startOffset: start, endOffset: end },
-                                  quote: Array.from(el.value)
-                                    .slice(start, end)
-                                    .join(""),
-                                }
-                              : undefined,
-                          );
-                        }}
-                      />
+                      </div>
+                    ))}
+                    {scripts.length > 0 ? (
+                      <>
+                        <Select
+                          label="从剧本版本选取原文"
+                          data={[...scripts]
+                            .sort((a, b) => b.number - a.number)
+                            .map((s) => ({
+                              value: s.id,
+                              label: `第 ${s.number} 版${s.id === tree.currentScriptRevisionId ? " · 当前" : ""}`,
+                            }))}
+                          value={scriptId}
+                          onChange={(id) => {
+                            setScriptId(id);
+                            setSelected(undefined);
+                          }}
+                        />
+                        {source && (
+                          <Textarea
+                            label="选中需要引用的文字"
+                            readOnly
+                            minRows={4}
+                            maxRows={10}
+                            autosize
+                            value={source.text}
+                            onSelect={(e) => {
+                              const el = e.currentTarget,
+                                start = Array.from(
+                                  el.value.slice(0, el.selectionStart),
+                                ).length,
+                                end = Array.from(
+                                  el.value.slice(0, el.selectionEnd),
+                                ).length;
+                              setSelected(
+                                end > start
+                                  ? {
+                                      scriptRevisionId: source.id,
+                                      range: { startOffset: start, endOffset: end },
+                                      quote: Array.from(el.value)
+                                        .slice(start, end)
+                                        .join(""),
+                                    }
+                                  : undefined,
+                              );
+                            }}
+                          />
+                        )}
+                        <Button
+                          disabled={!selected}
+                          onClick={() => {
+                            if (
+                              selected &&
+                              !values.excerpts.some(
+                                (e) =>
+                                  JSON.stringify(e) === JSON.stringify(selected),
+                              )
+                            )
+                              set("excerpts", [...values.excerpts, selected]);
+                          }}
+                        >
+                          添加选中的原文引用
+                        </Button>
+                      </>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        保存剧本后，可以把原文片段关联到镜头。
+                      </Text>
                     )}
-                    <Button
-                      disabled={!selected}
-                      onClick={() => {
-                        if (
-                          selected &&
-                          !values.excerpts.some(
-                            (e) =>
-                              JSON.stringify(e) === JSON.stringify(selected),
-                          )
-                        )
-                          set("excerpts", [...values.excerpts, selected]);
-                      }}
-                    >
-                      添加选中的原文引用
-                    </Button>
                   </>
-                ) : (
-                  <Text size="sm" c="dimmed">
-                    保存剧本后，可以把原文片段关联到镜头。
-                  </Text>
                 )}
               </>
             )}
           </Stack>
         </Fieldset>
         <ErrorNotice error={validation ?? command.error} />
-        <Button
-          variant="filled"
-          type="submit"
-          loading={command.isPending}
-          disabled={
-            !draft.ready ||
-            !!draft.recovered ||
-            conflict ||
-            preparing ||
-            !!creationIntent ||
-            !values.name.trim() ||
-            (editing.kind !== "episode" &&
-              !parents.some((p) => p.value === values.parentId))
-          }
-        >
-          {entity
-            ? "保存修改"
-            : `创建${editing.kind === "episode" ? "单集" : editing.kind === "scene" ? "场次" : "镜头"}`}
-        </Button>
+        {compactShot &&
+          draft.dirty &&
+          !draft.error &&
+          !draft.recovered &&
+          !creationIntent && <DraftNotice draft={draft} />}
+        <Group justify="flex-end" grow={!compactShot}>
+          {compactShot && (
+            <Button
+              variant="default"
+              disabled={!draft.ready || command.isPending || preparing}
+              onClick={async () => {
+                if (staging.current) return;
+                staging.current = true;
+                setPreparing(true);
+                try {
+                  const retained =
+                    !draft.dirty ||
+                    !!draft.recovered ||
+                    (await draft.stage(draft.value));
+                  if (retained && current.current) done();
+                } finally {
+                  staging.current = false;
+                  if (current.current) setPreparing(false);
+                }
+              }}
+            >
+              取消
+            </Button>
+          )}
+          <Button
+            variant="filled"
+            type="submit"
+            loading={command.isPending || preparing}
+            disabled={
+              !draft.ready ||
+              !!draft.recovered ||
+              conflict ||
+              preparing ||
+              !!creationIntent ||
+              !values.name.trim() ||
+              (editing.kind !== "episode" &&
+                !parents.some((p) => p.value === values.parentId))
+            }
+          >
+            {entity
+              ? "保存修改"
+              : `创建${editing.kind === "episode" ? "单集" : editing.kind === "scene" ? "场次" : "镜头"}`}
+          </Button>
+        </Group>
       </Stack>
     </form>
   );
