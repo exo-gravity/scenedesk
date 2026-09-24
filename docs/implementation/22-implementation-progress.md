@@ -2,11 +2,31 @@
 
 ## 当前状态（2026-09-24）
 
-当前代码基线：`main` 的 `e96c72f700f460de3b2c70ae8db0790bd811b8f6`（PR #90）；本轮精简审查起点为 PR #84 的 `4812ccc`。Studio 已合入，创作台是唯一创作入口；当前范围见[38](38-first-release-scope-review.md)，界面及分片证据见[85](85-studio-rebuild.md)。下方日期记录保留当时状态，其中“未推送”“待实现”等不能代替本节当前结论。
+当前代码基线：`main` 的 `246ec6a3d99055900be04a475aa0a6b4bdd46cbb`（PR #92）；架构精简审查起点为 PR #84 的 `4812ccc`。Studio 已合入，创作台是唯一创作入口；当前范围见[38](38-first-release-scope-review.md)，界面及分片证据见[85](85-studio-rebuild.md)。下方日期记录保留当时状态，其中“未推送”“待实现”等不能代替本节当前结论。
 
 MiniMax／火山方舟适配器、独立生成执行器、能力开通、API 执行器门禁及新的模型规格面板已在基线中。真实账号证据统一见[86](86-verified-provider-runtime.md)：已有三个档案的 MV-01 与部分参考输入、查询验证，其他规格及异常恢复按该表继续验收。代码实现、受控回归和真实供应商验收分别记账。
 
 剩余重点：补齐真实模型模式／规格与异常恢复验证、真实身份和团队飞书条件、外部部署验收及已记录的画布容量问题。完整后期、商业运营、复杂组织管理继续后置；本轮不据旧接口数量新增实现任务。历史媒体套件的环境失败仍按原记录保留。
+
+### 新增镜头精简
+
+[PR #92](https://github.com/exo-gravity/scenedesk/pull/92) 已合入，代码 head 为 `2fc6c276cb752cd4824000e14ce322eb8e4f14ae`，合并提交为 `246ec6a3d99055900be04a475aa0a6b4bdd46cbb`。新增镜头收敛为名称与选填说明，场次继承为只读上下文；Studio 创建后定位新镜头，旧详细草稿继续使用完整表单。关闭后的迟到回执不重开抽屉或跳回已离开的场次。具体职责、兼容边界与生产截图见 [85 §1n](85-studio-rebuild.md#1n-新增镜头精简2026-09-24)。独立审查核对实际 diff 与六项新浏览器用例，没有剩余阻断项；文档按两个入口的实际行为分别描述。
+
+验证使用 Node 22.23.2／npm 10.9.8、独立回环 `drama_e2e_shot_pr` 和合成身份。未调用付费模型，测试库与 smoke 的临时资源已清理。同步 PR #91 时只带入文档变化，产品及测试文件与已执行的 `164fc18` 完全一致。
+
+| 实际执行 | 结果与范围 |
+|---|---|
+| `npm run check` | 契约生成物、UI 规则、类型、生产构建及 358/358 单元通过 |
+| `npm run test:db`、`npm run worker:check` | 完整 366/366 数据库及 worker 检查通过 |
+| `npm run test:media:prepare && npm run test:media` | 完整 80/80 通过，零失败／跳过 |
+| `npm run test:e2e` | 第二轮一次完整运行 33/33 通过，零重试；新增六项覆盖短表单、视口、草稿、幂等、跨场次旧草稿及迟到回执。首轮 31/33，两个新增用例因标签同时匹配场次 combobox 与 listbox 失败；改为精确角色定位，未放宽断言或等待 |
+| `sh deploy/check.sh`、部署集成 | 干净环境下类型与 11/11 单元通过；只向集成检查提供数据库变量，12/12 通过 |
+| 三镜像构建与 `deploy/smoke/run.sh` | API／Web／media-worker 构建成功；第二次完整 smoke 通过 HTTPS、同源 API、浏览器契约及队列拒绝边界。首次在 Docker Hub 固定镜像拉取时出现 TLS 握手超时，保留为失败记录 |
+| 文档门禁 | 同步主线与界面文档后通过，180 个操作／262 个 schema／178 个样例，生成契约无变化 |
+
+`bash scenedesk-preflight.sh` 本次不是整条成功：其静态、数据库、worker 和完整媒体均通过，随后部署配置测试因继承 `DATABASE_URL` 被 `AMBIENT_CREDENTIALS_FORBIDDEN` 拒绝。在未修改的主线 `95eaaed` 独立 checkout 上完整执行 `deploy/check.sh` 复现同一失败；当前分支去掉环境数据库凭据后完整通过。后续部署集成、镜像与 smoke 单独执行，不将这些结果拼接成一次通过的 preflight。未更改门禁、部署安全校验、超时或资源限制。本机未运行独立成对恢复套件，该项由 PR 的 `verify-isolated-recovery` 单独验收。
+
+合并前精确代码 head 的四项 CI 全部通过：[通用检查](https://github.com/exo-gravity/scenedesk/actions/runs/35992995628)为 358 单元、366 数据库、80 媒体及 worker；[生产浏览器](https://github.com/exo-gravity/scenedesk/actions/runs/35992995759)为 33/33；[部署及隔离恢复](https://github.com/exo-gravity/scenedesk/actions/runs/35992995631)包含四镜像构建、HTTPS smoke、11 项部署单元、12 项部署集成及独立的 11 项成对恢复。使用普通合并并绑定已验证的 head，未绕过保护；这些结果不扩大真实模型、团队飞书与外部部署的验收范围。
 
 ### 集／场次／镜头移动边界
 
