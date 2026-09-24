@@ -1,8 +1,46 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { capabilityDefinition, findProfile } from "@drama/provider";
+import { PROFILES, capabilityDefinition, findProfile } from "@drama/provider";
+import { aspectRatioOptions, qualityOptions } from "../../apps/web/src/business/generation-specification.js";
 import { imageGenerationFixture } from "../support/image-generation.js";
+
+test("every offered verified output pair prepares a fixed plan; mixing two allowed ratios and sizes is rejected", async (t) => {
+  const f = await imageGenerationFixture(t);
+  for (const profile of PROFILES) for (const mode of profile.modes) {
+    const id = randomUUID();
+    const definition = capabilityDefinition(profile, mode, { verifiedAt: new Date().toISOString() });
+    await f.admin.query(
+      `INSERT INTO ${f.scope}.generation_capabilities(id,tenant_id,connection_id,connection_version_id,revision,definition,execution_mode,enabled,max_inflight,max_daily_jobs) VALUES($1,$2,$3,$4,1,$5,'verified_provider',true,2,200)`,
+      [id, f.tenant.id, f.input.connectionId, randomUUID(), definition],
+    );
+    const prepare = (output: Record<string, unknown>) => f.request("POST", `${f.base}/generation-plans`, {
+      ...f.input, purpose: profile.purpose, capabilityId: id, output,
+    });
+    for (const aspectRatio of aspectRatioOptions(definition)) {
+      for (const { resolution } of qualityOptions(definition, aspectRatio)) {
+        const output = { resolution, aspectRatio, ...(profile.duration ? { durationSeconds: profile.duration.min } : {}) };
+        const response = await prepare(output);
+        assert.equal(response.statusCode, 201, `${profile.id}/${mode}: ${response.body}`);
+        const plan = response.json();
+        assert.equal(plan.status, "ready");
+        assert.equal(plan.resolvedInput.output.resolution, resolution);
+        assert.equal(plan.resolvedInput.output.aspectRatio, aspectRatio);
+        assert.deepEqual(plan.resolvedInput.capabilitySnapshot.outputs, definition.outputs);
+      }
+    }
+    const first = definition.outputs![0]!;
+    const wrongRatio = definition.allowedAspectRatios!.find((ratio) => ratio !== first.aspectRatio)!;
+    const duration = profile.duration ? { durationSeconds: profile.duration.min } : {};
+    const rejected = await prepare({ resolution: first.resolution, aspectRatio: wrongRatio, ...duration });
+    assert.equal(rejected.statusCode, 422, rejected.body);
+    assert.equal(rejected.json().code, "IMAGE_OUTPUT_UNSUPPORTED");
+    const omitted = await prepare({ resolution: first.resolution, ...duration });
+    assert.equal(omitted.statusCode, 201, omitted.body);
+    assert.equal(omitted.json().resolvedInput.output.aspectRatio, undefined);
+  }
+  assert.equal(f.calls(), 0);
+});
 
 test("verified capability: blocked until verifiedAt, then ready with a real Seedance estimate", async (t) => {
   const f = await imageGenerationFixture(t, undefined, { purpose: "video", generationExecutor: true });

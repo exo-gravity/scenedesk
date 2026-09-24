@@ -6,6 +6,7 @@ import type { Schema } from "../content/model.js";
 import { resolveSelectedInput, assertSelectedCurrent } from "./prompt-input.js";
 import { safeText } from "./input-sources.js";
 import { findProfile } from "@drama/provider";
+import { supportsVisualOutput } from "@drama/domain";
 
 export async function resolveMedia(
   tx: Transaction,
@@ -117,19 +118,12 @@ export async function resolveMedia(
       "IMAGE_OUTPUT_UNSUPPORTED",
       "输出尺寸或参数不受支持。",
     );
-    if (input.output.aspectRatio) {
-      const parts = input.output.aspectRatio.split(":").map(Number);
-      requireThat(
-        parts.length === 2 &&
-          parts.every((n) => Number.isSafeInteger(n) && n > 0) &&
-          BigInt(width) * BigInt(parts[1]!) ===
-            BigInt(height) * BigInt(parts[0]!) &&
-          definition.allowedAspectRatios?.includes(input.output.aspectRatio),
-        422,
-        "IMAGE_OUTPUT_UNSUPPORTED",
-        "画幅必须与明确支持的输出尺寸一致。",
-      );
-    }
+    requireThat(
+      supportsVisualOutput(definition, resolution, input.output.aspectRatio),
+      422,
+      "IMAGE_OUTPUT_UNSUPPORTED",
+      "画幅必须与明确支持的输出尺寸一致。",
+    );
     if (kind === "video") {
       const duration = input.output.durationSeconds;
       requireThat(

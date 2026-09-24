@@ -1,4 +1,5 @@
 import type { components } from "@drama/contracts";
+import { supportsVisualOutput } from "@drama/domain";
 import { fixedShotSources } from "./canvas-shot-sources.js";
 import type { PromptDraft } from "./prompt-draft.js";
 type Schema<T extends keyof components["schemas"]> = components["schemas"][T];
@@ -60,16 +61,8 @@ export function imageOutput(
   if (!match || !Number(match[1]) || !Number(match[2]))
     throw new Error(`${label}尺寸不可用，请重新读取模型能力。`);
   const aspectRatio = output.aspectRatio;
-  if (aspectRatio) {
-    const ratio = /^(\d+):(\d+)$/.exec(aspectRatio);
-    if (
-      !capability.allowedAspectRatios?.includes(aspectRatio) ||
-      !ratio ||
-      Number(match[1]) * Number(ratio[2]) !==
-        Number(match[2]) * Number(ratio[1])
-    )
-      throw new Error("画幅与所选图片尺寸不匹配。");
-  }
+  if (!supportsVisualOutput(capability, resolution, aspectRatio))
+    throw new Error("画幅与所选图片尺寸不匹配。");
   if (output.durationSeconds !== undefined || output.withAudio)
     throw new Error("本次仅生成单张图片，请核对参数。");
   return {

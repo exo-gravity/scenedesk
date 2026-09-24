@@ -21,6 +21,12 @@ export async function prepareSubmission(submission: AssistanceSubmission, vendor
   const output = submission.resolvedInput.output ?? {};
   const size = output.resolution ?? "";
   const target = outputsOverride?.[size] ?? resolveOutput({ ...profile, outputs: { ...profile.outputs, ...outputsOverride } }, size);
+  if (
+    (output.aspectRatio && output.aspectRatio !== target.ratio) ||
+    (snapshot!.outputs?.length && !snapshot!.outputs.some((fixed) =>
+      fixed.resolution === size && fixed.aspectRatio === target.ratio && fixed.quality === target.resolution,
+    ))
+  ) throw new VerifiedInputError("OUTPUT_PROFILE_CHANGED");
   const mapped = referenceRoles(mode, submission.resolvedInput.references);
   const media = mapped.length ? await deps.resolveMedia(submission.jobId) : [];
   const images: PreparedSubmission["images"] = [];
