@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Badge,
   Button,
@@ -22,6 +22,7 @@ export function ShotResultFocus({
   active,
   sourceMediaId,
   transition,
+  renderSource,
 }: {
   shot: Schema<"Shot">;
   path: string;
@@ -29,6 +30,7 @@ export function ShotResultFocus({
   active: boolean;
   sourceMediaId?: string | undefined;
   transition: (next: () => void) => Promise<void>;
+  renderSource?: (take: Schema<"Take">) => ReactNode;
 }) {
   const takes = useList<Schema<"Take">>(`${path}/takes?shotId=${shot.id}`);
   const selection = useResource<Schema<"SelectionState">>(
@@ -151,6 +153,7 @@ export function ShotResultFocus({
                   path={path}
                   mediaPath={mediaPath}
                   take={take}
+                  source={renderSource?.(take)}
                 />
                 {other && (
                   <FixedTakePreview
@@ -158,6 +161,7 @@ export function ShotResultFocus({
                     path={path}
                     mediaPath={mediaPath}
                     take={other}
+                    source={renderSource?.(other)}
                   />
                 )}
               </div>
@@ -192,7 +196,7 @@ export function ShotResultFocus({
                         </span>
                         <span className={classes.takeChipLabel}>
                           <Text component="span" size="xs" fw={600}>
-                            {index + 1}
+                            候选 {index + 1}
                           </Text>
                           {adopted && (
                             <Text component="span" size="xs" c="dimmed">
@@ -342,9 +346,11 @@ function FixedTakePreview({
   path,
   mediaPath,
   take,
+  source,
 }: {
   path: string;
   mediaPath: string;
+  source?: ReactNode;
   take: Schema<"Take">;
 }) {
   const media = useResource<Schema<"Media">>(
@@ -379,6 +385,10 @@ function FixedTakePreview({
           {take.note || revision.data?.spec.intent || "暂无说明"}
         </div>
       </details>
+      {source && <div className={classes.previewSource}>
+        <Text size="xs" c="dimmed" truncate title={media.data?.displayName}>{media.data?.displayName ?? "正在读取来源…"}</Text>
+        {source}
+      </div>}
     </div>
   );
 }

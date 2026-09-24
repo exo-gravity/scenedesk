@@ -242,3 +242,36 @@
 .canvasSwitch :global(button:hover:not(:disabled)) {
   background: var(--ws-hover);
 }
+
+@media (max-width: 700px) {
+  .studio[data-view="shots"] {
+    --ws-studio-topbar-height: 120px;
+  }
+  .studio[data-view="shots"] .topBar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    gap: var(--mantine-spacing-xs);
+    padding-block: var(--mantine-spacing-xs);
+  }
+  .studio[data-view="shots"] .topBar > .barGroup:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .studio[data-view="shots"] .barGroup[data-align="end"] { display: contents; }
+  .studio[data-view="shots"] .account { grid-column: 2; grid-row: 1; pointer-events: auto; }
+  .studio[data-view="shots"] .environment {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    white-space: normal;
+  }
+  .studio[data-view="shots"] .viewSwitch {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+  }
+}

@@ -132,7 +132,7 @@
 .fixedPreview {
   display: grid;
   grid-template-columns: 1fr auto;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto auto;
   gap: var(--mantine-spacing-xs);
 }
 .mediaFrame {
@@ -376,8 +376,9 @@
 }
 .takeChip {
   flex: 0 0 auto;
-  width: 84px;
+  width: 128px;
   display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 2px;
   padding: var(--mantine-spacing-xs);
   border: 1px solid var(--ws-border);
@@ -395,6 +396,7 @@
   border-color: var(--ws-focus);
 }
 .takeChipTarget {
+  grid-column: 1 / -1;
   display: grid;
   gap: 2px;
   width: 100%;
@@ -427,4 +429,19 @@
 }
 .takeChipUse {
   align-self: start;
+}
+
+.previewSource {
+  grid-column: 1 / -1;
+  min-width: 0;
+  min-height: 48px;
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 560px) {
+  .previews[data-comparing] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(340px, 40dvh));
+    flex: none;
+  }
 }

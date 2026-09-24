@@ -4,7 +4,7 @@ import { expect, type WorkspaceFixture } from "./fixture.js";
 import { seedSelectedMedia } from "../support/selected-media.js";
 type Schema<K extends keyof components["schemas"]> = components["schemas"][K];
 
-export async function seedShotList(w: WorkspaceFixture) {
+export async function seedShotList(w: WorkspaceFixture, withProjectCanvas = true) {
   const seed = {
     ...w.runtime.database,
     tenantId: w.tenant.id,
@@ -55,26 +55,28 @@ export async function seedShotList(w: WorkspaceFixture) {
       note: "受控橙片；不是供应商验收。",
     },
   );
-  const ensured = await w.runtime.request<Schema<"ProjectCanvas">>(
-    w.owner,
-    "POST",
-    `${w.path}/canvas`,
-  );
-  expect(ensured.status).toBe(200);
-  const node = {
-    id: randomUUID(),
-    kind: "video",
-    title: "合成蓝片",
-    position: { x: 80, y: 80 },
-    width: 320,
-    content: { type: "media", mediaId: blue.id },
-  };
-  await w.command(
-    "PUT",
-    `${w.path}/canvases/${ensured.value.canvas.id}`,
-    { schemaVersion: 1, document: { nodes: [node], edges: [], groups: [] } },
-    ensured.value.canvas.revision,
-  );
+  if (withProjectCanvas) {
+    const ensured = await w.runtime.request<Schema<"ProjectCanvas">>(
+      w.owner,
+      "POST",
+      `${w.path}/canvas`,
+    );
+    expect(ensured.status).toBe(200);
+    const node = {
+      id: randomUUID(),
+      kind: "video",
+      title: "合成蓝片",
+      position: { x: 80, y: 80 },
+      width: 320,
+      content: { type: "media", mediaId: blue.id },
+    };
+    await w.command(
+      "PUT",
+      `${w.path}/canvases/${ensured.value.canvas.id}`,
+      { schemaVersion: 1, document: { nodes: [node], edges: [], groups: [] } },
+      ensured.value.canvas.revision,
+    );
+  }
   const selection = () =>
     w.command<Schema<"SelectionState">>(
       "GET",

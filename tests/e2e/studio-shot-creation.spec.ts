@@ -4,6 +4,10 @@ import type { components } from "@drama/contracts";
 type Shot = components["schemas"]["Shot"];
 type Scene = components["schemas"]["Scene"];
 
+test.afterEach(async ({ page }) => {
+  await page.unrouteAll({ behavior: "wait" });
+});
+
 test.beforeEach(async ({ workspace: w }) => {
   const canvas = await w.runtime.request(w.owner, "POST", `${w.path}/canvas`);
   expect(canvas.status).toBe(200);
@@ -42,7 +46,7 @@ test("the scene-directory entry uses the same short shot dialog", async ({ page,
 test("shot creation stays compact, retains cancelled inputs through refresh, and focuses the created shot", async ({ page, workspace: w }, info) => {
   await existingShot(w);
   await page.goto(`${w.runtime.origin}${w.basePath}/studio/shots?scene=${w.scene.id}`);
-  const table = page.getByRole("table", { name: "镜头列表", exact: true });
+  const list = page.getByRole("list", { name: "镜头列表", exact: true });
   await page.getByRole("button", { name: "新增镜头", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "新增镜头", exact: true });
   const form = dialog.getByRole("form", { name: "新增镜头", exact: true });
@@ -73,7 +77,7 @@ test("shot creation stays compact, retains cancelled inputs through refresh, and
   await page.setViewportSize({ width: 1366, height: 768 });
   await form.getByRole("button", { name: "取消", exact: true }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(table.getByRole("row").nth(1)).toContainText("原有镜头");
+  await expect(list.getByRole("listitem").nth(0)).toContainText("原有镜头");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   expect((await w.content()).shots).toHaveLength(1);
   await page.reload();
@@ -93,14 +97,14 @@ test("shot creation stays compact, retains cancelled inputs through refresh, and
   try {
     await create.click();
     await expect(form).toHaveCount(0);
-    await expect(page.getByRole("dialog", { name: "镜头 原有镜头", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "镜头 原有镜头", exact: true })).toHaveCount(0);
     await expect(page.getByText("正在读取镜头…", { exact: true })).toBeVisible();
   } finally {
     release();
   }
-  const drawer = page.getByRole("dialog", { name: "镜头 凝视戒指", exact: true });
-  const focus = drawer.getByRole("region", { name: "镜头专注预览" });
-  await expect(drawer).toBeVisible();
+  const detail = page.getByRole("region", { name: "镜头 凝视戒指", exact: true });
+  const focus = detail.getByRole("region", { name: "镜头专注预览" });
+  await expect(detail).toBeVisible();
   await expect(focus.getByRole("heading", { name: "凝视戒指", exact: true })).toBeVisible();
   const shots = (await w.content()).shots;
   expect(shots).toHaveLength(2);
@@ -136,7 +140,7 @@ test("lost shot creation response recovers the same request without a duplicate 
   await page.getByRole("button", { name: "新增镜头", exact: true }).click();
   await form.getByRole("button", { name: "恢复创建记录", exact: true }).click();
   await form.getByRole("button", { name: "恢复原创建请求", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "镜头 停顿", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "镜头 停顿", exact: true })).toBeVisible();
   expect(keys).toHaveLength(2);
   expect(keys[0]).toBeTruthy();
   expect(keys[1]).toBe(keys[0]);
@@ -207,10 +211,10 @@ test("legacy detailed shot drafts remain reviewable and retain their requirement
   await expect(form.getByRole("textbox", { name: "计划时长（秒）", exact: true })).toHaveValue("3.5");
   await expect(form.getByRole("textbox", { name: "第 1 句台词", exact: true })).toHaveValue("原来是你。");
   await form.getByRole("button", { name: "创建镜头", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "镜头 旧草稿镜头", exact: true })).toBeVisible();
-  await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/studio/shots?scene=${other.id}`);
-  await expect(page.getByRole("combobox", { name: "查看场次", exact: true })).toHaveValue(`${w.episode.title} · ${other.title}`);
+  await expect(page.getByRole("region", { name: "镜头 旧草稿镜头", exact: true })).toBeVisible();
   const created = (await w.content()).shots.find(shot => shot.label === "旧草稿镜头")!;
+  await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/studio/shots?scene=${other.id}&shot=${created.id}`);
+  await expect(page.getByRole("combobox", { name: "查看场次", exact: true })).toHaveValue(`${w.episode.title} · ${other.title}`);
   expect(created.sceneId).toBe(other.id);
   expect(created.spec).toMatchObject({
     action: "她慢慢放下手中的信。",
@@ -260,7 +264,7 @@ test("a late creation response does not take the user back to a scene they left"
     await page.getByRole("combobox", { name: "查看场次", exact: true }).click();
     await page.getByRole("option", { name: `${w.episode.title} · ${other.title}`, exact: true }).click();
     await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/studio/shots?scene=${other.id}`);
-    await expect(page.getByRole("table", { name: "镜头列表", exact: true }).getByRole("row")).toHaveCount(1);
+    await expect(page.getByText("本场还没有镜头", { exact: true })).toBeVisible();
   } finally {
     release();
   }
@@ -274,7 +278,7 @@ test("a late creation response does not take the user back to a scene they left"
   expect(created[0]!.sceneId).toBe(w.scene.id);
 });
 
-test("closing the creation modal after submission does not open a shot drawer when the response arrives", async ({ page, workspace: w }) => {
+test("closing the creation modal after submission does not change the focused shot when the response arrives", async ({ page, workspace: w }) => {
   await existingShot(w);
   await page.goto(`${w.runtime.origin}${w.basePath}/studio/shots?scene=${w.scene.id}`);
   await page.getByRole("button", { name: "新增镜头", exact: true }).click();
@@ -306,9 +310,10 @@ test("closing the creation modal after submission does not open a shot drawer wh
   }
   expect((await creationResponse).status()).toBe(201);
   await expect(dialog).toHaveCount(0);
-  const table = page.getByRole("table", { name: "镜头列表", exact: true });
-  await expect(table.getByRole("row").filter({ hasText: "关闭后收到的镜头" })).toBeVisible();
-  await expect(table.getByRole("row")).toHaveCount(3);
+  const list = page.getByRole("list", { name: "镜头列表", exact: true });
+  await expect(list.getByRole("listitem").filter({ hasText: "关闭后收到的镜头" })).toBeVisible();
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByRole("region", { name: "镜头 原有镜头", exact: true })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const created = (await w.content()).shots.filter(shot => shot.label === "关闭后收到的镜头");
   expect(created).toHaveLength(1);
