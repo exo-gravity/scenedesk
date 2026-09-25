@@ -14,7 +14,7 @@ SceneDesk 当前是独立 Web 的私有短剧创作工作台，项目创作台�
 | 看重建所依据的竞品现场与本地审计 | [LibTV / 即梦现场对照](research/2026-09-21-libtv-jimeng-canvas-design-review.md)、[SceneDesk 当前实现审计](research/2026-09-21-scenedesk-canvas-card-audit.md)、[卡片修改计划（历史，已被重建决定取代）](design/canvas-cards-redesign-plan-2026-09-21.md)、[调研交接（历史）](design/canvas-cards-agent-handoff-2026-09-21.md) |
 | 看已交付和待验收项 | [实施进度](implementation/22-implementation-progress.md)；专项证据：[创作区重建](implementation/85-studio-rebuild.md)、[真实供应商](implementation/86-verified-provider-runtime.md)；[八个工作包](implementation/70-creative-workspace-refactor.md)与[非模型收尾](implementation/77-non-provider-workspace-closure.md)保留阶段记录 |
 | 导入并阅读剧本 | [Word 导入](implementation/72-script-docx-import.md)、[飞书正文导入与配置](implementation/75-feishu-script-import.md) |
-| 理解创作台、助手与镜头整理 | [创作区重建分片记录（现行界面）](implementation/85-studio-rebuild.md)；引擎与领域事实的来历：[项目画布](implementation/71-project-canvas-workspace.md)、[连续创作](implementation/74-canvas-continuous-creation.md)、[镜头列表与原片包](implementation/76-shot-list-workspace.md) |
+| 理解创作台、助手与镜头整理 | [创作区重建分片记录（现行界面）](implementation/85-studio-rebuild.md)、[操作层级与细节（2026-09-25）](design/studio-experience-polish-2026-09-25.md)；引擎与领域事实的来历：[项目画布](implementation/71-project-canvas-workspace.md)、[连续创作](implementation/74-canvas-continuous-creation.md)、[镜头列表与原片包](implementation/76-shot-list-workspace.md) |
 | 修改业务或接口 | [实施设计包](implementation/README.md)、[领域术语](../CONTEXT.md)、[工程约定](../AGENTS.md) |
 | 修改页面 | [前端工程约定](../apps/web/AGENTS.md)、[UI 执行规范](design/mantine-ui-agent-spec-v0.1.md)、[端到端验收矩阵（历史；现行清单在 tests/e2e/README.md）](implementation/73-creative-workspace-e2e.md) |
 | 部署与恢复 | [私有部署](../deploy/README.md)、[首次操作者开通](implementation/55-private-owner-bootstrap.md)、[成对恢复检查](../deploy/recovery/smoke/README.md) |
