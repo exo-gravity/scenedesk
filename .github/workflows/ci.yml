@@ -1,20 +1,32 @@
 name: SceneDesk checks
-# The universal gate: intentionally NOT path-filtered. It validates the OpenAPI/TypeScript
-# contracts, the UI rules, the type check, the production build and the documentation, so it must
-# run for every change including documentation-only ones. The expensive image build, smoke stack
-# and browser suite are path-filtered in deployment.yml and workspace-e2e.yml.
+# Keep check names present on every PR; the shared planner selects jobs before services start.
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Run every verification suite
+        type: boolean
+        default: true
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  scope:
+    uses: ./.github/workflows/verification-scope.yml
+    with:
+      full: ${{ github.event_name == 'workflow_dispatch' && inputs.full }}
   verify:
+    needs: scope
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+        image: ${{ needs.scope.outputs.db == 'true' && 'postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685' || '' }}
         env:
           POSTGRES_USER: drama_local
           POSTGRES_PASSWORD: drama_local_only
@@ -28,21 +40,33 @@ jobs:
       DATABASE_URL: postgresql://drama_local:drama_local_only@127.0.0.1:5432/drama_ci
       PROVIDER_MODE: mock
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - name: Require a valid verification plan
+        if: needs.scope.result != 'success'
+        run: exit 1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: needs.scope.outputs.check == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.14'
       - run: npm install --global npm@10.9.8
+        if: needs.scope.outputs.check == 'true'
       - run: npm ci
+        if: needs.scope.outputs.check == 'true'
       - run: pip install -r docs/implementation/validation-requirements.txt
       - run: python docs/implementation/check_design.py
       - run: npm run check
+        if: needs.scope.outputs.check == 'true'
       - run: npm run db:migrate
+        if: needs.scope.outputs.db == 'true'
       - run: npm run test:db
+        if: needs.scope.outputs.db == 'true'
       - run: npm run worker:check
+        if: needs.scope.outputs.worker == 'true'
       - run: npm run test:media:prepare
+        if: needs.scope.outputs.media == 'true'
       - run: npm run test:media
+        if: needs.scope.outputs.media == 'true'
