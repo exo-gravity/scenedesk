@@ -13,7 +13,8 @@ test("ST-00: the studio entry opens as a full-screen frame, and the old canvas a
   const views = bar.getByRole("navigation", { name: "创作区视图", exact: true });
   await expect(views).toHaveText(/^剧本创作台镜头整理$/);
   await expect(views.locator("[aria-current=page]")).toHaveText("创作台");
-  await expect(bar.getByText("未连接真实模型")).toBeVisible();
+  await expect(bar.getByText("未连接真实模型")).toHaveCount(0);
+  await expect(bar.getByText("本地测试身份", { exact: true })).toBeVisible();
   // No studio rail, context header or project navigation: the studio owns the viewport.
   await expect(page.getByRole("navigation", { name: "项目导航", exact: true })).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "工作室导航", exact: true })).toHaveCount(0);
@@ -29,7 +30,7 @@ test("ST-00: the studio entry opens as a full-screen frame, and the old canvas a
   await expect(page.getByRole("navigation", { name: "项目导航", exact: true })).toHaveCount(0);
   // Portaled menus must honor the declared icon size outside the studio root.
   await page.getByRole("button", { name: "项目菜单", exact: true }).click();
-  const backIcon = page.getByRole("menuitem", { name: "返回项目列表", exact: true }).locator("svg");
+  const backIcon = page.getByRole("menuitem", { name: "所有项目", exact: true }).locator("svg");
   await expect(backIcon).toHaveCSS("width", "14px");
   await expect(backIcon).toHaveCSS("height", "14px");
 });

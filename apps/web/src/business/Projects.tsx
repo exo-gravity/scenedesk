@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import {
+  ActionIcon,
+  Menu,
+  Skeleton,
+  Tabs,
   Badge,
   Anchor,
   Button,
@@ -12,7 +16,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { Plus, ArrowLeft, FilmSlate } from "@phosphor-icons/react";
+import { Plus, ArrowLeft, ArrowRight, DotsThree, GearSix, FilmSlate } from "@phosphor-icons/react";
 import {
   ApiError,
   useCommand,
@@ -29,6 +33,7 @@ import {
   tenantPath,
 } from "./common";
 import classes from "./workbench.module.css";
+import projectClasses from "./projects.module.css";
 import { ContentWorkspace } from "./ContentWorkspace";
 import { QualityReferenceSettings } from "./QualityReferenceSettings";
 import { MediaPreview } from "./MediaPreview";
@@ -62,6 +67,7 @@ export function Projects({
   const manager = own.role === "owner" || own.role === "admin";
   const [creating, setCreating] = useState(false),
     [search, setSearch] = useState("");
+  const [status, setStatus] = useState<"active" | "archived">("active");
   const projects = useList<Project>(`${tenantPath(tenantId)}/projects`);
   useEffect(() => {
     if (!projectId) document.title = "项目 · SceneDesk";
@@ -85,15 +91,13 @@ export function Projects({
         own={own}
       />
     );
-  const visibleProjects =
-    projects.data?.filter((p) =>
-      p.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
-    ) ?? [];
+  const available = projects.isError ? [] : (projects.data ?? []);
+  const visibleProjects = available.filter((p) => p.status === status &&
+    p.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
   return (
     <>
       <SectionHeading
         title="项目"
-        description="让故事从这里，走向画面。"
         action={
           manager && (
             <Button
@@ -106,57 +110,38 @@ export function Projects({
           )
         }
       />
-      <div className={classes.libraryToolbar}>
-        <Text size="sm" c="dimmed">
-          全部项目{projects.data ? ` · ${projects.data.length}` : ""}
-        </Text>
-        <TextInput
-          aria-label="查找项目"
-          placeholder="输入项目名称"
-          value={search}
-          onChange={(e) => setSearch(e.currentTarget.value)}
-          className={classes.projectSearch}
-          leftSection={<MagnifyingGlass size={16} />}
-        />
-      </div>
-      <ErrorNotice
-        error={projects.error}
-        retry={() => void projects.refetch()}
-      />
-      {projects.isPending ? (
-        <Loader aria-label="正在读取项目" />
-      ) : (
-        <div className={classes.projectGrid}>
-          {visibleProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              tenantId={tenantId}
-            />
-          ))}
+      <Tabs value={status} onChange={(value) => { if (value === "active" || value === "archived") setStatus(value); }}>
+        <div className={projectClasses.toolbar}>
+          <Tabs.List aria-label="项目状态" className={projectClasses.tabs}>
+            <Tabs.Tab value="active">进行中{projects.data && !projects.isError && <span className={projectClasses.count}>{available.filter((p) => p.status === "active").length}</span>}</Tabs.Tab>
+            <Tabs.Tab value="archived">已归档{projects.data && !projects.isError && <span className={projectClasses.count}>{available.filter((p) => p.status === "archived").length}</span>}</Tabs.Tab>
+          </Tabs.List>
+          <TextInput aria-label="查找项目" placeholder="搜索项目" value={search}
+            onChange={(event) => setSearch(event.currentTarget.value)}
+            className={projectClasses.search} leftSection={<MagnifyingGlass size={16} aria-hidden />} />
         </div>
-      )}
-      {!projects.isPending && !projects.isError && !projects.data?.length && (
-        <Empty>
-          <Text>还没有项目。</Text>
-          <Text mt="sm">
-            {manager
-              ? "创建项目，然后添加剧本、场次与参考素材。"
-              : "负责人将你加入项目后，项目会显示在这里。"}
-          </Text>
-        </Empty>
-      )}
-      {!projects.isPending &&
-        !projects.isError &&
-        !!projects.data?.length &&
-        !visibleProjects.length && (
-          <Empty>
-            <Text>没有找到符合“{search}”的项目。</Text>
-            <Button mt="md" onClick={() => setSearch("")}>
-              清空搜索
-            </Button>
-          </Empty>
-        )}
+        <Tabs.Panel value={status}>
+          <ErrorNotice error={projects.error} retry={() => void projects.refetch()} />
+          {projects.isPending ? (
+            <div className={projectClasses.grid} role="status" aria-label="正在读取项目">
+              {[0, 1, 2].map((key) => <div key={key} className={projectClasses.card}>
+                <Skeleton className={projectClasses.cover} /><div className={projectClasses.meta}><Skeleton height={20} width="65%" /></div><Skeleton height={18} width="45%" /><Skeleton height={18} width="35%" mt="xs" />
+              </div>)}
+            </div>
+          ) : !projects.isError && visibleProjects.length ? (
+            <div className={projectClasses.grid}>
+              {visibleProjects.map((project) => <ProjectCard key={project.id} project={project} tenantId={tenantId} />)}
+            </div>
+          ) : !projects.isError && (
+            <Empty>
+              <Text>{search.trim() ? `没有找到符合“${search.trim()}”的项目。` : status === "archived" ? "还没有归档项目。" : "还没有进行中的项目。"}</Text>
+              {search.trim() ? <Button variant="subtle" mt="md" onClick={() => setSearch("")}>清空搜索</Button> : status === "active" && (
+                <Text mt="sm">{manager ? "创建项目，然后添加剧本、场次与参考素材。" : "负责人将你加入项目后，项目会显示在这里。"}</Text>
+              )}
+            </Empty>
+          )}
+        </Tabs.Panel>
+      </Tabs>
       <Modal
         opened={creating && manager}
         onClose={() => setCreating(false)}
@@ -178,54 +163,45 @@ export function Projects({
     </>
   );
 }
-function ProjectCard({
-  project,
-  tenantId,
-}: {
-  project: Project;
-  tenantId: string;
-}) {
+function ProjectCard({ project, tenantId }: { project: Project; tenantId: string }) {
   const path = tenantPath(tenantId);
   const covers = useResource<Page<Schema<"Media">>>(
     `${path}/media?scope=project&projectId=${project.id}&kind=image&status=ready&limit=1`,
   );
-  const cover = covers.data?.items[0];
+  const cover = covers.isError ? undefined : covers.data?.items[0];
   const href = `#/app/t/${tenantId}/p/${project.id}/studio`;
+  const { width, height, fpsNum, fpsDen } = project.spec;
+  let divisor = width, remainder = height;
+  while (remainder) [divisor, remainder] = [remainder, divisor % remainder];
+  const unavailable = <ProjectPreviewFallback name={project.name} failed />;
   return (
-    <article className={classes.projectCard}>
-      <Anchor
-        component="a"
-        href={href}
-        className={classes.projectCover}
-        aria-label={`进入项目 ${project.name}`}
-      >
-        {cover ? (
-          <MediaPreview media={cover} path={path} thumbnail />
-        ) : (
-          <div className={classes.projectCoverFallback}>
-            <FilmSlate size={36} />
-            <Text size="xs">
-              {covers.isError ? "项目预览暂不可用" : "尚无项目画面"}
-            </Text>
-          </div>
-        )}
+    <article className={projectClasses.card} aria-label={project.name}>
+      <Anchor href={href} className={projectClasses.cover} aria-label={`进入项目 ${project.name}`}>
+        {covers.isPending ? <Skeleton height="100%" aria-label="正在读取项目预览" /> : cover ? (
+          <MediaPreview media={cover} path={path} thumbnail unavailable={unavailable} />
+        ) : <ProjectPreviewFallback name={project.name} failed={covers.isError} />}
       </Anchor>
-      <div className={classes.projectMeta}>
-        <Anchor href={href} className={classes.projectTitle}>
-          {project.name}
-        </Anchor>
-        {project.status === "archived" && (
-          <Text size="xs" c="dimmed">
-            已归档
-          </Text>
-        )}
+      <div className={projectClasses.meta}>
+        <Anchor href={href} className={projectClasses.title}>{project.name}</Anchor>
+        <Menu position="bottom-end" width={168} withinPortal>
+          <Menu.Target>
+            <ActionIcon variant="subtle" color="gray" aria-label={`${project.name}的更多操作`}><DotsThree size={20} aria-hidden /></ActionIcon>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Item component="a" href={`#/app/t/${tenantId}/p/${project.id}`} leftSection={<GearSix size={14} aria-hidden />}>项目设置</Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
       </div>
-      <Text size="xs" c="dimmed">
-        {project.spec.width} × {project.spec.height} ·{" "}
-        {Number((project.spec.fpsNum / project.spec.fpsDen).toFixed(3))} fps
-      </Text>
+      <Text size="xs" c="dimmed">{width === height ? "方形" : width > height ? "横屏" : "竖屏"} · {width / divisor}:{height / divisor} · {Number((fpsNum / fpsDen).toFixed(3))} fps</Text>
+      <Anchor href={href} className={projectClasses.enter}>{project.status === "archived" ? "查看项目" : "进入创作台"}<ArrowRight size={14} aria-hidden /></Anchor>
     </article>
   );
+}
+function ProjectPreviewFallback({ name, failed }: { name: string; failed: boolean }) {
+  return <div className={projectClasses.fallback}>
+    <span className={projectClasses.fallbackName}>{name}</span>
+    <span className={projectClasses.fallbackHint}>{failed ? "预览暂不可用" : "暂无预览"}</span>
+  </div>;
 }
 function ProjectDetails({
   tenantId,

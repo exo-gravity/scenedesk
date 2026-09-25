@@ -145,6 +145,9 @@ test("ST-01: a revoked collaborator cannot reopen the cached board or read its d
   await expect(page.getByRole("button", { name: /^创作台保存状态：/ })).toHaveCount(0);
   await expect(page.getByText(w.project.name, { exact: true })).toHaveCount(0);
   await expect(page).not.toHaveTitle(new RegExp(w.project.name));
+  await page.getByRole("button", { name: "项目菜单", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: w.project.name, exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
   expect((await w.runtime.request(collaborator, "GET", `${s.path}/canvas`)).status).toBe(404);
   expect((await w.runtime.request(collaborator, "GET", `${s.path}/canvases/${ensured.value.canvas.id}`)).status).toBe(404);
 });

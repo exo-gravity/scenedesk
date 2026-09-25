@@ -206,7 +206,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
   const health = useQuery({
     queryKey: ["health"],
     queryFn: () =>
-      api<{ phase: string; identityMode?: string; providerMode?: string }>(
+      api<{ phase: string; identityMode?: string }>(
         "/health/live",
       ),
   });
@@ -273,11 +273,6 @@ function AuthenticatedApp({ hash }: { hash: string }) {
             SceneDesk
           </Anchor>
           <Group gap="lg" wrap="nowrap" className={classes.headerStatus}>
-            {health.data?.providerMode === "mock" && (
-              <Text size="xs" c="dimmed">
-                未连接真实模型
-              </Text>
-            )}
             {health.data?.identityMode === "local_test" && (
               <Text size="xs" c="dimmed">
                 本地测试身份
@@ -340,12 +335,7 @@ function AuthenticatedApp({ hash }: { hash: string }) {
           <Workspace
             key={session.data.id}
             hash={hash}
-            environment={[
-              health.data?.providerMode === "mock" ? "未连接真实模型" : "",
-              health.data?.identityMode === "local_test" ? "本地测试身份" : "",
-            ]
-              .filter(Boolean)
-              .join(" · ")}
+            environment={health.data?.identityMode === "local_test" ? "本地测试身份" : ""}
           />
         </SessionContext.Provider>
       )}
