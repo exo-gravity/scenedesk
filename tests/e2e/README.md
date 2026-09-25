@@ -34,6 +34,8 @@ Not carried over from the retired specs, because the interface they exercised is
 
 ## Evidence boundaries
 
+The 2026-09-25 studio polish adds dark/light reference-label checks, narrow composer and panel bounds, keyboard search focus and visible asset insertion, one visible task/assistant panel with draft retention, and empty-shot creation with a scene-preserving canvas link. Selection tests distinguish the single current-preview adoption action from the actual selected original; delivery tests assert that opening the confirmation dialog leaves the underlying shot preview geometry unchanged.
+
 Screenshots are review evidence, **not approved pixel baselines**: inspect them against the accepted design before reporting visual acceptance. The suite does not prove external provider execution, media decoding beyond the synthetic MP4 fixtures, or OIDC login. No business response body is fabricated: transport faults are injected only after the real server committed.
 
 ## Fixtures and manual harnesses
