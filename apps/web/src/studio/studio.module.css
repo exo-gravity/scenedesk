@@ -31,20 +31,6 @@
   z-index: 2;
   container-type: inline-size;
 }
-/* Narrow boards: the right group gives up its words before the view switch is touched. */
-@container (max-width: 1160px) {
-  .environment {
-    display: none;
-  }
-  .tool > span,
-  .status > span {
-    display: none;
-  }
-  .tool,
-  .status {
-    padding-inline: var(--mantine-spacing-xs);
-  }
-}
 .barGroup {
   display: flex;
   align-items: center;
@@ -55,7 +41,6 @@
 .barGroup[data-align="end"] {
   justify-content: flex-end;
 }
-.context,
 .viewSwitch {
   display: inline-flex;
   align-items: center;
@@ -66,26 +51,22 @@
   pointer-events: auto;
 }
 .context {
-  gap: var(--mantine-spacing-sm);
-  padding-inline: var(--mantine-spacing-sm);
-  min-width: 0;
-}
-.brand {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  font-size: var(--mantine-font-size-sm);
-  font-weight: 600;
-  white-space: nowrap;
+  height: var(--ws-studio-tool-size);
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+  pointer-events: auto;
 }
 .divider {
   width: 1px;
+  flex-shrink: 0;
   height: 16px;
   background: var(--ws-studio-chrome-border);
 }
 .projectName {
   flex: 0 1 auto;
-  min-width: 6ch;
+  min-width: 0;
   max-width: 240px;
   font-size: var(--mantine-font-size-sm);
   overflow: hidden;
@@ -214,13 +195,6 @@
 .tool[aria-pressed="true"] {
   background: var(--ws-hover);
 }
-.brand[aria-haspopup] {
-  cursor: pointer;
-  border-radius: var(--ws-radius);
-}
-.brand[aria-haspopup]:hover {
-  background: var(--ws-hover);
-}
 /* The canvas switch sits inside the context group; the navigator's own frame goes. */
 .canvasSwitch {
   display: inline-flex;
@@ -237,41 +211,57 @@
   gap: var(--mantine-spacing-xs);
   border: 0;
   background: transparent;
+  color: var(--ws-secondary);
+  font-weight: 400;
   border-radius: var(--ws-radius);
 }
 .canvasSwitch :global(button:hover:not(:disabled)) {
   background: var(--ws-hover);
 }
 
-@media (max-width: 700px) {
-  .studio[data-view="shots"] {
-    --ws-studio-topbar-height: 120px;
+/* Narrow boards: the right group gives up its words before the view switch is touched. */
+@container (max-width: 1160px) {
+  .environment {
+    display: none;
   }
-  .studio[data-view="shots"] .topBar {
+  .tool > span,
+  .status > span {
+    display: none;
+  }
+  .tool,
+  .status {
+    padding-inline: var(--mantine-spacing-xs);
+  }
+}
+/* Give navigation its own row before controls can overlap. */
+@media (max-width: 1000px) {
+  .studio { --ws-studio-topbar-height: 96px; }
+  .topBar {
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto;
     gap: var(--mantine-spacing-xs);
     padding-block: var(--mantine-spacing-xs);
   }
-  .studio[data-view="shots"] .topBar > .barGroup:first-child {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .studio[data-view="shots"] .barGroup[data-align="end"] { display: contents; }
-  .studio[data-view="shots"] .account { grid-column: 2; grid-row: 1; pointer-events: auto; }
-  .studio[data-view="shots"] .environment {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    height: auto;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    white-space: normal;
-  }
-  .studio[data-view="shots"] .viewSwitch {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    justify-self: center;
-  }
+  .topBar > .barGroup:first-child { grid-column: 1; grid-row: 1; }
+  .barGroup[data-align="end"] { grid-column: 2; grid-row: 1; }
+  .viewSwitch { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+}
+@media (max-width: 520px) {
+  .topBar { padding-inline: var(--mantine-spacing-xs); }
+  .topBar > .barGroup:first-child { grid-column: 1 / -1; }
+  .context { width: 100%; }
+  .barGroup[data-align="end"] { grid-row: 2; gap: 4px; }
+  .viewSwitch { grid-column: 1; justify-self: start; }
+  .view { padding-inline: var(--mantine-spacing-xs); }
+  .tool, .status { width: var(--ws-studio-tool-size); padding: 0; justify-content: center; }
+}
+@media (max-width: 360px) {
+  .studio { --ws-studio-topbar-height: 136px; }
+  .topBar { grid-template-rows: auto auto auto; }
+  .viewSwitch { grid-column: 1 / -1; justify-self: center; }
+  .barGroup[data-align="end"] { grid-row: 3; grid-column: 1 / -1; justify-content: center; }
+}
+@media (pointer: coarse) {
+  .context { min-height: 44px; }
+  .canvasSwitch :global(button) { min-height: 44px; }
 }

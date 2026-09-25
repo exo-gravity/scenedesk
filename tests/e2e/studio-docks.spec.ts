@@ -71,8 +71,8 @@ test("ST-08: the assistant and task docks, the canvas switch to a scene canvas, 
 
   // Project menu and account.
   await page.getByRole("button", { name: "项目菜单", exact: true }).click();
-  await expect(page.getByRole("menuitem", { name: "返回项目列表", exact: true })).toHaveAttribute("href", `#/app/t/${w.tenant.id}`);
-  await expect(page.getByRole("menuitem", { name: "项目设置、成员与归档", exact: true })).toHaveAttribute("href", `#/app/t/${w.tenant.id}/p/${w.project.id}`);
+  await expect(page.getByRole("menuitem", { name: "所有项目", exact: true })).toHaveAttribute("href", `#/app/t/${w.tenant.id}`);
+  await expect(page.getByRole("menuitem", { name: "项目设置", exact: true })).toHaveAttribute("href", `#/app/t/${w.tenant.id}/p/${w.project.id}`);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
   await expect(page.getByRole("menuitem", { name: "退出登录", exact: true })).toBeVisible();

@@ -262,7 +262,7 @@ function CanvasAssistantContent({
   const modelDescription = (c: Schema<"Capability">) => {
     const purpose = c.purpose === "creative_assistance" ? "创作对话" : purposeLabel(c.purpose);
     const details = c.executionMode === "test_fixture"
-      ? c.mode === "target_profile_fixture" ? "仅提示目标，不执行媒体" : "本地演示，未连接真实模型"
+      ? c.mode === "target_profile_fixture" ? "仅提示目标，不执行媒体" : "本地测试模型"
       : c.purpose === "creative_assistance" ? "故事与镜头讨论" : "准备提示的目标模型";
     const duplicateName = (c.purpose === "creative_assistance" ? textModels : targets)
       .filter((other) => modelName(other) === modelName(c)).length > 1;

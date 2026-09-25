@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Text } from "@mantine/core";
-import { CaretDown } from "@phosphor-icons/react";
 import classes from "./studio.module.css";
 
 /** The three views of the creative workspace and where each lives. */
@@ -33,11 +32,11 @@ export function StudioFrame({
   /** Which view is open, and the studio's own address for the others. */
   view: StudioView;
   base: string;
-  /** Mock provider and local test identity labels; always shown, never hidden for looks. */
+  /** Identity environment labels, independent of the selected model's execution mode. */
   environment?: string | undefined;
   /** Save state of the current view, when it has one. */
   status?: ReactNode;
-  /** The project menu behind the brand; the brand alone when absent. */
+  /** Return to all projects and switch the current project. */
   menu?: ReactNode;
   /** The canvas switch, only while a canvas is open. */
   canvasSwitch?: ReactNode;
@@ -53,24 +52,9 @@ export function StudioFrame({
         <div className={classes.barGroup}>
           <div className={classes.context}>
             {menu ?? (
-              <span className={classes.brand}>
-                SceneDesk
-                <CaretDown size={12} aria-hidden />
-              </span>
+              <span className={classes.projectName} data-loading={loading || undefined}>{projectName}</span>
             )}
-            <span className={classes.divider} aria-hidden />
-            <span
-              className={classes.projectName}
-              data-loading={loading || undefined}
-            >
-              {projectName}
-            </span>
-            {canvasSwitch && (
-              <>
-                <span className={classes.divider} aria-hidden />
-                {canvasSwitch}
-              </>
-            )}
+            {canvasSwitch}
           </div>
         </div>
         <nav className={classes.viewSwitch} aria-label="创作区视图">

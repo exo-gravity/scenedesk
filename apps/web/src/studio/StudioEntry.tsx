@@ -52,7 +52,6 @@ export default function StudioEntry({
       ? `${episode?.title ?? "未找到所属集"} · ${scene.title} 创作台`
       : "场次创作台"
     : "项目创作台";
-  const menu = <ProjectMenu tenantId={tenantId} projectId={projectId} />;
   const canvasId = sceneId
     ? (sceneCanvas.data?.canvas.id ?? createScene.data?.canvas.id)
     : (canvas.data?.canvas.id ?? create.data?.canvas.id);
@@ -74,6 +73,8 @@ export default function StudioEntry({
   const projectName = project.isError || denied
     ? "项目不可访问"
     : (project.data?.name ?? "项目");
+  const menu = <ProjectMenu tenantId={tenantId} projectId={projectId} projectName={projectName}
+    unavailable={project.isError || !!denied} loading={project.isPending} />;
   useEffect(() => {
     document.title = `${projectName} · ${view === "script" ? "剧本" : view === "shots" ? "镜头整理" : "创作台"} · SceneDesk`;
   }, [projectName, view]);

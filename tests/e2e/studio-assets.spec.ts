@@ -58,3 +58,25 @@ test("ST-05: the assets panel lists, searches and drags media onto the board; th
   await expect(panel).toHaveCount(0);
   await expect.poll(async () => (await f.ok("GET", `${f.path}/workspace-preference`)).assetPanelOpen).toBe(false);
 });
+
+test("project posters: authorized image fills the poster and failed media stays distinct from an empty project", async ({ page, continuous: f }, info) => {
+  await page.goto(`${f.origin}/#/app/t/${f.tenant.id}`);
+  const card = page.getByRole("article", { name: f.project.name, exact: true });
+  const image = card.locator("img");
+  await expect(image).toBeVisible();
+  await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
+  await expect(image).toHaveCSS("object-fit", "cover");
+  const cover = card.getByRole("link", { name: `进入项目 ${f.project.name}`, exact: true });
+  const frame = await cover.boundingBox(), picture = await image.boundingBox();
+  expect(frame!.width / frame!.height).toBeCloseTo(3 / 4, 2);
+  expect(picture!.width).toBeCloseTo(frame!.width - 2, 0);
+  expect(picture!.height).toBeCloseTo(frame!.height - 2, 0);
+  const mediaOrigin = new URL((await image.getAttribute("src"))!).origin;
+  await page.route((url) => url.origin === mediaOrigin, (route) => route.abort("failed"));
+  await page.reload();
+  await expect(card.getByText("预览暂不可用", { exact: true })).toBeVisible();
+  await expect(card.getByText("暂无预览", { exact: true })).toHaveCount(0);
+  await page.screenshot({ path: info.outputPath("project-preview-unavailable.png"), animations: "disabled" });
+  await cover.click();
+  await expect(page).toHaveURL(`${f.origin}/#/app/t/${f.tenant.id}/p/${f.project.id}/studio`);
+});

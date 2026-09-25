@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState } from "react";
+import { lazy, Suspense, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Loader, Stack, Text } from "@mantine/core";
 import {
@@ -39,12 +39,15 @@ export function MediaPreview({
   thumbnail = false,
   range,
   fit = false,
+  unavailable,
 }: {
   media: Schema<"Media">;
   path: string;
   thumbnail?: boolean;
   range?: Schema<"Range"> | undefined;
   fit?: boolean;
+  /** Optional content for an unavailable preview, within the existing media frame. */
+  unavailable?: ReactNode;
 }) {
   const session = useSession(),
     [playbackError, setPlaybackError] = useState(false),
@@ -110,7 +113,7 @@ export function MediaPreview({
   if (!enabled)
     return (
       <div className={previewClass}>
-        <Stack align="center" gap="xs">
+        {unavailable ?? <Stack align="center" gap="xs">
           <MediaSymbol kind={media.kind} />
           {!thumbnail && (
             <Text>
@@ -125,13 +128,13 @@ export function MediaPreview({
                       : "暂无预览"}
             </Text>
           )}
-        </Stack>
+        </Stack>}
       </div>
     );
   if (access.isError || playbackError)
     return (
       <div className={previewClass}>
-        <Stack align="center" gap="xs">
+        {unavailable ?? <Stack align="center" gap="xs">
           <MediaSymbol kind={media.kind} />
           {!thumbnail && (
             <>
@@ -152,7 +155,7 @@ export function MediaPreview({
               </Button>
             </>
           )}
-        </Stack>
+        </Stack>}
       </div>
     );
   if (!access.data)
