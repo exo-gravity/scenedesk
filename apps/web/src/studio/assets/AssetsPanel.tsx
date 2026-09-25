@@ -76,7 +76,7 @@ export function AssetsPanel({
         variant="unstyled"
         size="sm"
         aria-label="搜索资产与素材"
-        placeholder="搜索"
+        placeholder="搜索资产与素材"
         leftSection={<MagnifyingGlass size={14} aria-hidden />}
         classNames={{ root: classes.searchRoot!, input: classes.search! }}
         value={query}

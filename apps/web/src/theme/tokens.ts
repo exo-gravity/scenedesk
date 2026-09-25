@@ -62,6 +62,7 @@ export const semanticVariables = {
   "--ws-raised": tokens.surface.raised,
   "--ws-hover": tokens.surface.hover,
   "--ws-media": sharedSurfaces.media,
+  "--ws-on-media": sharedSurfaces.onMedia,
   "--ws-text": tokens.text.primary,
   "--ws-secondary": tokens.text.secondary,
   "--ws-muted": tokens.text.muted,

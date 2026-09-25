@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Alert, Loader, UnstyledButton } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { ListChecks, Sparkle } from "@phosphor-icons/react";
 import { useList, useSession, type Schema } from "../business/api";
 import {
@@ -94,6 +95,7 @@ export function StudioCanvas({
   const [taskPlan, setTaskPlan] = useState<string>();
   const [assistantMode, setAssistantMode] = useState<DockMode>("docked");
   const [tasksMode, setTasksMode] = useState<DockMode>("docked");
+  const compact = useMediaQuery("(max-width: 1000px)");
   const [assistantContext, setAssistantContext] = useState<{ nodeIds: string[]; nonce: number }>();
   const document = state?.local?.document;
   const readOnly =
@@ -232,10 +234,15 @@ export function StudioCanvas({
     [change],
   );
   const setAssistant = useCallback(
-    (open: boolean) => change({ assistantOpen: open }),
+    (open: boolean) => {
+      if (open) setTasksOpen(false);
+      change({ assistantOpen: open });
+    },
     [change],
   );
   const assistantOpen = !!preference.view?.assistantOpen;
+  const assistantVisible = assistantOpen && !tasksOpen;
+  const docked = !compact && ((tasksOpen && tasksMode === "docked") || (assistantVisible && assistantMode === "docked"));
   const titles = useMemo(
     () => Object.fromEntries((document?.nodes ?? []).map((node) => [node.id, node.title])),
     [document?.nodes],
@@ -297,8 +304,8 @@ export function StudioCanvas({
           <UnstyledButton
             className={classes.tool}
             aria-label="助手"
-            aria-pressed={assistantOpen}
-            onClick={() => setAssistant(!assistantOpen)}
+            aria-pressed={assistantVisible}
+            onClick={() => setAssistant(!assistantVisible)}
           >
             <Sparkle size={16} aria-hidden />
             <span>助手</span>
@@ -314,7 +321,7 @@ export function StudioCanvas({
       <main
         className={classes.board}
         aria-label="创作台"
-        data-dock={(tasksOpen && tasksMode === "docked") || (assistantOpen && assistantMode === "docked") ? "docked" : undefined}
+        data-dock={docked ? "docked" : undefined}
       >
         {!controller || !state || !preference.view ? (
           <div className={classes.center}>
@@ -370,7 +377,7 @@ export function StudioCanvas({
                   selected={selected}
                   onSelect={select}
                   projectAspect={projectAspect}
-                  docked={(tasksOpen && tasksMode === "docked") || (assistantOpen && assistantMode === "docked")}
+                  docked={docked}
                   viewport={preference.view.viewport}
                   onViewport={moveViewport}
                   mediaPath={tenantPath(tenantId)}
@@ -385,7 +392,7 @@ export function StudioCanvas({
                   shotsHref={(mediaId) => `${base}/shots?media=${mediaId}`}
                   onAssistantContext={(nodeIds) => {
                     setAssistantContext({ nodeIds, nonce: Date.now() });
-                    if (!assistantOpen) setAssistant(true);
+                    if (!assistantVisible) setAssistant(true);
                   }}
                   generation={{
                     tenantId,
@@ -400,21 +407,21 @@ export function StudioCanvas({
                   }}
                 />
                 {tasksOpen && (
-                  <Dock label="任务" title={`任务 · ${canvasLabel}`} mode={tasksMode} onMode={setTasksMode} onClose={() => setTasksOpen(false)}>
+                  <Dock label="任务" title={`任务 · ${canvasLabel}`} mode={compact ? "floating" : tasksMode} onMode={compact ? undefined : setTasksMode} onClose={() => setTasksOpen(false)}>
                     <SceneTaskPanel view={taskView} onChange={setTaskView}>
                       <AttemptBrowser tenantId={tenantId} attempts={entries} titles={titles} planId={taskPlan} onPlan={setTaskPlan} />
                     </SceneTaskPanel>
                   </Dock>
                 )}
                 {assistantOpen && (
-                  <Dock label="助手" title="助手" chromeless mode={assistantMode} onMode={setAssistantMode} onClose={() => setAssistant(false)}>
+                  <Dock label="助手" title="助手" chromeless hidden={!assistantVisible} mode={compact ? "floating" : assistantMode} onMode={compact ? undefined : setAssistantMode} onClose={() => setAssistant(false)}>
                     <CanvasAssistant
                       tenantId={tenantId}
                       projectId={projectId}
                       sceneId={sceneId}
                       controller={controller}
                       active={active && !readOnly}
-                      visible
+                      visible={assistantVisible}
                       requestedContext={assistantContext}
                       onEditDraft={async (nodeId) => {
                         const target = controller.getSnapshot().local?.document.nodes.find((node) => node.id === nodeId);
@@ -422,7 +429,6 @@ export function StudioCanvas({
                           throw new Error("原草稿已移除或改变，请在创作台中核对。助手建议仍保留。");
                         select([nodeId]);
                       }}
-                      onClose={() => setAssistant(false)}
                     />
                   </Dock>
                 )}

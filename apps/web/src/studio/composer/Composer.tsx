@@ -494,7 +494,9 @@ export function Composer(props: ComposerProps) {
                     : (plan.blockingReasons[0] ?? "计划暂不可执行")
                 : record?.planRequest
                   ? "原请求已固定，可继续"
-                  : props.awaitingSave
+                  : reason
+                    ? reason
+                    : props.awaitingSave
                     ? "生成前会先保存创作台" // rule 9
                     : "")
             )}

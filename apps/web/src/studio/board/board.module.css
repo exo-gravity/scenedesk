@@ -221,7 +221,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ws-studio-card);
+  color: var(--ws-on-media);
   pointer-events: none;
 }
 .playDisc {
@@ -231,7 +231,7 @@
   width: 48px;
   height: 48px;
   border-radius: var(--ws-round-radius);
-  background: color-mix(in srgb, var(--ws-studio-card) 18%, transparent);
+  background: color-mix(in srgb, var(--ws-media) 72%, transparent);
 }
 .audio {
   display: flex;
@@ -295,7 +295,7 @@
   font-size: var(--mantine-font-size-xs);
   line-height: 1;
   background: color-mix(in srgb, var(--ws-media) 72%, transparent);
-  color: var(--ws-studio-card);
+  color: var(--ws-on-media);
 }
 .card[data-kind="text"] .badge {
   background: var(--ws-studio-chrome);
@@ -308,12 +308,12 @@
 .badge[data-tone="failed"],
 .badge[data-tone="missing"] {
   background: var(--ws-danger);
-  color: var(--ws-studio-card);
+  color: var(--ws-panel);
 }
 .badge[data-tone="archived"],
 .badge[data-tone="pending"] {
   background: var(--ws-warning);
-  color: var(--ws-studio-card);
+  color: var(--ws-panel);
 }
 /* The ⊕ beside a selected source: continue from it. Screen-sized, not zoomed. */
 .continueToolbar {

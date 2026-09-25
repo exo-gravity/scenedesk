@@ -4,6 +4,7 @@
   left: var(--mantine-spacing-md);
   bottom: calc(var(--ws-studio-toolbar-height) + 2 * var(--mantine-spacing-md));
   width: 360px;
+  max-width: calc(100% - 2 * var(--mantine-spacing-md));
   max-height: calc(100% - var(--ws-studio-topbar-height) - var(--ws-studio-toolbar-height) - 4 * var(--mantine-spacing-md));
   display: flex;
   flex-direction: column;
@@ -49,19 +50,19 @@
 .searchRoot {
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
 }
-.search,
-.search:focus,
-.search:focus-visible,
-.search:focus-within {
+.search {
   height: 32px;
   min-height: 32px;
   border-radius: var(--ws-tool-radius);
   background: var(--ws-hover);
-  border: none;
+  border: 1px solid var(--ws-field-border);
   box-shadow: none;
-  outline: none;
   font-size: var(--mantine-font-size-sm);
   color: var(--ws-text);
+}
+.search:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 2px;
 }
 .scroll {
   overflow: auto;
@@ -89,7 +90,8 @@
 .row[data-draggable]:active {
   cursor: grabbing;
 }
-.row:hover {
+.row:hover,
+.row:focus-within {
   background: var(--ws-hover);
 }
 .thumb {
@@ -128,6 +130,7 @@
   color: var(--ws-studio-card-label);
 }
 .add {
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -135,11 +138,6 @@
   height: 28px;
   border-radius: var(--ws-tool-radius);
   color: var(--ws-studio-card-label);
-  opacity: 0;
-}
-.row:hover .add,
-.add:focus-visible {
-  opacity: 1;
 }
 .add:not(:disabled):hover {
   background: var(--ws-studio-chrome-border);
@@ -160,4 +158,10 @@
 }
 .more:hover {
   background: var(--ws-hover);
+}
+@media (max-width: 700px) {
+  .panel {
+    bottom: calc(2 * var(--ws-studio-toolbar-height) + 3 * var(--mantine-spacing-md));
+    max-height: calc(100% - var(--ws-studio-topbar-height) - 2 * var(--ws-studio-toolbar-height) - 5 * var(--mantine-spacing-md));
+  }
 }

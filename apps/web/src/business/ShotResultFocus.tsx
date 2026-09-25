@@ -23,6 +23,7 @@ export function ShotResultFocus({
   sourceMediaId,
   transition,
   renderSource,
+  emptyAction,
 }: {
   shot: Schema<"Shot">;
   path: string;
@@ -31,6 +32,7 @@ export function ShotResultFocus({
   sourceMediaId?: string | undefined;
   transition: (next: () => void) => Promise<void>;
   renderSource?: (take: Schema<"Take">) => ReactNode;
+  emptyAction?: ReactNode;
 }) {
   const takes = useList<Schema<"Take">>(`${path}/takes?shotId=${shot.id}`);
   const selection = useResource<Schema<"SelectionState">>(
@@ -77,6 +79,7 @@ export function ShotResultFocus({
     takes.data[0];
   const other = takes.data.find((t) => t.id === compared && t.id !== take?.id);
   const fixedShot = { ...shot, revision: selection.data.revision };
+  const takeNumber = takes.data.findIndex((item) => item.id === take?.id) + 1;
   return (
     <div className={classes.focusContent}>
       <ShotHeading shot={shot} selected={!!current?.takeId} />
@@ -138,9 +141,9 @@ export function ShotResultFocus({
         <>
           {!take ? (
             <div className={classes.previewLoading}>
-              <Text c="dimmed">
-                暂无视频候选。在画布选中原文件可用的视频后打开镜头列表，可登记为候选。
-              </Text>
+              <Text fw={500}>这个镜头还没有视频候选</Text>
+              <Text size="sm" c="dimmed">在创作台选中视频，点击“登记为镜头候选”。</Text>
+              {emptyAction}
             </div>
           ) : (
             <>
@@ -153,6 +156,7 @@ export function ShotResultFocus({
                   path={path}
                   mediaPath={mediaPath}
                   take={take}
+                  label={`候选 ${takeNumber}${take.id === current?.takeId ? " · 已选用" : ""}`}
                   source={renderSource?.(take)}
                 />
                 {other && (
@@ -161,6 +165,7 @@ export function ShotResultFocus({
                     path={path}
                     mediaPath={mediaPath}
                     take={other}
+                    label={`候选 ${takes.data.findIndex((item) => item.id === other.id) + 1}${other.id === current?.takeId ? " · 已选用" : ""}`}
                     source={renderSource?.(other)}
                   />
                 )}
@@ -168,6 +173,19 @@ export function ShotResultFocus({
             </>
           )}
           <div className={classes.focusFooter}>
+            {take && (
+              <Group justify="space-between" gap="sm" className={classes.candidateActions}>
+                <Text size="sm" c="dimmed" role="status">
+                  正在预览 · 候选 {takeNumber}{take.id === current?.takeId ? " · 已选用" : ""}
+                </Text>
+                <Button size="sm" variant={take.id === current?.takeId ? "default" : "filled"}
+                  aria-label={`采用候选 ${takeNumber}`}
+                  disabled={!active || take.id === current?.takeId || take.shotRevisionId !== shot.specRevisionId}
+                  onClick={() => void transition(() => setDecision({ take: structuredClone(take) }))}>
+                  {take.id === current?.takeId ? "已选用此候选" : `采用候选 ${takeNumber}`}
+                </Button>
+              </Group>
+            )}
             {take && (
               <div className={classes.takeStrip} aria-label="镜头候选">
                 {takes.data.map((item, index) => {
@@ -219,20 +237,6 @@ export function ShotResultFocus({
                         }
                       >
                         {item.id === other?.id ? "取消对比" : "对比"}
-                      </Button>
-                      <Button
-                        className={classes.takeChipUse}
-                        size="compact-xs"
-                        variant="subtle"
-                        aria-label={`采用候选 ${index + 1}`}
-                        disabled={!active || adopted || outdated}
-                        onClick={() =>
-                          void transition(() =>
-                            setDecision({ take: structuredClone(item) }),
-                          )
-                        }
-                      >
-                        采用
                       </Button>
                     </div>
                   );
@@ -347,10 +351,12 @@ function FixedTakePreview({
   mediaPath,
   take,
   source,
+  label,
 }: {
   path: string;
   mediaPath: string;
   source?: ReactNode;
+  label: string;
   take: Schema<"Take">;
 }) {
   const media = useResource<Schema<"Media">>(
@@ -376,7 +382,7 @@ function FixedTakePreview({
         )}
       </div>
       <Text size="xs" className={classes.range}>
-        片段 {sourceSeconds(take.range.inUs)}–{sourceSeconds(take.range.outUs)}{" "}
+        {label} · 片段 {sourceSeconds(take.range.inUs)}–{sourceSeconds(take.range.outUs)}{" "}
         秒
       </Text>
       <details className={classes.takeNote}>

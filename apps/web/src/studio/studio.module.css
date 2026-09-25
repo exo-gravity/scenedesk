@@ -1,6 +1,6 @@
 /* The rebuilt creative workspace. Structure and density follow LibTV; every
    colour and size is a theme variable, `--ws-studio-*` where the shared scale
-   has no value of its own. Light is the reference; dark only has to stay readable. */
+   has no value of its own. Both themes use the same semantic hierarchy. */
 .studio {
   flex: 1;
   min-height: 0;
@@ -96,6 +96,10 @@
   color: var(--ws-text);
   font-weight: 500;
 }
+.view:not([aria-current]):hover {
+  background: var(--ws-hover);
+  color: var(--ws-text);
+}
 
 /* The board: the full remaining viewport. Phase 0 leaves it empty. */
 .board {
@@ -161,7 +165,9 @@
   white-space: nowrap;
 }
 .status[data-settled] {
-  color: var(--ws-success);
+  background: transparent;
+  border-color: transparent;
+  color: var(--ws-secondary);
 }
 .status:not(:disabled):hover {
   background: var(--ws-hover);

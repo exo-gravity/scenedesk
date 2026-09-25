@@ -1316,7 +1316,7 @@ function ComposerAnchor({
   // by the nominal size and kept invisible, so the first visible position is
   // the one its true height allows and no guessed side sticks.
   const [size, setSize] = useState<{ width: number; height: number }>();
-  const [board, setBoard] = useState({ width: 0, height: 0 });
+  const [board, setBoard] = useState({ width: 0, height: 0, top: 60, bottom: 76 });
   const previous = useRef<ComposerPlacement | undefined>(undefined);
   // Where the user dragged the panel to, as its offset from the card. Kept for
   // this card only: the next card selected starts from the algorithm again.
@@ -1365,8 +1365,10 @@ function ComposerAnchor({
   useEffect(() => {
     const element = boardElement.current;
     if (!element) return;
-    const measure = () =>
-      setBoard({ width: element.clientWidth, height: element.clientHeight });
+    const measure = () => {
+      const topbar = Number.parseFloat(getComputedStyle(element).getPropertyValue("--ws-studio-topbar-height"));
+      setBoard({ width: element.clientWidth, height: element.clientHeight, top: topbar + 12, bottom: window.innerWidth <= 700 ? 136 : 76 });
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);
@@ -1411,7 +1413,7 @@ function ComposerAnchor({
   lastAnchor.current = anchor;
   const placement = placeComposer({
     anchor,
-    safe: composerSafeArea(board.width, board.height),
+    safe: composerSafeArea(board.width, board.height, { top: board.top, bottom: board.bottom }),
     references: references.flatMap((id) => rectOf(id) ?? []),
     avoid: document.nodes.flatMap((node) =>
       node.id === nodeId || references.includes(node.id) ? [] : (rectOf(node.id) ?? []),

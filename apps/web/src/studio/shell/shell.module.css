@@ -156,3 +156,8 @@
   color: var(--ws-text);
   text-align: center;
 }
+@media (max-width: 700px) {
+  .toolbar { left: auto; right: var(--mantine-spacing-md); transform: none; }
+  .corner { bottom: calc(var(--ws-studio-toolbar-height) + 2 * var(--mantine-spacing-md)); }
+  .shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mantine-spacing-lg); }
+}

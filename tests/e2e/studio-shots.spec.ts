@@ -26,6 +26,37 @@ test.afterEach(async ({ page }) => {
 
 test.use({ viewport: { width: 1920, height: 902 } });
 
+test("empty shots offer a direct start and keep the scene when continuing to the canvas", async ({ page, workspace: w }, info) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto(`${w.runtime.origin}${w.basePath}/studio/shots?scene=${w.scene.id}`);
+  const empty = page.getByRole("region", { name: "本场还没有镜头", exact: true });
+  await expect(empty).toBeVisible();
+  const download = page.getByRole("button", { name: "下载本场已选用", exact: true });
+  await expect(download).toBeDisabled();
+  await expect(page.getByRole("button", { name: "调整顺序", exact: true })).toBeDisabled();
+  await download.locator("..").hover();
+  await expect(page.getByRole("tooltip")).toHaveText("先明确选用至少一个镜头");
+  await page.mouse.move(700, 700);
+  await page.screenshot({ path: info.outputPath("shots-empty-light.png"), animations: "disabled" });
+  await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
+  await page.getByRole("menuitem", { name: "切换深色", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-mantine-color-scheme", "dark");
+  await page.screenshot({ path: info.outputPath("shots-empty-dark.png"), animations: "disabled" });
+  await empty.getByRole("button", { name: "新增镜头", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "新增镜头", exact: true });
+  const name = dialog.getByRole("textbox", { name: "镜头名称", exact: true });
+  await expect(name).toBeFocused();
+  await name.fill("01 门口停步");
+  await dialog.getByRole("button", { name: "创建镜头", exact: true }).click();
+  const detail = page.getByRole("region", { name: "镜头 01 门口停步", exact: true });
+  await expect(detail).toContainText("这个镜头还没有视频候选");
+  await page.screenshot({ path: info.outputPath("shot-no-candidates-dark.png"), animations: "disabled" });
+  await detail.getByRole("button", { name: "前往本场创作台", exact: true }).click();
+  await expect(page).toHaveURL(`${w.runtime.origin}${w.basePath}/studio?scene=${w.scene.id}`);
+  await expect(page.getByRole("button", { name: "创建场次创作台", exact: true })).toBeVisible();
+  expect((await w.runtime.request(w.owner, "GET", `${w.path}/scenes/${w.scene.id}/canvas`)).status).toBe(404);
+});
+
 test("ST-07: a board video becomes a fixed candidate, is explicitly selected, shows in the list, downloads exactly and reorders", async ({ page, workspace: w }, info) => {
   const seeded = await seedShotList(w);
   const studio = `${w.runtime.origin}${w.basePath}/studio`;
@@ -56,6 +87,8 @@ test("ST-07: a board video becomes a fixed candidate, is explicitly selected, sh
   // Downloading is the fixed selection, whatever is being previewed.
   const orangeIndex = takes.findIndex((t) => t.id === seeded.orangeTake.id) + 1;
   await detail.getByRole("button", { name: `预览候选 ${orangeIndex}`, exact: true }).click();
+  await expect(detail.getByRole("button", { name: /^采用候选 \d+$/ })).toHaveCount(1);
+  await expect(detail.getByRole("status").filter({ hasText: "正在预览" })).toHaveText(`正在预览 · 候选 ${orangeIndex}`);
   const downloadEvent = page.waitForEvent("download");
   await detail.getByRole("button", { name: "下载已选用原片", exact: true }).click();
   const download = await downloadEvent;
@@ -172,9 +205,17 @@ test("ST-07: the scene handoff packs only the explicit selections in order, what
   const detail = page.getByRole("region", { name: "镜头 01 推门", exact: true });
   const takes = (await seed.takes()).items;
   await detail.getByRole("button", { name: `预览候选 ${takes.findIndex((item) => item.id === seed.alternative.id) + 1}`, exact: true }).click();
+  await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
+  await page.getByRole("menuitem", { name: "切换深色", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-mantine-color-scheme", "dark");
+  await page.screenshot({ path: info.outputPath("shot-preview-dark.png"), animations: "disabled" });
+  const before = await detail.boundingBox();
   await page.getByRole("button", { name: "下载本场已选用", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "下载本场已选用", exact: true })).toBeVisible();
+  expect(await detail.boundingBox()).toEqual(before);
   const list = page.getByRole("region", { name: "选用原片交接清单", exact: true });
   await expect(list.getByText(/2 个已选用镜头/)).toBeVisible();
+  await page.screenshot({ path: info.outputPath("shot-delivery-dark.png"), animations: "disabled" });
   await expect(list.getByText(/省略 0 个未选用、1 个已归档镜头/)).toBeVisible();
   const event = page.waitForEvent("download");
   await list.getByRole("button", { name: "确认下载原片包", exact: true }).click();
