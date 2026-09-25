@@ -112,7 +112,8 @@ test("shot creation stays compact, retains cancelled inputs through refresh, and
   expect(created.sceneId).toBe(w.scene.id);
   expect(created.spec.intent).toBe("她发现对方仍戴着那枚戒指。");
   expect(created.currentTakeId).toBeUndefined();
-  await expect(focus.getByText("暂无视频候选。在画布选中原文件可用的视频后打开镜头列表，可登记为候选。", { exact: true })).toBeVisible();
+  await expect(focus.getByText("这个镜头还没有视频候选", { exact: true })).toBeVisible();
+  await expect(focus.getByRole("button", { name: "前往本场创作台", exact: true })).toBeVisible();
   await page.screenshot({ path: info.outputPath("shot-created-focused.png"), animations: "disabled" });
 });
 
@@ -159,7 +160,8 @@ test("legacy detailed shot drafts remain reviewable and retain their requirement
     status: "active",
   }, (await w.content()).revision);
   await page.goto(`${w.runtime.origin}${w.basePath}/studio/shots?scene=${w.scene.id}`);
-  await page.getByRole("button", { name: "新增镜头", exact: true }).click();
+  const empty = page.getByRole("region", { name: "本场还没有镜头", exact: true });
+  await empty.getByRole("button", { name: "新增镜头", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "新增镜头", exact: true });
   const form = dialog.getByRole("form", { name: "新增镜头", exact: true });
   await form.getByRole("textbox", { name: "镜头名称", exact: true }).fill("旧草稿镜头");
@@ -203,7 +205,7 @@ test("legacy detailed shot drafts remain reviewable and retain their requirement
       db.close();
     }
   }, { path: `${w.path}/shot/new:${w.scene.id}`, parentId: other.id });
-  await page.getByRole("button", { name: "新增镜头", exact: true }).click();
+  await empty.getByRole("button", { name: "新增镜头", exact: true }).click();
   await form.getByRole("button", { name: "恢复未提交内容", exact: true }).click();
   await expect(form.getByRole("combobox", { name: "所属场次", exact: true })).toHaveValue(`${w.episode.title} · ${other.title}`);
   await expect(form.getByRole("textbox", { name: "动作与表演", exact: true })).toHaveValue("她慢慢放下手中的信。");

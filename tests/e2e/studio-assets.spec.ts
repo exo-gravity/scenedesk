@@ -2,6 +2,41 @@ import { test, expect } from "./continuous-workspace-fixture.js";
 
 test.use({ viewport: { width: 1920, height: 902 } });
 
+test("reference labels stay readable in both themes and compact composer controls remain reachable", async ({ page, continuous: f }, info) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto(`${f.origin}/#/app/t/${f.tenant.id}/p/${f.project.id}/studio`);
+  await expect(page.getByRole("button", { name: "创作台保存状态：已保存", exact: true })).toBeVisible();
+  await page.getByRole("article", { name: "待助手调整的草稿 · 图片", exact: true }).click();
+  const panel = page.getByRole("region", { name: "生成图片", exact: true });
+  await panel.getByRole("button", { name: "添加参考", exact: true }).click();
+  await page.getByRole("menuitem", { name: "合成参考图", exact: true }).click();
+  const reference = panel.getByRole("button", { name: "合成参考图 · 构图", exact: true });
+  await expect(reference).toBeVisible();
+  for (const tone of ["light", "dark"]) {
+    if (tone === "dark") {
+      await page.getByRole("button", { name: "账号与退出登录", exact: true }).click();
+      await page.getByRole("menuitem", { name: "切换深色", exact: true }).click();
+    }
+    await expect(page.locator("html")).toHaveAttribute("data-mantine-color-scheme", tone);
+    await expect(reference.getByText("构图", { exact: true })).toHaveCSS("color", "rgb(255, 255, 255)");
+    await page.screenshot({ path: info.outputPath(`studio-reference-${tone}.png`), animations: "disabled" });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(panel).toBeVisible();
+  const prompt = panel.getByRole("textbox", { name: "提示词", exact: true });
+  await prompt.fill("");
+  await expect(panel.getByRole("status")).toHaveText("先写下提示词");
+  const bounds = (await panel.boundingBox())!;
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+  for (const control of [prompt, panel.getByRole("button", { name: "生成模型", exact: true }), panel.getByRole("button", { name: "生成图片", exact: true })]) {
+    const rect = (await control.boundingBox())!;
+    expect(rect.x).toBeGreaterThanOrEqual(bounds.x);
+    expect(rect.x + rect.width).toBeLessThanOrEqual(bounds.x + bounds.width);
+  }
+  await page.screenshot({ path: info.outputPath("studio-composer-390-dark.png"), animations: "disabled" });
+});
+
 test("ST-05: the assets panel lists, searches and drags media onto the board; the library stays its own page", async ({ page, continuous: f }, info) => {
   await page.goto(`${f.origin}/#/app/t/${f.tenant.id}/p/${f.project.id}/studio`);
   const status = page.getByRole("button", { name: "创作台保存状态：已保存", exact: true });
@@ -16,6 +51,7 @@ test("ST-05: the assets panel lists, searches and drags media onto the board; th
   await expect(panel.getByRole("link", { name: "管理资产", exact: true })).toHaveAttribute("href", `#/app/t/${f.tenant.id}/p/${f.project.id}/assets`);
   const item = panel.locator("[aria-label='合成参考图 · 图片']");
   await expect(item).toBeVisible();
+  await expect(panel.getByRole("button", { name: "加入创作台：合成参考图", exact: true })).toHaveCSS("opacity", "1");
   await expect.poll(async () => (await f.ok("GET", `${f.path}/workspace-preference`)).assetPanelOpen).toBe(true);
   const shot = info.outputPath("studio-assets-1920.png");
   await page.screenshot({ path: shot, animations: "disabled" });
@@ -43,7 +79,6 @@ test("ST-05: the assets panel lists, searches and drags media onto the board; th
   expect((await f.ok("GET", `${f.path}/takes`)).items).toHaveLength(0);
 
   // One press adds it too, at the centre of the view.
-  await item.hover();
   await panel.getByRole("button", { name: "加入创作台：合成参考图", exact: true }).click();
   await expect(board.getByRole("article", { name: "合成参考图 · 图片", exact: true })).toHaveCount(3);
   // Let the autosave land before leaving; reloading earlier would rightly offer local recovery.

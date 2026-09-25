@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader, Modal, Select, Text, UnstyledButton } from "@mantine/core";
+import { Button, Loader, Modal, Select, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { ArrowLeft, ArrowsDownUp, FilmStrip, Plus } from "@phosphor-icons/react";
 import { useList, useResource, type Schema } from "../../business/api";
@@ -102,6 +102,7 @@ export function ShotsView({
   }, [selection.focused, firstShotId, scene?.id, shotParam]);
   const focused = shots.find((s) => s.id === selection.focused);
   const active = projectActive && scene?.status === "active" && episode?.status === "active";
+  const selectedCount = shots.filter((s) => s.status === "active" && s.currentTakeId).length;
   const focusShot = (id: string) => {
     lastFocused.current = id;
     setDetailOpen(true);
@@ -164,19 +165,19 @@ export function ShotsView({
               onChange={(id) => void transition(() => goToScene(id))}
             />
             <span className={classes.count}>
-              {shots.length} 镜头 · {shots.filter((s) => s.currentTakeId).length} 已选用
+              {shots.length} 镜头 · {selectedCount} 已选用
             </span>
           </div>
           <div className={classes.right}>
             {scene && (
               <>
-                <UnstyledButton className={classes.pill} disabled={!active || shots.length < 2} onClick={() => void transition(() => setOrdering(true))}>
-                  <ArrowsDownUp size={14} aria-hidden /> 调整顺序
-                </UnstyledButton>
-                <UnstyledButton className={classes.pill} disabled={!active} onClick={() => void transition(() => setCreating(true))}>
-                  <Plus size={14} aria-hidden /> 新增镜头
-                </UnstyledButton>
-                <SelectedDelivery key={scene.id} path={path} sceneId={scene.id} active={!!active} transition={transition} />
+                <Tooltip label={!active ? "恢复项目或场次后可调整顺序" : "至少两个镜头才能调整顺序"} disabled={!!active && shots.length >= 2} events={{ hover: true, focus: true, touch: true }}>
+                  <span tabIndex={!active || shots.length < 2 ? 0 : undefined}>
+                    <Button size="sm" variant="subtle" leftSection={<ArrowsDownUp size={16} aria-hidden />} disabled={!active || shots.length < 2} onClick={() => void transition(() => setOrdering(true))}>调整顺序</Button>
+                  </span>
+                </Tooltip>
+                <Button size="sm" leftSection={<Plus size={16} aria-hidden />} disabled={!active} onClick={() => void transition(() => setCreating(true))}>新增镜头</Button>
+                <SelectedDelivery key={scene.id} path={path} sceneId={scene.id} selectedCount={selectedCount} active={!!active} transition={transition} />
               </>
             )}
           </div>
@@ -190,10 +191,11 @@ export function ShotsView({
         {!scene ? (
           <Text c="dimmed">先在剧本或场次目录建立所属场次，再回到这里整理镜头。</Text>
         ) : !shots.length && !selection.focused ? (
-          <div className={classes.empty}>
-            <FilmStrip size={32} aria-hidden />
-            <Text fw={500}>本场还没有镜头</Text>
-            <Text size="sm" c="dimmed">新增镜头后，可在这里查看候选、比较画面和明确选用。</Text>
+          <div className={classes.empty} role="region" aria-label="本场还没有镜头">
+            <FilmStrip size={28} aria-hidden />
+            <Text component="h2" size="lg" fw={600} c="var(--ws-text)">本场还没有镜头</Text>
+            <Text size="sm" c="dimmed">{active ? "从第一个镜头开始，再比较候选、确定选用。" : "恢复项目或场次后，即可添加镜头。"}</Text>
+            {active && <Button mt="sm" size="sm" variant="filled" leftSection={<Plus size={16} aria-hidden />} onClick={() => void transition(() => setCreating(true))}>新增镜头</Button>}
           </div>
         ) : (
           <>
@@ -226,6 +228,7 @@ export function ShotsView({
                       active={!!active && focused.status === "active"}
                       sourceMediaId={mediaParam}
                       transition={transition}
+                      emptyAction={<Button size="sm" variant="default" onClick={() => void transition(() => { location.hash = `${base}?scene=${focused.sceneId}`; })}>前往本场创作台</Button>}
                       renderSource={(take) => <CandidateSource key={take.id} path={path} base={base} sceneId={focused.sceneId} mediaId={take.mediaId} transition={transition} getNavigationVersion={() => lock.current ? null : navigationVersion.current} />}
                     />
                   ) : (

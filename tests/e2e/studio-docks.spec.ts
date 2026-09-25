@@ -5,6 +5,42 @@ type Schema<K extends keyof components["schemas"]> = components["schemas"][K];
 test.use({ viewport: { width: 1920, height: 902 } });
 const studio = (w: WorkspaceFixture) => `${w.runtime.origin}${w.basePath}/studio`;
 
+test("compact studio keeps tools and panels inside the viewport and offers one assistant close control", async ({ page, workspace: w }, info) => {
+  await page.goto(studio(w));
+  await page.getByRole("button", { name: "创建项目创作台", exact: true }).click();
+  await expect(page.getByRole("button", { name: "创作台保存状态：已保存", exact: true })).toBeVisible();
+  for (const width of [390, 768]) {
+    await page.setViewportSize({ width, height: 844 });
+    const toolbar = page.getByRole("toolbar", { name: "创作台工具", exact: true });
+    const assets = page.getByRole("button", { name: "资产", exact: true });
+    const a = (await toolbar.boundingBox())!, b = (await assets.boundingBox())!;
+    expect(a.x).toBeGreaterThanOrEqual(0);
+    expect(a.x + a.width).toBeLessThanOrEqual(width);
+    expect(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y).toBe(true);
+    await assets.click();
+    const panel = page.getByRole("region", { name: "资产面板", exact: true });
+    const box = (await panel.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    expect(box.y + box.height).toBeLessThanOrEqual(b.y);
+    const search = panel.getByRole("textbox", { name: "搜索资产与素材", exact: true });
+    await search.focus();
+    await expect(search).toHaveCSS("outline-style", "solid");
+    await page.screenshot({ path: info.outputPath(`studio-assets-${width}.png`), animations: "disabled" });
+    await panel.getByRole("button", { name: "关闭资产面板", exact: true }).click();
+    await page.getByRole("button", { name: "助手", exact: true }).click();
+    const assistant = page.getByRole("region", { name: "助手", exact: true });
+    await expect(assistant.getByRole("textbox", { name: "发送给画布助手", exact: true })).toBeVisible();
+    await expect(assistant.getByRole("button", { name: "收起 AI 助手", exact: true })).toHaveCount(0);
+    await expect(assistant.getByRole("button", { name: "关闭助手", exact: true })).toHaveCount(1);
+    const dock = (await assistant.boundingBox())!;
+    expect(dock.x).toBeGreaterThanOrEqual(0);
+    expect(dock.x + dock.width).toBeLessThanOrEqual(width);
+    await page.screenshot({ path: info.outputPath(`studio-assistant-${width}.png`), animations: "disabled" });
+    await assistant.getByRole("button", { name: "关闭助手", exact: true }).click();
+  }
+});
+
 test("ST-08: the assistant and task docks, the canvas switch to a scene canvas, the project menu and the account", async ({ page, workspace: w }, info) => {
   await page.goto(studio(w));
   await page.getByRole("button", { name: "创建项目创作台", exact: true }).click();
@@ -19,6 +55,13 @@ test("ST-08: the assistant and task docks, the canvas switch to a scene canvas, 
   await expect(assistant).toHaveAttribute("data-mode", "docked");
   const draft = "尚未发送：帮我讨论这个故事的色彩方向。";
   await assistant.getByRole("textbox", { name: "发送给画布助手", exact: true }).fill(draft);
+  await page.getByRole("button", { name: "任务", exact: true }).click();
+  await expect(page.getByRole("region", { name: "任务", exact: true })).toBeVisible();
+  await expect(assistant).toHaveCount(0);
+  await expect(assistantToggle).toHaveAttribute("aria-pressed", "false");
+  await assistantToggle.click();
+  await expect(page.getByRole("region", { name: "任务", exact: true })).toHaveCount(0);
+  await expect(assistant.getByRole("textbox", { name: "发送给画布助手", exact: true })).toHaveValue(draft);
   await assistant.getByRole("button", { name: "改为浮窗", exact: true }).click();
   await expect(assistant).toHaveAttribute("data-mode", "floating");
   const shot = info.outputPath("studio-docks-1920.png");

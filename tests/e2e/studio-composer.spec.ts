@@ -27,11 +27,16 @@ test("ST-03: one click fixes the inputs and submits once; the next draft survive
   await expect(prompt).toBeFocused();
   await prompt.fill("第一稿：雨夜中的门。");
   await expect(submit).toBeDisabled();
+  await expect(panel.getByRole("status")).toHaveText("先选择模型");
   // Rule 5 and 17: the model goes into the document, and its single choices fill in.
   await panel.getByRole("button", { name: "生成模型", exact: true }).click();
   const option = page.getByRole("option", { name: /显式文件 fixture/ });
   await expect(option).toContainText("受控测试");
   await option.click();
+  await prompt.fill("");
+  await expect(submit).toBeDisabled();
+  await expect(panel.getByRole("status")).toHaveText("先写下提示词");
+  await prompt.fill("第一稿：雨夜中的门。");
   await expect(panel.getByRole("button", { name: "生成规格", exact: true })).toContainText("1:1 · 32x32");
   await expect(submit).toBeEnabled();
   await expect(page.getByRole("button", { name: "创作台保存状态：已保存", exact: true })).toBeVisible();

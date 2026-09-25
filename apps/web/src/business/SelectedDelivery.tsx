@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button, Group, Stack, Text } from "@mantine/core";
+import { Alert, Button, Group, Modal, Stack, Text, Tooltip } from "@mantine/core";
 import { DownloadSimple } from "@phosphor-icons/react";
 import { api, ApiError, useSession, type Schema } from "./api";
 import { ErrorNotice } from "./common";
@@ -19,25 +19,30 @@ export function SelectedDelivery({
   sceneId,
   active,
   transition,
+  selectedCount,
 }: {
   path: string;
   sceneId: string;
   active: boolean;
   transition: (next: () => void) => Promise<void>;
+  selectedCount?: number;
 }) {
   const session = useSession();
   const [preview, setPreview] = useState<Schema<"SelectedDeliveryPreview">>(),
     [busy, setBusy] = useState<"preview" | "download">(),
     [error, setError] = useState<Error | null>(null),
+    [opened, setOpened] = useState(false),
     [requested, setRequested] = useState(false);
   const pending = useRef<AbortController | undefined>(undefined);
   useEffect(() => () => pending.current?.abort(), []);
   const base = `${path}/scenes/${sceneId}/selected-delivery`;
+  const unavailable = !active ? "恢复项目或场次后可打包下载" : selectedCount === 0 ? "先明确选用至少一个镜头" : undefined;
   async function load() {
     if (pending.current) return;
     const controller = new AbortController();
     pending.current = controller;
     setBusy("preview");
+    setPreview(undefined);
     setError(null);
     setRequested(false);
     try {
@@ -120,102 +125,111 @@ export function SelectedDelivery({
     }
   }
   return (
-    <Stack gap="xs">
-      <Group>
-        <Button
-          size="xs"
-          variant="default"
-          leftSection={<DownloadSimple size={15} />}
-          disabled={!active || !!busy}
-          loading={busy === "preview"}
-          onClick={() =>
-            void transition(() => {
-              void load();
-            })
-          }
-        >
-          {preview ? "重新查看交接清单" : "下载本场已选用"}
-        </Button>
-        {busy === "download" && (
+    <>
+      <Tooltip label={unavailable} disabled={!unavailable} events={{ hover: true, focus: true, touch: true }}>
+        <span tabIndex={unavailable ? 0 : undefined}>
           <Button
-            size="xs"
-            variant="subtle"
-            onClick={() => {
-              pending.current?.abort();
-              setError(new Error("下载已取消，清单保留。可以再次确认下载。"));
-            }}
+            size="sm"
+            variant="default"
+            leftSection={<DownloadSimple size={15} />}
+            disabled={!!unavailable || !!busy}
+            loading={busy === "preview"}
+            onClick={() =>
+              void transition(() => {
+                setOpened(true);
+                void load();
+              })
+            }
           >
-            取消下载
+            下载本场已选用
           </Button>
-        )}
-      </Group>
-      <ErrorNotice error={error} />
-      {preview && (
-        <section className={classes.confirmation} aria-label="选用原片交接清单">
-          <Stack gap="sm">
-            <Text fw={600}>
-              {preview.manifest.sceneTitle} · {preview.manifest.entries.length}{" "}
-              个已选用镜头
-            </Text>
-            <Text size="sm" c="dimmed">
-              按镜头顺序打包完整原视频，附镜头说明和入出点清单，文件未经裁剪。省略{" "}
-              {preview.manifest.unselectedCount} 个未选用、
-              {preview.manifest.archivedCount} 个已归档镜头。
-            </Text>
-            <ol className={classes.deliveryList}>
-              {preview.manifest.entries.map((entry) => (
-                <li key={entry.selectionId}>
-                  <Text size="sm" fw={600}>
-                    {entry.shotLabel} · {seconds(entry.range.inUs)}–
-                    {seconds(entry.range.outUs)} 秒
+        </span>
+      </Tooltip>
+      <Modal opened={opened} onClose={() => { if (!busy) setOpened(false); }} title="下载本场已选用" size="lg" closeOnClickOutside={!busy} closeOnEscape={!busy} withCloseButton={!busy}>
+        <Stack gap="sm">
+          {busy === "preview" && <Text size="sm" role="status">正在核对本场选用与原片…</Text>}
+          <ErrorNotice error={error} {...(!busy ? { retry: () => void load() } : {})} />
+          {busy === "download" && (
+            <Button
+              size="xs"
+              variant="subtle"
+              onClick={() => {
+                pending.current?.abort();
+                setError(new Error("下载已取消，清单保留。可以再次确认下载。"));
+              }}
+            >
+              取消下载
+            </Button>
+          )}
+          {preview && (
+            <section aria-label="选用原片交接清单">
+              <Stack gap="sm">
+                <Text fw={600}>
+                  {preview.manifest.sceneTitle} · {preview.manifest.entries.length}{" "}
+                  个已选用镜头
+                </Text>
+                <Text size="sm" c="dimmed">
+                  按镜头顺序打包完整原视频，附镜头说明和入出点清单，文件未经裁剪。省略{" "}
+                  {preview.manifest.unselectedCount} 个未选用、
+                  {preview.manifest.archivedCount} 个已归档镜头。
+                </Text>
+                <ol className={classes.deliveryList}>
+                  {preview.manifest.entries.map((entry) => (
+                    <li key={entry.selectionId}>
+                      <Text size="sm" fw={600}>
+                        {entry.shotLabel} · {seconds(entry.range.inUs)}–
+                        {seconds(entry.range.outUs)} 秒
+                      </Text>
+                      <Text size="sm">{entry.intent}</Text>
+                      <Text size="xs" c="dimmed">
+                        {entry.originalFileName}
+                        {entry.takeNote ? ` · ${entry.takeNote}` : ""}
+                      </Text>
+                    </li>
+                  ))}
+                </ol>
+                <Text size="xs" c="dimmed">
+                  原片合计 {(preview.manifest.totalBytes / 1024 / 1024).toFixed(1)}{" "}
+                  MB。每包最多 100 个镜头、256 MB；准备最多约 3 分钟，可取消后重试。
+                </Text>
+                {busy === "download" && (
+                  <Text role="status" size="sm">
+                    正在准备并接收原片包，请保持此窗口打开。镜头选用有变化时会停止并请你重新核对。
                   </Text>
-                  <Text size="sm">{entry.intent}</Text>
-                  <Text size="xs" c="dimmed">
-                    {entry.originalFileName}
-                    {entry.takeNote ? ` · ${entry.takeNote}` : ""}
-                  </Text>
-                </li>
-              ))}
-            </ol>
-            <Text size="xs" c="dimmed">
-              原片合计 {(preview.manifest.totalBytes / 1024 / 1024).toFixed(1)}{" "}
-              MB。每包最多 100 个镜头、256 MB；准备最多约 3 分钟，可取消后重试。
-            </Text>
-            {busy === "download" && (
-              <Text role="status" size="sm">
-                正在准备并接收原片包，请保持此窗口打开。镜头选用有变化时会停止并请你重新核对。
-              </Text>
-            )}
-            {requested && (
-              <Alert>
-                原片包已交给浏览器下载，请在浏览器下载记录中核对 ZIP 文件。
-              </Alert>
-            )}
-            <Group gap="xs">
-              <Button
-                size="sm"
-                loading={busy === "download"}
-                disabled={!!busy || !active}
-                onClick={() => void download()}
-              >
-                确认下载原片包
-              </Button>
-              <Button
-                size="sm"
-                variant="subtle"
-                disabled={!!busy}
-                onClick={() => {
-                  setPreview(undefined);
-                  setRequested(false);
-                  setError(null);
-                }}
-              >
-                收起清单
-              </Button>
-            </Group>
-          </Stack>
-        </section>
-      )}
-    </Stack>
+                )}
+                {requested && (
+                  <Alert>
+                    原片包已交给浏览器下载，请在浏览器下载记录中核对 ZIP 文件。
+                  </Alert>
+                )}
+                <Group gap="xs">
+                  <Button
+                    size="sm"
+                    loading={busy === "download"}
+                    disabled={!!busy || !active}
+                    onClick={() => void download()}
+                  >
+                    确认下载原片包
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="subtle"
+                    disabled={!!busy}
+                    onClick={() => {
+                      setPreview(undefined);
+                      setRequested(false);
+                      setError(null);
+                      setOpened(false);
+                    }}
+                  >
+                    收起清单
+                  </Button>
+                </Group>
+              </Stack>
+            </section>
+          )}
+        </Stack>
+      </Modal>
+    </>
   );
 }

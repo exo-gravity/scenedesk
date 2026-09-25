@@ -1,12 +1,14 @@
 /* The input panel under a selected draft: white, one thin edge, a light
    shadow, screen-sized (it does not zoom with the board). */
 .panel {
+  container-type: inline-size;
   position: absolute;
   z-index: 5;
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-sm);
   width: var(--ws-studio-composer-width);
+  max-width: calc(100% - 2 * var(--mantine-spacing-md));
   padding: var(--mantine-spacing-md);
   background: var(--ws-studio-card);
   border: 1px solid var(--ws-studio-card-border);
@@ -14,9 +16,18 @@
   box-shadow: var(--ws-studio-shadow);
   color: var(--ws-text);
 }
+@container (max-width: 480px) {
+  .bottom { flex-wrap: wrap; }
+  .bottom > .status { order: 1; flex-basis: 100%; text-align: left; white-space: normal; }
+  .bottom > .submit { margin-left: auto; }
+  .resultActions { flex-wrap: wrap; }
+}
 .panel[data-docked] {
   left: var(--mantine-spacing-md);
   bottom: calc(var(--ws-studio-toolbar-height) + 2 * var(--mantine-spacing-md));
+}
+@media (max-width: 700px) {
+  .panel[data-docked] { bottom: calc(2 * var(--ws-studio-toolbar-height) + 3 * var(--mantine-spacing-md)); }
 }
 .row {
   display: flex;
@@ -158,16 +169,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   background: color-mix(in srgb, var(--ws-media) 72%, transparent);
-  color: var(--ws-studio-card);
+  color: var(--ws-on-media);
   pointer-events: none;
 }
 .referenceTag[data-tone="failed"],
 .referenceTag[data-tone="missing"] {
   background: var(--ws-danger);
+  color: var(--ws-panel);
 }
 .referenceTag[data-tone="archived"],
 .referenceTag[data-tone="pending"] {
   background: var(--ws-warning);
+  color: var(--ws-panel);
 }
 /* The prompt: large text, no field chrome. */
 .prompt,
@@ -186,6 +199,11 @@
 }
 .promptRoot {
   display: block;
+}
+.prompt:focus-visible {
+  outline: 2px solid var(--ws-focus);
+  outline-offset: 3px;
+  border-radius: var(--ws-radius);
 }
 .promptFrozen {
   min-height: 56px;

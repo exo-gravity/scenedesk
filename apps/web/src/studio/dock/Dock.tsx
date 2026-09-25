@@ -17,22 +17,24 @@ export function Dock({
   onMode,
   onClose,
   chromeless = false,
+  hidden = false,
   children,
 }: {
   label: string;
   title: ReactNode;
   mode: DockMode;
-  onMode: (mode: DockMode) => void;
+  onMode?: ((mode: DockMode) => void) | undefined;
   onClose: () => void;
   /** The content brings its own header; the dock only adds its two controls over it. */
   chromeless?: boolean;
+  hidden?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className={classes.dock} data-mode={mode} data-chromeless={chromeless || undefined} aria-label={label}>
+    <section className={classes.dock} hidden={hidden} data-mode={mode} data-chromeless={chromeless || undefined} aria-label={label}>
       <header className={classes.header}>
         {!chromeless && <span className={classes.title}>{title}</span>}
-        <Tooltip label={mode === "docked" ? "改为浮窗" : "停靠到右侧"}>
+        {onMode && <Tooltip label={mode === "docked" ? "改为浮窗" : "停靠到右侧"}>
           <UnstyledButton
             className={classes.control}
             aria-label={mode === "docked" ? "改为浮窗" : "停靠到右侧"}
@@ -40,7 +42,7 @@ export function Dock({
           >
             {mode === "docked" ? <ArrowSquareOut size={14} aria-hidden /> : <ArrowsInLineHorizontal size={14} aria-hidden />}
           </UnstyledButton>
-        </Tooltip>
+        </Tooltip>}
         <UnstyledButton className={classes.control} aria-label={`关闭${label}`} onClick={onClose}>
           <X size={14} aria-hidden />
         </UnstyledButton>

@@ -15,6 +15,9 @@
   place-items: center;
 }
 .toolbar {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -29,8 +32,10 @@
   gap: var(--mantine-spacing-sm);
   flex-wrap: wrap;
 }
+.left { flex: 1; min-width: 0; }
+.right { flex-shrink: 0; }
 .sceneRoot {
-  width: min(360px, 100%);
+  width: min(320px, 100%);
 }
 .scene,
 .scene:focus,
@@ -38,8 +43,9 @@
   height: 32px;
   min-height: 32px;
   border-radius: var(--ws-tool-radius);
-  background: var(--ws-hover);
-  border: 1px solid var(--ws-border);
+  background: var(--ws-studio-chrome);
+  border: 1px solid var(--ws-field-border);
+  padding-left: var(--mantine-spacing-sm);
   font-size: var(--mantine-font-size-sm);
   color: var(--ws-text);
 }
@@ -47,24 +53,7 @@
   font-size: var(--mantine-font-size-xs);
   color: var(--ws-studio-card-label);
   white-space: nowrap;
-}
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--mantine-spacing-xs);
-  height: 32px;
-  padding-inline: var(--mantine-spacing-sm);
-  border-radius: var(--ws-tool-radius);
-  background: var(--ws-hover);
-  font-size: var(--mantine-font-size-sm);
-  color: var(--ws-text);
-  white-space: nowrap;
-}
-.pill:not(:disabled):hover {
-  background: var(--ws-studio-chrome-border);
-}
-.pill:disabled {
-  color: var(--ws-studio-card-label);
+  font-variant-numeric: tabular-nums;
 }
 .hint {
   color: var(--ws-studio-card-label);
