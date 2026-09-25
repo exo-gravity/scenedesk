@@ -1,40 +1,34 @@
 name: SceneDesk deployment package
-# Path-filtered: this workflow builds three images and a nine-container smoke stack, so it must
-# not run for documentation-only or evidence-only changes. `docs/**`, `output/**` and `*.md` are
-# intentionally absent. The universal cheap gate stays unfiltered in ci.yml.
+# Keep check names present on every PR; the shared planner selects jobs before services start.
 on:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/deployment.yml'
-      - 'deploy/**'
-      - 'apps/**'
-      - 'packages/**'
-      - 'scripts/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'tsconfig.base.json'
-      - '.nvmrc'
   pull_request:
-    paths:
-      - '.github/workflows/deployment.yml'
-      - 'deploy/**'
-      - 'apps/**'
-      - 'packages/**'
-      - 'scripts/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'tsconfig.base.json'
-      - '.nvmrc'
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Run every verification suite
+        type: boolean
+        default: true
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  scope:
+    uses: ./.github/workflows/verification-scope.yml
+    with:
+      full: ${{ github.event_name == 'workflow_dispatch' && inputs.full }}
   verify-isolated-recovery:
+    needs: scope
+    if: ${{ !cancelled() && (needs.scope.result != 'success' || needs.scope.outputs.recovery == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Require a valid verification plan
+        if: needs.scope.result != 'success'
+        run: exit 1
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -47,6 +41,8 @@ jobs:
       - name: Verify paired restore with isolated synthetic PostgreSQL and MinIO
         run: node --import tsx --test deploy/recovery/recovery.test.ts
   verify-deployment:
+    needs: scope
+    if: ${{ !cancelled() && (needs.scope.result != 'success' || needs.scope.outputs.deploy == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -61,6 +57,9 @@ jobs:
           --health-cmd "pg_isready -U deployment_test -d drama_deployment_ci"
           --health-interval 5s --health-timeout 3s --health-retries 20
     steps:
+      - name: Require a valid verification plan
+        if: needs.scope.result != 'success'
+        run: exit 1
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:

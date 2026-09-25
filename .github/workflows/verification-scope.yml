@@ -1,0 +1,53 @@
+name: SceneDesk verification scope
+on:
+  workflow_call:
+    inputs:
+      full:
+        type: boolean
+        default: false
+    outputs:
+      docs:
+        value: ${{ jobs.scope.outputs.docs }}
+      check:
+        value: ${{ jobs.scope.outputs.check }}
+      db:
+        value: ${{ jobs.scope.outputs.db }}
+      worker:
+        value: ${{ jobs.scope.outputs.worker }}
+      media:
+        value: ${{ jobs.scope.outputs.media }}
+      e2e:
+        value: ${{ jobs.scope.outputs.e2e }}
+      preview:
+        value: ${{ jobs.scope.outputs.preview }}
+      deploy:
+        value: ${{ jobs.scope.outputs.deploy }}
+      recovery:
+        value: ${{ jobs.scope.outputs.recovery }}
+permissions:
+  contents: read
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      docs: ${{ steps.plan.outputs.docs }}
+      check: ${{ steps.plan.outputs.check }}
+      db: ${{ steps.plan.outputs.db }}
+      worker: ${{ steps.plan.outputs.worker }}
+      media: ${{ steps.plan.outputs.media }}
+      e2e: ${{ steps.plan.outputs.e2e }}
+      preview: ${{ steps.plan.outputs.preview }}
+      deploy: ${{ steps.plan.outputs.deploy }}
+      recovery: ${{ steps.plan.outputs.recovery }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+      - id: plan
+        name: Select checks from changed paths
+        env:
+          SCENEDESK_VERIFY_ALL: ${{ inputs.full }}
+        run: node scripts/verification-plan.mjs --ci
