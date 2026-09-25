@@ -37,6 +37,8 @@ npm run contracts:generate
 ## 验证
 
 - 根据改动范围执行相关检查；测试公共行为和失败路径，不写只复述实现的测试。
+- 本地和 CI 共用 `scripts/verification-plan.mjs` 的范围规则；先用 `bash scenedesk-preflight.sh --plan` 核对。纯文档不跑数据库或媒体，前端自动跑生产浏览器回归；契约、共享运行输入和未知路径保守扩大范围。
+- preflight 串行执行并共用跨 worktree 锁；不并行启动多套重型门禁。仅复用输入与环境一致的成功静态记录，集成不自动缓存；强制省略项必须记为未完成。
 - 修复失败原因，不通过放宽断言、超时、资源限制或跳过测试掩盖问题；认定为既存失败前，先在基线上复现。
 - 如实区分通过、失败和未运行。证据来自完整实际执行，不拼接多次运行结果；原型、mock 和静态检查不能代替真实集成验收。
 
@@ -55,7 +57,7 @@ npm run contracts:generate
 
 - 分支用 `feat/`；提交信息和 PR 标题用 `type(scope): 摘要`，类型为 `feat`、`fix`、`docs`、`test`、`refactor` 或 `chore`。
 - 提交前审查实际 diff；合并前独立审查并处理发现的问题，不能只看测试是否通过。
-- 仅在用户明确要求时推送。推送前整理提交并运行 `bash scenedesk-preflight.sh`；推送后检查 GitHub CI，不绕过保护或将未运行写成通过。涉及恢复逻辑时，另行验证门禁未覆盖的 `deploy/recovery/recovery.test.ts`。
+- 仅在用户明确要求时推送。推送前整理提交并运行 `bash scenedesk-preflight.sh`；推送后检查 GitHub CI，不绕过保护或将未运行写成通过。部署与全套范围包含 `deploy/recovery/recovery.test.ts`；其他切片涉及恢复逻辑时也须显式覆盖。
 - 纯文档／证据改动与代码分开提交、分开推送；同步主线用 rebase，不把 `main` merge 进功能分支。
 - 注释、提交和 PR 面向未读过对话的维护者，说明改动与必要理由，不记录对话过程。
 - 交付说明写清改了什么、实际验证及剩余限制；更新相关文档。当前进度与环境问题统一记在 [实施进度](docs/implementation/22-implementation-progress.md)，不写进本文件。
