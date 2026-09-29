@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Loader, Modal, Select, Text, Tooltip, UnstyledButton } from "@mantine/core";
+import { Button, Group, Loader, Modal, Select, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { ArrowLeft, ArrowsDownUp, FilmStrip, Plus } from "@phosphor-icons/react";
 import { useList, useResource, type Schema } from "../../business/api";
 import { ErrorNotice, projectPath, tenantPath } from "../../business/common";
 import { ContentDraftRetention } from "../../business/content-drafts";
-import { StructureEditor } from "../../business/ContentEditors";
+import { StructureEditor, type ContentEditing } from "../../business/ContentEditors";
 import { SceneShotOrder } from "../../business/SceneShotOrder";
 import { ShotResultFocus } from "../../business/ShotResultFocus";
 import { SelectedDelivery } from "../../business/SelectedDelivery";
@@ -54,6 +54,7 @@ export function ShotsView({
     else if (lastFocused.current) listRef.current?.querySelector<HTMLButtonElement>(`[data-shot-id="${lastFocused.current}"]`)?.focus({ preventScroll: true });
   }, [detailOpen, narrow]);
   const [creating, setCreating] = useState(false);
+  const [sceneSetup, setSceneSetup] = useState<ContentEditing>();
   const [ordering, setOrdering] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   // Retain inputs before changing the focused shot, scene or dialog.
@@ -132,7 +133,10 @@ export function ShotsView({
     setSelection(emptySelection);
     setDetailOpen(false);
     lastFocused.current = undefined;
-    location.hash = `${base}/shots${id ? `?scene=${id}` : ""}`;
+    const query = new URLSearchParams();
+    if (id) query.set("scene", id);
+    if (mediaParam) query.set("media", mediaParam);
+    location.hash = `${base}/shots${query.size ? `?${query}` : ""}`;
   };
   if (content.isError)
     return (
@@ -149,14 +153,13 @@ export function ShotsView({
   return (
     <ContentDraftRetention.Provider value={register}>
       <div className={classes.view}>
-        <header className={classes.toolbar}>
+        {scene && <header className={classes.toolbar}>
           <div className={classes.left}>
             <Select
               aria-label="查看场次"
               variant="unstyled"
               classNames={{ input: classes.scene!, root: classes.sceneRoot! }}
-              value={scene?.id ?? null}
-              placeholder="先建立所属场次"
+              value={scene.id}
               allowDeselect={false}
               data={scenes.map((s) => ({
                 value: s.id,
@@ -181,15 +184,31 @@ export function ShotsView({
               </>
             )}
           </div>
-        </header>
+        </header>}
         <ErrorNotice error={error} />
-        {mediaParam && (
+        {mediaParam && scene && (
           <Text size="sm" className={classes.hint}>
             从创作台带来的视频已就绪：打开一个镜头，即可登记为它的候选。
           </Text>
         )}
         {!scene ? (
-          <Text c="dimmed">先在剧本或场次目录建立所属场次，再回到这里整理镜头。</Text>
+          <section className={classes.empty} aria-labelledby="shots-no-scenes-title">
+            <FilmStrip size={28} aria-hidden />
+            <Text id="shots-no-scenes-title" component="h2" size="lg" fw={600} c="var(--ws-text)">还没有场次</Text>
+            <Text size="sm" c="dimmed" className={classes.emptyDescription}>
+              {projectActive
+                ? "先建立故事发生的场次，再添加镜头、比较候选。"
+                : "项目已归档，可返回创作台查看已有内容。"}
+            </Text>
+            <Group gap="sm" justify="center" mt="sm">
+              {projectActive && <Button size="sm" variant="filled" leftSection={<Plus size={16} aria-hidden />} onClick={() => void transition(() => {
+                const parent = tree.episodes.find((item) => item.status === "active");
+                setSceneSetup(parent ? { kind: "scene", parentId: parent.id } : { kind: "episode", parentId: projectId });
+              })}>新建场次</Button>}
+              <Button size="sm" variant="subtle" onClick={() => void transition(() => { location.hash = base; })}>返回创作台</Button>
+            </Group>
+            {mediaParam && projectActive && <Text size="xs" c="dimmed" className={classes.emptyDescription}>建立场次和镜头后，可继续登记从创作台带来的视频。</Text>}
+          </section>
         ) : !shots.length && !selection.focused ? (
           <div className={classes.empty} role="region" aria-label="本场还没有镜头">
             <FilmStrip size={28} aria-hidden />
@@ -242,6 +261,34 @@ export function ShotsView({
             </div>
           </>
         )}
+        <Modal opened={!!sceneSetup && projectActive} onClose={() => void transition(() => setSceneSetup(undefined))} title={sceneSetup?.kind === "episode" ? "新建单集" : "新建场次"} size="lg">
+          {sceneSetup && projectActive && (
+            sceneSetup.kind === "scene" && sceneSetup.parentId && !tree.episodes.some((item) => item.id === sceneSetup.parentId) ? (
+              <Loader aria-label="正在读取新建单集" />
+            ) : (
+              <>
+                {sceneSetup.kind === "episode" && <Text size="sm" c="dimmed" mb="md">先为这场戏建立所属单集，保存后继续创建场次。</Text>}
+                <StructureEditor
+                  key={`${sceneSetup.kind}:${sceneSetup.parentId}`}
+                  editing={sceneSetup}
+                  tree={tree}
+                  path={path}
+                  scripts={scripts.data ?? []}
+                  onCreateEpisode={() => void transition(() => setSceneSetup({ kind: "episode", parentId: projectId }))}
+                  done={(created) => void transition(() => {
+                    if (created && !("episodeId" in created) && !("sceneId" in created)) {
+                      setSceneSetup({ kind: "scene", parentId: created.id });
+                    } else {
+                      setSceneSetup(undefined);
+                      if (created && "episodeId" in created) goToScene(created.id);
+                    }
+                    void content.refetch();
+                  })}
+                />
+              </>
+            )
+          )}
+        </Modal>
         <Modal opened={ordering && !!scene} onClose={() => void transition(() => setOrdering(false))} title="调整镜头顺序">
           {scene && (
             <SceneShotOrder
