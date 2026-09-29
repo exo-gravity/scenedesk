@@ -61,9 +61,10 @@ test("an empty project offers a centered action and creates its first scene and 
   } finally {
     release();
   }
-  await page.unrouteAll({ behavior: "wait" });
   const scene = page.getByRole("dialog", { name: "新建场次", exact: true });
   await expect(scene.getByRole("combobox", { name: "所属单集", exact: true })).toHaveValue("第一集");
+  // Consume the delayed content before removing interception of in-flight refreshes.
+  await page.unrouteAll({ behavior: "wait" });
   await scene.getByRole("textbox", { name: "标题", exact: true }).fill("雨夜咖啡店");
   await page.screenshot({ path: info.outputPath("create-first-scene-dark.png"), animations: "disabled" });
   await scene.getByRole("button", { name: "创建场次", exact: true }).click();
