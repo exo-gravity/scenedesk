@@ -163,6 +163,7 @@
   color: var(--ws-secondary);
   text-align: center;
 }
+.emptyDescription { max-width: 34em; }
 .sourceLink, .back {
   display: inline-flex;
   align-items: center;
